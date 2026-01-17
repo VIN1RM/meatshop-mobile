@@ -1,6 +1,6 @@
-import { AuthRepository } from '../domain/repositories/AuthRepository'
-import { User } from '../domain/entities/User'
-import { AuthApi } from './AuthApi'
+import { AuthRepository } from '../domain/repositories/auth_repository'
+import { User } from '../domain/entities/user'
+import { AuthApi } from './auth_api'
 
 export class AuthRepositoryImpl implements AuthRepository {
   private api = new AuthApi()
