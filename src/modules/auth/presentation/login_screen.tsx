@@ -16,18 +16,24 @@ import Button from '../../../shared/components/button'
 import Input from '../../../shared/components/input'
 import { colors } from '../../../shared/theme/colors'
 import { useNavigation } from '@react-navigation/native'
+import { cpfMask } from '../../../shared/utils/cpf_mask'
 
 export default function LoginScreen() {
   const { login, loading, error } = useLogin()
   const navigation = useNavigation<any>()
 
-  const [email, setEmail] = useState('')
+  const [cpf, setCpf] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  function handleCpfChange(value: string) {
+    setCpf(cpfMask(value))
+  }
+
   async function handleLogin() {
     try {
-      await login(email, password)
+      const cpfClean = cpf.replace(/\D/g, '')
+      await login(cpfClean, password)
       navigation.replace('Welcome')
     } catch {}
   }
@@ -51,8 +57,15 @@ export default function LoginScreen() {
           <Text style={styles.title}>LOGIN</Text>
 
           <View style={styles.card}>
-            <Text style={styles.label}>Usuário</Text>
-            <Input value={email} onChangeText={setEmail} />
+            <Text style={styles.label}>CPF</Text>
+
+            <Input
+              value={cpf}
+              onChangeText={handleCpfChange}
+              keyboardType="numeric"
+              placeholder="000.000.000-00"
+              maxLength={14}
+            />
 
             <Text style={[styles.label, { marginTop: 16 }]}>Senha</Text>
 
@@ -61,17 +74,18 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                placeholder="••••••••"
                 style={{ paddingRight: 44 }}
               />
 
               <TouchableOpacity
                 style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
+                onPress={() => setShowPassword(prev => !prev)}
               >
                 <Ionicons
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                   size={22}
-                  color="#FFF"
+                 color={colors.gray}
                 />
               </TouchableOpacity>
             </View>
@@ -108,7 +122,17 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   label: { color: '#FFF', fontSize: 16, marginBottom: 6 },
-  passwordWrapper: { position: 'relative' },
-  eyeButton: { position: 'absolute', right: 12, top: 18 },
+passwordWrapper: {
+  position: 'relative',
+},
+
+eyeButton: {
+  position: 'absolute',
+  right: 15,
+  top: 12,
+  bottom: 0,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
   error: { color: colors.error, marginTop: 10 },
 })
