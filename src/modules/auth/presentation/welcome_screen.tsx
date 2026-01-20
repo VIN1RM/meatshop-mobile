@@ -6,6 +6,7 @@ import {
   Image,
   ActivityIndicator,
   SafeAreaView,
+  ImageBackground,
 } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { colors } from '../../../shared/theme/colors'
@@ -22,34 +23,54 @@ export default function WelcomeScreen() {
   }, [])
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        {/* Textos */}
-        <View style={styles.textWrapper}>
-          <Text style={styles.title}>
-            SEJA <Text style={styles.highlight}>BEM VINDO!</Text>
-          </Text>
-          <Text style={styles.subtitle}>Sentimos sua falta.</Text>
-        </View>
+    <View style={styles.wrapper}>
+      <ImageBackground
+        source={require('../../../../assets/background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+        imageStyle={{ opacity: 0.05 }}
+      >
+        <SafeAreaView style={styles.safe}>
+          <View style={styles.container}>
+            {/* Textos */}
+            <View style={styles.textWrapper}>
+              <Text style={styles.title}>
+                SEJA <Text style={styles.highlight}>BEM VINDO!</Text>
+              </Text>
+              <Text style={styles.subtitle}>Sentimos sua falta.</Text>
+            </View>
 
-        {/* Loading */}
-        <ActivityIndicator size="large" color={colors.primary} />
+            {/* Loading */}
+            <ActivityIndicator size="large" color={colors.primary} />
 
-        {/* Logo */}
-        <Image
-          source={require('../../../../assets/logo_completa.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </View>
-    </SafeAreaView>
+            {/* Logo */}
+            <Image
+              source={require('../../../../assets/logo_completa.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+        </SafeAreaView>
+      </ImageBackground>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+
   safe: {
     flex: 1,
-    backgroundColor: '#F7F7F7', // MESMA cor do splash
+    backgroundColor: 'transparent',
   },
 
   container: {
@@ -58,7 +79,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 64,
     paddingHorizontal: 24,
-    backgroundColor: '#F7F7F7',
   },
 
   textWrapper: {

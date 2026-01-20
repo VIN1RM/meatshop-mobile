@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, Image, TextInput, TouchableOpacity, Dimensions } from 'react-native'
 import { useState, useRef, useEffect } from 'react'
 
-const { width } = Dimensions.get('window')
+const { width, height } = Dimensions.get('window')
 
 const promotions = [
   {
@@ -28,21 +28,32 @@ const promotions = [
 ]
 
 const butchers = [
-  { id: 1, name: 'Master Carnes', rating: 5, logo: require('./assets/logo.png') },
-  { id: 2, name: 'Frigorífico Goiás', rating: 4.5, logo: require('./assets/logo.png') },
-  { id: 3, name: 'Bom Beef', rating: 4, logo: require('./assets/logo.png') }
+  { id: 1, name: 'Master Carnes', rating: 5, logo: require('./assets/mastercarnes.png') },
+  { id: 2, name: 'Frigorífico Goiás', rating: 4.5, logo: require('./assets/frigoias.png') },
+  { id: 3, name: 'Bom Beef', rating: 4, logo: require('./assets/bombeef.png') }
 ]
 
 export default function HomeScreen() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const scrollViewRef = useRef<ScrollView>(null)
 
+  const infinitePromotions = Array(100).fill(promotions).flat()
+
   useEffect(() => {
+    const initialPosition = Math.floor(infinitePromotions.length / 2)
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({
+        x: initialPosition * (width * 0.3 + 12),
+        animated: false
+      })
+      setCurrentSlide(initialPosition)
+    }, 100)
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
-        const next = (prev + 1) % promotions.length
+        const next = prev + 1
         scrollViewRef.current?.scrollTo({
-          x: next * (width - 48),
+          x: next * (width * 0.3 + 12),
           animated: true
         })
         return next
@@ -51,6 +62,13 @@ export default function HomeScreen() {
 
     return () => clearInterval(interval)
   }, [])
+
+  const handleScroll = (e: any) => {
+    const scrollX = e.nativeEvent.contentOffset.x
+    const cardWidth = width * 0.3 + 12
+    const slide = Math.round(scrollX / cardWidth)
+    setCurrentSlide(slide)
+  }
 
   const renderStars = (rating: number) => {
     const stars = []
@@ -74,16 +92,14 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('./assets/logo-preta.png')}
+          source={require('./assets/logo.png')}
           style={styles.logoIcon}
           resizeMode="contain"
         />
-        <TouchableOpacity style={styles.helpButton}>
-          <Text style={styles.helpIcon}>?</Text>
-        </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      {/* Main Content */}
+      <View style={styles.mainContent}>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -99,92 +115,97 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>CORTES</Text>
           <View style={styles.categoriesContainer}>
             <TouchableOpacity style={styles.categoryButton}>
-              <Text style={styles.categoryIcon}>🐄</Text>
+              <Image 
+                source={require('./assets/vaca.png')} 
+                style={styles.categoryImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.categoryButton}>
-              <Text style={styles.categoryIcon}>🐷</Text>
+              <Image 
+                source={require('./assets/porco.png')} 
+                style={styles.categoryImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.categoryButton}>
-              <Text style={styles.categoryIcon}>🐔</Text>
+              <Image 
+                source={require('./assets/frango.png')} 
+                style={styles.categoryImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.categoryButton}>
-              <Text style={styles.categoryIcon}>🐟</Text>
+              <Image 
+                source={require('./assets/peixe.png')} 
+                style={styles.categoryImage}
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Promoções */}
-        <View style={styles.section}>
+        <View style={styles.promoSection}>
           <Text style={styles.promotionTitle}>PROMOÇÕES</Text>
           <ScrollView
             ref={scrollViewRef}
             horizontal
-            pagingEnabled
             showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(e) => {
-              const slide = Math.round(e.nativeEvent.contentOffset.x / (width - 48))
-              setCurrentSlide(slide)
-            }}
+            onMomentumScrollEnd={handleScroll}
+            contentContainerStyle={styles.promoScrollContent}
+            decelerationRate="fast"
+            snapToInterval={width * 0.3 + 12}
+            snapToAlignment="start"
           >
-            {promotions.map((promo) => (
-              <View key={promo.id} style={styles.promoCard}>
+            {infinitePromotions.map((promo, index) => (
+              <View key={`promo-${index}`} style={styles.promoCard}>
                 <Image source={promo.image} style={styles.promoImage} />
                 <View style={styles.promoInfo}>
-                  <Text style={styles.promoName}>{promo.name} <Text style={styles.promoUnit}>{promo.unit}</Text></Text>
+                  <Text style={styles.promoName}>
+                    {promo.name} <Text style={styles.promoUnit}>{promo.unit}</Text>
+                  </Text>
                   <Text style={styles.promoPrice}>{promo.price}</Text>
                 </View>
               </View>
             ))}
           </ScrollView>
-
-          {/* Pagination Dots */}
-          <View style={styles.pagination}>
-            {promotions.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.paginationDot,
-                  currentSlide === index && styles.paginationDotActive
-                ]}
-              />
-            ))}
-          </View>
         </View>
 
         {/* Açougues */}
-        <View style={styles.section}>
+        <View style={styles.butchersSection}>
           <Text style={styles.sectionTitle}>AÇOUGUES</Text>
-          {butchers.map((butcher) => (
-            <TouchableOpacity key={butcher.id} style={styles.butcherCard}>
-              <Image source={butcher.logo} style={styles.butcherLogo} />
-              <Text style={styles.butcherName}>{butcher.name}</Text>
-              <View style={styles.ratingContainer}>
-                {renderStars(butcher.rating)}
-              </View>
-            </TouchableOpacity>
-          ))}
-          <TouchableOpacity>
-            <Text style={styles.seeMore}>Ver mais...</Text>
-          </TouchableOpacity>
+          <View style={styles.butchersContainer}>
+            {butchers.map((butcher) => (
+              <TouchableOpacity key={butcher.id} style={styles.butcherCard}>
+                <Image source={butcher.logo} style={styles.butcherLogo} />
+                <Text style={styles.butcherName}>{butcher.name}</Text>
+                <View style={styles.ratingContainer}>
+                  {renderStars(butcher.rating)}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
         </View>
-      </ScrollView>
+      </View>
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>🏠</Text>
+          <Text style={styles.navIconLarge}>🏠</Text>
           <Text style={styles.navTextActive}>Início</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>🛒</Text>
+          <Text style={styles.navIconLarge}>🛒</Text>
           <Text style={styles.navText}>Carrinho</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>📋</Text>
+          <Text style={styles.navIconLarge}>📋</Text>
           <Text style={styles.navText}>Pedidos</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIcon}>👤</Text>
+          <Text style={styles.navIconLarge}>👤</Text>
           <Text style={styles.navText}>Minha conta</Text>
         </TouchableOpacity>
       </View>
@@ -195,173 +216,179 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#3D3D3D',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 50,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    paddingTop: 45,
   },
   logoIcon: {
-    width: 50,
-    height: 50,
+    width: 35,
+    height: 35,
   },
   logoText: {
     flex: 1,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
     color: '#FFF',
-    marginLeft: -10,
+    marginLeft: -5,
   },
   helpButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   helpIcon: {
-    fontSize: 20,
+    fontSize: 16,
     color: '#FFF',
     fontWeight: '700',
+  },
+  mainContent: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E8E8E8',
-    marginHorizontal: 24,
-    marginTop: 20,
-    marginBottom: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 8,
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 6,
   },
   searchIcon: {
-    fontSize: 20,
-    marginRight: 10,
+    fontSize: 16,
+    marginRight: 6,
   },
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 13,
     color: '#333',
   },
   section: {
-    marginTop: 24,
+    marginTop: 8,
   },
   sectionTitle: {
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: '700',
     color: '#4A4A4A',
-    marginLeft: 24,
-    marginBottom: 16,
-    letterSpacing: 1,
+    marginLeft: 12,
+    marginBottom: 8,
+    letterSpacing: 0.3,
   },
   promotionTitle: {
-    fontSize: 26,
+    fontSize: 18,
     fontWeight: '700',
     color: '#C8342B',
-    marginLeft: 24,
-    marginBottom: 16,
-    letterSpacing: 1,
+    marginLeft: 12,
+    marginBottom: 8,
+    letterSpacing: 0.3,
   },
   categoriesContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: 24,
-  },
-  categoryButton: {
-    width: 80,
-    height: 80,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  categoryIcon: {
-    fontSize: 42,
-  },
-  promoCard: {
-    width: width - 48,
-    marginHorizontal: 24,
-    backgroundColor: '#FFF',
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  promoImage: {
-    width: '100%',
-    height: 200,
-    resizeMode: 'cover',
-  },
-  promoInfo: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  promoName: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
+    paddingHorizontal: 12,
     marginBottom: 4,
   },
-  promoUnit: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#666',
-  },
-  promoPrice: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#C8342B',
-  },
-  pagination: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 12,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#CCC',
-    marginHorizontal: 4,
-  },
-  paginationDotActive: {
-    backgroundColor: '#C8342B',
-    width: 24,
-  },
-  butcherCard: {
-    flexDirection: 'row',
+  categoryButton: {
+    width: width * 0.21,
+    height: width * 0.21,
+    maxWidth: 75,
+    maxHeight: 75,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  categoryImage: {
+    width: '65%',
+    height: '65%',
+  },
+  promoSection: {
+    marginTop: 10,
+  },
+  promoScrollContent: {
+    paddingHorizontal: 6,
+  },
+  promoCard: {
+    width: width * 0.3,
+    marginHorizontal: 6,
     backgroundColor: '#FFF',
-    marginHorizontal: 24,
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
+    overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
+  promoImage: {
+    width: '100%',
+    height: width * 0.3,
+    resizeMode: 'cover',
+  },
+  promoInfo: {
+    padding: 6,
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+  },
+  promoName: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  promoUnit: {
+    fontSize: 9,
+    fontWeight: '400',
+    color: '#666',
+  },
+  promoPrice: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#C8342B',
+  },
+  butchersSection: {
+    marginTop: 10,
+    flex: 1,
+  },
+  butchersContainer: {
+    paddingHorizontal: 12,
+  },
+  butcherCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    marginBottom: 6,
+    padding: 8,
+    borderRadius: 6,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+  },
   butcherLogo: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 16,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    marginRight: 10,
   },
   butcherName: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
   },
@@ -369,32 +396,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   star: {
-    fontSize: 20,
-    marginLeft: 2,
+    fontSize: 15,
+    marginLeft: 1,
   },
   starHalf: {
-    fontSize: 20,
-    marginLeft: 2,
+    fontSize: 15,
+    marginLeft: 1,
     opacity: 0.6,
   },
   starEmpty: {
-    fontSize: 20,
-    marginLeft: 2,
+    fontSize: 15,
+    marginLeft: 1,
     opacity: 0.2,
   },
   seeMore: {
-    fontSize: 16,
+    fontSize: 13,
     color: '#C8342B',
     textAlign: 'right',
-    marginRight: 24,
-    marginTop: 8,
+    marginRight: 12,
+    marginTop: 2,
     fontWeight: '600',
   },
   bottomNav: {
     flexDirection: 'row',
     backgroundColor: '#3D3D3D',
-    paddingVertical: 12,
-    paddingBottom: 24,
+    paddingVertical: 6,
+    paddingBottom: 18,
     borderTopWidth: 1,
     borderTopColor: '#555',
   },
@@ -402,16 +429,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  navIcon: {
+  navIconLarge: {
     fontSize: 24,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   navText: {
-    fontSize: 12,
+    fontSize: 9,
     color: '#AAA',
   },
   navTextActive: {
-    fontSize: 12,
+    fontSize: 9,
     color: '#FFF',
     fontWeight: '600',
   },
