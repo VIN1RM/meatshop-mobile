@@ -36,11 +36,11 @@ export default function LoginScreen() {
       const cpfClean = cpf.replace(/\D/g, '')
       await login(cpfClean, password)
       navigation.replace('Welcome')
-    } catch {}
+    } catch { }
   }
 
   function handleForgotPassword() {
-    console.log('Navegar para recuperação de senha')
+    navigation.navigate('ForgotPassword')
   }
 
   return (
@@ -102,7 +102,7 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.forgotPassword}
                   onPress={handleForgotPassword}
                 >
@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  safe: { 
-    flex: 1, 
+  safe: {
+    flex: 1,
     backgroundColor: 'transparent',
   },
   scrollContent: {
@@ -151,8 +151,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logo: { 
-    width: 180, 
+  logo: {
+    width: 180,
     height: 180,
   },
   card: {
