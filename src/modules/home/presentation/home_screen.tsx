@@ -186,28 +186,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </View>
-
         </View>
-      </View>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIconLarge}>🏠</Text>
-          <Text style={styles.navTextActive}>Início</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIconLarge}>🛒</Text>
-          <Text style={styles.navText}>Carrinho</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIconLarge}>📋</Text>
-          <Text style={styles.navText}>Pedidos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Text style={styles.navIconLarge}>👤</Text>
-          <Text style={styles.navText}>Minha conta</Text>
-        </TouchableOpacity>
       </View>
     </View>
   )
@@ -230,27 +209,6 @@ const styles = StyleSheet.create({
   logoIcon: {
     width: 35,
     height: 35,
-  },
-  logoText: {
-    flex: 1,
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFF',
-    marginLeft: -5,
-  },
-  helpButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  helpIcon: {
-    fontSize: 16,
-    color: '#FFF',
-    fontWeight: '700',
   },
   mainContent: {
     flex: 1,
@@ -408,38 +366,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: 1,
     opacity: 0.2,
-  },
-  seeMore: {
-    fontSize: 13,
-    color: '#C8342B',
-    textAlign: 'right',
-    marginRight: 12,
-    marginTop: 2,
-    fontWeight: '600',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#3D3D3D',
-    paddingVertical: 6,
-    paddingBottom: 18,
-    borderTopWidth: 1,
-    borderTopColor: '#555',
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  navIconLarge: {
-    fontSize: 24,
-    marginBottom: 2,
-  },
-  navText: {
-    fontSize: 9,
-    color: '#AAA',
-  },
-  navTextActive: {
-    fontSize: 9,
-    color: '#FFF',
-    fontWeight: '600',
   },
 })
