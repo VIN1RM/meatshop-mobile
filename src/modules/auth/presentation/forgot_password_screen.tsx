@@ -27,12 +27,14 @@ export default function ForgotPasswordScreen() {
         setLoading(true)
 
         try {
-
             // await api.forgotPassword(email)
 
             await new Promise(resolve => setTimeout(resolve, 1500))
 
             console.log('Código enviado para:', email)
+            
+            // Navega para a tela de verificação de código
+            navigation.navigate('VerifyCode', { email })
         } catch (err) {
             setError('Erro ao enviar código. Tente novamente.')
         } finally {
