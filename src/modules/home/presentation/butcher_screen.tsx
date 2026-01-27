@@ -234,7 +234,18 @@ export default function ButcherScreen() {
                             </View>
                         ) : (
                             sortedButchers.map((butcher) => (
-                                <TouchableOpacity key={butcher.id} style={styles.butcherCard}>
+                                <TouchableOpacity 
+                                    key={butcher.id} 
+                                    style={styles.butcherCard}
+                                    onPress={() => {
+                                        // @ts-ignore
+                                        navigation.navigate('ButcherDetails', {
+                                            butcherName: butcher.name,
+                                            butcherRating: butcher.rating,
+                                            butcherLogo: butcher.logo
+                                        })
+                                    }}
+                                >
                                     <Image source={butcher.logo} style={styles.butcherLogo} />
                                     <View style={styles.butcherInfo}>
                                         <Text style={styles.butcherName}>{butcher.name}</Text>

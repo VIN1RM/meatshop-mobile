@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import HomeScreen from '../../modules/home/presentation/home_screen'
 import AccountScreen from '../../modules/home/presentation/account_screen'
 import ButcherScreen from '../../modules/home/presentation/butcher_screen'
+import ButcherDetailsScreen from '../../modules/home/presentation/butcher_details_screen'
 import ChatsScreen from '../../modules/home/presentation/chats_screen'
 import ChatConversationScreen from '../../modules/home/presentation/chat_conversation_screen'
 import { View, Text } from 'react-native'
@@ -32,6 +33,7 @@ function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Butchers" component={ButcherScreen} />
+      <Stack.Screen name="ButcherDetails" component={ButcherDetailsScreen} />
     </Stack.Navigator>
   )
 }

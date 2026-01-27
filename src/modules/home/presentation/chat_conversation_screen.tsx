@@ -92,7 +92,7 @@ export default function ChatConversationScreen() {
         </TouchableOpacity>
         
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Mealshop</Text>
+          <Text style={styles.headerTitle}>Meatshop</Text>
         </View>
 
         <View style={styles.headerRight}>
