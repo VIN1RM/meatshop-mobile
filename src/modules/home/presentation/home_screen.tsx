@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, Image, TextInput, TouchableOpacity, Dimensions } from 'react-native'
 import { useState, useRef, useEffect } from 'react'
+import { useNavigation } from '@react-navigation/native'
 
 const { width, height } = Dimensions.get('window')
 
@@ -34,6 +35,7 @@ const butchers = [
 ]
 
 export default function HomeScreen() {
+  const navigation = useNavigation()
   const [currentSlide, setCurrentSlide] = useState(0)
   const scrollViewRef = useRef<ScrollView>(null)
 
@@ -174,10 +176,16 @@ export default function HomeScreen() {
 
         {/* Açougues */}
         <View style={styles.butchersSection}>
-          <Text style={styles.sectionTitle}>AÇOUGUES</Text>
+          <View style={styles.butchersSectionHeader}>
+            <Text style={styles.sectionTitle}>AÇOUGUES</Text>
+          </View>
           <View style={styles.butchersContainer}>
             {butchers.map((butcher) => (
-              <TouchableOpacity key={butcher.id} style={styles.butcherCard}>
+              <TouchableOpacity 
+                key={butcher.id} 
+                style={styles.butcherCard}
+                onPress={() => navigation.navigate('Butchers' as never)}
+              >
                 <Image source={butcher.logo} style={styles.butcherLogo} />
                 <Text style={styles.butcherName}>{butcher.name}</Text>
                 <View style={styles.ratingContainer}>
@@ -185,6 +193,13 @@ export default function HomeScreen() {
                 </View>
               </TouchableOpacity>
             ))}
+            {/* Ver mais button */}
+            <TouchableOpacity 
+              style={styles.viewMoreButton}
+              onPress={() => navigation.navigate('Butchers' as never)}
+            >
+              <Text style={styles.viewMoreText}>Ver mais</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -322,6 +337,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     flex: 1,
   },
+  butchersSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingRight: 12,
+  },
   butchersContainer: {
     paddingHorizontal: 12,
   },
@@ -352,6 +373,17 @@ const styles = StyleSheet.create({
   },
   ratingContainer: {
     flexDirection: 'row',
+  },
+  viewMoreButton: {
+    alignSelf: 'flex-end',
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  viewMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#C8342B',
   },
   star: {
     fontSize: 15,

@@ -1,13 +1,43 @@
-import { View, Text, StyleSheet, ScrollView, Image, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, Image, TextInput, TouchableOpacity, Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
+import { CommonActions } from '@react-navigation/native'
 
 export default function AccountScreen() {
+  const navigation = useNavigation()
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sair',
+      'Tem certeza que deseja sair da sua conta?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: () => {
+            // Reseta a navegação para a tela de login
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
+              })
+            )
+          }
+        }
+      ]
+    )
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('../../../../assets/logo_completa.png')}
+          source={require('./assets/logo.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -24,7 +54,7 @@ export default function AccountScreen() {
       </View>
 
       {/* Main Content */}
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Title */}
         <Text style={styles.pageTitle}>MINHA CONTA</Text>
 
@@ -33,9 +63,9 @@ export default function AccountScreen() {
           <View style={styles.avatarContainer}>
             <Ionicons name="person-circle-outline" size={80} color="#999" />
           </View>
-          
+
           <Text style={styles.userName}>Ana Clara Goes</Text>
-          
+
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>CPF:</Text>
             <Text style={styles.infoValue}>***.***.591-**</Text>
@@ -60,7 +90,7 @@ export default function AccountScreen() {
           </View>
 
           <TouchableOpacity style={styles.editButton}>
-            <Ionicons name="pencil" size={16} color="#C94A3C" />
+            <Ionicons name="pencil" size={16} color="#C8342B" />
             <Text style={styles.editButtonText}>Editar dados</Text>
           </TouchableOpacity>
         </View>
@@ -88,13 +118,13 @@ export default function AccountScreen() {
 
         {/* Bottom Actions */}
         <View style={styles.bottomActions}>
-          <TouchableOpacity style={styles.logoutButton}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Ionicons name="exit-outline" size={24} color="#4A4A4A" />
             <Text style={styles.logoutText}>Sair</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.helpButton}>
-            <Ionicons name="help-circle-outline" size={24} color="#C94A3C" />
+            <Ionicons name="help-circle-outline" size={24} color="#C8342B" />
             <Text style={styles.helpText}>Ajuda</Text>
           </TouchableOpacity>
         </View>
@@ -142,7 +172,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#C94A3C',
+    color: '#C8342B',
     marginLeft: 16,
     marginTop: 16,
     marginBottom: 16,
@@ -203,7 +233,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 14,
-    color: '#C94A3C',
+    color: '#C8342B',
     fontWeight: '600',
     marginLeft: 6,
   },
@@ -268,7 +298,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 15,
-    color: '#C94A3C',
+    color: '#C8342B',
     fontWeight: '600',
     marginLeft: 8,
   },

@@ -1,10 +1,13 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
 import HomeScreen from '../../modules/home/presentation/home_screen'
 import AccountScreen from '../../modules/home/presentation/account_screen'
+import ButcherScreen from '../../modules/home/presentation/butcher_screen'
 import { View, Text } from 'react-native'
 
 const Tab = createBottomTabNavigator()
+const Stack = createNativeStackNavigator()
 
 function CartScreen() {
   return (
@@ -19,6 +22,15 @@ function OrdersScreen() {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F5F5' }}>
       <Text style={{ fontSize: 18, color: '#4A4A4A' }}>Pedidos</Text>
     </View>
+  )
+}
+
+function HomeStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="Butchers" component={ButcherScreen} />
+    </Stack.Navigator>
   )
 }
 
@@ -64,7 +76,7 @@ export default function AppNavigator() {
     >
       <Tab.Screen 
         name="Home" 
-        component={HomeScreen}
+        component={HomeStack}
         options={{ tabBarLabel: 'Início' }}
       />
       <Tab.Screen 
