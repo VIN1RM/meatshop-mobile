@@ -96,7 +96,10 @@ export default function AccountScreen() {
         </View>
 
         {/* Menu Options */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity 
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Chats' as never)}
+        >
           <Ionicons name="chatbubble-outline" size={24} color="#4A4A4A" />
           <Text style={styles.menuText}>Chats com estabelecimentos</Text>
         </TouchableOpacity>

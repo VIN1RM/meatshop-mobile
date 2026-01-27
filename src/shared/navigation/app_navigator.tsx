@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import HomeScreen from '../../modules/home/presentation/home_screen'
 import AccountScreen from '../../modules/home/presentation/account_screen'
 import ButcherScreen from '../../modules/home/presentation/butcher_screen'
+import ChatsScreen from '../../modules/home/presentation/chats_screen'
 import { View, Text } from 'react-native'
 
 const Tab = createBottomTabNavigator()
@@ -30,6 +31,15 @@ function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Butchers" component={ButcherScreen} />
+    </Stack.Navigator>
+  )
+}
+
+function AccountStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AccountMain" component={AccountScreen} />
+      <Stack.Screen name="Chats" component={ChatsScreen} />
     </Stack.Navigator>
   )
 }
@@ -91,7 +101,7 @@ export default function AppNavigator() {
       />
       <Tab.Screen 
         name="Account" 
-        component={AccountScreen}
+        component={AccountStack}
         options={{ tabBarLabel: 'Minha conta' }}
       />
     </Tab.Navigator>
