@@ -5,6 +5,7 @@ import HomeScreen from '../../modules/home/presentation/home_screen'
 import AccountScreen from '../../modules/home/presentation/account_screen'
 import ButcherScreen from '../../modules/home/presentation/butcher_screen'
 import ChatsScreen from '../../modules/home/presentation/chats_screen'
+import ChatConversationScreen from '../../modules/home/presentation/chat_conversation_screen'
 import { View, Text } from 'react-native'
 
 const Tab = createBottomTabNavigator()
@@ -40,6 +41,7 @@ function AccountStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="AccountMain" component={AccountScreen} />
       <Stack.Screen name="Chats" component={ChatsScreen} />
+      <Stack.Screen name="ChatConversation" component={ChatConversationScreen} />
     </Stack.Navigator>
   )
 }

@@ -19,7 +19,6 @@ export default function AccountScreen() {
           text: 'Sair',
           style: 'destructive',
           onPress: () => {
-            // Reseta a navegação para a tela de login
             navigation.dispatch(
               CommonActions.reset({
                 index: 0,

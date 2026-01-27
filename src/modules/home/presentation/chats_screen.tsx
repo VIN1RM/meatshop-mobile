@@ -54,7 +54,13 @@ export default function ChatsScreen() {
   ]
 
   const renderChatItem = ({ item }: { item: Chat }) => (
-    <TouchableOpacity style={styles.chatItem}>
+    <TouchableOpacity 
+      style={styles.chatItem}
+      onPress={() => {
+        // @ts-ignore
+        navigation.navigate('ChatConversation', { establishmentName: item.name })
+      }}
+    >
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
           <Ionicons name="business" size={32} color="#C8342B" />
