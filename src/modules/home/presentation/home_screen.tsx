@@ -116,7 +116,10 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>CORTES</Text>
           <View style={styles.categoriesContainer}>
-            <TouchableOpacity style={styles.categoryButton}>
+            <TouchableOpacity 
+              style={styles.categoryButton}
+              onPress={() => navigation.navigate('BeefCuts' as never)}
+            >
               <Image 
                 source={require('./assets/vaca.png')} 
                 style={styles.categoryImage}

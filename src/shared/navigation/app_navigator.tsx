@@ -7,6 +7,7 @@ import ButcherScreen from '../../modules/home/presentation/butcher_screen'
 import ButcherDetailsScreen from '../../modules/home/presentation/butcher_details_screen'
 import ChatsScreen from '../../modules/home/presentation/chats_screen'
 import ChatConversationScreen from '../../modules/home/presentation/chat_conversation_screen'
+import BeefCutsScreen from '../../modules/home/presentation/beef_cuts_screen'
 import { View, Text } from 'react-native'
 
 const Tab = createBottomTabNavigator()
@@ -34,6 +35,7 @@ function HomeStack() {
       <Stack.Screen name="HomeMain" component={HomeScreen} />
       <Stack.Screen name="Butchers" component={ButcherScreen} />
       <Stack.Screen name="ButcherDetails" component={ButcherDetailsScreen} />
+      <Stack.Screen name="BeefCuts" component={BeefCutsScreen} />
     </Stack.Navigator>
   )
 }
