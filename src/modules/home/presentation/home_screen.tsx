@@ -1,100 +1,131 @@
-import { View, Text, StyleSheet, ScrollView, Image, TextInput, TouchableOpacity, Dimensions } from 'react-native'
-import { useState, useRef, useEffect } from 'react'
-import { useNavigation } from '@react-navigation/native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import { useState, useRef, useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
 
-const { width, height } = Dimensions.get('window')
+const { width, height } = Dimensions.get("window");
 
 const promotions = [
   {
     id: 1,
-    name: 'Picanha',
-    price: 'R$58,99',
-    unit: '/kg',
-    image: require('./assets/picanha.png')
+    name: "Picanha",
+    price: "R$58,99",
+    unit: "/kg",
+    image: require("./assets/picanha.png"),
   },
   {
     id: 2,
-    name: 'Peito de frango',
-    price: 'R$9,99',
-    unit: '/kg',
-    image: require('./assets/peito.png')
+    name: "Peito de frango",
+    price: "R$9,99",
+    unit: "/kg",
+    image: require("./assets/peito.png"),
   },
   {
     id: 3,
-    name: 'Lombo suíno',
-    price: 'R$17,99',
-    unit: '/kg',
-    image: require('./assets/lombo.png')
-  }
-]
+    name: "Lombo suíno",
+    price: "R$17,99",
+    unit: "/kg",
+    image: require("./assets/lombo.png"),
+  },
+];
 
 const butchers = [
-  { id: 1, name: 'Master Carnes', rating: 5, logo: require('./assets/mastercarnes.png') },
-  { id: 2, name: 'Frigorífico Goiás', rating: 4.5, logo: require('./assets/frigoias.png') },
-  { id: 3, name: 'Bom Beef', rating: 4, logo: require('./assets/bombeef.png') }
-]
+  {
+    id: 1,
+    name: "Master Carnes",
+    rating: 5,
+    logo: require("./assets/mastercarnes.png"),
+  },
+  {
+    id: 2,
+    name: "Frigorífico Goiás",
+    rating: 4.5,
+    logo: require("./assets/frigoias.png"),
+  },
+  { id: 3, name: "Bom Beef", rating: 4, logo: require("./assets/bombeef.png") },
+];
 
 export default function HomeScreen() {
-  const navigation = useNavigation()
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const scrollViewRef = useRef<ScrollView>(null)
+  const navigation = useNavigation();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const infinitePromotions = Array(100).fill(promotions).flat()
+  const infinitePromotions = Array(100).fill(promotions).flat();
 
   useEffect(() => {
-    const initialPosition = Math.floor(infinitePromotions.length / 2)
+    const initialPosition = Math.floor(infinitePromotions.length / 2);
     setTimeout(() => {
       scrollViewRef.current?.scrollTo({
         x: initialPosition * (width * 0.3 + 12),
-        animated: false
-      })
-      setCurrentSlide(initialPosition)
-    }, 100)
+        animated: false,
+      });
+      setCurrentSlide(initialPosition);
+    }, 100);
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => {
-        const next = prev + 1
+        const next = prev + 1;
         scrollViewRef.current?.scrollTo({
           x: next * (width * 0.3 + 12),
-          animated: true
-        })
-        return next
-      })
-    }, 3000)
+          animated: true,
+        });
+        return next;
+      });
+    }, 3000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const handleScroll = (e: any) => {
-    const scrollX = e.nativeEvent.contentOffset.x
-    const cardWidth = width * 0.3 + 12
-    const slide = Math.round(scrollX / cardWidth)
-    setCurrentSlide(slide)
-  }
+    const scrollX = e.nativeEvent.contentOffset.x;
+    const cardWidth = width * 0.3 + 12;
+    const slide = Math.round(scrollX / cardWidth);
+    setCurrentSlide(slide);
+  };
 
   const renderStars = (rating: number) => {
-    const stars = []
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 !== 0
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
 
     for (let i = 0; i < fullStars; i++) {
-      stars.push(<Text key={i} style={styles.star}>⭐</Text>)
+      stars.push(
+        <Text key={i} style={styles.star}>
+          ⭐
+        </Text>,
+      );
     }
     if (hasHalfStar) {
-      stars.push(<Text key="half" style={styles.starHalf}>⭐</Text>)
+      stars.push(
+        <Text key="half" style={styles.starHalf}>
+          ⭐
+        </Text>,
+      );
     }
     while (stars.length < 5) {
-      stars.push(<Text key={`empty-${stars.length}`} style={styles.starEmpty}>⭐</Text>)
+      stars.push(
+        <Text key={`empty-${stars.length}`} style={styles.starEmpty}>
+          ⭐
+        </Text>,
+      );
     }
-    return stars
-  }
+    return stars;
+  };
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('./assets/logo.png')}
+          source={require("./assets/logo.png")}
           style={styles.logoIcon}
           resizeMode="contain"
         />
@@ -116,33 +147,36 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>CORTES</Text>
           <View style={styles.categoriesContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.categoryButton}
-              onPress={() => navigation.navigate('BeefCuts' as never)}
+              onPress={() => navigation.navigate("BeefCuts" as never)}
             >
-              <Image 
-                source={require('./assets/vaca.png')} 
+              <Image
+                source={require("./assets/vaca.png")}
+                style={styles.categoryImage}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.categoryButton}
+              onPress={() => navigation.navigate("PorkCuts" as never)}
+            >
+              <Image
+                source={require("./assets/porco.png")}
                 style={styles.categoryImage}
                 resizeMode="contain"
               />
             </TouchableOpacity>
             <TouchableOpacity style={styles.categoryButton}>
-              <Image 
-                source={require('./assets/porco.png')} 
+              <Image
+                source={require("./assets/frango.png")}
                 style={styles.categoryImage}
                 resizeMode="contain"
               />
             </TouchableOpacity>
             <TouchableOpacity style={styles.categoryButton}>
-              <Image 
-                source={require('./assets/frango.png')} 
-                style={styles.categoryImage}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.categoryButton}>
-              <Image 
-                source={require('./assets/peixe.png')} 
+              <Image
+                source={require("./assets/peixe.png")}
                 style={styles.categoryImage}
                 resizeMode="contain"
               />
@@ -168,7 +202,8 @@ export default function HomeScreen() {
                 <Image source={promo.image} style={styles.promoImage} />
                 <View style={styles.promoInfo}>
                   <Text style={styles.promoName}>
-                    {promo.name} <Text style={styles.promoUnit}>{promo.unit}</Text>
+                    {promo.name}{" "}
+                    <Text style={styles.promoUnit}>{promo.unit}</Text>
                   </Text>
                   <Text style={styles.promoPrice}>{promo.price}</Text>
                 </View>
@@ -184,10 +219,10 @@ export default function HomeScreen() {
           </View>
           <View style={styles.butchersContainer}>
             {butchers.map((butcher) => (
-              <TouchableOpacity 
-                key={butcher.id} 
+              <TouchableOpacity
+                key={butcher.id}
                 style={styles.butcherCard}
-                onPress={() => navigation.navigate('Butchers' as never)}
+                onPress={() => navigation.navigate("Butchers" as never)}
               >
                 <Image source={butcher.logo} style={styles.butcherLogo} />
                 <Text style={styles.butcherName}>{butcher.name}</Text>
@@ -197,9 +232,9 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
             {/* Ver mais button */}
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.viewMoreButton}
-              onPress={() => navigation.navigate('Butchers' as never)}
+              onPress={() => navigation.navigate("Butchers" as never)}
             >
               <Text style={styles.viewMoreText}>Ver mais</Text>
             </TouchableOpacity>
@@ -207,19 +242,19 @@ export default function HomeScreen() {
         </View>
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#3D3D3D',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#3D3D3D",
     paddingHorizontal: 16,
     paddingVertical: 10,
     paddingTop: 45,
@@ -230,12 +265,12 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8E8E8',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E8E8E8",
     marginHorizontal: 12,
     marginTop: 10,
     marginBottom: 6,
@@ -250,30 +285,30 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
-    color: '#333',
+    color: "#333",
   },
   section: {
     marginTop: 8,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#4A4A4A',
+    fontWeight: "700",
+    color: "#4A4A4A",
     marginLeft: 12,
     marginBottom: 8,
     letterSpacing: 0.3,
   },
   promotionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#C8342B',
+    fontWeight: "700",
+    color: "#C8342B",
     marginLeft: 12,
     marginBottom: 8,
     letterSpacing: 0.3,
   },
   categoriesContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     paddingHorizontal: 12,
     marginBottom: 4,
   },
@@ -282,14 +317,14 @@ const styles = StyleSheet.create({
     height: width * 0.21,
     maxWidth: 75,
     maxHeight: 75,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: "#E0E0E0",
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   categoryImage: {
-    width: '65%',
-    height: '65%',
+    width: "65%",
+    height: "65%",
   },
   promoSection: {
     marginTop: 10,
@@ -300,64 +335,64 @@ const styles = StyleSheet.create({
   promoCard: {
     width: width * 0.3,
     marginHorizontal: 6,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
   promoImage: {
-    width: '100%',
+    width: "100%",
     height: width * 0.3,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   promoInfo: {
     padding: 6,
-    alignItems: 'center',
-    backgroundColor: '#FFF',
+    alignItems: "center",
+    backgroundColor: "#FFF",
   },
   promoName: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 2,
-    textAlign: 'center',
+    textAlign: "center",
   },
   promoUnit: {
     fontSize: 9,
-    fontWeight: '400',
-    color: '#666',
+    fontWeight: "400",
+    color: "#666",
   },
   promoPrice: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#C8342B',
+    fontWeight: "700",
+    color: "#C8342B",
   },
   butchersSection: {
     marginTop: 10,
     flex: 1,
   },
   butchersSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingRight: 12,
   },
   butchersContainer: {
     paddingHorizontal: 12,
   },
   butcherCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
     marginBottom: 6,
     padding: 8,
     borderRadius: 6,
     elevation: 1,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 1,
@@ -371,22 +406,22 @@ const styles = StyleSheet.create({
   butcherName: {
     flex: 1,
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   ratingContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   viewMoreButton: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 8,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   viewMoreText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#C8342B',
+    fontWeight: "600",
+    color: "#C8342B",
   },
   star: {
     fontSize: 15,
@@ -402,4 +437,4 @@ const styles = StyleSheet.create({
     marginLeft: 1,
     opacity: 0.2,
   },
-})
+});
