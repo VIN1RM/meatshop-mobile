@@ -8,7 +8,8 @@ import ButcherDetailsScreen from "../../modules/home/presentation/butcher_detail
 import ChatsScreen from "../../modules/home/presentation/chats_screen";
 import ChatConversationScreen from "../../modules/home/presentation/chat_conversation_screen";
 import BeefCutsScreen from "../../modules/home/presentation/beef_cuts_screen";
-import PorkCutsScreen from '../../modules/home/presentation/pork_cuts_screen'
+import PorkCutsScreen from "../../modules/home/presentation/pork_cuts_screen";
+import ChickenCutsScreen from "../../modules/home/presentation/chicken_cuts_screen";
 import { View, Text } from "react-native";
 
 const Tab = createBottomTabNavigator();
@@ -52,6 +53,7 @@ function HomeStack() {
       <Stack.Screen name="ButcherDetails" component={ButcherDetailsScreen} />
       <Stack.Screen name="BeefCuts" component={BeefCutsScreen} />
       <Stack.Screen name="PorkCuts" component={PorkCutsScreen} />
+      <Stack.Screen name="ChickenCuts" component={ChickenCutsScreen} />
     </Stack.Navigator>
   );
 }

@@ -167,7 +167,10 @@ export default function HomeScreen() {
                 resizeMode="contain"
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.categoryButton}>
+            <TouchableOpacity
+              style={styles.categoryButton}
+              onPress={() => navigation.navigate("ChickenCuts" as never)}
+            >
               <Image
                 source={require("./assets/frango.png")}
                 style={styles.categoryImage}

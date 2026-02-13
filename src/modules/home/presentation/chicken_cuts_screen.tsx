@@ -9,66 +9,66 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-const porkCuts = [
+const chickenCuts = [
   {
     id: 1,
-    name: "Barriga",
-    price: "R$24,99",
+    name: "Asinha",
+    price: "R$19,94",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
   {
     id: 2,
-    name: "Bisteca",
-    price: "R$13,98",
+    name: "Coração",
+    price: "R$38,59",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
   {
     id: 3,
-    name: "Costela",
-    price: "R$20,42",
+    name: "Coxa",
+    price: "R$15,98",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
   {
     id: 4,
-    name: "Lombo",
-    price: "R$17,99",
+    name: "Filé de peito",
+    price: "R$17,49",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
   {
     id: 5,
-    name: "Paleta",
-    price: "R$16,98",
+    name: "Linguiça Toscana",
+    price: "R$17,99",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
   {
     id: 6,
-    name: "Pé",
-    price: "R$10,00",
+    name: "Moela",
+    price: "R$18,99",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
   {
     id: 7,
-    name: "Pernil",
-    price: "R$23,94",
+    name: "Pé",
+    price: "R$9,49",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
   {
     id: 8,
-    name: "Suã",
-    price: "R$11,50",
+    name: "Sobrecoxa",
+    price: "R$18,99",
     unit: "/KG",
-    image: require("./assets/porco.png"),
+    image: require("./assets/frango.png"),
   },
 ];
 
-export default function PorkCutsScreen() {
+export default function ChickenCutsScreen() {
   const navigation = useNavigation();
 
   return (
@@ -101,16 +101,16 @@ export default function PorkCutsScreen() {
 
       {/* Title */}
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>CORTES SUÍNOS</Text>
+        <Text style={styles.title}>CORTES DE FRANGO</Text>
       </View>
 
-      {/* Pork Cuts List */}
+      {/* Chicken Cuts List */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {porkCuts.map((cut) => (
+        {chickenCuts.map((cut) => (
           <TouchableOpacity key={cut.id} style={styles.cutCard}>
             <Image source={cut.image} style={styles.cutImage} />
             <View style={styles.cutInfo}>
