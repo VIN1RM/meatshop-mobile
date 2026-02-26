@@ -1,25 +1,18 @@
 import 'package:flutter/material.dart';
 
-// ─────────────────────────────────────────────
-//  Paleta centralizada — importe onde precisar
-// ─────────────────────────────────────────────
 class AppColors {
   AppColors._();
 
-  static const Color redPrimary  = Color(0xFFC0392B);
-  static const Color redDark     = Color(0xFF8B1A1A);
-  static const Color redBright   = Color(0xFFE8372A);
-  static const Color dark        = Color(0xFF1A1A1A);
+  static const Color redPrimary = Color(0xFFC0392B);
+  static const Color redDark = Color(0xFF8B1A1A);
+  static const Color redBright = Color(0xFFE8372A);
+  static const Color dark = Color(0xFF1A1A1A);
   static const Color darkSurface = Color(0xFF2A2A2A);
-  static const Color white       = Color(0xFFFFFFFF);
-  static const Color grey        = Color(0xFF9E9E9E);
-  static const Color background  = Color(0xFFF2F2F2);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color grey = Color(0xFF9E9E9E);
+  static const Color background = Color(0xFFF2F2F2);
 }
 
-// ─────────────────────────────────────────────
-//  Botão primário  (vermelho sólido)
-//  Uso: PrimaryButton(label: 'Login', onPressed: () {})
-// ─────────────────────────────────────────────
 class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -83,10 +76,6 @@ class PrimaryButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-//  Botão secundário  (outline vermelho)
-//  Uso: SecondaryButton(label: 'Cadastrar', onPressed: () {})
-// ─────────────────────────────────────────────
 class SecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -137,10 +126,6 @@ class SecondaryButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-//  Botão ghost / texto  (sem borda, sem fundo)
-//  Uso: GhostButton(label: 'Esqueci minha senha', onPressed: () {})
-// ─────────────────────────────────────────────
 class GhostButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -173,10 +158,6 @@ class GhostButton extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-//  Botão escuro (para fundos claros)
-//  Uso: DarkButton(label: 'Continuar', onPressed: () {})
-// ─────────────────────────────────────────────
 class DarkButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;

@@ -15,9 +15,7 @@ class MeatShopApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFB71C1C), // vermelho meat style
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFB71C1C)),
       ),
       home: const SplashPage(),
     );

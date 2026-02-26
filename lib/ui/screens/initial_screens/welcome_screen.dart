@@ -2,13 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
-// import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
-
-// Classe simples para guardar caminho + alinhamento de cada imagem
 class _CarouselItem {
   final String path;
   final Alignment alignment;
-
   const _CarouselItem({required this.path, required this.alignment});
 }
 
@@ -20,18 +16,27 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
-  // ─────────────────────────────────────────────────────────────────────────
-  // Para ajustar o enquadramento de cada imagem, edite o alignment:
-  //   Alignment.topCenter      → topo
-  //   Alignment.center         → centro
-  //   Alignment(0.0, -0.6)     → entre -1.0 (topo) e 1.0 (base)
-  // ─────────────────────────────────────────────────────────────────────────
   final List<_CarouselItem> _images = const [
-    _CarouselItem(path: 'assets/images/person1.png', alignment: Alignment.topCenter),
-    _CarouselItem(path: 'assets/images/person3.png', alignment: Alignment.topCenter),
-    _CarouselItem(path: 'assets/images/person4.png', alignment: Alignment.topCenter),
-    _CarouselItem(path: 'assets/images/person5.png', alignment: Alignment(0.0, -0.6)), // ajuste fino
-    _CarouselItem(path: 'assets/images/person6.png', alignment: Alignment.topCenter),
+    _CarouselItem(
+      path: 'assets/images/person1.png',
+      alignment: Alignment.topCenter,
+    ),
+    _CarouselItem(
+      path: 'assets/images/person3.png',
+      alignment: Alignment.topCenter,
+    ),
+    _CarouselItem(
+      path: 'assets/images/person4.png',
+      alignment: Alignment.topCenter,
+    ),
+    _CarouselItem(
+      path: 'assets/images/person5.png',
+      alignment: Alignment(0.0, -0.6),
+    ),
+    _CarouselItem(
+      path: 'assets/images/person6.png',
+      alignment: Alignment.topCenter,
+    ),
   ];
 
   static const int _multiplier = 1000;
@@ -72,17 +77,26 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final sw = size.width;
+    final sh = size.height;
+
+    final double fontScale = (sw / 390).clamp(0.80, 1.20);
+
+    final double carouselRatio = sh < 700
+        ? 0.50
+        : sh > 900
+        ? 0.58
+        : 0.55;
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A),
       body: Column(
         children: [
-          // ── 1. Carrossel automático e infinito ──────────────────────────
           Stack(
             children: [
               SizedBox(
-                height: size.height * 0.55,
-                width: size.width,
+                height: sh * carouselRatio,
+                width: sw,
                 child: PageView.builder(
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
@@ -93,12 +107,11 @@ class _WelcomePageState extends State<WelcomePage> {
                 ),
               ),
 
-              // Gradiente na borda inferior da imagem
               Positioned(
                 bottom: 0,
                 left: 0,
                 right: 0,
-                height: 120,
+                height: sh * 0.14,
                 child: Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
@@ -112,57 +125,55 @@ class _WelcomePageState extends State<WelcomePage> {
             ],
           ),
 
-          // ── 2. Painel de texto ──────────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(28, 16, 28, 40),
+              padding: EdgeInsets.fromLTRB(
+                sw * 0.07,
+                sh * 0.02,
+                sw * 0.07,
+                sh * 0.05,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 30),
+                  SizedBox(height: sh * 0.03),
 
-                  const Text(
+                  Text(
                     'Bem Vindo ao Meatshop!',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 26,
+                      fontSize: 26 * fontScale,
                       fontWeight: FontWeight.bold,
                       height: 1.25,
                     ),
                   ),
 
-                  const SizedBox(height: 14),
+                  SizedBox(height: sh * 0.018),
 
-                  const Text(
+                  Text(
                     'O MeatShop conecta clientes, açougues e entregadores em uma plataforma prática e segura.',
                     textAlign: TextAlign.justify,
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 15,
+                      fontSize: 15 * fontScale,
                       height: 1.6,
                     ),
                   ),
 
-                  const SizedBox(height: 15),
+                  SizedBox(height: sh * 0.018),
 
-                  const Text(
+                  Text(
                     'Escolha seu perfil e comece agora.',
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 13,
+                      fontSize: 13 * fontScale,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  SizedBox(height: sh * 0.035),
 
-                  PrimaryButton(
-                    label: 'Login',
-                    onPressed: () {
-                      // Navigator.pushReplacement(context,
-                      //   MaterialPageRoute(builder: (_) => const LoginPage()));
-                    },
-                  ),
+                  PrimaryButton(label: 'Login', onPressed: () {}),
                 ],
               ),
             ),
