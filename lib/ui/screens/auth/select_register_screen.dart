@@ -39,10 +39,7 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
 
   void _onContinue() {
     if (_selected == null) return;
-    Navigator.of(context).pushNamed(
-      AppRoutes.register,
-      arguments: _selected,
-    );
+    Navigator.of(context).pushNamed(AppRoutes.register, arguments: _selected);
   }
 
   @override
@@ -64,7 +61,6 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Back button ──
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(
@@ -78,7 +74,6 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
 
                 SizedBox(height: sh * 0.03),
 
-                // ── Title ──
                 const Text(
                   'Como deseja\nse cadastrar?',
                   style: TextStyle(
@@ -102,11 +97,9 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
 
                 SizedBox(height: sh * 0.04),
 
-                // ── Cards row ──
                 Expanded(
                   child: Row(
                     children: [
-                      // ── Cliente ──
                       Expanded(
                         child: _TypeCard(
                           type: RegisterType.client,
@@ -120,7 +113,6 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
                         ),
                       ),
 
-                      // ── Divider ──
                       Container(
                         width: 1,
                         margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -138,7 +130,6 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
                         ),
                       ),
 
-                      // ── Entregador ──
                       Expanded(
                         child: _TypeCard(
                           type: RegisterType.deliverer,
@@ -157,7 +148,6 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
 
                 SizedBox(height: sh * 0.03),
 
-                // ── Continue button ──
                 AnimatedOpacity(
                   opacity: _selected != null ? 1.0 : 0.35,
                   duration: const Duration(milliseconds: 300),
@@ -169,8 +159,9 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFC0392B),
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor:
-                            const Color(0xFFC0392B).withOpacity(0.4),
+                        disabledBackgroundColor: const Color(
+                          0xFFC0392B,
+                        ).withOpacity(0.4),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -198,7 +189,6 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
   }
 }
 
-// ── Card widget ──────────────────────────────────────────
 class _TypeCard extends StatelessWidget {
   final RegisterType type;
   final bool selected;
@@ -231,9 +221,7 @@ class _TypeCard extends StatelessWidget {
               : const Color(0xFF525252),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected
-                ? const Color(0xFFC0392B)
-                : Colors.transparent,
+            color: selected ? const Color(0xFFC0392B) : Colors.transparent,
             width: 2,
           ),
         ),
@@ -241,7 +229,6 @@ class _TypeCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // ── Image ──
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
@@ -262,7 +249,6 @@ class _TypeCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ── Title ──
             Text(
               title,
               style: TextStyle(
@@ -275,7 +261,6 @@ class _TypeCard extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            // ── Description ──
             Text(
               description,
               textAlign: TextAlign.center,
@@ -288,20 +273,15 @@ class _TypeCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // ── Selection indicator ──
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               width: 24,
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: selected
-                    ? const Color(0xFFC0392B)
-                    : Colors.transparent,
+                color: selected ? const Color(0xFFC0392B) : Colors.transparent,
                 border: Border.all(
-                  color: selected
-                      ? const Color(0xFFC0392B)
-                      : Colors.white38,
+                  color: selected ? const Color(0xFFC0392B) : Colors.white38,
                   width: 2,
                 ),
               ),

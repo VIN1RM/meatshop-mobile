@@ -13,7 +13,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.welcome: (_) => const WelcomePage(),
     AppRoutes.login: (_) => const LoginPage(),
     AppRoutes.selectRegister: (_) => const SelectRegisterPage(),
-    // AppRoutes.register: (_) => const RegisterPage(),
+    AppRoutes.register: (_) => const RegisterPage(),
     // AppRoutes.changePassword: (_) => const ChangePasswordPage(),
   };
 }
