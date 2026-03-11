@@ -18,6 +18,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _cpfController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -46,11 +47,18 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
+  bool _hasMinLength = false;
+  bool _hasUpperCase = false;
+  bool _hasLowerCase = false;
+  bool _hasNumber = false;
+  bool _hasSpecialChar = false;
+
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _cpfController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _zipController.dispose();
@@ -60,6 +68,26 @@ class _RegisterPageState extends State<RegisterPage> {
     _cityController.dispose();
     _stateController.dispose();
     super.dispose();
+  }
+
+  void _checkPassword(String value) {
+    setState(() {
+      _hasMinLength = value.length >= 6;
+      _hasUpperCase = RegExp(r'[A-Z]').hasMatch(value);
+      _hasLowerCase = RegExp(r'[a-z]').hasMatch(value);
+      _hasNumber = RegExp(r'[0-9]').hasMatch(value);
+      _hasSpecialChar = RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value);
+    });
+  }
+
+  String? _validatePassword(String? v) {
+    if (v == null || v.isEmpty) return 'Informe a senha';
+    if (!_hasMinLength) return 'Mínimo 6 caracteres';
+    if (!_hasUpperCase) return 'Adicione uma letra maiúscula';
+    if (!_hasLowerCase) return 'Adicione uma letra minúscula';
+    if (!_hasNumber) return 'Adicione um número';
+    if (!_hasSpecialChar) return 'Adicione um caractere especial';
+    return null;
   }
 
   void _onRegister() async {
@@ -82,7 +110,6 @@ class _RegisterPageState extends State<RegisterPage> {
     final sw = size.width;
     final sh = size.height;
     final double fontScale = (sw / 390).clamp(0.80, 1.20);
-
     final isClient = type == RegisterType.client;
 
     return Scaffold(
@@ -100,9 +127,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isClient
-                          ? const Color(0xFFC0392B).withOpacity(0.15)
-                          : const Color(0xFFC0392B).withOpacity(0.15),
+                      color: const Color(0xFFC0392B).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: const Color(0xFFC0392B).withOpacity(0.4),
@@ -180,8 +205,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         icon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty)
+                          if (v == null || v.trim().isEmpty) {
                             return 'Informe o e-mail';
+                          }
                           if (!v.contains('@')) return 'E-mail inválido';
                           return null;
                         },
@@ -209,11 +235,31 @@ class _RegisterPageState extends State<RegisterPage> {
                       SizedBox(height: sh * 0.018),
 
                       _buildTextField(
+                        controller: _phoneController,
+                        label: 'Celular',
+                        hint: '(00) 0 0000-0000',
+                        icon: Icons.phone_outlined,
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [PhoneInputFormatter()],
+                        validator: (v) {
+                          if (v == null || v.isEmpty)
+                            return 'Informe o celular';
+                          if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
+                            return 'Celular inválido';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      SizedBox(height: sh * 0.018),
+
+                      _buildTextField(
                         controller: _passwordController,
                         label: 'Senha',
                         hint: '••••••••',
                         icon: Icons.lock_outline,
                         obscureText: _obscurePassword,
+                        onChanged: _checkPassword,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -226,12 +272,12 @@ class _RegisterPageState extends State<RegisterPage> {
                             () => _obscurePassword = !_obscurePassword,
                           ),
                         ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) return 'Informe a senha';
-                          if (v.length < 6) return 'Mínimo 6 caracteres';
-                          return null;
-                        },
+                        validator: _validatePassword,
                       ),
+
+                      SizedBox(height: sh * 0.010),
+
+                      _passwordRequirements(),
 
                       SizedBox(height: sh * 0.018),
 
@@ -255,8 +301,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Confirme a senha';
-                          if (v != _passwordController.text)
+                          if (v != _passwordController.text) {
                             return 'As senhas não coincidem';
+                          }
                           return null;
                         },
                       ),
@@ -486,6 +533,64 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
+  Widget _passwordRequirements() {
+    Widget req(String label, bool valid) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          children: [
+            Icon(
+              valid ? Icons.check_circle : Icons.radio_button_unchecked,
+              size: 14,
+              color: valid ? const Color(0xFF22C55E) : Colors.white38,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: valid ? const Color(0xFF22C55E) : Colors.white54,
+                  fontWeight: valid ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF525252),
+        borderRadius: BorderRadius.circular(10),
+        border: const Border(
+          left: BorderSide(color: Color(0xFFC0392B), width: 3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'A senha deve conter:',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          req('No mínimo 6 caracteres', _hasMinLength),
+          req('Pelo menos uma letra maiúscula (A-Z)', _hasUpperCase),
+          req('Pelo menos uma letra minúscula (a-z)', _hasLowerCase),
+          req('Pelo menos um número (0-9)', _hasNumber),
+          req('Pelo menos um caractere especial (!@#\$%...)', _hasSpecialChar),
+        ],
+      ),
+    );
+  }
+
   Widget _sectionTitle(String title) {
     return Row(
       children: [
@@ -520,6 +625,7 @@ class _RegisterPageState extends State<RegisterPage> {
     TextInputType? keyboardType,
     Widget? suffixIcon,
     List<TextInputFormatter>? inputFormatters,
+    ValueChanged<String>? onChanged,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -540,6 +646,7 @@ class _RegisterPageState extends State<RegisterPage> {
           keyboardType: keyboardType,
           validator: validator,
           inputFormatters: inputFormatters,
+          onChanged: onChanged,
           style: const TextStyle(color: Colors.black, fontSize: 15),
           cursorColor: const Color(0xFF424242),
           decoration: InputDecoration(
@@ -590,5 +697,27 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     return newValue.copyWith(text: newValue.text.toUpperCase());
+  }
+}
+
+class PhoneInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final buffer = StringBuffer();
+    for (int i = 0; i < digits.length && i < 11; i++) {
+      if (i == 0) buffer.write('(');
+      if (i == 2) buffer.write(') ');
+      if (i == 7) buffer.write('-');
+      buffer.write(digits[i]);
+    }
+    final text = buffer.toString();
+    return newValue.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
   }
 }
