@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -163,7 +164,9 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () => Navigator.of(
+                              context,
+                            ).pushNamed(AppRoutes.selectRegister),
                             child: Text(
                               'Cadastre-se',
                               style: TextStyle(

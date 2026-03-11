@@ -7,6 +7,7 @@ class AppRoutes {
 
   // ── Auth ──
   static const String login = '/auth/login';
+  static const String selectRegister = '/auth/select_register';
   static const String register = '/auth/register';
   static const String changePassword = '/auth/change_password';
 
