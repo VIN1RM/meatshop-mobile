@@ -129,13 +129,15 @@ class _LoginPageState extends State<LoginPage> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: GestureDetector(
-                          onTap: () {},
+                          onTap: () => Navigator.of(
+                            context,
+                          ).pushNamed(AppRoutes.changePassword),
                           child: Text(
                             'Esqueceu sua senha?',
                             style: TextStyle(
                               color: const Color(0xFFFFFFFF),
                               fontSize: 13 * fontScale,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
                               decoration: TextDecoration.underline,
                               decorationColor: const Color(0xFFFFFFFF),
                             ),

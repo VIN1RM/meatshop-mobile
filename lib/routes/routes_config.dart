@@ -14,6 +14,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.login: (_) => const LoginPage(),
     AppRoutes.selectRegister: (_) => const SelectRegisterPage(),
     AppRoutes.register: (_) => const RegisterPage(),
-    // AppRoutes.changePassword: (_) => const ChangePasswordPage(),
+    AppRoutes.changePassword: (_) => const ChangePasswordPage(),
   };
 }
