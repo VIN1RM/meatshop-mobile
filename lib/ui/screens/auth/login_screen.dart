@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/widgets/app_version_widget.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -183,7 +184,11 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
 
-                      SizedBox(height: sh * 0.04),
+                      SizedBox(height: sh * 0.20),
+
+                      const Center(child: AppVersionText()),
+
+                      SizedBox(height: sh * 0.02),
                     ],
                   ),
                 ),
