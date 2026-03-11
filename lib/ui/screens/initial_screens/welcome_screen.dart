@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
 class _CarouselItem {
@@ -65,6 +66,13 @@ class _WelcomePageState extends State<WelcomePage> {
     super.dispose();
   }
 
+  void _goToLogin() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
   Widget _carouselImage(_CarouselItem item) {
     return Image.asset(
       item.path,
@@ -89,7 +97,7 @@ class _WelcomePageState extends State<WelcomePage> {
         : 0.55;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: const Color(0xFF424242),
       body: Column(
         children: [
           Stack(
@@ -117,7 +125,7 @@ class _WelcomePageState extends State<WelcomePage> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Color(0xFF1A1A1A)],
+                      colors: [Colors.transparent, Color(0xFF424242)],
                     ),
                   ),
                 ),
@@ -173,7 +181,8 @@ class _WelcomePageState extends State<WelcomePage> {
 
                   SizedBox(height: sh * 0.035),
 
-                  PrimaryButton(label: 'Login', onPressed: () {}),
+                  // ── Botão Entrar → navega para LoginPage ──
+                  PrimaryButton(label: 'IR PARA O LOGIN', onPressed: _goToLogin),
                 ],
               ),
             ),
