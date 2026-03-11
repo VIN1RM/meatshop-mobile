@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/routes/routes_config.dart';
 
 void main() {
   runApp(const MeatShopApp());
@@ -17,7 +18,8 @@ class MeatShopApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFB71C1C)),
       ),
-      home: const SplashPage(),
+      initialRoute: AppRoutes.splash,
+      routes: buildRoutes(),
     );
   }
 }
