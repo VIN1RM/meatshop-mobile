@@ -28,7 +28,6 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    // TODO: implementar lógica de autenticação
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
@@ -56,7 +55,6 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       SizedBox(height: sh * 0.02),
 
-                      // ── Logo / ícone ──
                       Container(
                         width: 190,
                         height: 190,
@@ -80,7 +78,6 @@ class _LoginPageState extends State<LoginPage> {
 
                       SizedBox(height: sh * 0.035),
 
-                      // ── Campo Usuário ──
                       _buildTextField(
                         controller: _emailController,
                         label: 'Usuário',
@@ -96,7 +93,6 @@ class _LoginPageState extends State<LoginPage> {
 
                       SizedBox(height: sh * 0.022),
 
-                      // ── Campo Senha ──
                       _buildTextField(
                         controller: _passwordController,
                         label: 'Senha',
@@ -129,13 +125,10 @@ class _LoginPageState extends State<LoginPage> {
 
                       SizedBox(height: sh * 0.020),
 
-                      // ── Esqueceu a senha ──
                       Align(
                         alignment: Alignment.centerLeft,
                         child: GestureDetector(
-                          onTap: () {
-                            // TODO: navegar para recuperação de senha
-                          },
+                          onTap: () {},
                           child: Text(
                             'Esqueceu sua senha?',
                             style: TextStyle(
@@ -151,7 +144,6 @@ class _LoginPageState extends State<LoginPage> {
 
                       SizedBox(height: sh * 0.04),
 
-                      // ── Botão Entrar ──
                       PrimaryButton(
                         label: 'ENTRAR',
                         isLoading: _isLoading,
@@ -160,7 +152,6 @@ class _LoginPageState extends State<LoginPage> {
 
                       SizedBox(height: sh * 0.03),
 
-                      // ── Criar conta ──
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

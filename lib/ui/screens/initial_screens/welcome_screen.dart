@@ -181,8 +181,10 @@ class _WelcomePageState extends State<WelcomePage> {
 
                   SizedBox(height: sh * 0.035),
 
-                  // ── Botão Entrar → navega para LoginPage ──
-                  PrimaryButton(label: 'IR PARA O LOGIN', onPressed: _goToLogin),
+                  PrimaryButton(
+                    label: 'IR PARA O LOGIN',
+                    onPressed: _goToLogin,
+                  ),
                 ],
               ),
             ),
