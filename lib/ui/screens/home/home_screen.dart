@@ -41,25 +41,28 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<Map<String, dynamic>> _cortes = const [
-    {'label': 'Bovino', 'icon': Icons.local_dining},
-    {'label': 'Suíno', 'icon': Icons.set_meal},
-    {'label': 'Frango', 'icon': Icons.egg_alt},
-    {'label': 'Peixe', 'icon': Icons.set_meal_outlined},
+    {'label': 'Bovino', 'icon': Icons.looks_one},
+    {'label': 'Suíno', 'icon': Icons.looks_two},
+    {'label': 'Frango', 'icon': Icons.looks_3},
+    {'label': 'Peixe', 'icon': Icons.set_meal},
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF2E2E2E),
       body: Stack(
         children: [
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: Image.asset(
-              'assets/images/background.png',
-              fit: BoxFit.fitWidth,
+            child: SizedBox(
+              height: 130,
+              child: Image.asset(
+                'assets/images/background.png',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           SafeArea(
@@ -131,7 +134,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHeader() {
     return Container(
-      color: _surface,
+      color: Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -142,7 +145,17 @@ class _HomePageState extends State<HomePage> {
               color: _white,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.storefront_outlined, color: _red, size: 22),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/logo1.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.storefront_outlined,
+                  color: _red,
+                  size: 22,
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 10),
           const Text(
@@ -173,8 +186,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildSearchBar() {
     return Container(
-      color: const Color(0xFF3A3A3A),
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      color: Colors.transparent,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: TextField(
         controller: _searchController,
         style: const TextStyle(color: _white, fontSize: 14),
@@ -197,7 +210,7 @@ class _HomePageState extends State<HomePage> {
                 : const SizedBox.shrink(),
           ),
           filled: true,
-          fillColor: const Color(0xFF4A4A4A),
+          fillColor: Colors.black26,
           contentPadding: const EdgeInsets.symmetric(vertical: 10),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
@@ -225,11 +238,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCortes() {
+    final imagens = [
+      'assets/images/vaca.png',
+      'assets/images/porco.png',
+      'assets/images/frango.png',
+      'assets/images/peixe.png',
+    ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: _cortes.map((corte) {
+        children: List.generate(_cortes.length, (i) {
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -238,36 +258,34 @@ class _HomePageState extends State<HomePage> {
                 child: Container(
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4A4A4A),
+                    color: const Color(0xFFE0E0E0),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(corte['icon'] as IconData, color: _white, size: 30),
-                      const SizedBox(height: 6),
-                      Text(
-                        corte['label'] as String,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
+                  child: Center(
+                    child: Image.asset(
+                      imagens[i],
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.image_not_supported_outlined,
+                        color: Color(0xFF3A3A3A),
+                        size: 30,
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           );
-        }).toList(),
+        }),
       ),
     );
   }
 
   final PageController _pageController = PageController(
     viewportFraction: 0.68,
-    initialPage: 0,
+    initialPage: 1000,
   );
   Timer? _autoScrollTimer;
 
@@ -279,18 +297,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (!_pageController.hasClients) return;
-      final nextPage = (_pageController.page!.round() + 1) % _promocoes.length;
-      _pageController.animateToPage(
-        nextPage,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    });
-  }
-
   @override
   void dispose() {
     _autoScrollTimer?.cancel();
@@ -299,7 +305,24 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  void _startAutoScroll() {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!_pageController.hasClients) return;
+      _pageController.animateToPage(
+        _pageController.page!.round() + 1,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   Widget _buildPromocoes() {
+    final imagens = [
+      'assets/images/picanha.png',
+      'assets/images/peitodefrango.png',
+      'assets/images/lombo.png',
+    ];
+
     return Padding(
       padding: const EdgeInsets.only(left: 16),
       child: SizedBox(
@@ -309,7 +332,8 @@ class _HomePageState extends State<HomePage> {
           padEnds: false,
           itemCount: _promocoes.length,
           itemBuilder: (context, i) {
-            final p = _promocoes[i];
+            final p = _promocoes[i % _promocoes.length];
+            final img = imagens[i % imagens.length];
             return AnimatedBuilder(
               animation: _pageController,
               builder: (context, child) {
@@ -329,55 +353,64 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Imagem responsiva
                     Expanded(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF555555),
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(16),
-                          ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
                         ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.image_outlined,
-                            color: Colors.white24,
-                            size: 44,
+                        child: Image.asset(
+                          img,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFF555555),
+                            child: const Center(
+                              child: Icon(
+                                Icons.image_outlined,
+                                color: Colors.white24,
+                                size: 44,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
+                    // Info
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: p.nome,
-                                  style: const TextStyle(
-                                    color: _white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: p.nome,
+                                    style: const TextStyle(
+                                      color: _white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                TextSpan(
-                                  text: ' ${p.unidade}',
-                                  style: const TextStyle(
-                                    color: Colors.white54,
-                                    fontSize: 12,
+                                  TextSpan(
+                                    text: ' ${p.unidade}',
+                                    style: const TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 11,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 4),
                           Text(
                             p.preco,
                             style: const TextStyle(
                               color: _red,
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

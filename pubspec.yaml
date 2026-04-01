@@ -59,6 +59,13 @@ flutter:
 
   assets:
     - assets/images/background.png
+    - assets/images/vaca.png
+    - assets/images/porco.png
+    - assets/images/frango.png
+    - assets/images/peixe.png
+    - assets/images/picanha.png
+    - assets/images/peitodefrango.png
+    - assets/images/lombo.png
     - assets/images/logo1.png
     - assets/images/person1.png
     - assets/images/person2.png
