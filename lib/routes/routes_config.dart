@@ -6,6 +6,7 @@ import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/register_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/change_password.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
+import 'package:meatshop_mobile/ui/screens/home/home_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   return {
@@ -15,5 +16,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.selectRegister: (_) => const SelectRegisterPage(),
     AppRoutes.register: (_) => const RegisterPage(),
     AppRoutes.changePassword: (_) => const ChangePasswordPage(),
+    AppRoutes.home: (_) => const HomePage(),
   };
 }
