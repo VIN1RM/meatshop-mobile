@@ -50,7 +50,7 @@ class _WelcomePageState extends State<WelcomePage> {
     final int initialPage = _images.length * (_multiplier ~/ 2);
     _pageController = PageController(initialPage: initialPage);
 
-    _carouselTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _carouselTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!mounted) return;
       _pageController.nextPage(
         duration: const Duration(milliseconds: 700),

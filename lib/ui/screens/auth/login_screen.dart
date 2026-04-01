@@ -26,14 +26,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _onLogin() async {
-    if (!_formKey.currentState!.validate()) return;
-
+    // if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-
     await Future.delayed(const Duration(seconds: 2));
-
     if (!mounted) return;
     setState(() => _isLoading = false);
+    Navigator.of(
+      context,
+    ).pushReplacementNamed(AppRoutes.home); 
   }
 
   @override
