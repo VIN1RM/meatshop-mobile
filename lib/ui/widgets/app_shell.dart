@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/screens/home/home_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cart/cart_screen.dart';
+import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
+import 'package:meatshop_mobile/ui/screens/account/account_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -24,8 +26,8 @@ class _AppShellState extends State<AppShell> {
   static const List<Widget> _tabs = [
     HomeBody(),
     CartScreen(),
-    _PlaceholderTab(icon: Icons.receipt_long_outlined, label: 'Pedidos'),
-    _PlaceholderTab(icon: Icons.person_outline, label: 'Minha conta'),
+    OrdersScreen(),
+    AccountScreen(),
   ];
 
   @override
@@ -115,32 +117,4 @@ class _NavItem {
   final IconData icon;
   final IconData activeIcon;
   const _NavItem(this.label, this.icon, this.activeIcon);
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _PlaceholderTab({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white38, size: 56),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white38, fontSize: 16),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Em breve',
-            style: TextStyle(color: Colors.white24, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
 }
