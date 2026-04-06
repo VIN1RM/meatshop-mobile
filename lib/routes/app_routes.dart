@@ -11,6 +11,9 @@ class AppRoutes {
   static const String register = '/auth/register';
   static const String changePassword = '/auth/change_password';
 
-  // ── Home ──
-  static const String home = '/home';
+  // ── Shell (Home + abas principais) ──
+  static const String shell = '/shell';
+
+  // Mantido por compatibilidade – redireciona para shell
+  static const String home = '/shell';
 }

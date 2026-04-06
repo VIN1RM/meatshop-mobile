@@ -14,16 +14,21 @@ class _Acougue {
   const _Acougue(this.nome, this.rating);
 }
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  Widget build(BuildContext context) => const HomeBody();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
+class HomeBody extends StatefulWidget {
+  const HomeBody({super.key});
 
+  @override
+  State<HomeBody> createState() => _HomeBodyState();
+}
+
+class _HomeBodyState extends State<HomeBody> {
   static const Color _surface = Color(0xFF3A3A3A);
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
@@ -49,83 +54,67 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF2E2E2E),
-      body: Stack(
-        children: [
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: SizedBox(
-              height: 130,
-              child: Image.asset(
-                'assets/images/background.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          SafeArea(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: [
-                _buildHomeTab(),
-                _buildPlaceholderTab(Icons.shopping_cart_outlined, 'Carrinho'),
-                _buildPlaceholderTab(Icons.receipt_long_outlined, 'Pedidos'),
-                _buildPlaceholderTab(Icons.person_outline, 'Minha Conta'),
-              ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  Widget _buildHomeTab() {
-    return Column(
+    return Stack(
       children: [
-        _buildHeader(),
-        _buildSearchBar(),
-        Expanded(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                _sectionTitle('CORTES'),
-                const SizedBox(height: 12),
-                _buildCortes(),
-                const SizedBox(height: 24),
-                _sectionTitle('PROMOÇÕES', redTitle: true),
-                const SizedBox(height: 12),
-                _buildPromocoes(),
-                const SizedBox(height: 24),
-                _sectionTitle('AÇOUGUES'),
-                const SizedBox(height: 12),
-                _buildAcougues(),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.only(right: 16, bottom: 8),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: const Text(
-                        'Ver mais...',
-                        style: TextStyle(
-                          color: _red,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: SizedBox(
+            height: 130,
+            child: Image.asset(
+              'assets/images/background.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildSearchBar(),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      _sectionTitle('CORTES'),
+                      const SizedBox(height: 12),
+                      _buildCortes(),
+                      const SizedBox(height: 24),
+                      _sectionTitle('PROMOÇÕES', redTitle: true),
+                      const SizedBox(height: 12),
+                      _buildPromocoes(),
+                      const SizedBox(height: 24),
+                      _sectionTitle('AÇOUGUES'),
+                      const SizedBox(height: 12),
+                      _buildAcougues(),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 16, bottom: 8),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () {},
+                            child: const Text(
+                              'Ver mais...',
+                              style: TextStyle(
+                                color: _red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -353,7 +342,6 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Imagem responsiva
                     Expanded(
                       child: ClipRRect(
                         borderRadius: const BorderRadius.vertical(
@@ -376,7 +364,6 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    // Info
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                       child: Row(
@@ -487,104 +474,6 @@ class _HomePageState extends State<HomePage> {
           size: 20,
         );
       }),
-    );
-  }
-
-  Widget _buildPlaceholderTab(IconData icon, String label) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white38, size: 56),
-          const SizedBox(height: 12),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white38, fontSize: 16),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Em breve',
-            style: TextStyle(color: Colors.white24, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    final items = const [
-      {
-        'label': 'Início',
-        'icon': Icons.home_outlined,
-        'activeIcon': Icons.home,
-      },
-      {
-        'label': 'Carrinho',
-        'icon': Icons.shopping_cart_outlined,
-        'activeIcon': Icons.shopping_cart,
-      },
-      {
-        'label': 'Pedidos',
-        'icon': Icons.receipt_long_outlined,
-        'activeIcon': Icons.receipt_long,
-      },
-      {
-        'label': 'Minha conta',
-        'icon': Icons.person_outline,
-        'activeIcon': Icons.person,
-      },
-    ];
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF3A3A3A),
-        border: Border(top: BorderSide(color: Color(0xFF555555), width: 0.5)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(items.length, (i) {
-              final item = items[i];
-              final isActive = _currentIndex == i;
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => setState(() => _currentIndex = i),
-                child: SizedBox(
-                  width: 72,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isActive
-                            ? item['activeIcon'] as IconData
-                            : item['icon'] as IconData,
-                        color: isActive ? _red : Colors.white54,
-                        size: 26,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['label'] as String,
-                        style: TextStyle(
-                          color: isActive ? _red : Colors.white54,
-                          fontSize: 10.5,
-                          fontWeight: isActive
-                              ? FontWeight.w700
-                              : FontWeight.normal,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
     );
   }
 }
