@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class _CartItem {
   final String nome;
-  final String preco; 
+  final String preco;
   final String imagemAsset;
   int quantidade;
 
@@ -13,7 +13,6 @@ class _CartItem {
     required this.imagemAsset,
     this.quantidade = 1,
   });
-
 
   double get precoNumerico {
     final cleaned = preco
@@ -55,11 +54,6 @@ class _CartScreenState extends State<CartScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _surface = Color(0xFF3A3A3A);
   static const Color _white = Colors.white;
-
-
-  String _endereco =
-      'Avenida Rodovanio Rodovalho, Nº 17, Casa cinza\nBairro Eldorado - Anápolis, Goiás';
-
 
   late final List<_AcougueCarrinho> _acougues;
 
@@ -107,7 +101,6 @@ class _CartScreenState extends State<CartScreen> {
       backgroundColor: const Color(0xFF2E2E2E),
       body: Stack(
         children: [
-    
           Positioned(
             top: 0,
             left: 0,
@@ -117,9 +110,8 @@ class _CartScreenState extends State<CartScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFF1A1A1A),
-                ),
+                errorBuilder: (_, __, ___) =>
+                    Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
           ),
@@ -127,7 +119,7 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               children: [
                 _buildHeader(context),
-                _buildSearchBar(),
+
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -137,8 +129,7 @@ class _CartScreenState extends State<CartScreen> {
                         const SizedBox(height: 20),
                         _sectionTitle('CARRINHO'),
                         const SizedBox(height: 16),
-                        _buildEndereco(),
-                        const SizedBox(height: 20),
+
                         ..._acougues.map(_buildAcougueSection),
                         const SizedBox(height: 24),
                         _buildFinalizarButton(),
@@ -205,54 +196,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  final TextEditingController _searchController = TextEditingController();
-
-  Widget _buildSearchBar() {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        children: [
-   
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 36,
-              height: 36,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: Colors.black26,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.arrow_back, color: Colors.white70, size: 20),
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: _white, fontSize: 14),
-              cursorColor: _red,
-              decoration: InputDecoration(
-                hintText: 'Procure por produto ou corte',
-                hintStyle:
-                    const TextStyle(color: Colors.white38, fontSize: 14),
-                prefixIcon: const Icon(Icons.search,
-                    color: Colors.white38, size: 20),
-                filled: true,
-                fillColor: Colors.black26,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -268,65 +211,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildEndereco() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Endereço de entrega',
-            style: TextStyle(
-              color: _white,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            _endereco,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 13,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: _editarEndereco,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.edit_outlined, color: _red, size: 14),
-                  SizedBox(width: 4),
-                  Text(
-                    'Editar',
-                    style: TextStyle(
-                      color: _red,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _editarEndereco() {
-
-  }
-
   Widget _buildAcougueSection(_AcougueCarrinho acougue) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -337,12 +221,10 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-    
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
               children: [
-      
                 Container(
                   width: 44,
                   height: 44,
@@ -381,11 +263,9 @@ class _CartScreenState extends State<CartScreen> {
 
           const Divider(color: Color(0xFF555555), height: 1),
 
- 
           ...acougue.itens.map((item) => _buildCartItem(item, acougue)),
 
           const Divider(color: Color(0xFF555555), height: 1),
-
 
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
@@ -396,8 +276,11 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.delivery_dining,
-                            color: Color(0xFF4CAF50), size: 20),
+                        const Icon(
+                          Icons.delivery_dining,
+                          color: Color(0xFF4CAF50),
+                          size: 20,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           acougue.entregaGratis
@@ -414,7 +297,9 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       acougue.entregaGratis ? 'R\$0,00' : 'R\$5,99',
                       style: const TextStyle(
-                          color: Colors.white70, fontSize: 13),
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -452,7 +337,6 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-        
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.asset(
@@ -467,13 +351,16 @@ class _CartScreenState extends State<CartScreen> {
                       color: const Color(0xFF555555),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(Icons.image_outlined,
-                        color: Colors.white24, size: 28),
+                    child: const Icon(
+                      Icons.image_outlined,
+                      color: Colors.white24,
+                      size: 28,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-   
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,7 +388,9 @@ class _CartScreenState extends State<CartScreen> {
                           const TextSpan(
                             text: '/kg',
                             style: TextStyle(
-                                color: Colors.white54, fontSize: 11),
+                              color: Colors.white54,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -511,12 +400,12 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ],
           ),
-       
+
           const SizedBox(height: 10),
           Row(
             children: [
-              const SizedBox(width: 66), 
-            
+              const SizedBox(width: 66),
+
               _QtyButton(
                 icon: Icons.remove,
                 onTap: () {
@@ -541,7 +430,7 @@ class _CartScreenState extends State<CartScreen> {
                 style: TextStyle(color: Colors.white54, fontSize: 12),
               ),
               const SizedBox(width: 8),
-         
+
               _QtyButton(
                 icon: Icons.add,
                 onTap: () {
@@ -561,29 +450,27 @@ class _CartScreenState extends State<CartScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
-        onPressed: () {
-
-        },
+        onPressed: () => Navigator.pushNamed(context, AppRoutes.reviewOrder),
         style: ElevatedButton.styleFrom(
-          backgroundColor: _red,
-          foregroundColor: _white,
+          backgroundColor: const Color(0xFFC0392B),
+          foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           elevation: 0,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Finalizar pedido',
+              'Revisar Pedido',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(width: 8),
             Text(
               '· ${_formatPreco(total)}',
-              style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -609,7 +496,6 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   String _formatPreco(double valor) {
-
     final s = valor.toStringAsFixed(2).replaceAll('.', ',');
     final parts = s.split(',');
     final inteiro = parts[0].replaceAllMapped(
@@ -619,7 +505,6 @@ class _CartScreenState extends State<CartScreen> {
     return 'R\$$inteiro,${parts[1]}';
   }
 }
-
 
 class _QtyButton extends StatelessWidget {
   final IconData icon;

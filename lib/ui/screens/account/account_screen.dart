@@ -28,7 +28,7 @@ class AccountScreen extends StatelessWidget {
           child: Column(
             children: [
               _buildHeader(),
-              _buildSearchBar(),
+
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -99,55 +99,6 @@ class AccountScreen extends StatelessWidget {
             child: const Icon(Icons.help_outline, color: _white, size: 20),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: TextField(
-        style: const TextStyle(color: _white, fontSize: 14),
-        cursorColor: _red,
-        decoration: InputDecoration(
-          hintText: 'Procure por ',
-          hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-          hintMaxLines: 1,
-          prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 20),
-
-          filled: true,
-          fillColor: Colors.black26,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-
-          prefix: RichText(
-            text: const TextSpan(
-              style: TextStyle(color: Colors.white38, fontSize: 14),
-              children: [
-                TextSpan(text: 'Procure por '),
-                TextSpan(
-                  text: 'configurações',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white60,
-                  ),
-                ),
-                TextSpan(text: ' ou '),
-                TextSpan(
-                  text: 'opções do perfil',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white60,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
