@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/screens/butcher/butcher_screen.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/welcome_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
@@ -19,5 +20,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.changePassword:  (_) => const ChangePasswordPage(),
     AppRoutes.shell:          (_) => const AppShell(),
     AppRoutes.reviewOrder:    (_) => const ReviewOrderScreen(),
+    AppRoutes.acougues: (_) => const AcouguesScreen(),
   };
 }

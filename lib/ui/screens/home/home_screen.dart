@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:meatshop_mobile/routes/app_routes.dart';
+
 class _Promocao {
   final String nome;
   final String preco;
@@ -97,7 +99,10 @@ class _HomeBodyState extends State<HomeBody> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: GestureDetector(
-                            onTap: () {},
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.acougues,
+                            ),
                             child: const Text(
                               'Ver mais...',
                               style: TextStyle(

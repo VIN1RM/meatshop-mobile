@@ -10,7 +10,9 @@ class AppRoutes {
   static const String changePassword = '/auth/change_password';
 
   static const String shell = '/shell';
-  static const String home = '/shell'; // alias
+  static const String home = '/shell'; 
 
   static const String reviewOrder = '/cart/review';
+
+static const String acougues = '/acougues';
 }
