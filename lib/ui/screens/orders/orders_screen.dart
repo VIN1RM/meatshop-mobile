@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
-// ─────────────────────────────────────────────
-// Modelos
-// ─────────────────────────────────────────────
 class _OrderItem {
-  final String quantidade; // ex: "1 KG", "2,5 KG"
+  final String quantidade;
   final String nome;
   const _OrderItem(this.quantidade, this.nome);
 }
@@ -27,18 +24,13 @@ class _Order {
   });
 }
 
-// ─────────────────────────────────────────────
-// Tela de Pedidos
-// ─────────────────────────────────────────────
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key});
 
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
-  // Dados mockados — em produção viriam do provider/bloc
   static final List<_Order> _orders = [
-    // ── Em andamento ──
     _Order(
       acougueNome: 'Master Carnes',
       logoAsset: 'assets/images/logo_master.png',
@@ -56,7 +48,7 @@ class OrdersScreen extends StatelessWidget {
       status: _OrderStatus.emAndamento,
       itens: const [_OrderItem('1 KG', 'Filé de Tilápia')],
     ),
-    // ── Finalizados ──
+
     _Order(
       acougueNome: 'Master Carnes',
       logoAsset: 'assets/images/logo_master.png',
@@ -101,7 +93,6 @@ class OrdersScreen extends StatelessWidget {
 
     return Stack(
       children: [
-        // Fundo decorativo
         Positioned(
           top: 0,
           left: 0,
@@ -120,7 +111,7 @@ class OrdersScreen extends StatelessWidget {
           child: Column(
             children: [
               _buildHeader(),
-              _buildSearchBar(),
+
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -131,14 +122,12 @@ class OrdersScreen extends StatelessWidget {
                       _pageTitle(),
                       const SizedBox(height: 16),
 
-                      // ── Em andamento ──
                       _groupTitle('Em andamento'),
                       const SizedBox(height: 10),
                       _buildGroup(emAndamento, isActive: true),
 
                       const SizedBox(height: 24),
 
-                      // ── Finalizados ──
                       _groupTitle('Finalizados'),
                       const SizedBox(height: 10),
                       _buildGroup(finalizados, isActive: false),
@@ -155,7 +144,6 @@ class OrdersScreen extends StatelessWidget {
     );
   }
 
-  // ── Header (idêntico às outras telas) ────────
   Widget _buildHeader() {
     return Container(
       color: Colors.transparent,
@@ -206,55 +194,6 @@ class OrdersScreen extends StatelessWidget {
     );
   }
 
-  // ── Search bar ───────────────────────────────
-  Widget _buildSearchBar() {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.arrow_back,
-              color: Colors.white70,
-              size: 20,
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              style: const TextStyle(color: _white, fontSize: 14),
-              cursorColor: _red,
-              decoration: InputDecoration(
-                hintText: 'Procure por produto ou corte',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Colors.white38,
-                  size: 20,
-                ),
-                filled: true,
-                fillColor: Colors.black26,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Título da página ─────────────────────────
   Widget _pageTitle() {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -270,7 +209,6 @@ class OrdersScreen extends StatelessWidget {
     );
   }
 
-  // ── Título de grupo (Em andamento / Finalizados)
   Widget _groupTitle(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -285,7 +223,6 @@ class OrdersScreen extends StatelessWidget {
     );
   }
 
-  // ── Card branco que agrupa os pedidos do grupo
   Widget _buildGroup(List<_Order> orders, {required bool isActive}) {
     if (orders.isEmpty) return const SizedBox.shrink();
 
@@ -314,9 +251,7 @@ class OrdersScreen extends StatelessWidget {
     );
   }
 
-  // ── Card individual de um pedido ─────────────
   Widget _buildOrderCard(_Order order, {required bool isActive}) {
-    // Máximo 2 itens visíveis; se houver mais mostra "Ver mais"
     const int maxVisible = 2;
     final visibleItems = order.itens.take(maxVisible).toList();
     final hasMore = order.itens.length > maxVisible;
@@ -326,10 +261,8 @@ class OrdersScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabeçalho: logo + nome + total
           Row(
             children: [
-              // Logo circular pequeno
               Container(
                 width: 36,
                 height: 36,
@@ -373,7 +306,6 @@ class OrdersScreen extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // Itens visíveis
           ...visibleItems.map(
             (item) => Padding(
               padding: const EdgeInsets.only(bottom: 3),
@@ -405,13 +337,10 @@ class OrdersScreen extends StatelessWidget {
 
           const SizedBox(height: 6),
 
-          // Ação: "Acompanhar Entrega" ou "Ver mais"
           Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(
-              onTap: () {
-                // TODO: navegar para detalhe do pedido
-              },
+              onTap: () {},
               child: Text(
                 isActive ? 'Acompanhar Entrega' : (hasMore ? 'Ver mais' : ''),
                 style: TextStyle(
