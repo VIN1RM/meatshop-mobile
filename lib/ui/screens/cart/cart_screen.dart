@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-// ─────────────────────────────────────────────
-// Modelos de dados locais
-// ─────────────────────────────────────────────
+
 class _CartItem {
   final String nome;
-  final String preco; // preço por kg, ex: "R\$150,00"
+  final String preco; 
   final String imagemAsset;
   int quantidade;
 
@@ -16,7 +14,7 @@ class _CartItem {
     this.quantidade = 1,
   });
 
-  /// Retorna o valor numérico do preço (por kg)
+
   double get precoNumerico {
     final cleaned = preco
         .replaceAll('R\$', '')
@@ -46,9 +44,6 @@ class _AcougueCarrinho {
   double get subtotal => itens.fold(0, (sum, i) => sum + i.subtotal);
 }
 
-// ─────────────────────────────────────────────
-// Tela do Carrinho
-// ─────────────────────────────────────────────
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
@@ -61,11 +56,11 @@ class _CartScreenState extends State<CartScreen> {
   static const Color _surface = Color(0xFF3A3A3A);
   static const Color _white = Colors.white;
 
-  // Endereço mockado
+
   String _endereco =
       'Avenida Rodovanio Rodovalho, Nº 17, Casa cinza\nBairro Eldorado - Anápolis, Goiás';
 
-  // Dados mockados – em produção viriam do provider/bloc
+
   late final List<_AcougueCarrinho> _acougues;
 
   @override
@@ -112,7 +107,7 @@ class _CartScreenState extends State<CartScreen> {
       backgroundColor: const Color(0xFF2E2E2E),
       body: Stack(
         children: [
-          // Fundo decorativo igual à home
+    
           Positioned(
             top: 0,
             left: 0,
@@ -160,7 +155,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Header igual à Home ──────────────────────
   Widget _buildHeader(BuildContext context) {
     return Container(
       color: Colors.transparent,
@@ -211,7 +205,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Search bar igual à Home ──────────────────
   final TextEditingController _searchController = TextEditingController();
 
   Widget _buildSearchBar() {
@@ -220,7 +213,7 @@ class _CartScreenState extends State<CartScreen> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: Row(
         children: [
-          // Botão voltar
+   
           GestureDetector(
             onTap: () {},
             child: Container(
@@ -260,7 +253,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Título de seção ──────────────────────────
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -276,7 +268,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Card de endereço ─────────────────────────
   Widget _buildEndereco() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -333,10 +324,9 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   void _editarEndereco() {
-    // TODO: abrir tela / bottom-sheet de edição de endereço
+
   }
 
-  // ── Seção de um açougue no carrinho ──────────
   Widget _buildAcougueSection(_AcougueCarrinho acougue) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -347,12 +337,12 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabeçalho do açougue
+    
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
             child: Row(
               children: [
-                // Logo circular
+      
                 Container(
                   width: 44,
                   height: 44,
@@ -391,12 +381,12 @@ class _CartScreenState extends State<CartScreen> {
 
           const Divider(color: Color(0xFF555555), height: 1),
 
-          // Itens do açougue
+ 
           ...acougue.itens.map((item) => _buildCartItem(item, acougue)),
 
           const Divider(color: Color(0xFF555555), height: 1),
 
-          // Entrega + subtotal
+
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
             child: Column(
@@ -454,7 +444,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Item individual do carrinho ──────────────
   Widget _buildCartItem(_CartItem item, _AcougueCarrinho acougue) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
@@ -463,7 +452,7 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Imagem do produto
+        
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Image.asset(
@@ -484,7 +473,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Nome e preço
+   
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,12 +511,12 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ],
           ),
-          // Controle de quantidade
+       
           const SizedBox(height: 10),
           Row(
             children: [
-              const SizedBox(width: 66), // alinha com o texto
-              // Botão –
+              const SizedBox(width: 66), 
+            
               _QtyButton(
                 icon: Icons.remove,
                 onTap: () {
@@ -552,7 +541,7 @@ class _CartScreenState extends State<CartScreen> {
                 style: TextStyle(color: Colors.white54, fontSize: 12),
               ),
               const SizedBox(width: 8),
-              // Botão +
+         
               _QtyButton(
                 icon: Icons.add,
                 onTap: () {
@@ -567,14 +556,13 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Botão Finalizar pedido ───────────────────
   Widget _buildFinalizarButton() {
     final total = _acougues.fold<double>(0, (s, a) => s + a.subtotal);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
         onPressed: () {
-          // TODO: navegar para tela de checkout
+
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
@@ -603,7 +591,6 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  // ── Helpers ──────────────────────────────────
   Widget _buildStars(double rating) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -622,7 +609,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   String _formatPreco(double valor) {
-    // Formata para R$1.234,56
+
     final s = valor.toStringAsFixed(2).replaceAll('.', ',');
     final parts = s.split(',');
     final inteiro = parts[0].replaceAllMapped(
@@ -633,9 +620,7 @@ class _CartScreenState extends State<CartScreen> {
   }
 }
 
-// ─────────────────────────────────────────────
-// Botão circular de quantidade (– / +)
-// ─────────────────────────────────────────────
+
 class _QtyButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
