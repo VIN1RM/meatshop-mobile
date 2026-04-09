@@ -2,7 +2,7 @@
 
 > Conectando clientes, açougues e entregadores em uma plataforma prática e segura.
 
-**Versão:** 1.0.0  
+**Versão:** 1.1.0  
 **Autor:** Vinícius Rodrigues  
 **Plataforma:** Android & iOS  
 **Status:** Em desenvolvimento 🚧
