@@ -13,6 +13,7 @@ import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/swine_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/poultry_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/fish_cuts_screen.dart';
+import 'package:meatshop_mobile/ui/screens/delivery/deliveries_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   return {
@@ -29,5 +30,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.cortesSuinos: (_) => const SwineCortsScreen(),
     AppRoutes.cortesAves: (_) => const PoultryCortsScreen(),
     AppRoutes.cortesPeixes: (_) => const FishCortsScreen(),
+    AppRoutes.deliveries: (_) => const DeliveriesScreen(),
   };
 }

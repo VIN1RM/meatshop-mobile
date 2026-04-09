@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/bovine_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/cuts_filter_sheet.dart';
+import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 
 class FishCortsScreen extends StatefulWidget {
   const FishCortsScreen({super.key});
@@ -189,7 +190,12 @@ class _FishCortsScreenState extends State<FishCortsScreen> {
             child: Column(
               children: [
                 _buildHeader(context),
-                _buildSearchBar(),
+                SearchWidget(
+                  controller: _searchController,
+                  hintText: 'Procure por um corte específico',
+                  showBackButton: true,
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                ),
                 Expanded(
                   child: Column(
                     children: [
@@ -343,71 +349,6 @@ class _FishCortsScreenState extends State<FishCortsScreen> {
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.help_outline, color: _white, size: 20),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: Colors.black26,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white70,
-                size: 20,
-              ),
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: _white, fontSize: 14),
-              cursorColor: _red,
-              onChanged: (v) => setState(() => _searchQuery = v),
-              decoration: InputDecoration(
-                hintText: 'Procure por um corte específico',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Colors.white38,
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          color: Colors.white38,
-                          size: 18,
-                        ),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.black26,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
           ),
         ],
       ),

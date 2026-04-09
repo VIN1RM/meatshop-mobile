@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class _OrderItem {
   final String quantidade;
@@ -124,13 +125,13 @@ class OrdersScreen extends StatelessWidget {
 
                       _groupTitle('Em andamento'),
                       const SizedBox(height: 10),
-                      _buildGroup(emAndamento, isActive: true),
+                      _buildGroup(context, emAndamento, isActive: true),
 
                       const SizedBox(height: 24),
 
                       _groupTitle('Finalizados'),
                       const SizedBox(height: 10),
-                      _buildGroup(finalizados, isActive: false),
+                      _buildGroup(context, finalizados, isActive: false),
 
                       const SizedBox(height: 24),
                     ],
@@ -223,7 +224,11 @@ class OrdersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGroup(List<_Order> orders, {required bool isActive}) {
+  Widget _buildGroup(
+    BuildContext context,
+    List<_Order> orders, {
+    required bool isActive,
+  }) {
     if (orders.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -237,7 +242,7 @@ class OrdersScreen extends StatelessWidget {
           final isLast = i == orders.length - 1;
           return Column(
             children: [
-              _buildOrderCard(orders[i], isActive: isActive),
+              _buildOrderCard(context, orders[i], isActive: isActive),
               if (!isLast)
                 const Divider(
                   height: 1,
@@ -251,7 +256,11 @@ class OrdersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderCard(_Order order, {required bool isActive}) {
+  Widget _buildOrderCard(
+    BuildContext context,
+    _Order order, {
+    required bool isActive,
+  }) {
     const int maxVisible = 2;
     final visibleItems = order.itens.take(maxVisible).toList();
     final hasMore = order.itens.length > maxVisible;
@@ -283,6 +292,7 @@ class OrdersScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+
               Expanded(
                 child: Text(
                   order.acougueNome,
@@ -293,6 +303,7 @@ class OrdersScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
               Text(
                 order.total,
                 style: const TextStyle(
@@ -340,7 +351,9 @@ class OrdersScreen extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.deliveries);
+              },
               child: Text(
                 isActive ? 'Acompanhar Entrega' : (hasMore ? 'Ver mais' : ''),
                 style: TextStyle(
