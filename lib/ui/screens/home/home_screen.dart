@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-
+import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class _Promocao {
@@ -74,7 +74,11 @@ class _HomeBodyState extends State<HomeBody> {
           child: Column(
             children: [
               _buildHeader(),
-              _buildSearchBar(),
+              SearchWidget(
+                controller: _searchController,
+                hintText: 'Procure por produto ou estabelecimento',
+                onSubmitted: (value) {},
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -178,44 +182,6 @@ class _HomeBodyState extends State<HomeBody> {
 
   final TextEditingController _searchController = TextEditingController();
 
-  Widget _buildSearchBar() {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: TextField(
-        controller: _searchController,
-        style: const TextStyle(color: _white, fontSize: 14),
-        cursorColor: _red,
-        decoration: InputDecoration(
-          hintText: 'Procure por produto ou estabelecimento',
-          hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Colors.white38, size: 20),
-          suffixIcon: ValueListenableBuilder(
-            valueListenable: _searchController,
-            builder: (_, value, __) => value.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: Colors.white38,
-                      size: 18,
-                    ),
-                    onPressed: () => _searchController.clear(),
-                  )
-                : const SizedBox.shrink(),
-          ),
-          filled: true,
-          fillColor: Colors.black26,
-          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        onSubmitted: (value) {},
-      ),
-    );
-  }
-
   Widget _sectionTitle(String title, {bool redTitle = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -239,6 +205,13 @@ class _HomeBodyState extends State<HomeBody> {
       'assets/images/peixe.png',
     ];
 
+    final rotas = [
+      AppRoutes.cortesBovinos,
+      AppRoutes.cortesSuinos,
+      AppRoutes.cortesAves,
+      AppRoutes.cortesPeixes,
+    ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -248,7 +221,7 @@ class _HomeBodyState extends State<HomeBody> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: GestureDetector(
-                onTap: () {},
+                onTap: () => Navigator.pushNamed(context, rotas[i]),
                 child: Container(
                   height: 80,
                   decoration: BoxDecoration(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/widgets/butcher_filter_sheet.dart';
+import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 
 class AcougueModel {
   final String nome;
@@ -165,7 +166,11 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
             child: Column(
               children: [
                 _buildHeader(context),
-                _buildSearchBar(),
+                SearchWidget(
+                  controller: _searchController,
+                  hintText: 'Procure por um estabelecimento',
+                  showBackButton: true,
+                ),
                 Expanded(
                   child: Column(
                     children: [
@@ -301,57 +306,6 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
   }
 
   final TextEditingController _searchController = TextEditingController();
-
-  Widget _buildSearchBar() {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: Colors.black26,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white70,
-                size: 20,
-              ),
-            ),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: _white, fontSize: 14),
-              cursorColor: _red,
-              decoration: InputDecoration(
-                hintText: 'Procure por um estabelecimento',
-                hintStyle: const TextStyle(color: Colors.white38, fontSize: 14),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: Colors.white38,
-                  size: 20,
-                ),
-                filled: true,
-                fillColor: Colors.black26,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAcougueItem(AcougueModel a) {
     return Container(
