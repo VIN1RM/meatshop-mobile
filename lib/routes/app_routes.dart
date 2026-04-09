@@ -15,4 +15,8 @@ class AppRoutes {
   static const String reviewOrder = '/cart/review';
 
 static const String acougues = '/acougues';
+static const String cortesBovinos = '/cortes/bovinos';
+static const String cortesSuinos = '/cortes/suinos';
+static const String cortesAves = '/cortes/aves';
+static const String cortesPeixes = '/cortes/peixes';
 }
