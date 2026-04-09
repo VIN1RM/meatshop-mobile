@@ -239,7 +239,6 @@ class _HomeBodyState extends State<HomeBody> {
       'assets/images/peixe.png',
     ];
 
-    // Rotas para cada corte na mesma ordem dos ícones
     final rotas = [
       AppRoutes.cortesBovinos,
       AppRoutes.cortesSuinos,
@@ -256,7 +255,7 @@ class _HomeBodyState extends State<HomeBody> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: GestureDetector(
-                onTap: () => Navigator.pushNamed(context, rotas[i]), // <-- aqui
+                onTap: () => Navigator.pushNamed(context, rotas[i]),
                 child: Container(
                   height: 80,
                   decoration: BoxDecoration(

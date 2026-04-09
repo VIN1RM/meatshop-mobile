@@ -15,7 +15,7 @@ class _SwineCortsScreenState extends State<SwineCortsScreen> {
   static const Color _bg = Color(0xFF2E2E2E);
   static const Color _white = Colors.white;
 
-  CortesOrdem _ordemAtual = CortesOrdem.nomeAZ;
+  CortesFilter _filtro = const CortesFilter();
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -94,7 +94,9 @@ class _SwineCortsScreenState extends State<SwineCortsScreen> {
           .toList();
     }
 
-    switch (_ordemAtual) {
+    lista = lista.where((c) => _filtro.aplicarFaixa(c.preco)).toList();
+
+    switch (_filtro.ordem) {
       case CortesOrdem.nomeAZ:
         lista.sort((a, b) => a.nome.compareTo(b.nome));
       case CortesOrdem.nomeZA:
@@ -109,22 +111,37 @@ class _SwineCortsScreenState extends State<SwineCortsScreen> {
   }
 
   String get _ordemLabel {
-    switch (_ordemAtual) {
+    final labels = <String>[];
+
+    switch (_filtro.ordem) {
       case CortesOrdem.nomeAZ:
-        return 'A → Z';
+        labels.add('A → Z');
       case CortesOrdem.nomeZA:
-        return 'Z → A';
+        labels.add('Z → A');
       case CortesOrdem.precoMaior:
-        return 'Maior preço';
+        labels.add('Maior preço');
       case CortesOrdem.precoMenor:
-        return 'Menor preço';
+        labels.add('Menor preço');
     }
+
+    switch (_filtro.faixaPreco) {
+      case CortesFaixaPreco.ate20:
+        labels.add('Até R\$20');
+      case CortesFaixaPreco.de20a50:
+        labels.add('R\$20–R\$50');
+      case CortesFaixaPreco.acima50:
+        labels.add('Acima R\$50');
+      case CortesFaixaPreco.todas:
+        break;
+    }
+
+    return labels.join(' · ');
   }
 
   Future<void> _abrirFiltro() async {
-    final resultado = await CortesFilterSheet.show(context, _ordemAtual);
-    if (resultado != null && resultado != _ordemAtual) {
-      setState(() => _ordemAtual = resultado);
+    final resultado = await CortesFilterSheet.show(context, _filtro);
+    if (resultado != null) {
+      setState(() => _filtro = resultado);
     }
   }
 
