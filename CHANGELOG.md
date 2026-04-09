@@ -22,12 +22,18 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Widget de busca reutilizavel (`search_widget.dart`) com suporte a hint text configuravel, botao de voltar opcional, callbacks `onChanged` e `onSubmitted`, e botao de limpar integrado.
 - Tela de acompanhamento de entrega (`deliveries_screen.dart`) alinhada ao design do Figma
 - `AppShell` com `BottomNavigationBar` compartilhado entre as telas principais.
+- Implementação do fluxo completo de autenticação utilizando Provider (`AuthProvider`).
+- Gerenciamento de estado global de autenticação integrado ao `MultiProvider`.
+- Fluxo de login com validação de formulário e integração com provider.
+- Fluxo de logout com limpeza de estado e controle de navegação.
 
 ### Changed
 
 - `SearchWidget` substituiu as implementacoes duplicadas de search bar em todas as telas: `HomePage`, `AcouguesScreen`, `BovineCortsScreen`, `FishCortsScreen`, `PoultryCortsScreen`, `SwineCortsScreen` e `DeliveriesScreen`.
 - `CartScreen` refatorada com remocao da search bar e centralizacao dos chips de metodo de pagamento.
 - Indice de tab do `AppShell` corrigido para refletir a aba ativa corretamente em todas as rotas.
+- Telas de autenticação (`login_screen.dart` e `account_screen.dart`) refatoradas para uso do Provider (`context.read`).
+- Ajustes na arquitetura para suportar gerenciamento de estado com Provider.
 
 ---
 

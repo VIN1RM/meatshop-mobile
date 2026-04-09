@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -40,7 +42,7 @@ class AccountScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildProfileCard(),
                       const SizedBox(height: 20),
-                      _buildMenuList(),
+                      _buildMenuList(context),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -220,7 +222,7 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuList() {
+  Widget _buildMenuList(BuildContext context) {
     final items = [
       _MenuItem(
         Icons.chat_bubble_outline,
@@ -255,7 +257,7 @@ class AccountScreen extends StatelessWidget {
           }),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
 
-          _buildSairRow(),
+          _buildSairRow(context),
         ],
       ),
     );
@@ -287,43 +289,29 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSairRow() {
+  Widget _buildSairRow(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        children: [
-          const Icon(Icons.logout, color: Color(0xFF3A3A3A), size: 22),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Text(
-              'Sair',
-              style: TextStyle(
-                color: Color(0xFF1A1A1A),
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+      child: GestureDetector(
+        onTap: () {
+          context.read<AuthProvider>().logout(context);
+        },
+        child: Row(
+          children: [
+            const Icon(Icons.logout, color: Color(0xFF3A3A3A), size: 22),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Text(
+                'Sair',
+                style: TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
-          ),
-
-          GestureDetector(
-            onTap: () {},
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.help_outline, color: _red, size: 20),
-                SizedBox(width: 4),
-                Text(
-                  'Ajuda',
-                  style: TextStyle(
-                    color: _red,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

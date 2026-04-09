@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_version_widget.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -26,14 +28,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _onLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    Navigator.of(
-      context,
-    ).pushReplacementNamed(AppRoutes.home); 
+    final authProvider = context.read<AuthProvider>();
+
+    await authProvider.login(
+      context: context,
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
   }
 
   @override
