@@ -23,6 +23,10 @@ class _WelcomePageState extends State<WelcomePage> {
       alignment: Alignment.topCenter,
     ),
     _CarouselItem(
+      path: 'assets/images/person2.png',
+      alignment: Alignment.topCenter,
+    ),
+    _CarouselItem(
       path: 'assets/images/person3.png',
       alignment: Alignment.topCenter,
     ),
@@ -36,6 +40,22 @@ class _WelcomePageState extends State<WelcomePage> {
     ),
     _CarouselItem(
       path: 'assets/images/person6.png',
+      alignment: Alignment.topCenter,
+    ),
+    _CarouselItem(
+      path: 'assets/images/person7.png',
+      alignment: Alignment.topCenter,
+    ),
+    _CarouselItem(
+      path: 'assets/images/person8.png',
+      alignment: Alignment.topCenter,
+    ),
+    _CarouselItem(
+      path: 'assets/images/person9.png',
+      alignment: Alignment.topCenter,
+    ),
+        _CarouselItem(
+      path: 'assets/images/person10.png',
       alignment: Alignment.topCenter,
     ),
   ];
