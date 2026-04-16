@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class ChatMessage {
   final String text;
@@ -226,7 +227,11 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Align(
         alignment: Alignment.centerRight,
         child: GestureDetector(
-          onTap: () {},
+          onTap: () => Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.chatList,
+            (route) => route.settings.name == AppRoutes.shell,
+          ),
           child: const Text(
             'Finalizar atendimento',
             style: TextStyle(

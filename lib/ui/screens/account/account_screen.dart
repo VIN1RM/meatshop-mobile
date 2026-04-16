@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -226,8 +227,8 @@ class AccountScreen extends StatelessWidget {
     final items = [
       _MenuItem(
         Icons.chat_bubble_outline,
-        'Chats com estabeleciementos',
-        onTap: () {},
+        'Chats com estabelecimentos',
+        onTap: () => Navigator.pushNamed(context, AppRoutes.chatList),
       ),
       _MenuItem(
         Icons.credit_card_outlined,
