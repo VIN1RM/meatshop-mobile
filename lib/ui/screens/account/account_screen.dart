@@ -3,8 +3,15 @@ import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  bool _isLoggingOut = false;
 
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
@@ -294,9 +301,14 @@ class AccountScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: GestureDetector(
-        onTap: () {
-          context.read<AuthProvider>().logout(context);
-        },
+        onTap: _isLoggingOut
+            ? null
+            : () async {
+                setState(() => _isLoggingOut = true);
+                await Future.delayed(const Duration(milliseconds: 600));
+                if (!mounted) return;
+                context.read<AuthProvider>().logout(context);
+              },
         child: Row(
           children: [
             const Icon(Icons.logout, color: Color(0xFF3A3A3A), size: 22),
@@ -311,6 +323,15 @@ class AccountScreen extends StatelessWidget {
                 ),
               ),
             ),
+            if (_isLoggingOut)
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFFC0392B),
+                ),
+              ),
           ],
         ),
       ),

@@ -54,7 +54,7 @@ class _WelcomePageState extends State<WelcomePage> {
       path: 'assets/images/person9.png',
       alignment: Alignment.topCenter,
     ),
-        _CarouselItem(
+    _CarouselItem(
       path: 'assets/images/person10.png',
       alignment: Alignment.topCenter,
     ),
@@ -63,6 +63,7 @@ class _WelcomePageState extends State<WelcomePage> {
   static const int _multiplier = 1000;
   late final PageController _pageController;
   Timer? _carouselTimer;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -86,7 +87,10 @@ class _WelcomePageState extends State<WelcomePage> {
     super.dispose();
   }
 
-  void _goToLogin() {
+  void _goToLogin() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
@@ -203,7 +207,8 @@ class _WelcomePageState extends State<WelcomePage> {
 
                   PrimaryButton(
                     label: 'IR PARA O LOGIN',
-                    onPressed: _goToLogin,
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _goToLogin,
                   ),
                 ],
               ),

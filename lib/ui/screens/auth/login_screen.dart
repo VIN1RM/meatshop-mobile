@@ -29,14 +29,16 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
 
     final authProvider = context.read<AuthProvider>();
-
     await authProvider.login(
       context: context,
       email: _emailController.text,
       password: _passwordController.text,
     );
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
