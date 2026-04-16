@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class Delivery {
   final String acougue;
@@ -18,11 +19,11 @@ class DeliveriesScreen extends StatelessWidget {
   const DeliveriesScreen({super.key});
 
   static const Color _red = Color(0xFFBE2C1B);
-  static const Color _headerBg = Color(0xFF3A3A3A);
   static const Color _pageBg = Color(0xFFEFEFEF);
   static const Color _cardBg = Color(0xFFE6E6E6);
   static const Color _textDark = Color(0xFF525252);
   static const Color _white = Colors.white;
+  static const Color _headerBg = Color(0xFF3A3A3A);
 
   static final List<Delivery> _deliveries = [
     const Delivery(
@@ -60,7 +61,7 @@ class DeliveriesScreen extends StatelessWidget {
               ],
             ),
           ),
-          _buildContactButton(),
+          _buildContactButton(context),
         ],
       ),
     );
@@ -69,62 +70,63 @@ class DeliveriesScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       color: _headerBg,
-      padding: const EdgeInsets.only(top: 52, left: 16, right: 16, bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: const Icon(Icons.arrow_back, color: _white, size: 24),
-              ),
-              const SizedBox(width: 12),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: const BoxDecoration(
+                      color: _white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/logo1.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.storefront_outlined,
+                          color: _red,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'MeatShop',
+                    style: TextStyle(
+                      color: _white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const Spacer(),
 
-              Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
-                  color: _white,
-                  shape: BoxShape.circle,
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/logo1.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.storefront_outlined,
-                      color: _red,
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _white, width: 1.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.help_outline,
+                      color: _white,
                       size: 20,
                     ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
-              const Text(
-                'MeatShop',
-                style: TextStyle(
-                  color: _white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const Spacer(),
-
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  border: Border.all(color: _white, width: 1.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.help_outline, color: _white, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -170,7 +172,6 @@ class DeliveriesScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-
                 RichText(
                   text: TextSpan(
                     style: const TextStyle(fontSize: 13, color: _textDark),
@@ -184,7 +185,6 @@ class DeliveriesScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 3),
-
                 RichText(
                   text: TextSpan(
                     style: const TextStyle(fontSize: 13, color: _textDark),
@@ -205,34 +205,37 @@ class DeliveriesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactButton() {
+  Widget _buildContactButton(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 116),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       color: _pageBg,
-      child: SizedBox(
-        height: 62,
-        child: ElevatedButton.icon(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _red,
-            foregroundColor: _white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 62,
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.chat),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _red,
+              foregroundColor: _white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
-          ),
-          icon: const Icon(
-            Icons.chat_bubble_outline_rounded,
-            size: 22,
-            color: _white,
-          ),
-          label: const Text(
-            'Contatar estabelecimento',
-            style: TextStyle(
+            icon: const Icon(
+              Icons.chat_bubble_outline_rounded,
+              size: 22,
               color: _white,
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.2,
+            ),
+            label: const Text(
+              'Contatar estabelecimento',
+              style: TextStyle(
+                color: _white,
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.2,
+              ),
             ),
           ),
         ),
