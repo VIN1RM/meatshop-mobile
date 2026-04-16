@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/ui/screens/butcher/butcher_screen.dart';
+import 'package:meatshop_mobile/ui/screens/butcher/butcher_detail_screen.dart';
+import 'package:meatshop_mobile/ui/screens/butcher/butcher_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/chat/chat_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/chat/chat_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/bovine_cuts_screen.dart';
@@ -35,5 +36,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.deliveries: (_) => const DeliveriesScreen(),
     AppRoutes.chat: (_) => const ChatScreen(),
     AppRoutes.chatList: (_) => const ChatListScreen(),
+    AppRoutes.butcherDetail: (_) => const ButcherDetailScreen(),
   };
 }

@@ -22,4 +22,5 @@ class AppRoutes {
   static const String deliveries = '/deliveries';
   static const String chat = '/chat';
   static const String chatList = '/chat/list';
+  static const String butcherDetail = '/acougues/detail';
 }

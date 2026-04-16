@@ -399,41 +399,44 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   Widget _buildAcougueItem(_Acougue a) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFF555555),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.storefront_outlined,
-              color: Colors.white38,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              a.nome,
-              style: const TextStyle(
-                color: _white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.butcherDetail),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: const Color(0xFF555555),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.storefront_outlined,
+                color: Colors.white38,
+                size: 22,
               ),
             ),
-          ),
-          _buildStars(a.rating),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                a.nome,
+                style: const TextStyle(
+                  color: _white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            _buildStars(a.rating),
+          ],
+        ),
       ),
     );
   }
