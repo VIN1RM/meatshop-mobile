@@ -23,4 +23,5 @@ class AppRoutes {
   static const String chat = '/chat';
   static const String chatList = '/chat/list';
   static const String butcherDetail = '/acougues/detail';
+  static const String productDetail = '/acougues/product_detail';
 }

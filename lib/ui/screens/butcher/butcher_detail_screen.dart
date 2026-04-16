@@ -1,19 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-
-class ButcherProduct {
-  final String nome;
-  final String preco;
-  final String unidade;
-  final String imageAsset;
-
-  const ButcherProduct({
-    required this.nome,
-    required this.preco,
-    required this.unidade,
-    this.imageAsset = '',
-  });
-}
+import 'package:meatshop_mobile/models/butcher_product_model.dart';
 
 class ButcherDetailScreen extends StatelessWidget {
   const ButcherDetailScreen({super.key});
@@ -82,7 +69,7 @@ class ButcherDetailScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   _buildSectionTitle('Promoções'),
                   const SizedBox(height: 12),
-                  _buildProductList(),
+                  _buildProductList(context),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -352,75 +339,82 @@ class ButcherDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductList() {
-    return Column(children: _products.map(_buildProductItem).toList());
+  Widget _buildProductList(BuildContext context) {
+    return Column(
+      children: _products.map((p) => _buildProductItem(context, p)).toList(),
+    );
   }
 
-  Widget _buildProductItem(ButcherProduct product) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6E6E6),
-        borderRadius: BorderRadius.circular(14),
+  Widget _buildProductItem(BuildContext context, ButcherProduct product) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.productDetail,
+        arguments: product,
       ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
-              width: 60,
-              height: 60,
-              child: Image.asset(
-                product.imageAsset,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFFCCCCCC),
-                  child: const Icon(
-                    Icons.image_outlined,
-                    color: Color(0xFF9E9E9E),
-                    size: 28,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE6E6E6),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 60,
+                height: 60,
+                child: Image.asset(
+                  product.imageAsset,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFFCCCCCC),
+                    child: const Icon(
+                      Icons.image_outlined,
+                      color: Color(0xFF9E9E9E),
+                      size: 28,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Text(
-              product.nome,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: _textDark,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                product.nome,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: _textDark,
+                ),
               ),
             ),
-          ),
-
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: product.preco,
-                  style: const TextStyle(
-                    color: _textDark,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: product.preco,
+                    style: const TextStyle(
+                      color: _textDark,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                TextSpan(
-                  text: product.unidade,
-                  style: const TextStyle(
-                    color: _red,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+                  TextSpan(
+                    text: product.unidade,
+                    style: const TextStyle(
+                      color: _red,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
