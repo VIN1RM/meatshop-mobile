@@ -20,9 +20,15 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
   - Tela de conversa (`chat_screen.dart`) com envio de mensagens e controle de interação.
   - Tela de listagem de chats (`chat_list_screen.dart`) com indicador de mensagens não lidas.
 - Tela de detalhes do açougue (`butcher_detail_screen.dart`) com informações institucionais, avaliação, endereço e listagem de produtos.
+- Tela de detalhes do produto (`product_detail_screen.dart`) com banner hero, informações do produto, seletor de quantidade e carrossel de sugestões ("Compre também").
+- Loading states em ações assíncronas para evitar ansiedade do usuário.
+
+### Changed
+
+- `ButcherDetailScreen`: adicionado `GestureDetector` em cada item de produto para navegar até `ProductDetailScreen` passando o `ButcherProduct` como argumento.
+- `WelcomePage` e `AccountScreen` convertidas de `StatelessWidget` para `StatefulWidget` para suportar controle de loading local.
 
 ### Fixed
-
 - Correção de uso de `BuildContext` em método auxiliar fora do `build`.
 - Ajustes de layout para evitar inconsistências visuais em diferentes dispositivos.
 
@@ -39,7 +45,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Tela de cortes de peixe (`fish_corts_screen.dart`) com mesma estrutura de busca e filtro dos cortes bovinos.
 - Widget de filtro reutilizavel para cortes (`cuts_filter_sheet.dart`) com suporte a ordenacao e faixa de preco, compartilhado entre todas as telas de cortes.
 - Widget de busca reutilizavel (`search_widget.dart`) com suporte a hint text configuravel, botao de voltar opcional, callbacks `onChanged` e `onSubmitted`, e botao de limpar integrado.
-- Tela de acompanhamento de entrega (`deliveries_screen.dart`) alinhada ao design do Figma
+- Tela de acompanhamento de entrega (`deliveries_screen.dart`).
 - `AppShell` com `BottomNavigationBar` compartilhado entre as telas principais.
 - Implementação do fluxo completo de autenticação utilizando Provider (`AuthProvider`).
 - Gerenciamento de estado global de autenticação integrado ao `MultiProvider`.
