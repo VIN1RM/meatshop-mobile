@@ -9,6 +9,25 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ## [Projeto ainda não publicado]
 
+---
+
+## [1.2.0] - 2026-04-15
+
+### Added
+
+- Tela de acompanhamento de entrega (`deliveries_screen.dart`).
+- Implementação do fluxo de chat com estabelecimentos:
+  - Tela de conversa (`chat_screen.dart`) com envio de mensagens e controle de interação.
+  - Tela de listagem de chats (`chat_list_screen.dart`) com indicador de mensagens não lidas.
+- Tela de detalhes do açougue (`butcher_detail_screen.dart`) com informações institucionais, avaliação, endereço e listagem de produtos.
+
+### Fixed
+
+- Correção de uso de `BuildContext` em método auxiliar fora do `build`.
+- Ajustes de layout para evitar inconsistências visuais em diferentes dispositivos.
+
+---
+
 ## [1.1.0] - 2026-04-09
 
 ### Added
