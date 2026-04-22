@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_addresses_screen.dart';
+import 'package:meatshop_mobile/ui/screens/account/settings_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_detail_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/product_detail_screen.dart';
@@ -41,5 +42,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.butcherDetail: (_) => const ButcherDetailScreen(),
     AppRoutes.productDetail: (_) => const ProductDetailScreen(),
     AppRoutes.savedAddresses: (_) => const SavedAddressesScreen(),
+    AppRoutes.settings: (_) => const SettingsScreen(),
   };
 }

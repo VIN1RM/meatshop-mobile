@@ -247,7 +247,11 @@ class _AccountScreenState extends State<AccountScreen> {
         'Endereços salvos',
         onTap: () => Navigator.pushNamed(context, AppRoutes.savedAddresses),
       ),
-      _MenuItem(Icons.settings_outlined, 'Configurações', onTap: () {}),
+      _MenuItem(
+        Icons.settings_outlined,
+        'Configurações',
+        onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
+      ),
     ];
 
     return Container(
