@@ -12,6 +12,8 @@ import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/register_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/change_password.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
+import 'package:meatshop_mobile/ui/screens/recipes/recipe_assistant_screen.dart';
+import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/swine_cuts_screen.dart';
@@ -39,5 +41,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.chatList: (_) => const ChatListScreen(),
     AppRoutes.butcherDetail: (_) => const ButcherDetailScreen(),
     AppRoutes.productDetail: (_) => const ProductDetailScreen(),
+    AppRoutes.recipeTips: (_) => const RecipeTipsScreen(),
+    AppRoutes.recipeChat: (_) => const RecipeScreen(),
   };
 }
