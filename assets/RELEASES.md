@@ -2,6 +2,11 @@
 
 Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, explicadas de forma simples para que você saiba exatamente o que mudou em cada atualização.
 
+## [1.4.0] — XX de XXXX de 2026
+### ✨ Novidades
+- Modo Duplo para Usuários Especiais: Se a sua conta tiver os dois perfis (Cliente e Entregador), agora ao entrar no app você verá uma tela elegante para escolher como quer usar o MeatShop naquele momento. Basta tocar na opção desejada e aguardar!
+- Troca de Modo Facilitada: Após escolher, o app memoriza o seu perfil ativo durante a sessão. Você pode alternar quando quiser pelas configurações.
+
 ---
 
 ## [1.3.0] — 22 de Abril de 2026

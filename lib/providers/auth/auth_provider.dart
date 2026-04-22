@@ -21,7 +21,6 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     await Future.delayed(const Duration(seconds: 2));
 
-    // Simula resposta do backend
     const profileFromApi = 'BOTH';
     _isAuthenticated = true;
     _appProfile = AppProfile.fromString(profileFromApi);

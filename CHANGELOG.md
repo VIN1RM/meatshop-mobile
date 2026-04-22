@@ -14,9 +14,12 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [1.4.0] - 2026-XX-XX
 
 ### Added
-
+- `ModeSelectionPage`: tela de seleção de modo para usuários com perfil `both`, com layout de tela dividida (superior = Cliente, inferior = Entregador), inspirado em split-screen com imagens de fundo representativas de cada perfil. Animação de zoom com esmaecimento do painel não selecionado e indicador de carregamento (dots pulsantes) com delay de 3 segundos antes da navegação.
+- Lógica de redirecionamento pós-login no `AuthProvider` baseada no `app_profile` retornado pelo backend: `client` → shell do cliente, `delivery` → shell do entregador, `both` → tela de seleção de modo.
 
 ### Changed
+- `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.
+- `logout` atualizado para limpar `_appProfile` e `_activeProfile` além do estado de autenticação.
 
 ---
 

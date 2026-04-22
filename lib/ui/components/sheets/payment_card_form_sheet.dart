@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-// Modelo local — será substituído pelo model real quando integrar com o backend/MP
 class PaymentCardData {
   final String holderName;
-  final String
-  cardNumber; // apenas para exibição mascarada; nunca armazenar raw
+  final String cardNumber;
   final String expirationMonth;
   final String expirationYear;
   final String cvv;
@@ -24,8 +22,6 @@ class PaymentCardData {
 class PaymentCardFormSheet extends StatefulWidget {
   const PaymentCardFormSheet({super.key, required this.onSave});
 
-  /// Callback chamado com os dados preenchidos.
-  /// A tokenização real deve ocorrer no backend via SDK do Mercado Pago.
   final void Function(PaymentCardData) onSave;
 
   @override
@@ -33,7 +29,6 @@ class PaymentCardFormSheet extends StatefulWidget {
 }
 
 class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
-  // static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
   final _formKey = GlobalKey<FormState>();
@@ -115,7 +110,6 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Nome no cartão
                     _CardFormField(
                       controller: _holderCtrl,
                       label: 'Nome impresso no cartão',
@@ -127,7 +121,6 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Número do cartão
                     _CardFormField(
                       controller: _numberCtrl,
                       label: 'Número do cartão',
@@ -146,7 +139,6 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Validade + CVV
                     Row(
                       children: [
                         Expanded(
@@ -224,14 +216,12 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Toggle padrão
                     _DefaultToggle(
                       value: _isDefault,
                       onToggle: () => setState(() => _isDefault = !_isDefault),
                     ),
                     const SizedBox(height: 24),
 
-                    // Botão salvar
                     _SaveCardButton(isSaving: _isSaving, onPressed: _save),
                     const SizedBox(height: 8),
                   ],
@@ -270,8 +260,6 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
   }
 }
 
-// ── Formatter ─────────────────────────────────────────────────────────────────
-
 class _CardNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -291,8 +279,6 @@ class _CardNumberFormatter extends TextInputFormatter {
     );
   }
 }
-
-// ── Subwidgets ────────────────────────────────────────────────────────────────
 
 class _CardFormField extends StatelessWidget {
   const _CardFormField({
