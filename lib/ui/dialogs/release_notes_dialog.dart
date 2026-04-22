@@ -66,7 +66,7 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
             ),
             child: const Icon(
               Icons.new_releases_outlined,
-              color: _red,
+              color: Color.fromARGB(255, 255, 255, 255),
               size: 22,
             ),
           ),

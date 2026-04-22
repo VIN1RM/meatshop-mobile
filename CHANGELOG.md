@@ -22,9 +22,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Responsividade para telas pequenas utilizando `BoxConstraints` (limite de 92% da altura da tela) combinado com `Flexible` e `SingleChildScrollView`.
 - Tela de configurações (`settings_screen.dart`) com seções de notificações, conta, sobre e gerenciamento da conta.
 - Implementação do fluxo de adição de cartões com PaymentCardFormSheet, incluindo validação e formatação dos campos c/ integração de bottom sheet para cadastro de novos cartões na tela de pagamentos.
+- `ReleaseNotesService` para parsing do `assets/RELEASES.md` por versão, com suporte a cabeçalhos com emojis e datas por extenso `ReleaseNotesDialog` com exibição de seções, ícones e cores por categoria de mudança. `assets/RELEASES.md` com notas de lançamento em linguagem acessível ao usuário final.
 
 ### Changed
-`ChatScreen` e `ChatListScreen` foram refatoradas para alinhar ao sistema de design escuro do aplicativo.
+- `ChatScreen` e `ChatListScreen` foram refatoradas para alinhar ao sistema de design escuro do aplicativo.
 
 ---
 

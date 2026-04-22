@@ -62,24 +62,15 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       SizedBox(height: sh * 0.02),
 
-                      Container(
+                      Image.asset(
+                        'assets/images/logo.png',
                         width: 190,
                         height: 190,
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 255, 255, 255),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Image.asset(
-                            'assets/images/logo1.png',
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.storefront_outlined,
-                              color: Color(0xFFC0392B),
-                              size: 48,
-                            ),
-                          ),
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                          Icons.storefront_outlined,
+                          color: Color(0xFFC0392B),
+                          size: 48,
                         ),
                       ),
 
