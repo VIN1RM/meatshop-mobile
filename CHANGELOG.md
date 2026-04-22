@@ -27,6 +27,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ### Changed
 - `ChatScreen` e `ChatListScreen` foram refatoradas para alinhar ao sistema de design escuro do aplicativo.
+- Adicionado cálculo dinâmico do valor total na tela de detalhe do produto, refletindo a quantidade selecionada em tempo real.
 
 ---
 
