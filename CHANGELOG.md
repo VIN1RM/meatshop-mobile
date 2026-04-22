@@ -12,6 +12,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [1.3.0] - 2026-04-22
+### Endereços, pagamentos e configurações do usuário
 
 ### Added
 - Fluxo de gerenciamento de endereços com preenchimento automático via API ViaCEP.
@@ -30,6 +31,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [1.2.0] - 2026-04-15
+### Entregas, chat com estabelecimentos e detalhes de produtos
 
 ### Added
 
@@ -53,6 +55,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [1.1.0] - 2026-04-09
+### Catálogo de cortes, filtros, busca e autenticação com estado global
 
 ### Added
 
@@ -81,6 +84,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [1.0.0] - 2026-03-11
+### Estrutura base, fluxo de autenticação e telas iniciais
 
 ### Added
 
