@@ -21,6 +21,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Preenchimento automático de logradouro, bairro, cidade e estado ao completar o CEP, incluindo indicador de carregamento e feedback de erro em tempo real.
 - Responsividade para telas pequenas utilizando `BoxConstraints` (limite de 92% da altura da tela) combinado com `Flexible` e `SingleChildScrollView`.
 - Tela de configurações (`settings_screen.dart`) com seções de notificações, conta, sobre e gerenciamento da conta.
+- Implementação do fluxo de adição de cartões com PaymentCardFormSheet, incluindo validação e formatação dos campos c/ integração de bottom sheet para cadastro de novos cartões na tela de pagamentos.
+
+### Changed
+`ChatScreen` e `ChatListScreen` foram refatoradas para alinhar ao sistema de design escuro do aplicativo.
 
 ---
 
