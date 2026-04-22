@@ -51,144 +51,166 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: const Color(0xFF424242),
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: sw * 0.08),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      SizedBox(height: sh * 0.02),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Opacity(
+                opacity: 0.8,
+                child: Image.asset(
+                  'assets/images/background.png',
+                  fit: BoxFit.fitWidth,
+                ),
+              ),
+            ),
 
-                      Image.asset(
-                        'assets/images/logo.png',
-                        width: 190,
-                        height: 190,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.storefront_outlined,
-                          color: Color(0xFFC0392B),
-                          size: 48,
-                        ),
-                      ),
-
-                      SizedBox(height: sh * 0.035),
-
-                      _buildTextField(
-                        controller: _emailController,
-                        label: 'Usuário',
-                        hint: 'seu@email.com',
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Informe o usuário';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: sh * 0.022),
-
-                      _buildTextField(
-                        controller: _passwordController,
-                        label: 'Senha',
-                        hint: '••••••••',
-                        obscureText: _obscurePassword,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.white54,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(
-                              () => _obscurePassword = !_obscurePassword,
-                            );
-                          },
-                        ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Informe a senha';
-                          }
-                          if (v.length < 6) {
-                            return 'Mínimo 6 caracteres';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: sh * 0.020),
-
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(
-                            context,
-                          ).pushNamed(AppRoutes.changePassword),
-                          child: Text(
-                            'Esqueceu sua senha?',
-                            style: TextStyle(
-                              color: const Color(0xFFFFFFFF),
-                              fontSize: 13 * fontScale,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                              decorationColor: const Color(0xFFFFFFFF),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: sh * 0.04),
-
-                      PrimaryButton(
-                        label: 'ENTRAR',
-                        isLoading: _isLoading,
-                        onPressed: _isLoading ? null : _onLogin,
-                      ),
-
-                      SizedBox(height: sh * 0.03),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+            Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: sw * 0.08),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
                         children: [
-                          Text(
-                            'Não tem uma conta? ',
-                            style: TextStyle(
-                              color: const Color.fromARGB(167, 255, 255, 255),
-                              fontSize: 13 * fontScale,
+                          SizedBox(height: sh * 0.02),
+
+                          Image.asset(
+                            'assets/images/logo.png',
+                            width: 190,
+                            height: 190,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.storefront_outlined,
+                              color: Color(0xFFC0392B),
+                              size: 48,
                             ),
                           ),
-                          GestureDetector(
-                            onTap: () => Navigator.of(
-                              context,
-                            ).pushNamed(AppRoutes.selectRegister),
-                            child: Text(
-                              'Cadastre-se',
-                              style: TextStyle(
-                                color: const Color(0xFFFFFFFF),
-                                fontSize: 13 * fontScale,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                                decorationColor: const Color(0xFFFFFFFF),
+
+                          SizedBox(height: sh * 0.035),
+
+                          _buildTextField(
+                            controller: _emailController,
+                            label: 'Usuário',
+                            hint: 'seu@email.com',
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Informe o usuário';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          SizedBox(height: sh * 0.022),
+
+                          _buildTextField(
+                            controller: _passwordController,
+                            label: 'Senha',
+                            hint: '••••••••',
+                            obscureText: _obscurePassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: Colors.white54,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                );
+                              },
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty) {
+                                return 'Informe a senha';
+                              }
+                              if (v.length < 6) {
+                                return 'Mínimo 6 caracteres';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          SizedBox(height: sh * 0.020),
+
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: GestureDetector(
+                              onTap: () => Navigator.of(
+                                context,
+                              ).pushNamed(AppRoutes.changePassword),
+                              child: Text(
+                                'Esqueceu sua senha?',
+                                style: TextStyle(
+                                  color: const Color(0xFFFFFFFF),
+                                  fontSize: 13 * fontScale,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: const Color(0xFFFFFFFF),
+                                ),
                               ),
                             ),
                           ),
+
+                          SizedBox(height: sh * 0.04),
+
+                          PrimaryButton(
+                            label: 'ENTRAR',
+                            isLoading: _isLoading,
+                            onPressed: _isLoading ? null : _onLogin,
+                          ),
+
+                          SizedBox(height: sh * 0.03),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Não tem uma conta? ',
+                                style: TextStyle(
+                                  color: const Color.fromARGB(
+                                    167,
+                                    255,
+                                    255,
+                                    255,
+                                  ),
+                                  fontSize: 13 * fontScale,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => Navigator.of(
+                                  context,
+                                ).pushNamed(AppRoutes.selectRegister),
+                                child: Text(
+                                  'Cadastre-se',
+                                  style: TextStyle(
+                                    color: const Color(0xFFFFFFFF),
+                                    fontSize: 13 * fontScale,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: const Color(0xFFFFFFFF),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: sh * 0.20),
+
+                          const Center(child: AppVersionText()),
+
+                          SizedBox(height: sh * 0.02),
                         ],
                       ),
-
-                      SizedBox(height: sh * 0.20),
-
-                      const Center(child: AppVersionText()),
-
-                      SizedBox(height: sh * 0.02),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),

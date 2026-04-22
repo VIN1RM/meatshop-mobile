@@ -28,7 +28,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -43,7 +43,7 @@ class _SplashPageState extends State<SplashPage> {
     final sw = size.width;
     final sh = size.height;
 
-    final double fontScale = (sw / 390).clamp(0.80, 1.20);
+    final double fontScale = (sw / 390).clamp(0.60, 1.20);
 
     return Scaffold(
       backgroundColor: MeatShopColors.background,
@@ -51,7 +51,7 @@ class _SplashPageState extends State<SplashPage> {
         fit: StackFit.expand,
         children: [
           Opacity(
-            opacity: 0.08,
+            opacity: 1.0,
             child: Image.asset(
               'assets/images/background.png',
               fit: BoxFit.cover,
@@ -60,6 +60,8 @@ class _SplashPageState extends State<SplashPage> {
 
           SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+
               children: [
                 Padding(
                   padding: EdgeInsets.only(
@@ -71,18 +73,25 @@ class _SplashPageState extends State<SplashPage> {
                 ),
 
                 const Spacer(),
-                MeatShopLoader(
-                  color: MeatShopColors.grey500,
-                  dotSize: sw * 0.03,
-                  spacing: sw * 0.015,
+
+                Center(
+                  child: MeatShopLoader(
+                    color: MeatShopColors.grey500,
+                    dotSize: sw * 0.03,
+                    spacing: sw * 0.015,
+                  ),
                 ),
+
                 const Spacer(),
 
-                Padding(
-                  padding: EdgeInsets.only(bottom: sh * 0.05),
-                  child: Image.asset(
-                    'assets/images/logo1.png',
-                    height: sh * 0.10,
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: sh * 0.06),
+                    child: Image.asset(
+                      'assets/images/logo_delivery.png',
+                      height: sh * 0.30,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ],
@@ -101,9 +110,11 @@ class _WelcomeText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+
       children: [
         RichText(
+          textAlign: TextAlign.center,
           text: TextSpan(
             style: TextStyle(
               fontSize: 26 * fontScale,
