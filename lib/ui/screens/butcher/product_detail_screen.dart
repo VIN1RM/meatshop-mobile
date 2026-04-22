@@ -16,7 +16,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   static const Color _textDark = Color(0xFF1A1A1A);
   static const Color _textGray = Color(0xFF555555);
 
-  int _qty = 2;
+  int _qty = 1;
 
   static const List<ButcherProduct> _suggestions = [
     ButcherProduct(
@@ -82,7 +82,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -289,46 +288,83 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildQuantitySection(ButcherProduct product) {
     return Container(
       color: _white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Quantidade:',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: _textDark,
+          Row(
+            children: [
+              const Text(
+                'Quantidade:',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _textDark,
+                ),
+              ),
+              const Spacer(),
+              _buildQtyButton(
+                icon: Icons.remove,
+                onTap: () {
+                  if (_qty > 1) setState(() => _qty--);
+                },
+              ),
+              const SizedBox(width: 18),
+              Text(
+                '$_qty',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: _textDark,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'KG',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _textGray,
+                ),
+              ),
+              const SizedBox(width: 18),
+              _buildQtyButton(
+                icon: Icons.add,
+                onTap: () => setState(() => _qty++),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: _red.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _red.withOpacity(0.25)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: _textDark,
+                  ),
+                ),
+                Text(
+                  _calcTotal(product),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: _red,
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
-
-          _buildQtyButton(
-            icon: Icons.remove,
-            onTap: () {
-              if (_qty > 1) setState(() => _qty--);
-            },
-          ),
-          const SizedBox(width: 18),
-          Text(
-            '$_qty',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: _textDark,
-            ),
-          ),
-          const SizedBox(width: 6),
-          const Text(
-            'KG',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: _textGray,
-            ),
-          ),
-          const SizedBox(width: 18),
-
-          _buildQtyButton(icon: Icons.add, onTap: () => setState(() => _qty++)),
         ],
       ),
     );
@@ -455,44 +491,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildBottomBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(Icons.home_outlined, 'Início'),
-              _buildNavItem(Icons.shopping_cart_outlined, 'Carrinho'),
-              _buildNavItem(Icons.receipt_long_outlined, 'Pedidos'),
-              _buildNavItem(Icons.person_outline, 'Minha conta'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: _textGray, size: 24),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 11, color: _textGray)),
-      ],
-    );
+  String _calcTotal(ButcherProduct product) {
+    final raw = product.preco
+        .replaceAll('R\$', '')
+        .replaceAll('.', '')
+        .replaceAll(',', '.');
+    final price = double.tryParse(raw) ?? 0.0;
+    final total = price * _qty;
+    return 'R\$${total.toStringAsFixed(2).replaceAll('.', ',')}';
   }
 }
