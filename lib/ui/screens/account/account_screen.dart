@@ -240,7 +240,7 @@ class _AccountScreenState extends State<AccountScreen> {
       _MenuItem(
         Icons.credit_card_outlined,
         'Formas de pagamento salvas',
-        onTap: () {},
+        onTap: () => Navigator.pushNamed(context, AppRoutes.savedPayments),
       ),
       _MenuItem(
         Icons.map_outlined,

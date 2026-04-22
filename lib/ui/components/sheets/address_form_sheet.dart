@@ -14,7 +14,6 @@ class AddressFormSheet extends StatefulWidget {
 }
 
 class _AddressFormSheetState extends State<AddressFormSheet> {
-  static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
   final _formKey = GlobalKey<FormState>();
@@ -117,7 +116,10 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
     final screenH = MediaQuery.of(context).size.height;
 
     return Container(
-      constraints: BoxConstraints(maxHeight: screenH * 0.92),
+      constraints: BoxConstraints(
+        minHeight: screenH * 0.80,
+        maxHeight: screenH * 0.92,
+      ),
       decoration: const BoxDecoration(
         color: Color(0xFF232323),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -427,7 +429,7 @@ class _SaveButton extends StatelessWidget {
         onPressed: isSaving ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
-          disabledBackgroundColor: _red.withOpacity(0.5),
+          disabledBackgroundColor: _red.withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -459,7 +461,7 @@ class _AddressFormField extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.icon,
-    this.keyboardType,
+
     this.inputFormatters,
     this.validator,
   });
@@ -467,7 +469,7 @@ class _AddressFormField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final IconData icon;
-  final TextInputType? keyboardType;
+
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
 
@@ -475,7 +477,7 @@ class _AddressFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      keyboardType: keyboardType,
+
       inputFormatters: inputFormatters,
       validator: validator,
       style: const TextStyle(color: Colors.white, fontSize: 14),

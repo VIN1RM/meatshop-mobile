@@ -20,6 +20,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Integração com a API ViaCEP através do `CepService` utilizando o tipo selado `Result` (`CepSuccess` / `CepFailure`) para tratamento de erros de rede, CEP inválido e timeout.
 - Preenchimento automático de logradouro, bairro, cidade e estado ao completar o CEP, incluindo indicador de carregamento e feedback de erro em tempo real.
 - Responsividade para telas pequenas utilizando `BoxConstraints` (limite de 92% da altura da tela) combinado com `Flexible` e `SingleChildScrollView`.
+- Tela de configurações (`settings_screen.dart`) com seções de notificações, conta, sobre e gerenciamento da conta.
 
 ---
 
