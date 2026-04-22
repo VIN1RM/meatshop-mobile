@@ -11,6 +11,18 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [1.3.0] - 2026-04-22
+
+### Added
+- Fluxo de gerenciamento de endereços com preenchimento automático via API ViaCEP.
+- Modelo de dados `AddressModel` com serialização completa (`fromJson`/`toJson`).
+- Componente `address_form_sheet.dart` extraído como componente independente para seguir o princípio de responsabilidade única.
+- Integração com a API ViaCEP através do `CepService` utilizando o tipo selado `Result` (`CepSuccess` / `CepFailure`) para tratamento de erros de rede, CEP inválido e timeout.
+- Preenchimento automático de logradouro, bairro, cidade e estado ao completar o CEP, incluindo indicador de carregamento e feedback de erro em tempo real.
+- Responsividade para telas pequenas utilizando `BoxConstraints` (limite de 92% da altura da tela) combinado com `Flexible` e `SingleChildScrollView`.
+
+---
+
 ## [1.2.0] - 2026-04-15
 
 ### Added
