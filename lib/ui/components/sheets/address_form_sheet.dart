@@ -91,7 +91,6 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
 
     widget.onSave(
@@ -132,7 +131,7 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
             _buildHandle(),
             Flexible(
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -378,7 +377,7 @@ class _DefaultToggle extends StatelessWidget {
       child: Row(
         children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 120),
             width: 22,
             height: 22,
             decoration: BoxDecoration(

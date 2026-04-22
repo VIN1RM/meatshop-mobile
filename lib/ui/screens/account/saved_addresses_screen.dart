@@ -46,7 +46,20 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
   void _setDefault(int id) {
     setState(() {
       _addresses = _addresses
-          .map((a) => a.copyWith(isDefault: a.id == id) as AddressModel)
+          .map(
+            (a) => AddressModel(
+              id: a.id,
+              label: a.label,
+              street: a.street,
+              number: a.number,
+              complement: a.complement,
+              neighborhood: a.neighborhood,
+              city: a.city,
+              state: a.state,
+              zipCode: a.zipCode,
+              isDefault: a.id == id,
+            ),
+          )
           .toList();
     });
   }
@@ -62,10 +75,17 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      useRootNavigator: true,
       builder: (_) => AddressFormSheet(
         address: address,
         onSave: (newAddress) {
           setState(() {
+            if (newAddress.isDefault) {
+              _addresses = _addresses
+                  .map((a) => a.copyWith(isDefault: false) as AddressModel)
+                  .toList();
+            }
             if (address != null) {
               final idx = _addresses.indexWhere((a) => a.id == address.id);
               if (idx != -1) _addresses[idx] = newAddress;
