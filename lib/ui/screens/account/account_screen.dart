@@ -242,7 +242,11 @@ class _AccountScreenState extends State<AccountScreen> {
         'Formas de pagamento salvas',
         onTap: () {},
       ),
-      _MenuItem(Icons.map_outlined, 'Endereços salvos', onTap: () {}),
+      _MenuItem(
+        Icons.map_outlined,
+        'Endereços salvos',
+        onTap: () => Navigator.pushNamed(context, AppRoutes.savedAddresses),
+      ),
       _MenuItem(Icons.settings_outlined, 'Configurações', onTap: () {}),
     ];
 
