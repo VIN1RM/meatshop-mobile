@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/version_service.dart';
+import 'package:meatshop_mobile/ui/dialogs/release_notes_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -148,7 +149,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   fontSize: 13,
                                 ),
                               ),
-                              onTap: () {},
+                              onTap: () {
+                                final version = _appVersion.replaceFirst(
+                                  'v',
+                                  '',
+                                );
+                                ReleaseNotesDialog.show(context, version);
+                              },
                             ),
                           ],
                         ),
