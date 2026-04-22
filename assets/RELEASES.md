@@ -13,6 +13,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### 📈 Melhorias
 - Visual do Chat: As telas de conversa com os estabelecimentos ficaram mais bonitas e confortáveis para leitura, utilizando o novo tema escuro.
 - Ajustes de Ecrã: O formulário de endereços agora adapta-se melhor a telemóveis com ecrãs menores, garantindo que nada fique "cortado".
+- Visual de Abertura e Login Renovado: A tela de carregamento e a tela de login ganharam um novo visual, com a logo atualizada e uma imagem de fundo sutil que deixa o app mais elegante desde o primeiro segundo.
 
 ---
 

@@ -8,9 +8,12 @@ class AppRoutes {
   static const String selectRegister = '/auth/select_register';
   static const String register = '/auth/register';
   static const String changePassword = '/auth/change_password';
+  static const String modeSelection = '/auth/mode_selection';
 
   static const String shell = '/shell';
   static const String home = '/shell';
+
+  static const String deliveryShell = '/delivery/shell';
 
   static const String reviewOrder = '/cart/review';
 

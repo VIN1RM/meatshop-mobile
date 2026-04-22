@@ -11,6 +11,15 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [1.4.0] - 2026-XX-XX
+
+### Added
+
+
+### Changed
+
+---
+
 ## [1.3.0] - 2026-04-22
 
 ### Added
@@ -26,6 +35,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ### Changed
 - `ChatScreen` e `ChatListScreen` foram refatoradas para alinhar ao sistema de design escuro do aplicativo.
+- `SplashPage`: trocamos a logo, altura da logo aumentada, textos de boas-vindas centralizados e imagem de fundo adicionada cobrindo a tela toda com opacidade configurável via `BoxFit.cover`.
+- `LoginPage`: removido o container circular branco ao redor da logo, que agora é renderizada diretamente sobre o fundo escuro; adicionado `background.png` ancorado na parte inferior da tela via `Stack` + `Positioned` + `Opacity`.
 
 ---
 

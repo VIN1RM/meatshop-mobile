@@ -3,6 +3,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_addresses_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_payments_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/settings_screen.dart';
+import 'package:meatshop_mobile/ui/screens/auth/mode_selection_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_detail_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/product_detail_screen.dart';
@@ -45,6 +46,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.savedAddresses: (_) => const SavedAddressesScreen(),
     AppRoutes.settings: (_) => const SettingsScreen(),
     AppRoutes.savedPayments: (_) => const SavedPaymentsScreen(),
-
+    AppRoutes.modeSelection: (_) => const ModeSelectionPage(),
+    // AppRoutes.deliveryShell: (_) => const DeliveryShell(),
   };
 }
