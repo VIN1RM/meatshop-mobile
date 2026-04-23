@@ -21,12 +21,11 @@ class OrderCardWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Cabeçalho
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
@@ -35,7 +34,7 @@ class OrderCardWidget extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFC0392B).withOpacity(0.15),
+                    color: const Color(0xFFC0392B).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -79,24 +78,18 @@ class OrderCardWidget extends StatelessWidget {
             ),
           ),
 
-          // Divider
-          Divider(color: Colors.white.withOpacity(0.06), height: 1),
+          Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
 
-          // Endereço
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.location_on_outlined,
-                  color: Colors.white38,
-                  size: 16,
-                ),
+                const Icon(Icons.location_on_outlined, color: Colors.white38, size: 16),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    order.address,
+                 order.address.fullAddress,
                     style: const TextStyle(color: Colors.white54, fontSize: 13),
                   ),
                 ),
@@ -104,17 +97,12 @@ class OrderCardWidget extends StatelessWidget {
             ),
           ),
 
-          // Itens
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.fastfood_outlined,
-                  color: Colors.white38,
-                  size: 16,
-                ),
+                const Icon(Icons.fastfood_outlined, color: Colors.white38, size: 16),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -126,55 +114,59 @@ class OrderCardWidget extends StatelessWidget {
             ),
           ),
 
-          // Botões
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Row(
               children: [
-                // Recusar
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: isLoading ? null : onReject,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white54,
-                      side: BorderSide(
-                        color: Colors.white.withOpacity(0.15),
+                  child: SizedBox(
+                    height: 46,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : onReject,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC0392B),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                      child: const Text(
+                        'Recusar',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Recusar'),
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Aceitar
                 Expanded(
                   flex: 2,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : onAccept,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC0392B),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    height: 46,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : onAccept,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF27AE60),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Aceitar entrega',
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                          )
-                        : const Text(
-                            'Aceitar entrega',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                    ),
                   ),
                 ),
               ],

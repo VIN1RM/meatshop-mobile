@@ -22,7 +22,7 @@ import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/swine_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/poultry_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/fish_cuts_screen.dart';
-import 'package:meatshop_mobile/ui/screens/delivery/deliveries_screen.dart';
+import 'package:meatshop_mobile/ui/screens/delivery/client_deliveries_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {

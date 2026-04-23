@@ -136,7 +136,6 @@ class VehicleSettingsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── header row ──
           Row(
             children: [
               Container(
@@ -182,7 +181,6 @@ class VehicleSettingsScreen extends StatelessWidget {
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 16),
 
-          // ── info rows ──
           _infoRow(
             'Tipo:',
             provider.vehicle.isNotEmpty ? provider.vehicle : '—',
@@ -198,7 +196,6 @@ class VehicleSettingsScreen extends StatelessWidget {
 
           const SizedBox(height: 18),
 
-          // ── edit button ──
           GestureDetector(
             onTap: () => showModalBottomSheet(
               context: context,

@@ -16,6 +16,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Added
 - `ModeSelectionPage`: tela de seleção de modo para usuários com perfil `both`, com layout de tela dividida (superior = Cliente, inferior = Entregador), inspirado em split-screen com imagens de fundo representativas de cada perfil. Animação de zoom com esmaecimento do painel não selecionado e indicador de carregamento (dots pulsantes) com delay de 3 segundos antes da navegação.
 - Lógica de redirecionamento pós-login no `AuthProvider` baseada no `app_profile` retornado pelo backend: `client` → shell do cliente, `delivery` → shell do entregador, `both` → tela de seleção de modo.
+- Fluxo completo de conta do entregador (`delivery_account_screen.dart`) com card de perfil, estatísticas de entregas e avaliação média, e menu de navegação com acesso a chats, configurações do veículo, configurações gerais, modo cliente e logout.
+- Tela de configurações do veículo (`vehicle_settings_screen.dart`) com exibição do veículo cadastrado em modo somente leitura e botão para edição via bottom sheet.
+- Bottom sheet de edição de veículo (`vehicle_edit_sheet.dart`) com seletor de tipo de veículo em grid 2x2 (Carro, Moto, Bicicleta, Patinete), campos dinâmicos por tipo (modelo, placa, cor, ano), card de descrição contextual por tipo selecionado, seção de upload de até 3 fotos com indicador de progresso e validação mínima de 3 fotos antes de salvar.
 
 ### Changed
 - `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.

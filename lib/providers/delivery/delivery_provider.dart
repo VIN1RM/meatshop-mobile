@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
+import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 
 enum DeliveryAvailability { available, unavailable }
@@ -9,9 +10,11 @@ enum DeliveryOrderStatus { waiting, onTheWay, delivered }
 class DeliveryOrder {
   final int id;
   final String clientName;
-  final String address;
+  final AddressModel address;
   final String items;
   final double total;
+  final double? destLat;
+  final double? destLng;
   DeliveryOrderStatus status;
 
   DeliveryOrder({
@@ -20,6 +23,8 @@ class DeliveryOrder {
     required this.address,
     required this.items,
     required this.total,
+    this.destLat,
+    this.destLng,
     this.status = DeliveryOrderStatus.waiting,
   });
 }
@@ -28,20 +33,46 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
   DeliveryOrder? _activeOrder;
   bool _isLoading = false;
-
-  // Mock data
+  bool get isOnline => isAvailable;
+  void toggleOnline() => toggleAvailability();
   final List<DeliveryOrder> _pendingOrders = [
     DeliveryOrder(
       id: 1001,
       clientName: 'João Silva',
-      address: 'Rua das Flores, 123 – Jardim América',
+      destLat: -23.5614,
+      destLng: -46.6558,
+      address: AddressModel(
+        id: 1,
+        label: 'Casa',
+        street: 'Avenida Paulista',
+        number: '1578',
+        complement: '',
+        neighborhood: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01310-200',
+        isDefault: true,
+      ),
       items: '2x Picanha, 1x Costela',
       total: 187.90,
     ),
     DeliveryOrder(
       id: 1002,
       clientName: 'Maria Souza',
-      address: 'Av. Paulista, 456 – Bela Vista',
+      destLat: -23.5489,
+      destLng: -46.6388,
+      address: AddressModel(
+        id: 2,
+        label: 'Trabalho',
+        street: 'Avenida Ibirapuera',
+        number: '3103',
+        complement: '',
+        neighborhood: 'Moema',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '04029-200',
+        isDefault: false,
+      ),
       items: '1x Fraldinha, 1x Linguiça',
       total: 94.50,
     ),
@@ -51,7 +82,18 @@ class DeliveryProvider extends ChangeNotifier {
     DeliveryOrder(
       id: 998,
       clientName: 'Carlos Lima',
-      address: 'Rua Augusta, 789',
+      address: AddressModel(
+        id: 3,
+        label: 'Casa',
+        street: 'Rua Augusta',
+        number: '789',
+        complement: 'Casa 2',
+        neighborhood: 'Consolação',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01305-100',
+        isDefault: true,
+      ),
       items: '3x Alcatra',
       total: 210.00,
       status: DeliveryOrderStatus.delivered,
@@ -59,14 +101,24 @@ class DeliveryProvider extends ChangeNotifier {
     DeliveryOrder(
       id: 999,
       clientName: 'Ana Paula',
-      address: 'Alameda Santos, 321',
+      address: AddressModel(
+        id: 4,
+        label: 'Outro',
+        street: 'Alameda Santos',
+        number: '321',
+        complement: 'Bloco B, Apto 12',
+        neighborhood: 'Jardim Paulista',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01419-001',
+        isDefault: false,
+      ),
       items: '1x Filé Mignon',
       total: 135.00,
       status: DeliveryOrderStatus.delivered,
     ),
   ];
 
-  // Getters
   DeliveryAvailability get availability => _availability;
   bool get isAvailable => _availability == DeliveryAvailability.available;
   DeliveryOrder? get activeOrder => _activeOrder;
@@ -75,7 +127,6 @@ class DeliveryProvider extends ChangeNotifier {
   List<DeliveryOrder> get pendingOrders => List.unmodifiable(_pendingOrders);
   List<DeliveryOrder> get historyOrders => List.unmodifiable(_historyOrders);
 
-  // Mock: nome e rating do entregador
   String get deliveryPersonName => 'Rafael Mendes';
   double get averageRating => 4.8;
   String get vehicle => 'Moto';
@@ -91,7 +142,6 @@ class DeliveryProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // TODO: chamar API PATCH /orders/{id}/accept
     await Future.delayed(const Duration(seconds: 1));
 
     _pendingOrders.removeWhere((o) => o.id == order.id);
@@ -106,7 +156,6 @@ class DeliveryProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // TODO: chamar API PATCH /orders/{id}/reject
     await Future.delayed(const Duration(milliseconds: 500));
 
     _pendingOrders.removeWhere((o) => o.id == orderId);
@@ -121,7 +170,6 @@ class DeliveryProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // TODO: chamar API PATCH /orders/{id}/deliver
     await Future.delayed(const Duration(seconds: 1));
 
     _activeOrder!.status = DeliveryOrderStatus.delivered;

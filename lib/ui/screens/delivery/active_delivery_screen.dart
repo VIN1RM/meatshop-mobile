@@ -1,5 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
 
 class ActiveDeliveryScreen extends StatelessWidget {
@@ -15,17 +24,15 @@ class ActiveDeliveryScreen extends StatelessWidget {
         return SafeArea(
           child: Column(
             children: [
-              // Header
               _ActiveDeliveryHeader(orderId: order.id),
-
-              // Mapa placeholder
-              // TODO: substituir por google_maps_flutter ou mapbox quando disponível
               Expanded(
                 child: Stack(
                   children: [
-                    _MapPlaceholder(),
-
-                    // Card flutuante com dados do pedido
+                    _DeliveryMap(
+                      destinationAddress: order.address.fullAddress,
+                      destLat: order.destLat,
+                      destLng: order.destLng,
+                    ),
                     Positioned(
                       bottom: 0,
                       left: 0,
@@ -94,7 +101,6 @@ class ActiveDeliveryScreen extends StatelessWidget {
 
 class _ActiveDeliveryHeader extends StatelessWidget {
   const _ActiveDeliveryHeader({required this.orderId});
-
   final int orderId;
 
   @override
@@ -108,7 +114,7 @@ class _ActiveDeliveryHeader extends StatelessWidget {
             width: 10,
             height: 10,
             decoration: const BoxDecoration(
-              color: Color(0xFF2ECC71),
+              color: Color(0xFF27AE60),
               shape: BoxShape.circle,
             ),
           ),
@@ -132,29 +138,279 @@ class _ActiveDeliveryHeader extends StatelessWidget {
   }
 }
 
-class _MapPlaceholder extends StatelessWidget {
+class _DeliveryMap extends StatefulWidget {
+  const _DeliveryMap({
+    required this.destinationAddress,
+    this.destLat,
+    this.destLng,
+  });
+  final String destinationAddress;
+  final double? destLat;
+  final double? destLng;
+
+  @override
+  State<_DeliveryMap> createState() => _DeliveryMapState();
+}
+
+class _DeliveryMapState extends State<_DeliveryMap> {
+  final MapController _mapController = MapController();
+
+  LatLng? _currentPosition;
+  LatLng? _destination;
+  List<LatLng> _routePoints = [];
+  StreamSubscription<Position>? _positionStream;
+
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialize();
+  }
+
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initialize() async {
+    try {
+      await _requestPermission();
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      final current = LatLng(position.latitude, position.longitude);
+
+      final LatLng? dest;
+      if (widget.destLat != null && widget.destLng != null) {
+        dest = LatLng(widget.destLat!, widget.destLng!);
+      } else {
+        dest = await _geocodeAddress(widget.destinationAddress);
+      }
+      if (!mounted) return;
+      setState(() {
+        _currentPosition = current;
+        _destination = dest;
+        _isLoading = false;
+      });
+
+      if (dest != null) {
+        await _fetchRoute(current, dest);
+      }
+
+      _positionStream =
+          Geolocator.getPositionStream(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              distanceFilter: 10,
+            ),
+          ).listen((pos) {
+            if (!mounted) return;
+            setState(
+              () => _currentPosition = LatLng(pos.latitude, pos.longitude),
+            );
+            _mapController.move(_currentPosition!, _mapController.camera.zoom);
+          });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Erro ao carregar mapa: $e';
+      });
+    }
+  }
+
+  Future<void> _requestPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Permissão de localização negada permanentemente.');
+    }
+  }
+
+  Future<LatLng?> _geocodeAddress(String address) async {
+    final encoded = Uri.encodeComponent(address);
+    final url = Uri.parse(
+      'https://nominatim.openstreetmap.org/search'
+      '?q=$encoded&format=json&limit=1&countrycodes=br',
+    );
+
+    debugPrint('🔍 Geocodificando: $address');
+
+    final response = await http.get(
+      url,
+      headers: {'User-Agent': 'meatshop_mobile/1.0'},
+    );
+
+    debugPrint('📍 Status: ${response.statusCode}');
+    debugPrint('📍 Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as List;
+      if (data.isNotEmpty) {
+        final lat = double.parse(data[0]['lat'] as String);
+        final lon = double.parse(data[0]['lon'] as String);
+        debugPrint('✅ Destino encontrado: $lat, $lon');
+        return LatLng(lat, lon);
+      }
+      debugPrint('❌ Nenhum resultado para o endereço');
+    }
+    return null;
+  }
+
+  Future<void> _fetchRoute(LatLng origin, LatLng destination) async {
+    debugPrint('🛣️ Buscando rota...');
+    final url = Uri.parse(
+      'https://router.project-osrm.org/route/v1/driving/'
+      '${origin.longitude},${origin.latitude};'
+      '${destination.longitude},${destination.latitude}'
+      '?overview=full&geometries=geojson',
+    );
+
+    try {
+      final response = await http.get(url);
+      debugPrint('🛣️ Rota status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final coords = data['routes'][0]['geometry']['coordinates'] as List;
+        debugPrint('✅ Rota com ${coords.length} pontos');
+        if (!mounted) return;
+        setState(() {
+          _routePoints = coords
+              .map(
+                (c) =>
+                    LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()),
+              )
+              .toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ Erro na rota: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF1A1A1A),
-      child: const Center(
+    if (_isLoading) {
+      return const Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.map_outlined, color: Colors.white12, size: 64),
+            CircularProgressIndicator(color: Color(0xFFC0392B)),
             SizedBox(height: 12),
             Text(
-              'Mapa',
-              style: TextStyle(color: Colors.white12, fontSize: 14),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'TODO: integrar google_maps_flutter',
-              style: TextStyle(color: Colors.white12, fontSize: 11),
+              'Carregando mapa...',
+              style: TextStyle(color: Colors.white54, fontSize: 13),
             ),
           ],
         ),
-      ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Text(
+          _errorMessage!,
+          style: const TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+
+    final current = _currentPosition!;
+    final dest = _destination;
+
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(initialCenter: current, initialZoom: 14),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.meatshop.mobile',
+        ),
+
+        if (_routePoints.isNotEmpty)
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: _routePoints,
+                strokeWidth: 5,
+                color: const Color(0xFFC0392B),
+              ),
+            ],
+          ),
+
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: current,
+              width: 44,
+              height: 44,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2980B9),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.delivery_dining,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+
+            if (dest != null)
+              Marker(
+                point: dest,
+                width: 44,
+                height: 56,
+                child: Column(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC0392B),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.home,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+
+                    Container(
+                      width: 2,
+                      height: 10,
+                      color: const Color(0xFFC0392B),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -177,10 +433,10 @@ class _ActiveOrderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -189,7 +445,6 @@ class _ActiveOrderCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle visual
           Container(
             margin: const EdgeInsets.only(top: 10),
             width: 36,
@@ -199,7 +454,6 @@ class _ActiveOrderCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
             child: Row(
@@ -213,17 +467,15 @@ class _ActiveOrderCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                // Botão chat
-                // TODO: navegar para ChatScreen passando orderId
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.chat),
                   icon: const Icon(
                     Icons.chat_bubble_outline,
                     color: Colors.white38,
                     size: 20,
                   ),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.06),
+                    backgroundColor: Colors.white.withValues(alpha: 0.06),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -232,8 +484,6 @@ class _ActiveOrderCard extends StatelessWidget {
               ],
             ),
           ),
-
-          // Endereço destino
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -247,48 +497,20 @@ class _ActiveOrderCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    order.address,
+                    order.address.fullAddress,
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // Botão confirmar entrega
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : onConfirm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC0392B),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text(
-                        'Confirmar entrega',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
+            child: PrimaryButton(
+              label: 'Confirmar entrega',
+              isLoading: isLoading,
+              onPressed: onConfirm,
             ),
           ),
         ],

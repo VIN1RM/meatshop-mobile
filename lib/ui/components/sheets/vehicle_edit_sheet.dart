@@ -79,7 +79,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       );
       return;
     }
-    // TODO: integrar image_picker aqui e adicionar o path real
+
     setState(() {
       _vehicleImages.add('placeholder_${_vehicleImages.length + 1}');
     });
@@ -171,7 +171,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ── drag handle ──
                 Center(
                   child: Container(
                     width: 40,
@@ -184,7 +183,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   ),
                 ),
 
-                // ── title ──
                 const Text(
                   'EDITAR VEÍCULO',
                   style: TextStyle(
@@ -196,7 +194,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                 ),
                 const SizedBox(height: 20),
 
-                // ── vehicle type label ──
                 const Text(
                   'Tipo de veículo',
                   style: TextStyle(
@@ -207,7 +204,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                 ),
                 const SizedBox(height: 10),
 
-                // ── chips 2x2 ──
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
@@ -263,9 +259,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                 const Divider(height: 1, color: Color(0xFFE0E0E0)),
                 const SizedBox(height: 20),
 
-                // ── dynamic section ──
                 if (_selectedVehicleType != null) ...[
-                  // description card
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -293,7 +287,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                     ),
                   ),
 
-                  // form fields dinâmicos
                   if (_selectedVehicleType!.fields.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     const Text(
@@ -353,14 +346,12 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                         ],
                       ),
 
-                    // ── photos ──
                     _buildPhotoSection(),
                   ],
                 ],
 
                 const SizedBox(height: 28),
 
-                // ── save button ──
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -426,7 +417,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const SizedBox(height: 12),
         Row(
           children: [
-            // slots preenchidos
             ...List.generate(_vehicleImages.length, (i) {
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
@@ -472,7 +462,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               );
             }),
 
-            // botão adicionar
             if (_vehicleImages.length < 3)
               GestureDetector(
                 onTap: _pickImage,
@@ -502,7 +491,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                 ),
               ),
 
-            // slots vazios restantes
             ...List.generate(
               _vehicleImages.isEmpty
                   ? 2
@@ -528,7 +516,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
           ],
         ),
 
-        // indicador de progresso
         const SizedBox(height: 10),
         Row(
           children: List.generate(3, (i) {

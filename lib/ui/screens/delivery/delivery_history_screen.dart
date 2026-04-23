@@ -182,7 +182,7 @@ class _HistoryCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      order.address,
+          order.address.fullAddress,
                       style: const TextStyle(
                         color: Colors.white38,
                         fontSize: 12,
@@ -283,7 +283,7 @@ class _OrderDetailsSheet extends StatelessWidget {
           _DetailRow(
             icon: Icons.location_on_outlined,
             label: 'Endereço',
-            value: order.address,
+            value: order.address.fullAddress,
           ),
           const SizedBox(height: 14),
           _DetailRow(
