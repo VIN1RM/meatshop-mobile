@@ -1,77 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
+import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
+
 import 'package:provider/provider.dart';
 
-class VehicleSettingsScreen extends StatefulWidget {
+class VehicleSettingsScreen extends StatelessWidget {
   const VehicleSettingsScreen({super.key});
 
-  @override
-  State<VehicleSettingsScreen> createState() => _VehicleSettingsScreenState();
-}
-
-class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
-  final _formKey = GlobalKey<FormState>();
-
-  late TextEditingController _plateController;
-  late TextEditingController _modelController;
-  late TextEditingController _colorController;
-  late TextEditingController _yearController;
-
-  String? _selectedVehicleType;
-  bool _isSaving = false;
-
-  final List<String> _vehicleTypes = [
-    'Moto',
-    'Carro',
-    'Van',
-    'Bicicleta',
-    'Caminhonete',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    final provider = context.read<DeliveryProvider>();
-    _selectedVehicleType = provider.vehicle.isNotEmpty
-        ? provider.vehicle
-        : null;
-    _plateController = TextEditingController(text: '');
-    _modelController = TextEditingController(text: '');
-    _colorController = TextEditingController(text: '');
-    _yearController = TextEditingController(text: '');
-  }
-
-  @override
-  void dispose() {
-    _plateController.dispose();
-    _modelController.dispose();
-    _colorController.dispose();
-    _yearController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() => _isSaving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Veículo atualizado com sucesso!'),
-        backgroundColor: Color(0xFFC0392B),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<DeliveryProvider>();
+
     return Material(
-      // ← adiciona aqui
       color: Colors.white,
       child: Stack(
         children: [
@@ -91,30 +34,22 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
           ),
           SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(context),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 8),
-                            _pageTitle(),
-                            const SizedBox(height: 20),
-                            _buildVehicleTypeSection(),
-                            const SizedBox(height: 16),
-                            _buildDetailsSection(),
-                            const SizedBox(height: 28),
-                            _buildSaveButton(),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        _pageTitle(),
+                        const SizedBox(height: 20),
+                        _buildVehicleCard(context, provider),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
                 ),
@@ -191,9 +126,9 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
     );
   }
 
-  Widget _buildVehicleTypeSection() {
+  Widget _buildVehicleCard(BuildContext context, DeliveryProvider provider) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(16),
@@ -201,226 +136,132 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Tipo de veículo',
-            style: TextStyle(
-              color: Color(0xFF1A1A1A),
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _vehicleTypes.map((type) {
-              final isSelected = _selectedVehicleType == type;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedVehicleType = type),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected ? _red : _white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isSelected ? _red : const Color(0xFFE0E0E0),
-                      width: 1.5,
+          // ── header row ──
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: _red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _iconForVehicle(provider.vehicle),
+                  color: _red,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      provider.vehicle.isNotEmpty
+                          ? provider.vehicle
+                          : 'Nenhum veículo cadastrado',
+                      style: const TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _iconForVehicle(type),
-                        size: 16,
-                        color: isSelected ? _white : const Color(0xFF555555),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        type,
-                        style: TextStyle(
-                          color: isSelected ? _white : const Color(0xFF1A1A1A),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Veículo principal',
+                      style: TextStyle(color: Color(0xFF888888), fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+          const SizedBox(height: 16),
+
+          // ── info rows ──
+          _infoRow(
+            'Tipo:',
+            provider.vehicle.isNotEmpty ? provider.vehicle : '—',
+          ),
+          const SizedBox(height: 8),
+          _infoRow('Modelo:', '—'),
+          const SizedBox(height: 8),
+          _infoRow('Placa:', '—'),
+          const SizedBox(height: 8),
+          _infoRow('Cor:', '—'),
+          const SizedBox(height: 8),
+          _infoRow('Ano:', '—'),
+
+          const SizedBox(height: 18),
+
+          // ── edit button ──
+          GestureDetector(
+            onTap: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const VehicleEditModal(),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.edit_outlined, color: _red, size: 14),
+                SizedBox(width: 4),
+                Text(
+                  'Editar veículo',
+                  style: TextStyle(
+                    color: _red,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              );
-            }).toList(),
+              ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+        children: [
+          TextSpan(
+            text: '$label ',
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          TextSpan(text: value),
         ],
       ),
     );
   }
 
   IconData _iconForVehicle(String type) {
-    switch (type) {
-      case 'Moto':
+    switch (type.toLowerCase()) {
+      case 'moto':
+      case 'motorcycle':
         return Icons.two_wheeler_outlined;
-      case 'Carro':
+      case 'carro':
+      case 'car':
         return Icons.directions_car_outlined;
-      case 'Van':
-        return Icons.airport_shuttle_outlined;
-      case 'Bicicleta':
+      case 'bicicleta':
+      case 'bike':
         return Icons.pedal_bike_outlined;
-      case 'Caminhonete':
+      case 'van':
+        return Icons.airport_shuttle_outlined;
+      case 'caminhonete':
         return Icons.local_shipping_outlined;
       default:
         return Icons.directions_car_outlined;
     }
-  }
-
-  Widget _buildDetailsSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Dados do veículo',
-            style: TextStyle(
-              color: Color(0xFF1A1A1A),
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildField(
-            controller: _modelController,
-            label: 'Modelo',
-            hint: 'Ex: Honda CG 160',
-            icon: Icons.directions_car_outlined,
-          ),
-          const SizedBox(height: 12),
-          _buildField(
-            controller: _plateController,
-            label: 'Placa',
-            hint: 'Ex: ABC-1234',
-            icon: Icons.pin_outlined,
-            textCapitalization: TextCapitalization.characters,
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildField(
-                  controller: _colorController,
-                  label: 'Cor',
-                  hint: 'Ex: Preto',
-                  icon: Icons.color_lens_outlined,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildField(
-                  controller: _yearController,
-                  label: 'Ano',
-                  hint: 'Ex: 2022',
-                  icon: Icons.calendar_today_outlined,
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    TextCapitalization textCapitalization = TextCapitalization.words,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          textCapitalization: textCapitalization,
-          style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontSize: 13),
-            prefixIcon: Icon(icon, color: const Color(0xFF888888), size: 18),
-            filled: true,
-            fillColor: _white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _red, width: 1.5),
-            ),
-          ),
-          validator: (v) =>
-              (v == null || v.trim().isEmpty) ? 'Campo obrigatório' : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: _isSaving ? null : _save,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _red,
-          disabledBackgroundColor: _red.withOpacity(0.6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: _isSaving
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: _white),
-              )
-            : const Text(
-                'Salvar alterações',
-                style: TextStyle(
-                  color: _white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-      ),
-    );
   }
 }
