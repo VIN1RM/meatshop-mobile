@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:meatshop_mobile/ui/dialogs/image_source_dialog.dart';
 
 class VehicleEditModal extends StatefulWidget {
   const VehicleEditModal({super.key});
@@ -80,9 +82,24 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       return;
     }
 
-    setState(() {
-      _vehicleImages.add('placeholder_${_vehicleImages.length + 1}');
-    });
+    // Abre o dialog de seleção
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (ctx) => const ImageSourceDialog(),
+    );
+
+    if (source == null || !mounted) return;
+
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(
+      source: source,
+      imageQuality: 80,
+      maxWidth: 1080,
+    );
+
+    if (picked != null && mounted) {
+      setState(() => _vehicleImages.add(picked.path));
+    }
   }
 
   void _removeImage(int index) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 

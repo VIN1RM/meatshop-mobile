@@ -19,6 +19,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Fluxo completo de conta do entregador (`delivery_account_screen.dart`) com card de perfil, estatísticas de entregas e avaliação média, e menu de navegação com acesso a chats, configurações do veículo, configurações gerais, modo cliente e logout.
 - Tela de configurações do veículo (`vehicle_settings_screen.dart`) com exibição do veículo cadastrado em modo somente leitura e botão para edição via bottom sheet.
 - Bottom sheet de edição de veículo (`vehicle_edit_sheet.dart`) com seletor de tipo de veículo em grid 2x2 (Carro, Moto, Bicicleta, Patinete), campos dinâmicos por tipo (modelo, placa, cor, ano), card de descrição contextual por tipo selecionado, seção de upload de até 3 fotos com indicador de progresso e validação mínima de 3 fotos antes de salvar.
+- Integração de mapa interativo na tela de entrega ativa (`active_delivery_screen.dart`) utilizando OpenStreetMap via `flutter_map`, substituindo a dependência do Google Maps.
+- Rastreamento em tempo real da localização do entregador com atualização a cada 10 metros via `geolocator`.
+- Geocodificação de endereços via API Nominatim (OpenStreetMap), convertendo o endereço do cliente em coordenadas geográficas sem custo.
+- Roteamento via API OSRM com exibição da rota de condução como polilinha vermelha no mapa, conectando a posição do entregador ao destino do pedido.
 
 ### Changed
 - `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.
