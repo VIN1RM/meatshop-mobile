@@ -16,7 +16,6 @@ class ImageSourceDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Ícone decorativo
             Container(
               width: 52,
               height: 52,
@@ -47,7 +46,6 @@ class ImageSourceDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Botão — Câmera
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -70,7 +68,6 @@ class ImageSourceDialog extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // Botão — Galeria
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -92,7 +89,6 @@ class ImageSourceDialog extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
-            // Cancelar
             TextButton(
               onPressed: () => Navigator.pop(context, null),
               child: const Text(

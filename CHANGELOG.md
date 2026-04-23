@@ -23,6 +23,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Rastreamento em tempo real da localização do entregador com atualização a cada 10 metros via `geolocator`.
 - Geocodificação de endereços via API Nominatim (OpenStreetMap), convertendo o endereço do cliente em coordenadas geográficas sem custo.
 - Roteamento via API OSRM com exibição da rota de condução como polilinha vermelha no mapa, conectando a posição do entregador ao destino do pedido.
+- Adicionado dialog de seleção de fonte de imagem (câmera ou galeria) no modal de edição de veículo
 
 ### Changed
 - `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.

@@ -82,7 +82,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       return;
     }
 
-    // Abre o dialog de seleção
     final source = await showDialog<ImageSource>(
       context: context,
       builder: (ctx) => const ImageSourceDialog(),
