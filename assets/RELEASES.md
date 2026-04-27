@@ -5,9 +5,13 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ## [1.4.0] — XX de XXXX de 2026
 ### ✨ Novidades
 - Modo Duplo para Usuários Especiais: Se a sua conta tiver os dois perfis (Cliente e Entregador), agora ao entrar no app você verá uma tela elegante para escolher como quer usar o MeatShop naquele momento. Basta tocar na opção desejada e aguardar!
+- Conta do Entregador: Nova tela de perfil exclusiva para entregadores, com estatísticas de entregas realizadas, avaliação média e acesso rápido às configurações do veículo.
 - Troca de Modo Facilitada: Após escolher, o app memoriza o seu perfil ativo durante a sessão. Você pode alternar quando quiser pelas configurações.
 - Cadastro de Veículo para Entregadores: Agora você pode adicionar ou editar o seu veículo diretamente pelo app. Escolha o tipo (Carro, Moto, etc...), preencha os dados e adicione até 3 fotos do veículo.
 - Seleção de Foto Facilitada: Na hora de adicionar as fotos do veículo, você pode escolher entre tirar uma foto na hora ou selecionar uma já existente da sua galeria.
+- Chat Durante a Entrega: Agora o entregador pode conversar diretamente com o açougue ou com o cliente durante uma entrega ativa. Basta tocar em "Falar com..." na tela de entrega e escolher com quem deseja falar.
+- Tela de Troca de Modo: Ao alternar entre o modo Cliente e o modo Entregador, o app exibe uma tela de transição com uma animação suave e uma mensagem personalizada enquanto prepara o ambiente para você.
+- Recusa de Pedido com Motivo: O entregador agora pode recusar um pedido selecionando um ou mais motivos (distância, veículo, área de risco, entre outros) antes de confirmar a recusa.
 
 ---
 

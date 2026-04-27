@@ -89,6 +89,8 @@ flutter:
     - assets/images/person8.png        
     - assets/images/person9.png
     - assets/images/person10.png
+    - assets/images/person11.png
+    - assets/images/person12.png
     - assets/RELEASES.md
 
   # To add assets to your application, add an assets section, like this:

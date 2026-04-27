@@ -30,6 +30,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `RejectOrderDialog`: dialog de recusa de pedido com seleção múltipla de motivos via `Set<OrderRejectionReason>`. O entregador pode selecionar um ou mais motivos antes de confirmar, com contador dinâmico no botão ("Confirmar (2)") e checkbox animado por tile.
 - Enum `OrderRejectionReason` criado em arquivo dedicado (`delivery_enums.dart`) com os motivos: distância excessiva, problema com veículo, área de risco, excesso de itens, valor baixo e outro. Cada motivo expõe `label` e `icon` para renderização.
 - Fragmentação do `delivery_provider.dart`: modelo `DeliveryOrder` extraído para `models/delivery_order_model.dart` e todos os enums do fluxo de entrega (`DeliveryAvailability`, `DeliveryOrderStatus`, `DeliveryStep`, `OrderRejectionReason`) extraídos para `core/enums/delivery_enums.dart`.
+- `ModeSwitchScreen`: tela de transição exibida ao alternar entre os modos cliente e entregador, com fade-in animado, imagem representativa do perfil de destino e mensagem contextual. Aguarda 5 segundos antes de navegar para a rota de destino recebida via `arguments`. Integrada ao `switchToDeliveryMode` no `AuthProvider` e ao `switchToClientMode` no `DeliveryProvider`.
 
 ### Changed
 - `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.
