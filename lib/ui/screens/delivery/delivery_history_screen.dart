@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -182,7 +183,7 @@ class _HistoryCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-          order.address.fullAddress,
+                      order.address.fullAddress,
                       style: const TextStyle(
                         color: Colors.white38,
                         fontSize: 12,

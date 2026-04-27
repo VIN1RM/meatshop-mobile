@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
-import 'package:meatshop_mobile/ui/widgets/order_card_widget.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/active_delivery_screen.dart';
+import 'package:meatshop_mobile/ui/dialogs/reject_order_dialog.dart';
+import 'package:meatshop_mobile/ui/widgets/order_card_widget.dart';
 import 'package:provider/provider.dart';
 
 class DeliveriesTab extends StatelessWidget {
@@ -160,7 +161,12 @@ class DeliveriesTab extends StatelessWidget {
                 order: order,
                 isLoading: provider.isLoading,
                 onAccept: () => provider.acceptOrder(order),
-                onReject: () => provider.rejectOrder(order.id),
+                onReject: () async {
+                  final reasons = await RejectOrderDialog.show(context);
+                  if (reasons != null && reasons.isNotEmpty) {
+                    provider.rejectOrder(order.id, reasons);
+                  }
+                },
               );
             },
           ),

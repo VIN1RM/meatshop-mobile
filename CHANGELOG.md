@@ -27,10 +27,15 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Fluxo de entrega em duas etapas no `active_delivery_screen.dart`: etapa 1 (retirada no açougue) e etapa 2 (entrega ao cliente), com transição via `confirmPickup()` e indicador visual de etapa ativa/concluída.
 - Navegação externa substituindo o mapa in-app: botão "Navegar" em cada etapa abre o Waze (quando instalado) ou o Google Maps como fallback, via `url_launcher`.
 - `OrderCardWidget` atualizado para exibir rota visual em duas etapas (açougue → cliente) com ícones e linha conectora distintos para cada ponto.
+- `RejectOrderDialog`: dialog de recusa de pedido com seleção múltipla de motivos via `Set<OrderRejectionReason>`. O entregador pode selecionar um ou mais motivos antes de confirmar, com contador dinâmico no botão ("Confirmar (2)") e checkbox animado por tile.
+- Enum `OrderRejectionReason` criado em arquivo dedicado (`delivery_enums.dart`) com os motivos: distância excessiva, problema com veículo, área de risco, excesso de itens, valor baixo e outro. Cada motivo expõe `label` e `icon` para renderização.
+- Fragmentação do `delivery_provider.dart`: modelo `DeliveryOrder` extraído para `models/delivery_order_model.dart` e todos os enums do fluxo de entrega (`DeliveryAvailability`, `DeliveryOrderStatus`, `DeliveryStep`, `OrderRejectionReason`) extraídos para `core/enums/delivery_enums.dart`.
 
 ### Changed
 - `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.
 - `logout` atualizado para limpar `_appProfile` e `_activeProfile` além do estado de autenticação.
+- `rejectOrder()` no `DeliveryProvider` atualizado para receber `List<OrderRejectionReason>` em vez de um único motivo, com log dos motivos selecionados para futura integração com a API.
+- `deliveries_screen.dart` atualizado para aguardar o retorno do `RejectOrderDialog` antes de chamar `rejectOrder()`, garantindo que a rejeição só ocorre quando ao menos um motivo é selecionado.
 
 ---
 

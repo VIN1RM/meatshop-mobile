@@ -1,44 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
+import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-
-enum DeliveryAvailability { available, unavailable }
-
-enum DeliveryOrderStatus { waiting, onTheWay, delivered }
-
-enum DeliveryStep { pickup, delivering }
-
-class DeliveryOrder {
-  final int id;
-  final String clientName;
-  final AddressModel address;
-  final String unitName;
-  final AddressModel unitAddress;
-  final String items;
-  final double total;
-  final double? destLat;
-  final double? destLng;
-  final double? unitLat;
-  final double? unitLng;
-  DeliveryOrderStatus status;
-  DeliveryStep step;
-
-  DeliveryOrder({
-    required this.id,
-    required this.clientName,
-    required this.address,
-    required this.unitName,
-    required this.unitAddress,
-    required this.items,
-    required this.total,
-    this.destLat,
-    this.destLng,
-    this.unitLat,
-    this.unitLng,
-    this.status = DeliveryOrderStatus.waiting,
-    this.step = DeliveryStep.pickup,
-  });
-}
 
 class DeliveryProvider extends ChangeNotifier {
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
@@ -222,9 +186,16 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> rejectOrder(int orderId) async {
+  Future<void> rejectOrder(
+    int orderId,
+    List<OrderRejectionReason> reasons,
+  ) async {
     _isLoading = true;
     notifyListeners();
+
+    debugPrint(
+      'Pedido $orderId recusado. Motivos: ${reasons.map((r) => r.label).join(', ')}',
+    );
 
     await Future.delayed(const Duration(milliseconds: 500));
 

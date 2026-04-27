@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
+import 'package:meatshop_mobile/models/delivery_order_model.dart';
 
 class OrderCardWidget extends StatelessWidget {
   const OrderCardWidget({
