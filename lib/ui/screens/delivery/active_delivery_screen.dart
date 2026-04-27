@@ -5,6 +5,9 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:meatshop_mobile/core/enums/chat_enums.dart';
+import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
+import 'package:meatshop_mobile/ui//dialogs/chat_participant_dialog.dart';
 
 class ActiveDeliveryScreen extends StatelessWidget {
   const ActiveDeliveryScreen({super.key});
@@ -92,8 +95,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
                         width: double.infinity,
                         height: 54,
                         child: ElevatedButton.icon(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, AppRoutes.chat),
+                          onPressed: () => _onOpenChat(context, order),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white.withValues(
                               alpha: 0.06,
@@ -106,7 +108,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
                           ),
                           icon: const Icon(Icons.chat_bubble_outline, size: 20),
                           label: const Text(
-                            'Falar com o estabelecimento',
+                            'Falar com...',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -217,6 +219,27 @@ class ActiveDeliveryScreen extends StatelessWidget {
       await provider.confirmDelivery();
     }
   }
+}
+
+Future<void> _onOpenChat(BuildContext context, order) async {
+  final participant = await ChatParticipantDialog.show(
+    context: context,
+    unitName: order.unitName,
+    clientName: order.clientName,
+  );
+
+  if (participant == null || !context.mounted) return;
+
+  Navigator.pushNamed(
+    context,
+    AppRoutes.chat,
+    arguments: ChatArgs(
+      participantName: participant == ChatParticipantType.unit
+          ? order.unitName
+          : order.clientName,
+      participantType: participant,
+    ),
+  );
 }
 
 class _ActiveDeliveryHeader extends StatelessWidget {
