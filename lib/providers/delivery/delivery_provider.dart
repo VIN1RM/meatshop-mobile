@@ -250,8 +250,10 @@ class DeliveryProvider extends ChangeNotifier {
     _activeOrder = null;
     notifyListeners();
 
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(AppRoutes.shell, (route) => false);
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.modeSwitch,
+      (route) => false,
+      arguments: AppRoutes.shell,
+    );
   }
 }

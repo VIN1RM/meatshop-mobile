@@ -59,6 +59,17 @@ class AuthProvider extends ChangeNotifier {
     ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
   }
 
+  void switchToDeliveryMode(BuildContext context) {
+    _activeProfile = AppProfile.delivery;
+    notifyListeners();
+
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      AppRoutes.modeSwitch,
+      (route) => false,
+      arguments: AppRoutes.deliveryShell,
+    );
+  }
+
   void _redirectAfterLogin(BuildContext context) {
     switch (_appProfile) {
       case AppProfile.client:

@@ -248,6 +248,11 @@ class _AccountScreenState extends State<AccountScreen> {
         onTap: () => Navigator.pushNamed(context, AppRoutes.savedAddresses),
       ),
       _MenuItem(
+        Icons.delivery_dining_outlined,
+        'Modo entregador',
+        onTap: () => context.read<AuthProvider>().switchToDeliveryMode(context),
+      ),
+      _MenuItem(
         Icons.settings_outlined,
         'Configurações',
         onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
