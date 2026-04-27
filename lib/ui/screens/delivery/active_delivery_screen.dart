@@ -1,15 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:latlong2/latlong.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ActiveDeliveryScreen extends StatelessWidget {
   const ActiveDeliveryScreen({super.key});
@@ -21,29 +15,109 @@ class ActiveDeliveryScreen extends StatelessWidget {
         final order = provider.activeOrder;
         if (order == null) return const SizedBox.shrink();
 
+        final isPickup = order.step == DeliveryStep.pickup;
+
         return SafeArea(
           child: Column(
             children: [
-              _ActiveDeliveryHeader(orderId: order.id),
+              _ActiveDeliveryHeader(orderId: order.id, isPickup: isPickup),
               Expanded(
-                child: Stack(
-                  children: [
-                    _DeliveryMap(
-                      destinationAddress: order.address.fullAddress,
-                      destLat: order.destLat,
-                      destLng: order.destLng,
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: _ActiveOrderCard(
-                        order: order,
-                        isLoading: provider.isLoading,
-                        onConfirm: () => _onConfirmDelivery(context, provider),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _StepCard(
+                        stepNumber: 1,
+                        label: 'RETIRADA',
+                        title: order.unitName,
+                        subtitle:
+                            '${order.unitAddress.street}, ${order.unitAddress.number}',
+                        neighborhood: order.unitAddress.neighborhood,
+                        icon: Icons.storefront_outlined,
+                        isActive: isPickup,
+                        isDone: !isPickup,
+                        accentColor: const Color(0xFFC0392B),
+                        lat: order.unitLat,
+                        lng: order.unitLng,
+                        address: order.unitAddress.fullAddress,
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 8),
+
+                      _RouteConnector(isPickup: isPickup),
+
+                      const SizedBox(height: 8),
+
+                      _StepCard(
+                        stepNumber: 2,
+                        label: 'ENTREGA',
+                        title: order.clientName,
+                        subtitle:
+                            '${order.address.street}, ${order.address.number}',
+                        neighborhood: order.address.neighborhood,
+                        icon: Icons.location_on_outlined,
+                        isActive: !isPickup,
+                        isDone: false,
+                        accentColor: const Color(0xFF27AE60),
+                        lat: order.destLat,
+                        lng: order.destLng,
+                        address: order.address.fullAddress,
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      _OrderItemsCard(items: order.items, total: order.total),
+
+                      const SizedBox(height: 24),
+
+                      if (isPickup)
+                        PrimaryButton(
+                          label: 'Confirmar retirada no açougue',
+                          isLoading: provider.isLoading,
+                          onPressed: () => _onConfirmPickup(context, provider),
+                        )
+                      else
+                        PrimaryButton(
+                          label: 'Confirmar entrega ao cliente',
+                          isLoading: provider.isLoading,
+                          onPressed: () =>
+                              _onConfirmDelivery(context, provider),
+                        ),
+
+                      const SizedBox(height: 12),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton.icon(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, AppRoutes.chat),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.06,
+                            ),
+                            foregroundColor: Colors.white54,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                          label: const Text(
+                            'Falar com o estabelecimento',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -51,6 +125,51 @@ class ActiveDeliveryScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _onConfirmPickup(
+    BuildContext context,
+    DeliveryProvider provider,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2C2C2C),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Retirou o pedido?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Confirme que você retirou o pedido no açougue e está a caminho do cliente.',
+          style: TextStyle(color: Colors.white54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.white38),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFC0392B),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await provider.confirmPickup();
+    }
   }
 
   Future<void> _onConfirmDelivery(
@@ -100,8 +219,10 @@ class ActiveDeliveryScreen extends StatelessWidget {
 }
 
 class _ActiveDeliveryHeader extends StatelessWidget {
-  const _ActiveDeliveryHeader({required this.orderId});
+  const _ActiveDeliveryHeader({required this.orderId, required this.isPickup});
+
   final int orderId;
+  final bool isPickup;
 
   @override
   Widget build(BuildContext context) {
@@ -119,9 +240,9 @@ class _ActiveDeliveryHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          const Text(
-            'Entrega em andamento',
-            style: TextStyle(
+          Text(
+            isPickup ? 'Indo buscar o pedido' : 'Entrega em andamento',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -138,380 +259,271 @@ class _ActiveDeliveryHeader extends StatelessWidget {
   }
 }
 
-class _DeliveryMap extends StatefulWidget {
-  const _DeliveryMap({
-    required this.destinationAddress,
-    this.destLat,
-    this.destLng,
+class _StepCard extends StatelessWidget {
+  const _StepCard({
+    required this.stepNumber,
+    required this.label,
+    required this.title,
+    required this.subtitle,
+    required this.neighborhood,
+    required this.icon,
+    required this.isActive,
+    required this.isDone,
+    required this.accentColor,
+    required this.address,
+    this.lat,
+    this.lng,
   });
-  final String destinationAddress;
-  final double? destLat;
-  final double? destLng;
 
-  @override
-  State<_DeliveryMap> createState() => _DeliveryMapState();
-}
-
-class _DeliveryMapState extends State<_DeliveryMap> {
-  final MapController _mapController = MapController();
-
-  LatLng? _currentPosition;
-  LatLng? _destination;
-  List<LatLng> _routePoints = [];
-  StreamSubscription<Position>? _positionStream;
-
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _initialize();
-  }
-
-  @override
-  void dispose() {
-    _positionStream?.cancel();
-    _mapController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initialize() async {
-    try {
-      await _requestPermission();
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-      final current = LatLng(position.latitude, position.longitude);
-
-      final LatLng? dest;
-      if (widget.destLat != null && widget.destLng != null) {
-        dest = LatLng(widget.destLat!, widget.destLng!);
-      } else {
-        dest = await _geocodeAddress(widget.destinationAddress);
-      }
-      if (!mounted) return;
-      setState(() {
-        _currentPosition = current;
-        _destination = dest;
-        _isLoading = false;
-      });
-
-      if (dest != null) {
-        await _fetchRoute(current, dest);
-      }
-
-      _positionStream =
-          Geolocator.getPositionStream(
-            locationSettings: const LocationSettings(
-              accuracy: LocationAccuracy.high,
-              distanceFilter: 10,
-            ),
-          ).listen((pos) {
-            if (!mounted) return;
-            setState(
-              () => _currentPosition = LatLng(pos.latitude, pos.longitude),
-            );
-            _mapController.move(_currentPosition!, _mapController.camera.zoom);
-          });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Erro ao carregar mapa: $e';
-      });
-    }
-  }
-
-  Future<void> _requestPermission() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Permissão de localização negada permanentemente.');
-    }
-  }
-
-  Future<LatLng?> _geocodeAddress(String address) async {
-    final encoded = Uri.encodeComponent(address);
-    final url = Uri.parse(
-      'https://nominatim.openstreetmap.org/search'
-      '?q=$encoded&format=json&limit=1&countrycodes=br',
-    );
-
-    debugPrint('🔍 Geocodificando: $address');
-
-    final response = await http.get(
-      url,
-      headers: {'User-Agent': 'meatshop_mobile/1.0'},
-    );
-
-    debugPrint('📍 Status: ${response.statusCode}');
-    debugPrint('📍 Body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as List;
-      if (data.isNotEmpty) {
-        final lat = double.parse(data[0]['lat'] as String);
-        final lon = double.parse(data[0]['lon'] as String);
-        debugPrint('✅ Destino encontrado: $lat, $lon');
-        return LatLng(lat, lon);
-      }
-      debugPrint('❌ Nenhum resultado para o endereço');
-    }
-    return null;
-  }
-
-  Future<void> _fetchRoute(LatLng origin, LatLng destination) async {
-    debugPrint('🛣️ Buscando rota...');
-    final url = Uri.parse(
-      'https://router.project-osrm.org/route/v1/driving/'
-      '${origin.longitude},${origin.latitude};'
-      '${destination.longitude},${destination.latitude}'
-      '?overview=full&geometries=geojson',
-    );
-
-    try {
-      final response = await http.get(url);
-      debugPrint('🛣️ Rota status: ${response.statusCode}');
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final coords = data['routes'][0]['geometry']['coordinates'] as List;
-        debugPrint('✅ Rota com ${coords.length} pontos');
-        if (!mounted) return;
-        setState(() {
-          _routePoints = coords
-              .map(
-                (c) =>
-                    LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()),
-              )
-              .toList();
-        });
-      }
-    } catch (e) {
-      debugPrint('❌ Erro na rota: $e');
-    }
-  }
+  final int stepNumber;
+  final String label;
+  final String title;
+  final String subtitle;
+  final String neighborhood;
+  final IconData icon;
+  final bool isActive;
+  final bool isDone;
+  final Color accentColor;
+  final double? lat;
+  final double? lng;
+  final String address;
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(color: Color(0xFFC0392B)),
-            SizedBox(height: 12),
-            Text(
-              'Carregando mapa...',
-              style: TextStyle(color: Colors.white54, fontSize: 13),
-            ),
-          ],
+    final opacity = isDone ? 0.4 : 1.0;
+
+    return Opacity(
+      opacity: opacity,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF2C2C2C),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive
+                ? accentColor.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.06),
+            width: isActive ? 1.5 : 1,
+          ),
         ),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return Center(
-        child: Text(
-          _errorMessage!,
-          style: const TextStyle(color: Colors.white54),
-        ),
-      );
-    }
-
-    final current = _currentPosition!;
-    final dest = _destination;
-
-    return FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(initialCenter: current, initialZoom: 14),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.meatshop.mobile',
-        ),
-
-        if (_routePoints.isNotEmpty)
-          PolylineLayer(
-            polylines: [
-              Polyline(
-                points: _routePoints,
-                strokeWidth: 5,
-                color: const Color(0xFFC0392B),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: isActive ? 0.2 : 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: isDone
+                    ? Icon(Icons.check, color: accentColor, size: 20)
+                    : Icon(icon, color: accentColor, size: 20),
               ),
+              const SizedBox(width: 14),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '$subtitle · $neighborhood',
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              if (isActive)
+                GestureDetector(
+                  onTap: () => _openNavigation(lat, lng, address),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.navigation_outlined,
+                          color: accentColor,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Navegar',
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
+        ),
+      ),
+    );
+  }
 
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: current,
-              width: 44,
-              height: 44,
-              child: Container(
+  Future<void> _openNavigation(double? lat, double? lng, String address) async {
+    if (lat != null && lng != null) {
+      try {
+        final wazeUri = Uri.parse('waze://?ll=$lat,$lng&navigate=yes');
+        final canWaze = await canLaunchUrl(wazeUri);
+        if (canWaze) {
+          await launchUrl(wazeUri);
+          return;
+        }
+      } catch (_) {}
+    }
+
+    try {
+      final Uri mapsUri;
+      if (lat != null && lng != null) {
+        mapsUri = Uri.parse(
+          'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving',
+        );
+      } else {
+        final encoded = Uri.encodeComponent(address);
+        mapsUri = Uri.parse(
+          'https://www.google.com/maps/dir/?api=1&destination=$encoded&travelmode=driving',
+        );
+      }
+      await launchUrl(mapsUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('Erro ao abrir navegação: $e');
+    }
+  }
+}
+
+class _RouteConnector extends StatelessWidget {
+  const _RouteConnector({required this.isPickup});
+  final bool isPickup;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 36),
+      child: Row(
+        children: [
+          Column(
+            children: List.generate(
+              4,
+              (i) => Container(
+                width: 2,
+                height: 6,
+                margin: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2980B9),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.delivery_dining,
-                  color: Colors.white,
-                  size: 22,
+                  color: isPickup ? Colors.white12 : const Color(0xFF27AE60),
+                  borderRadius: BorderRadius.circular(1),
                 ),
               ),
             ),
-
-            if (dest != null)
-              Marker(
-                point: dest,
-                width: 44,
-                height: 56,
-                child: Column(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFC0392B),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            blurRadius: 6,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.home,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-
-                    Container(
-                      width: 2,
-                      height: 10,
-                      color: const Color(0xFFC0392B),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ],
+          ),
+          const SizedBox(width: 14),
+          Text(
+            isPickup ? 'A caminho do açougue' : 'A caminho do cliente',
+            style: const TextStyle(color: Colors.white24, fontSize: 11),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _ActiveOrderCard extends StatelessWidget {
-  const _ActiveOrderCard({
-    required this.order,
-    required this.isLoading,
-    required this.onConfirm,
-  });
-
-  final DeliveryOrder order;
-  final bool isLoading;
-  final VoidCallback onConfirm;
+class _OrderItemsCard extends StatelessWidget {
+  const _OrderItemsCard({required this.items, required this.total});
+  final String items;
+  final double total;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF2C2C2C),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            margin: const EdgeInsets.only(top: 10),
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white12,
-              borderRadius: BorderRadius.circular(2),
+          const Text(
+            'ITENS DO PEDIDO',
+            style: TextStyle(
+              color: Colors.white38,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.1,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-            child: Row(
-              children: [
-                Text(
-                  order.clientName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(
+                Icons.fastfood_outlined,
+                color: Colors.white38,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  items,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                 ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.pushNamed(context, AppRoutes.chat),
-                  icon: const Icon(
-                    Icons.chat_bubble_outline,
-                    color: Colors.white38,
-                    size: 20,
-                  ),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.06),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  color: Color(0xFFC0392B),
-                  size: 18,
+          const SizedBox(height: 10),
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total',
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              ),
+              Text(
+                'R\$ ${total.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  color: Color(0xFF2ECC71),
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    order.address.fullAddress,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: PrimaryButton(
-              label: 'Confirmar entrega',
-              isLoading: isLoading,
-              onPressed: onConfirm,
-            ),
+              ),
+            ],
           ),
         ],
       ),

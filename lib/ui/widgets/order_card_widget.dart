@@ -21,7 +21,10 @@ class OrderCardWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,16 +84,80 @@ class OrderCardWidget extends StatelessWidget {
           Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.location_on_outlined, color: Colors.white38, size: 16),
-                const SizedBox(width: 6),
+                Column(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC0392B).withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.storefront_outlined,
+                        color: Color(0xFFC0392B),
+                        size: 15,
+                      ),
+                    ),
+                    Container(width: 2, height: 28, color: Colors.white12),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF27AE60).withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.location_on_outlined,
+                        color: Color(0xFF27AE60),
+                        size: 15,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+
                 Expanded(
-                  child: Text(
-                 order.address.fullAddress,
-                    style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        order.unitName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '${order.unitAddress.street}, ${order.unitAddress.number} · ${order.unitAddress.neighborhood}',
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      Text(
+                        order.clientName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '${order.address.street}, ${order.address.number} · ${order.address.neighborhood}',
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -98,42 +165,54 @@ class OrderCardWidget extends StatelessWidget {
           ),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.fastfood_outlined, color: Colors.white38, size: 16),
+                const Icon(
+                  Icons.fastfood_outlined,
+                  color: Colors.white24,
+                  size: 15,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     order.items,
-                    style: const TextStyle(color: Colors.white54, fontSize: 13),
+                    style: const TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                 ),
               ],
             ),
           ),
+          Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
 
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
             child: Row(
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 46,
+                    height: 54,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : onReject,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFC0392B),
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: const Color(
+                          0xFFC0392B,
+                        ).withValues(alpha: 0.6),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: const Text(
                         'Recusar',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                       ),
                     ),
                   ),
@@ -142,29 +221,36 @@ class OrderCardWidget extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: SizedBox(
-                    height: 46,
+                    height: 54,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : onAccept,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF27AE60),
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: const Color(
+                          0xFF27AE60,
+                        ).withValues(alpha: 0.6),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: isLoading
                           ? const SizedBox(
-                              width: 18,
-                              height: 18,
+                              width: 22,
+                              height: 22,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                                strokeWidth: 2.5,
                                 color: Colors.white,
                               ),
                             )
                           : const Text(
                               'Aceitar entrega',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                     ),
                   ),

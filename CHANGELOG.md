@@ -11,7 +11,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [1.4.0] - 2026-XX-XX
+## [1.4.0] - 2026-04-26
 
 ### Added
 - `ModeSelectionPage`: tela de seleção de modo para usuários com perfil `both`, com layout de tela dividida (superior = Cliente, inferior = Entregador), inspirado em split-screen com imagens de fundo representativas de cada perfil. Animação de zoom com esmaecimento do painel não selecionado e indicador de carregamento (dots pulsantes) com delay de 3 segundos antes da navegação.
@@ -24,6 +24,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Geocodificação de endereços via API Nominatim (OpenStreetMap), convertendo o endereço do cliente em coordenadas geográficas sem custo.
 - Roteamento via API OSRM com exibição da rota de condução como polilinha vermelha no mapa, conectando a posição do entregador ao destino do pedido.
 - Adicionado dialog de seleção de fonte de imagem (câmera ou galeria) no modal de edição de veículo
+- Fluxo de entrega em duas etapas no `active_delivery_screen.dart`: etapa 1 (retirada no açougue) e etapa 2 (entrega ao cliente), com transição via `confirmPickup()` e indicador visual de etapa ativa/concluída.
+- Navegação externa substituindo o mapa in-app: botão "Navegar" em cada etapa abre o Waze (quando instalado) ou o Google Maps como fallback, via `url_launcher`.
+- `OrderCardWidget` atualizado para exibir rota visual em duas etapas (açougue → cliente) com ícones e linha conectora distintos para cada ponto.
 
 ### Changed
 - `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.

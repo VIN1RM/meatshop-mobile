@@ -6,25 +6,37 @@ enum DeliveryAvailability { available, unavailable }
 
 enum DeliveryOrderStatus { waiting, onTheWay, delivered }
 
+enum DeliveryStep { pickup, delivering }
+
 class DeliveryOrder {
   final int id;
   final String clientName;
   final AddressModel address;
+  final String unitName;
+  final AddressModel unitAddress;
   final String items;
   final double total;
   final double? destLat;
   final double? destLng;
+  final double? unitLat;
+  final double? unitLng;
   DeliveryOrderStatus status;
+  DeliveryStep step;
 
   DeliveryOrder({
     required this.id,
     required this.clientName,
     required this.address,
+    required this.unitName,
+    required this.unitAddress,
     required this.items,
     required this.total,
     this.destLat,
     this.destLng,
+    this.unitLat,
+    this.unitLng,
     this.status = DeliveryOrderStatus.waiting,
+    this.step = DeliveryStep.pickup,
   });
 }
 
@@ -32,14 +44,31 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
   DeliveryOrder? _activeOrder;
   bool _isLoading = false;
+
   bool get isOnline => isAvailable;
   void toggleOnline() => toggleAvailability();
+
   final List<DeliveryOrder> _pendingOrders = [
     DeliveryOrder(
       id: 1001,
       clientName: 'João Silva',
       destLat: -23.5614,
       destLng: -46.6558,
+      unitName: 'Açougue Central',
+      unitAddress: AddressModel(
+        id: 10,
+        label: 'Açougue',
+        street: 'Rua das Carnes',
+        number: '123',
+        complement: '',
+        neighborhood: 'Centro',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01001-000',
+        isDefault: false,
+      ),
+      unitLat: -23.5500,
+      unitLng: -46.6333,
       address: AddressModel(
         id: 1,
         label: 'Casa',
@@ -60,6 +89,21 @@ class DeliveryProvider extends ChangeNotifier {
       clientName: 'Maria Souza',
       destLat: -23.5489,
       destLng: -46.6388,
+      unitName: 'Açougue do Bairro',
+      unitAddress: AddressModel(
+        id: 11,
+        label: 'Açougue',
+        street: 'Rua das Pedras',
+        number: '456',
+        complement: '',
+        neighborhood: 'Moema',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '04029-000',
+        isDefault: false,
+      ),
+      unitLat: -23.5450,
+      unitLng: -46.6350,
       address: AddressModel(
         id: 2,
         label: 'Trabalho',
@@ -81,6 +125,19 @@ class DeliveryProvider extends ChangeNotifier {
     DeliveryOrder(
       id: 998,
       clientName: 'Carlos Lima',
+      unitName: 'Açougue Central',
+      unitAddress: AddressModel(
+        id: 12,
+        label: 'Açougue',
+        street: 'Rua das Carnes',
+        number: '123',
+        complement: '',
+        neighborhood: 'Centro',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01001-000',
+        isDefault: false,
+      ),
       address: AddressModel(
         id: 3,
         label: 'Casa',
@@ -100,6 +157,19 @@ class DeliveryProvider extends ChangeNotifier {
     DeliveryOrder(
       id: 999,
       clientName: 'Ana Paula',
+      unitName: 'Açougue do Bairro',
+      unitAddress: AddressModel(
+        id: 13,
+        label: 'Açougue',
+        street: 'Rua das Pedras',
+        number: '456',
+        complement: '',
+        neighborhood: 'Moema',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '04029-000',
+        isDefault: false,
+      ),
       address: AddressModel(
         id: 4,
         label: 'Outro',
@@ -145,6 +215,7 @@ class DeliveryProvider extends ChangeNotifier {
 
     _pendingOrders.removeWhere((o) => o.id == order.id);
     order.status = DeliveryOrderStatus.onTheWay;
+    order.step = DeliveryStep.pickup;
     _activeOrder = order;
 
     _isLoading = false;
@@ -158,6 +229,20 @@ class DeliveryProvider extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 500));
 
     _pendingOrders.removeWhere((o) => o.id == orderId);
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> confirmPickup() async {
+    if (_activeOrder == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    _activeOrder!.step = DeliveryStep.delivering;
 
     _isLoading = false;
     notifyListeners();
