@@ -11,6 +11,18 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [1.5.0] - 2026-04-XX
+
+### Added
+-`PersonalManagementScreen`: tela de gestão pessoal do entregador, acessível pelo shell do entregador, com duas abas — "Ganhos & Metas" e "Relatórios".
+-Aba "Ganhos & Metas": card de ganhos em tempo real com badge "AO VIVO", mini gráfico de barras dos últimos 7 dias, cards de metas (diária, semanal, mensal) com barra de progresso animada e edição via bottom sheet, e lista de ganhos recentes com badge "NOVO" na entrada mais recente.
+-Aba "Relatórios": seletor de período (Semanal/Mensal), grid 2×2 de métricas (total ganho, entregas, ticket médio, melhor período), botão de exportação e lista de entregas do período.
+-`ReportExportService`: serviço estático para geração e compartilhamento de relatórios. Exportação em PDF via pacote pdf (documento A4 com cabeçalho MeatShop, boxes de resumo e tabela -de entregas) e em CSV via pacote csv (estruturado por seções).
+
+### Changed
+
+---
+
 ## [1.4.0] - 2026-04-26
 
 ### Added
