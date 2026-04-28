@@ -32,4 +32,5 @@ class AppRoutes {
   static const String savedPayments = '/account/payments';
   static const String vehicleSettings = '/vehicle-settings';
   static const String modeSwitch = '/mode-switch';
+  static const String personalManagement = '/delivery/personal-management';
 }

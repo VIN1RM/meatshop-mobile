@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/deliveries_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/delivery_history_screen.dart';
+import 'package:meatshop_mobile/ui/screens/delivery/personal_management_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/delivery_account_screen.dart';
 
 class DeliveryShell extends StatefulWidget {
@@ -16,6 +17,7 @@ class _DeliveryShellState extends State<DeliveryShell> {
   static const List<Widget> _screens = [
     DeliveriesTab(),
     DeliveryHistoryScreen(),
+    PersonalManagementScreen(),
     DeliveryAccountScreen(),
   ];
 
@@ -33,10 +35,7 @@ class _DeliveryShellState extends State<DeliveryShell> {
 }
 
 class _DeliveryBottomNav extends StatelessWidget {
-  const _DeliveryBottomNav({
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const _DeliveryBottomNav({required this.currentIndex, required this.onTap});
 
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -63,8 +62,7 @@ class _DeliveryBottomNav extends StatelessWidget {
         unselectedItemColor: Colors.white38,
         selectedFontSize: 11,
         unselectedFontSize: 11,
-        selectedLabelStyle:
-            const TextStyle(fontWeight: FontWeight.w600),
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.delivery_dining_outlined),
@@ -75,6 +73,11 @@ class _DeliveryBottomNav extends StatelessWidget {
             icon: Icon(Icons.history_outlined),
             activeIcon: Icon(Icons.history),
             label: 'Histórico',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart_outlined),
+            activeIcon: Icon(Icons.bar_chart),
+            label: 'Gestão',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

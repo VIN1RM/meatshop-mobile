@@ -93,7 +93,7 @@ class _ModeSelectionPageState extends State<ModeSelectionPage>
               child: _HalfPanel(
                 profile: AppProfile.client,
                 imagePath: 'assets/images/cliente_bg.png',
-                label: 'PARA\nVOCÊ',
+                label: 'QUERO\nPEDIR',
                 zoomController: _clientZoom,
                 dimmed: _tapped == AppProfile.delivery,
                 onTap: () => _onTap(AppProfile.client),
@@ -108,7 +108,7 @@ class _ModeSelectionPageState extends State<ModeSelectionPage>
               child: _HalfPanel(
                 profile: AppProfile.delivery,
                 imagePath: 'assets/images/entregador_bg.png',
-                label: 'PARA\nENTREGAR',
+                label: 'QUERO\nENTREGAR',
                 zoomController: _deliveryZoom,
                 dimmed: _tapped == AppProfile.client,
                 onTap: () => _onTap(AppProfile.delivery),
