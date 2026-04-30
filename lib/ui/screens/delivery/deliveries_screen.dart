@@ -19,36 +19,39 @@ class DeliveriesTab extends StatelessWidget {
           return const ActiveDeliveryScreen();
         }
 
-        return Stack(
-          children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: SizedBox(
-                height: 130,
-                child: Image.asset(
-                  'assets/images/background.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(color: const Color(0xFF1A1A1A)),
+        return Material(
+          color: const Color(0xFF1A1A1A),
+          child: Stack(
+            children: [
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SizedBox(
+                  height: 130,
+                  child: Image.asset(
+                    'assets/images/background.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: const Color(0xFF1A1A1A)),
+                  ),
                 ),
               ),
-            ),
-            SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const AppHeader(),
-                  Expanded(
-                    child: provider.pendingOrders.isEmpty
-                        ? _buildEmpty()
-                        : _buildOrderList(context, provider),
-                  ),
-                ],
+              SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppHeader(),
+                    Expanded(
+                      child: provider.pendingOrders.isEmpty
+                          ? _buildEmpty()
+                          : _buildOrderList(context, provider),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );

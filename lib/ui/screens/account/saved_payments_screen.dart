@@ -54,7 +54,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: const Color(0xFF2E2E2E),
       body: Stack(
         children: [
           Positioned(

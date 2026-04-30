@@ -20,7 +20,7 @@ class DeliveriesScreen extends StatelessWidget {
   const DeliveriesScreen({super.key});
 
   static const Color _red = Color(0xFFBE2C1B);
-  static const Color _pageBg = Color(0xFFEFEFEF);
+  static const Color _pageBg = Color(0xFF2E2E2E);
   static const Color _cardBg = Color(0xFFE6E6E6);
   static const Color _textDark = Color(0xFF525252);
   static const Color _white = Colors.white;

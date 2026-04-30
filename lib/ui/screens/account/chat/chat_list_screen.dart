@@ -23,7 +23,7 @@ class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
   static const Color _red = Color(0xFFC0392B);
-  static const Color _pageBg = Color(0xFF1A1A1A);
+  static const Color _pageBg = Color(0xFF2E2E2E);
   static const Color _cardBg = Color(0xFF2E2E2E);
   static const Color _white = Colors.white;
 

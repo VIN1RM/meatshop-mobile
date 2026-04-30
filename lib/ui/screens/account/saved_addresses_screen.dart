@@ -14,7 +14,7 @@ class SavedAddressesScreen extends StatefulWidget {
 
 class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _dark = Color(0xFF1A1A1A);
+  static const Color _dark = Color(0xFF2E2E2E);
   static const Color _surface = Color(0xFF2E2E2E);
   static const Color _white = Colors.white;
 
