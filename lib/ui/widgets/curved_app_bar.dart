@@ -1,107 +1,42 @@
-// import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-// class CurvedAppBar extends StatelessWidget implements PreferredSizeWidget {
-//   final String title;
-//   final Widget? leading;
-//   final List<Widget>? actions;
-//   final double height;
+class AppBarCurved extends StatelessWidget {
+  const AppBarCurved({super.key});
 
-//   const CurvedAppBar({
-//     super.key,
-//     required this.title,
-//     this.leading,
-//     this.actions,
-//     this.height = 80,
-//   });
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 20,
+      width: double.infinity,
+      child: CustomPaint(painter: _AppBarCurvedPainter()),
+    );
+  }
+}
 
-//   @override
-//   Size get preferredSize => Size.fromHeight(height);
+class _AppBarCurvedPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF010D28)
+      ..style = PaintingStyle.fill;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return ClipPath(
-//       clipper: _BottomCurveClipper(),
-//       child: Container(
-//         height: height,
-//         color: const Color(0xFF3A3A3A),
-//         child: SafeArea(
-//           child: Padding(
-//             padding: const EdgeInsets.symmetric(horizontal: 16),
-//             child: Row(
-//               children: [
-//                 leading ??
-//                     Container(
-//                       width: 42,
-//                       height: 42,
-//                       decoration: const BoxDecoration(
-//                         color: Colors.white,
-//                         shape: BoxShape.circle,
-//                       ),
-//                       child: ClipOval(
-//                         child: Image.asset(
-//                           'assets/images/logo1.png',
-//                           fit: BoxFit.contain,
-//                           errorBuilder: (_, __, ___) => const Icon(
-//                             Icons.storefront_outlined,
-//                             color: Color(0xFFC0392B),
-//                             size: 22,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                 const SizedBox(width: 10),
-//                 Text(
-//                   title,
-//                   style: const TextStyle(
-//                     color: Colors.white,
-//                     fontSize: 22,
-//                     fontWeight: FontWeight.bold,
-//                     letterSpacing: 0.5,
-//                   ),
-//                 ),
-//                 const Spacer(),
+    final path = Path();
 
-//                 ...?actions ??
-//                     [
-//                       Container(
-//                         width: 38,
-//                         height: 38,
-//                         decoration: BoxDecoration(
-//                           border: Border.all(color: Colors.white, width: 1.5),
-//                           shape: BoxShape.circle,
-//                         ),
-//                         child: const Icon(
-//                           Icons.help_outline,
-//                           color: Colors.white,
-//                           size: 20,
-//                         ),
-//                       ),
-//                     ],
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+    path.lineTo(0, size.height);
 
-// class _BottomCurveClipper extends CustomClipper<Path> {
-//   @override
-//   Path getClip(Size size) {
-//     final path = Path();
-//     path.lineTo(0, size.height - 20);
-//     path.quadraticBezierTo(
-//       size.width / 2,
-//       size.height + 20,
-//       size.width,
-//       size.height - 20,
-//     );
-//     path.lineTo(size.width, 0);
-//     path.close();
-//     return path;
-//   }
+    path.quadraticBezierTo(10, 0, 40, 0);
 
-//   @override
-//   bool shouldReclip(_BottomCurveClipper oldClipper) => false;
-// }
+    path.lineTo(size.width - 40, 0);
+
+    path.quadraticBezierTo(size.width - 10, 0, size.width, size.height);
+
+    path.lineTo(size.width, 0);
+    path.lineTo(0, 0);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}

@@ -19,6 +19,7 @@ class MeatShopApp extends StatelessWidget {
         title: 'MeatShop',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
+          fontFamily: 'Karla',
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFB71C1C)),
         ),
