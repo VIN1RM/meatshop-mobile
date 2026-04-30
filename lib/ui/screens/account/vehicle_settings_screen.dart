@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 import 'package:provider/provider.dart';
 
@@ -8,14 +9,13 @@ class VehicleSettingsScreen extends StatelessWidget {
   const VehicleSettingsScreen({super.key});
 
   static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DeliveryProvider>();
 
     return Material(
-      color: Colors.white,
+      color: const Color(0xFF1A1A1A),
       child: Stack(
         children: [
           Positioned(
@@ -36,7 +36,7 @@ class VehicleSettingsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context),
+                const AppHeader(),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -61,59 +61,6 @@ class VehicleSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                border: Border.all(color: _white, width: 1.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back, color: _white, size: 20),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: _white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _pageTitle() {
     return const Text(
       'CONFIGURAÇÕES DO VEÍCULO',
@@ -130,7 +77,7 @@ class VehicleSettingsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: const Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -147,7 +94,7 @@ class VehicleSettingsScreen extends StatelessWidget {
                 ),
                 child: Icon(
                   _iconForVehicle(provider.vehicle),
-                  color: _red,
+                  color: const Color.fromARGB(255, 228, 139, 139),
                   size: 24,
                 ),
               ),
@@ -161,7 +108,8 @@ class VehicleSettingsScreen extends StatelessWidget {
                           ? provider.vehicle
                           : 'Nenhum veículo cadastrado',
                       style: const TextStyle(
-                        color: Color(0xFF1A1A1A),
+                        color: Colors.white,
+
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -169,7 +117,7 @@ class VehicleSettingsScreen extends StatelessWidget {
                     const SizedBox(height: 2),
                     const Text(
                       'Veículo principal',
-                      style: TextStyle(color: Color(0xFF888888), fontSize: 12),
+                      style: TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ],
                 ),
@@ -178,7 +126,7 @@ class VehicleSettingsScreen extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+          const Divider(height: 1, color: Colors.white12),
           const SizedBox(height: 16),
 
           _infoRow(
@@ -227,13 +175,13 @@ class VehicleSettingsScreen extends StatelessWidget {
   Widget _infoRow(String label, String value) {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+        style: const TextStyle(fontSize: 13, color: Colors.white54),
         children: [
           TextSpan(
             text: '$label ',
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A1A),
+              color: Colors.white,
             ),
           ),
           TextSpan(text: value),

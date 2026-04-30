@@ -23,7 +23,7 @@ class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
   static const Color _red = Color(0xFFC0392B);
-  static const Color _pageBg = Color(0xFF1A1A1A);
+  static const Color _pageBg = Color(0xFF2E2E2E);
   static const Color _cardBg = Color(0xFF2E2E2E);
   static const Color _white = Colors.white;
 
@@ -71,10 +71,10 @@ class ChatListScreen extends StatelessWidget {
       backgroundColor: _pageBg,
       body: Column(
         children: [
-          _buildHeader(context),
+          SizedBox(height: 90, child: Stack(fit: StackFit.expand)),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               children: [
                 const Text(
                   'CHATS',
@@ -93,76 +93,6 @@ class ChatListScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 ..._chats.map((chat) => _buildChatItem(context, chat)),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return SizedBox(
-      height: 130,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            'assets/images/background.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                Container(color: const Color(0xFF1A1A1A)),
-          ),
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: const BoxDecoration(
-                      color: _white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo1.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.storefront_outlined,
-                          color: _red,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'MeatShop',
-                    style: TextStyle(
-                      color: _white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: _white, width: 1.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.help_outline,
-                      color: _white,
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],

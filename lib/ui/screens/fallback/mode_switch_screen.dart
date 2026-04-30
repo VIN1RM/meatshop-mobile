@@ -117,8 +117,8 @@ class _ModeSwitchScreenState extends State<ModeSwitchScreen>
                       const SizedBox(height: 24),
                       Text(
                         isGoingDelivery
-                            ? 'Entrando no\nmodo entregador'
-                            : 'Entrando no\nmodo cliente',
+                            ? 'ENTRANDO NO\nMODO ENTREGADOR'
+                            : 'ENTRANDO NO\nMODO CLIENTE',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,

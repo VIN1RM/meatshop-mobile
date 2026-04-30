@@ -2,7 +2,22 @@
 
 Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, explicadas de forma simples para que você saiba exatamente o que mudou em cada atualização.
 
-## [1.4.0] — XX de XXXX de 2026
+---
+
+## [1.5.0] — 30 de Abril de 2026
+### ✨ Novidades
+- Pagamento Completo no App: Criamos uma tela dedicada para escolher como pagar o seu pedido, com duas opções claras — pagar agora pelo app ou pagar na hora da entrega. Tudo num só lugar, antes de confirmar.
+- Pague Online com Pix ou Cartão: Na aba "Pagar online" você pode escolher Pix (com QR Code gerado automaticamente após confirmar), cartão de crédito (com opção de parcelamento) ou cartão de débito. Seus cartões salvos aparecem logo de cara para facilitar.
+- Pague na Entrega do Jeito que Preferir: Na aba "Na entrega" você escolhe entre dinheiro (com opção de informar o troco necessário), débito ou crédito na maquininha. Ao escolher cartão, basta indicar a bandeira (Visa, Mastercard, Elo e outras).
+- Confirmação de Compra Animada: Após confirmar o pedido, uma tela especial mostra o progresso da sua compra em tempo real — do registro ao processamento do pagamento — e celebra quando tudo dá certo antes de levar você direto para o acompanhamento.
+
+### 📈 Melhorias
+- Visual Mais Consistente: Padronizamos o cabeçalho e o fundo visual em todas as telas do aplicativo, deixando a experiência mais coesa e profissional do início ao fim.
+- Gestão Pessoal para Entregadores: Os entregadores agora têm acesso a uma tela exclusiva com acompanhamento de ganhos em tempo real, metas diárias, semanais e mensais com barras de progresso, e relatórios exportáveis em PDF ou CSV.
+
+---
+
+## [1.4.0] — 26 de Abril de 2026
 ### ✨ Novidades
 - Modo Duplo para Usuários Especiais: Se a sua conta tiver os dois perfis (Cliente e Entregador), agora ao entrar no app você verá uma tela elegante para escolher como quer usar o MeatShop naquele momento. Basta tocar na opção desejada e aguardar!
 - Conta do Entregador: Nova tela de perfil exclusiva para entregadores, com estatísticas de entregas realizadas, avaliação média e acesso rápido às configurações do veículo.

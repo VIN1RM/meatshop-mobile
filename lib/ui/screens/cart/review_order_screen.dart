@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
 
 class _ReviewItem {
   final String nome;
@@ -42,7 +44,6 @@ class ReviewOrderScreen extends StatefulWidget {
 class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
-  static const Color _surface = Color(0xFF3A3A3A);
 
   int _paymentIndex = 0;
 
@@ -118,7 +119,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(context),
+                const AppHeader(),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -134,10 +135,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         ..._grupos.map(_buildGrupo),
 
                         _buildTotal(),
-                        const SizedBox(height: 24),
-
-                        _buildPaymentSection(),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
                         _buildConfirmarButton(),
                         const SizedBox(height: 32),
@@ -147,56 +145,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: _white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              border: Border.all(color: _white, width: 1.5),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.help_outline, color: _white, size: 20),
           ),
         ],
       ),
@@ -446,77 +394,16 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildPaymentSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Forma de pagamento',
-            style: TextStyle(
-              color: _red,
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(_paymentOptions.length, (i) {
-              final opt = _paymentOptions[i];
-              final selected = _paymentIndex == i;
-              return GestureDetector(
-                onTap: () => setState(() => _paymentIndex = i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: (MediaQuery.of(context).size.width - 56) / 4,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: selected ? _red : const Color(0xFF3A3A3A),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: selected ? _red : const Color(0xFF555555),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        opt.icon,
-                        color: selected ? _white : Colors.white54,
-                        size: 22,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        opt.label,
-                        style: TextStyle(
-                          color: selected ? _white : Colors.white54,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildConfirmarButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => PaymentScreen(total: _total)),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
           foregroundColor: _white,
@@ -530,7 +417,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Confirmar pedido',
+              'Ir para pagamento',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(width: 8),

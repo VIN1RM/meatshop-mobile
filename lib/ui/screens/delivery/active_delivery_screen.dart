@@ -20,110 +20,116 @@ class ActiveDeliveryScreen extends StatelessWidget {
         if (order == null) return const SizedBox.shrink();
 
         final isPickup = order.step == DeliveryStep.pickup;
-
-        return SafeArea(
-          child: Column(
-            children: [
-              _ActiveDeliveryHeader(orderId: order.id, isPickup: isPickup),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _StepCard(
-                        stepNumber: 1,
-                        label: 'RETIRADA',
-                        title: order.unitName,
-                        subtitle:
-                            '${order.unitAddress.street}, ${order.unitAddress.number}',
-                        neighborhood: order.unitAddress.neighborhood,
-                        icon: Icons.storefront_outlined,
-                        isActive: isPickup,
-                        isDone: !isPickup,
-                        accentColor: const Color(0xFFC0392B),
-                        lat: order.unitLat,
-                        lng: order.unitLng,
-                        address: order.unitAddress.fullAddress,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      _RouteConnector(isPickup: isPickup),
-
-                      const SizedBox(height: 8),
-
-                      _StepCard(
-                        stepNumber: 2,
-                        label: 'ENTREGA',
-                        title: order.clientName,
-                        subtitle:
-                            '${order.address.street}, ${order.address.number}',
-                        neighborhood: order.address.neighborhood,
-                        icon: Icons.location_on_outlined,
-                        isActive: !isPickup,
-                        isDone: false,
-                        accentColor: const Color(0xFF27AE60),
-                        lat: order.destLat,
-                        lng: order.destLng,
-                        address: order.address.fullAddress,
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      _OrderItemsCard(items: order.items, total: order.total),
-
-                      const SizedBox(height: 24),
-
-                      if (isPickup)
-                        PrimaryButton(
-                          label: 'Confirmar retirada no açougue',
-                          isLoading: provider.isLoading,
-                          onPressed: () => _onConfirmPickup(context, provider),
-                        )
-                      else
-                        PrimaryButton(
-                          label: 'Confirmar entrega ao cliente',
-                          isLoading: provider.isLoading,
-                          onPressed: () =>
-                              _onConfirmDelivery(context, provider),
+        return Material(
+          color: const Color(0xFF1A1A1A),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _ActiveDeliveryHeader(orderId: order.id, isPickup: isPickup),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        _StepCard(
+                          stepNumber: 1,
+                          label: 'RETIRADA',
+                          title: order.unitName,
+                          subtitle:
+                              '${order.unitAddress.street}, ${order.unitAddress.number}',
+                          neighborhood: order.unitAddress.neighborhood,
+                          icon: Icons.storefront_outlined,
+                          isActive: isPickup,
+                          isDone: !isPickup,
+                          accentColor: const Color(0xFFC0392B),
+                          lat: order.unitLat,
+                          lng: order.unitLng,
+                          address: order.unitAddress.fullAddress,
                         ),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 8),
 
-                      SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: ElevatedButton.icon(
-                          onPressed: () => _onOpenChat(context, order),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.06,
-                            ),
-                            foregroundColor: Colors.white54,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
+                        _RouteConnector(isPickup: isPickup),
+
+                        const SizedBox(height: 8),
+
+                        _StepCard(
+                          stepNumber: 2,
+                          label: 'ENTREGA',
+                          title: order.clientName,
+                          subtitle:
+                              '${order.address.street}, ${order.address.number}',
+                          neighborhood: order.address.neighborhood,
+                          icon: Icons.location_on_outlined,
+                          isActive: !isPickup,
+                          isDone: false,
+                          accentColor: const Color(0xFF27AE60),
+                          lat: order.destLat,
+                          lng: order.destLng,
+                          address: order.address.fullAddress,
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        _OrderItemsCard(items: order.items, total: order.total),
+
+                        const SizedBox(height: 24),
+
+                        if (isPickup)
+                          PrimaryButton(
+                            label: 'Confirmar retirada no açougue',
+                            isLoading: provider.isLoading,
+                            onPressed: () =>
+                                _onConfirmPickup(context, provider),
+                          )
+                        else
+                          PrimaryButton(
+                            label: 'Confirmar entrega ao cliente',
+                            isLoading: provider.isLoading,
+                            onPressed: () =>
+                                _onConfirmDelivery(context, provider),
                           ),
-                          icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                          label: const Text(
-                            'Falar com...',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
+
+                        const SizedBox(height: 12),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _onOpenChat(context, order),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.06,
+                              ),
+                              foregroundColor: Colors.white54,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            icon: const Icon(
+                              Icons.chat_bubble_outline,
+                              size: 20,
+                            ),
+                            label: const Text(
+                              'Falar com...',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 24),
-                    ],
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
