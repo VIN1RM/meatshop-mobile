@@ -15,7 +15,7 @@ class VehicleSettingsScreen extends StatelessWidget {
     final provider = context.watch<DeliveryProvider>();
 
     return Material(
-      color: Colors.white,
+      color: const Color(0xFF1A1A1A),
       child: Stack(
         children: [
           Positioned(
@@ -77,7 +77,7 @@ class VehicleSettingsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: const Color(0xFF2C2C2C),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -94,7 +94,7 @@ class VehicleSettingsScreen extends StatelessWidget {
                 ),
                 child: Icon(
                   _iconForVehicle(provider.vehicle),
-                  color: _red,
+                  color: const Color.fromARGB(255, 228, 139, 139),
                   size: 24,
                 ),
               ),
@@ -108,7 +108,8 @@ class VehicleSettingsScreen extends StatelessWidget {
                           ? provider.vehicle
                           : 'Nenhum veículo cadastrado',
                       style: const TextStyle(
-                        color: Color(0xFF1A1A1A),
+                        color: Colors.white,
+
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -116,7 +117,7 @@ class VehicleSettingsScreen extends StatelessWidget {
                     const SizedBox(height: 2),
                     const Text(
                       'Veículo principal',
-                      style: TextStyle(color: Color(0xFF888888), fontSize: 12),
+                      style: TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ],
                 ),
@@ -125,7 +126,7 @@ class VehicleSettingsScreen extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+          const Divider(height: 1, color: Colors.white12),
           const SizedBox(height: 16),
 
           _infoRow(
@@ -174,13 +175,13 @@ class VehicleSettingsScreen extends StatelessWidget {
   Widget _infoRow(String label, String value) {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+        style: const TextStyle(fontSize: 13, color: Colors.white54),
         children: [
           TextSpan(
             text: '$label ',
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A1A),
+              color: Colors.white,
             ),
           ),
           TextSpan(text: value),

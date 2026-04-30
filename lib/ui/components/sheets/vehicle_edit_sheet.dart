@@ -175,7 +175,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       ),
       child: Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFF2C2C2C),
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottom),
@@ -193,7 +193,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE0E0E0),
+                      color: Colors.white12,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -213,7 +213,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                 const Text(
                   'Tipo de veículo',
                   style: TextStyle(
-                    color: Color(0xFF1A1A1A),
+                    color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
@@ -236,10 +236,10 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
                         decoration: BoxDecoration(
-                          color: isSelected ? _red : const Color(0xFFF5F5F5),
+                          color: isSelected ? _red : const Color(0xFF3A3A3A),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: isSelected ? _red : const Color(0xFFE0E0E0),
+                            color: isSelected ? _red : Colors.white12,
                             width: 1.5,
                           ),
                         ),
@@ -249,17 +249,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                             Icon(
                               option.icon,
                               size: 16,
-                              color: isSelected
-                                  ? _white
-                                  : const Color(0xFF555555),
+                              color: isSelected ? _white : Colors.white54,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               option.label,
                               style: TextStyle(
-                                color: isSelected
-                                    ? _white
-                                    : const Color(0xFF1A1A1A),
+                                color: isSelected ? _white : Colors.white,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -272,7 +268,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                 ),
 
                 const SizedBox(height: 20),
-                const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                const Divider(height: 1, color: Colors.white12),
                 const SizedBox(height: 20),
 
                 if (_selectedVehicleType != null) ...[
@@ -293,7 +289,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                           child: Text(
                             _selectedVehicleType!.description,
                             style: const TextStyle(
-                              color: Color(0xFF555555),
+                              color: Colors.white60,
                               fontSize: 12,
                               height: 1.4,
                             ),
@@ -308,7 +304,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                     const Text(
                       'Dados do veículo',
                       style: TextStyle(
-                        color: Color(0xFF1A1A1A),
+                        color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -420,7 +416,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const Text(
           'Fotos do veículo',
           style: TextStyle(
-            color: Color(0xFF1A1A1A),
+            color: Colors.white,
             fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
@@ -428,7 +424,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const SizedBox(height: 4),
         const Text(
           'Adicione ao menos 3 fotos do seu veículo.',
-          style: TextStyle(color: Color(0xFF888888), fontSize: 11),
+          style: TextStyle(color: Colors.white38, fontSize: 11),
         ),
         const SizedBox(height: 12),
         Row(
@@ -443,13 +439,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
+                        color: const Color(0xFF3A3A3A),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE0E0E0)),
+                        border: Border.all(color: Colors.white12),
                       ),
                       child: const Icon(
                         Icons.image_outlined,
-                        color: Color(0xFFBDBDBD),
+                        color: Colors.white24,
                         size: 32,
                       ),
                     ),
@@ -485,9 +481,9 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: const Color(0xFF3A3A3A),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                    border: Border.all(color: Colors.white12),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -517,13 +513,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: const Color(0xFF3A3A3A),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                    border: Border.all(color: Colors.white12),
                   ),
                   child: const Icon(
                     Icons.image_outlined,
-                    color: Color(0xFFE0E0E0),
+                    color: Colors.white12,
                     size: 32,
                   ),
                 ),
@@ -541,7 +537,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               width: 24,
               height: 4,
               decoration: BoxDecoration(
-                color: filled ? _red : const Color(0xFFE0E0E0),
+                color: filled ? _red : Colors.white12,
                 borderRadius: BorderRadius.circular(2),
               ),
             );
@@ -565,7 +561,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         Text(
           label,
           style: const TextStyle(
-            color: Color(0xFF1A1A1A),
+            color: Colors.white,
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -575,24 +571,24 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
           controller: controller,
           keyboardType: keyboardType,
           textCapitalization: textCapitalization,
-          style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
+          style: const TextStyle(color: Colors.white, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontSize: 13),
-            prefixIcon: Icon(icon, color: const Color(0xFF888888), size: 18),
+            hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+            prefixIcon: Icon(icon, color: Colors.white38, size: 18),
             filled: true,
-            fillColor: const Color(0xFFF5F5F5),
+            fillColor: const Color(0xFF3A3A3A),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 14,
               vertical: 12,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderSide: BorderSide(color: Colors.white12),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderSide: BorderSide(color: Colors.white12),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
