@@ -80,7 +80,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
         ),
         child: Container(
           decoration: const BoxDecoration(
-            color: _white,
+            color: Color(0xFF2C2C2C),
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
@@ -104,7 +104,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A1A),
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 16),
@@ -121,12 +121,16 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                     fontSize: 16,
                   ),
                   filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
+                  fillColor: const Color(0xFF3A3A3A),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
                   hintText: '0,00',
+                ),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 20),
@@ -173,7 +177,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _white,
+      color: const Color(0xFF1A1A1A),
       child: Stack(
         children: [
           Positioned(
@@ -193,13 +197,13 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
           SafeArea(
             child: Column(
               children: [
-                const AppHeader(showBack: true),
+                const AppHeader(),
                 Container(
-                  color: _white,
+                  color: const Color(0xFF1A1A1A),
                   child: TabBar(
                     controller: _tabController,
                     labelColor: _red,
-                    unselectedLabelColor: const Color(0xFF888888),
+                    unselectedLabelColor: Colors.white38,
                     indicatorColor: _red,
                     indicatorWeight: 3,
                     labelStyle: const TextStyle(

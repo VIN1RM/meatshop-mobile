@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SafeArea(
             child: Column(
               children: [
-                const AppHeader(showBack: true),
+                const AppHeader(),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
