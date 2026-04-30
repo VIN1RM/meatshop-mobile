@@ -91,7 +91,6 @@ class DeliveriesScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header do card
           Row(
             children: [
               Container(
@@ -150,7 +149,6 @@ class DeliveriesScreen extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Grid de infos
           Row(
             children: [
               Expanded(

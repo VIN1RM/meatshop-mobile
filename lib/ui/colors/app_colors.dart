@@ -1,16 +1,14 @@
-// lib/config/app_colors.dart
-
 import 'package:flutter/material.dart';
 
 abstract class AppColors {
-  // Neutras
+
   static const Color white   = Color(0xFFFFFFFF);
   static const Color grey100 = Color(0xFFB8B8B8);
   static const Color grey200 = Color(0xFF7A7A7A);
   static const Color grey300 = Color(0xFF525252);
   static const Color grey400 = Color(0xFF2A2A2A);
 
-  // Vermelhos
+
   static const Color red900     = Color(0xFF932215);
   static const Color red700     = Color(0xFFBE2C1B);
   static const Color red500     = Color(0xFFE1402D);

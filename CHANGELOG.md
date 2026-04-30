@@ -11,19 +11,23 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [1.5.0] - 2026-04-XX
+## [1.5.0] - 2026-04-30
+### Pagamentos, Confirmação de Compra e Gestão do Entregador
 
 ### Added
 -`PersonalManagementScreen`: tela de gestão pessoal do entregador, acessível pelo shell do entregador, com duas abas — "Ganhos & Metas" e "Relatórios".
 -Aba "Ganhos & Metas": card de ganhos em tempo real com badge "AO VIVO", mini gráfico de barras dos últimos 7 dias, cards de metas (diária, semanal, mensal) com barra de progresso animada e edição via bottom sheet, e lista de ganhos recentes com badge "NOVO" na entrada mais recente.
 -Aba "Relatórios": seletor de período (Semanal/Mensal), grid 2×2 de métricas (total ganho, entregas, ticket médio, melhor período), botão de exportação e lista de entregas do período.
 -`ReportExportService`: serviço estático para geração e compartilhamento de relatórios. Exportação em PDF via pacote pdf (documento A4 com cabeçalho MeatShop, boxes de resumo e tabela -de entregas) e em CSV via pacote csv (estruturado por seções).
-
-### Changed
+- `PaymentScreen`: tela de pagamento com duas abas — "Pagar online" e "Na entrega". Aba online suporta Pix (com instruções de QR Code), cartão de crédito e débito, com listagem de cartões salvos, formulário de novo cartão (com campo de parcelas para crédito) e toggle para salvar cartão. Aba na entrega suporta dinheiro (com toggle e campo de troco), débito e crédito na maquininha, com seleção de bandeira em grid (Visa, Mastercard, Elo, Hipercard, Amex, Cabal) e feedback visual da bandeira selecionada.
+- `OrderProcessingScreen`: tela de fallback pós-confirmação de compra com duas fases — carregamento (barra de progresso animada de 5s, percentual em tempo real, ícone pulsante e 4 steps visuais sequenciais) e sucesso (animação elástica no ícone de confirmação, partículas comemorativas e redirecionamento automático para a tela de acompanhamento).
+- Padronização do `AppHeader` em todas as telas do aplicativo, garantindo consistência visual no cabeçalho entre os fluxos de cliente e entregador.
+- Padronização do `background.png` como imagem de fundo ancorada no topo em todas as telas principais, unificando a identidade visual da aplicação.
 
 ---
 
 ## [1.4.0] - 2026-04-26
+### Modo Duplo, Mapas e Fluxo Completo de Entrega
 
 ### Added
 - `ModeSelectionPage`: tela de seleção de modo para usuários com perfil `both`, com layout de tela dividida (superior = Cliente, inferior = Entregador), inspirado em split-screen com imagens de fundo representativas de cada perfil. Animação de zoom com esmaecimento do painel não selecionado e indicador de carregamento (dots pulsantes) com delay de 3 segundos antes da navegação.

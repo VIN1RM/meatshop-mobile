@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
-import 'package:meatshop_mobile/ui/widgets/app_header.dart'; // <- import do novo widget
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class _Promocao {
@@ -109,7 +109,7 @@ class _HomeBodyState extends State<HomeBody> {
         SafeArea(
           child: Column(
             children: [
-              const AppHeader(), // <- substituído aqui
+              const AppHeader(),
               SearchWidget(
                 controller: _searchController,
                 hintText: 'Procure por produto ou estabelecimento',
