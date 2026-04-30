@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
 class SavedAddressesScreen extends StatefulWidget {
@@ -124,7 +125,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
           SafeArea(
             child: Column(
               children: [
-                _Header(onBack: () => Navigator.pop(context)),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -199,69 +200,6 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
               _deleteAddress(address.id);
             },
             child: const Text('Remover', style: TextStyle(color: _red)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({required this.onBack});
-
-  final VoidCallback onBack;
-
-  static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: onBack,
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                border: Border.all(color: _white, width: 1.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back, color: _white, size: 20),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: _white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
           ),
         ],
       ),

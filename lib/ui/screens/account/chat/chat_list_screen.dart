@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
-import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class ChatContact {
   final String nome;
@@ -72,19 +71,10 @@ class ChatListScreen extends StatelessWidget {
       backgroundColor: _pageBg,
       body: Column(
         children: [
-          SizedBox(
-            height: 130,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset('assets/images/background.png', fit: BoxFit.cover),
-                const SafeArea(child: AppHeader()),
-              ],
-            ),
-          ),
+          SizedBox(height: 90, child: Stack(fit: StackFit.expand)),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               children: [
                 const Text(
                   'CHATS',

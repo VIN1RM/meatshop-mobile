@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
-import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class ChatMessage {
   final String text;
@@ -94,16 +93,7 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: _pageBg,
       body: Column(
         children: [
-          SizedBox(
-            height: 130,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.asset('assets/images/background.png', fit: BoxFit.cover),
-                const SafeArea(child: AppHeader(showBack: true)),
-              ],
-            ),
-          ),
+          SizedBox(height: 80, child: Stack(fit: StackFit.expand)),
           Expanded(
             child: Column(
               children: [
