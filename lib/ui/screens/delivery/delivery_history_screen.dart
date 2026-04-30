@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 
 class DeliveryHistoryScreen extends StatelessWidget {
@@ -10,55 +11,52 @@ class DeliveryHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<DeliveryProvider>(
       builder: (context, provider, _) {
-        return SafeArea(
-          child: Column(
-            children: [
-              _HistoryHeader(),
-              Expanded(
-                child: provider.historyOrders.isEmpty
-                    ? const _EmptyHistory()
-                    : _HistoryList(orders: provider.historyOrders),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _HistoryHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2C),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
-        ),
-      ),
-      child: const Row(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Histórico',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                height: 130,
+                child: Image.asset(
+                  'assets/images/background.png',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: const Color(0xFF1A1A1A)),
                 ),
               ),
-              Text(
-                'Suas entregas concluídas',
-                style: TextStyle(color: Colors.white38, fontSize: 13),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  const AppHeader(),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'HISTÓRICO DE ENTREGAS',
+                        style: TextStyle(
+                          color: Color(0xFFC0392B),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: provider.historyOrders.isEmpty
+                        ? const _EmptyHistory()
+                        : _HistoryList(orders: provider.historyOrders),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
