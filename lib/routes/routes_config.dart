@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/screens/account/edit_profile_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_addresses_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_payments_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/settings_screen.dart';
@@ -55,5 +56,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.vehicleSettings: (_) => const VehicleSettingsScreen(),
     AppRoutes.modeSwitch: (_) => const ModeSwitchScreen(),
     AppRoutes.paymentOrder: (_) => const PaymentScreen(total: 0),
+    AppRoutes.editProfile: (_) => const EditProfileScreen(),
   };
 }

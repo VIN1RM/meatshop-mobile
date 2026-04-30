@@ -148,6 +148,27 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
           _infoRow('Avaliação média:', '${provider.averageRating} ★'),
           const SizedBox(height: 6),
           _infoRow('Entregas realizadas:', '${provider.historyOrders.length}'),
+
+          const SizedBox(height: 12),
+
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.edit_outlined, color: Color(0xFFC0392B), size: 14),
+                SizedBox(width: 4),
+                Text(
+                  'Editar dados',
+                  style: TextStyle(
+                    color: Color(0xFFC0392B),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

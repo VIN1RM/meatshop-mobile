@@ -34,4 +34,5 @@ class AppRoutes {
   static const String modeSwitch = '/mode-switch';
   static const String personalManagement = '/delivery/personal-management';
   static const String paymentOrder = '/cart/payment';
+  static const String editProfile = '/edit-profile';
 }

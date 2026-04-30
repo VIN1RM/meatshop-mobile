@@ -32,7 +32,7 @@ class HomeBody extends StatefulWidget {
 }
 
 class _HomeBodyState extends State<HomeBody> {
-  static const Color _surface = Color(0xFF3A3A3A);
+  static const Color _surface = Color.fromARGB(255, 58, 58, 58);
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 

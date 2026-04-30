@@ -10,6 +10,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - Pague Online com Pix ou Cartão: Na aba "Pagar online" você pode escolher Pix (com QR Code gerado automaticamente após confirmar), cartão de crédito (com opção de parcelamento) ou cartão de débito. Seus cartões salvos aparecem logo de cara para facilitar.
 - Pague na Entrega do Jeito que Preferir: Na aba "Na entrega" você escolhe entre dinheiro (com opção de informar o troco necessário), débito ou crédito na maquininha. Ao escolher cartão, basta indicar a bandeira (Visa, Mastercard, Elo e outras).
 - Confirmação de Compra Animada: Após confirmar o pedido, uma tela especial mostra o progresso da sua compra em tempo real — do registro ao processamento do pagamento — e celebra quando tudo dá certo antes de levar você direto para o acompanhamento.
+- Edição de Dados Pessoais: Agora você pode editar suas informações diretamente pelo app. Acesse "Editar dados" na tela da sua conta e atualize nome, e-mail, celular e endereço quando quiser. O CPF é exibido apenas para consulta e não pode ser alterado por aqui.
+- Troca de Foto de Perfil: Toque na sua foto de perfil na tela de edição e escolha entre tirar uma nova foto na hora ou selecionar uma imagem da sua galeria. Caso já tenha uma foto cadastrada, também é possível removê-la diretamente pela mesma tela.
 
 ### 📈 Melhorias
 - Visual Mais Consistente: Padronizamos o cabeçalho e o fundo visual em todas as telas do aplicativo, deixando a experiência mais coesa e profissional do início ao fim.

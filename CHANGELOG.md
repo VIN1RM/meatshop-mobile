@@ -23,6 +23,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `OrderProcessingScreen`: tela de fallback pós-confirmação de compra com duas fases — carregamento (barra de progresso animada de 5s, percentual em tempo real, ícone pulsante e 4 steps visuais sequenciais) e sucesso (animação elástica no ícone de confirmação, partículas comemorativas e redirecionamento automático para a tela de acompanhamento).
 - Padronização do `AppHeader` em todas as telas do aplicativo, garantindo consistência visual no cabeçalho entre os fluxos de cliente e entregador.
 - Padronização do `background.png` como imagem de fundo ancorada no topo em todas as telas principais, unificando a identidade visual da aplicação.
+- `EditProfileScreen`: tela de edição de dados pessoais. Permite editar nome completo, e-mail, celular e endereço (CEP, rua, número, bairro, complemento, cidade e UF). CPF é exibido como somente leitura.
+- `AvatarPickerSheet`: bottom sheet fragmentado para seleção de foto de perfil, com opções de câmera, galeria e remoção da foto atual (exibida condicionalmente apenas quando já existe uma foto definida). Validação de tipo de arquivo integrada, permitindo apenas imagens.
+- Botão "Editar dados" adicionado ao card de perfil em `AccountScreen` (cliente) e `DeliveryAccountScreen` (entregador), ambos navegando para a `EditProfileScreen`.
 
 ---
 

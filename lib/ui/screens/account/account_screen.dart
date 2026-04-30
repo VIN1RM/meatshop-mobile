@@ -120,27 +120,15 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 14),
 
           _infoRow('CPF:', '*** . 591 - **'),
-          const SizedBox(height: 6),
-          _infoRow('Telefone:', '(62) 9 9567 - 3791'),
-          const SizedBox(height: 6),
-          _infoRow('E-mail:', 'ana_clara@gmail.com'),
           const SizedBox(height: 10),
-
-          _infoRow('Endereço padrão:', ''),
-          const SizedBox(height: 4),
-          const Text(
-            'Avenida Rodovanio Rodovalho, Nº 17, Casa cinza\nBairro Eldorado - Anápolis, Goiás',
-            style: TextStyle(
-              color: Color(0xFF555555),
-              fontSize: 13,
-              height: 1.4,
-            ),
-          ),
+          _infoRow('Telefone:', '(62) 9 9567 - 3791'),
+          const SizedBox(height: 10),
+          _infoRow('E-mail:', 'ana_clara@gmail.com'),
 
           const SizedBox(height: 12),
 
           GestureDetector(
-            onTap: () {},
+            onTap: () => Navigator.pushNamed(context, AppRoutes.editProfile),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
