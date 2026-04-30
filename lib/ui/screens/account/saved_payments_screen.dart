@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/components/sheets/payment_card_form_sheet.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class _SavedCard {
   final String id;
@@ -73,7 +74,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(context),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -113,39 +114,6 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                border: Border.all(color: _white, width: 1.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back, color: _white, size: 20),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
             ),
           ),
         ],

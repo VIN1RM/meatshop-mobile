@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/cuts_filter_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 
@@ -206,7 +207,7 @@ class _BovineCortsScreenState extends State<BovineCortsScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(context),
+                const AppHeader(),
                 SearchWidget(
                   controller: _searchController,
                   hintText: 'Procure por um corte específico',
@@ -318,56 +319,6 @@ class _BovineCortsScreenState extends State<BovineCortsScreen> {
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: _white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const Spacer(),
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              border: Border.all(color: _white, width: 1.5),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.help_outline, color: _white, size: 20),
           ),
         ],
       ),

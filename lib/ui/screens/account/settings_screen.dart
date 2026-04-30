@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/version_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/release_notes_dialog.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,7 +13,6 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
 
   bool _notifOrders = true;
   bool _notifDelivery = true;
@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(context),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -182,39 +182,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                border: Border.all(color: _white, width: 1.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back, color: _white, size: 20),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
             ),
           ),
         ],

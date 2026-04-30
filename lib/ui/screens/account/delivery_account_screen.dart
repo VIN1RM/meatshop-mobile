@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 
 class DeliveryAccountScreen extends StatefulWidget {
@@ -14,7 +15,6 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
   bool _isLoggingOut = false;
 
   static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
         SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              const AppHeader(),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -63,46 +63,6 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: _white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

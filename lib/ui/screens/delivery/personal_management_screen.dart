@@ -4,6 +4,7 @@ import 'package:meatshop_mobile/models/earning_entry.dart';
 import 'package:meatshop_mobile/models/goal_model.dart';
 import 'package:meatshop_mobile/ui/components/tabs/earnings_tab.dart';
 import 'package:meatshop_mobile/ui/components/tabs/reports_tab.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class PersonalManagementScreen extends StatefulWidget {
   const PersonalManagementScreen({super.key});
@@ -192,7 +193,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(context),
+                const AppHeader(showBack: true),
                 Container(
                   color: _white,
                   child: TabBar(
@@ -233,59 +234,6 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                border: Border.all(color: _white, width: 1.5),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_back, color: _white, size: 20),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: _white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
             ),
           ),
         ],

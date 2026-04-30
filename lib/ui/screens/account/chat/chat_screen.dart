@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
-import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class ChatMessage {
   final String text;
@@ -94,7 +94,16 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: _pageBg,
       body: Column(
         children: [
-          _buildHeader(context),
+          SizedBox(
+            height: 130,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset('assets/images/background.png', fit: BoxFit.cover),
+                const SafeArea(child: AppHeader(showBack: true)),
+              ],
+            ),
+          ),
           Expanded(
             child: Column(
               children: [
@@ -117,79 +126,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 _buildFinalizeButton(),
                 _buildInputBar(),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return SizedBox(
-      height: 130,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            'assets/images/background.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                Container(color: const Color(0xFF1A1A1A)),
-          ),
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: _white, width: 1.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: _white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: const BoxDecoration(
-                      color: _white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo1.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.storefront_outlined,
-                          color: _red,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'MeatShop',
-                    style: TextStyle(
-                      color: _white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],

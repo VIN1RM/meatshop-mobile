@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/active_delivery_screen.dart';
 import 'package:meatshop_mobile/ui/dialogs/reject_order_dialog.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/card/order_card_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -38,7 +39,7 @@ class DeliveriesTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context, provider),
+                  const AppHeader(),
                   Expanded(
                     child: provider.pendingOrders.isEmpty
                         ? _buildEmpty()
@@ -50,65 +51,6 @@ class DeliveriesTab extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, DeliveryProvider provider) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const Spacer(),
-          Switch(
-            value: provider.isOnline,
-            onChanged: (_) => provider.toggleOnline(),
-            activeThumbColor: const Color(0xFF27AE60),
-            activeTrackColor: const Color(0xFF27AE60).withValues(alpha: 0.4),
-            inactiveThumbColor: Colors.white38,
-            inactiveTrackColor: Colors.white12,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            provider.isOnline ? 'Online' : 'Offline',
-            style: TextStyle(
-              color: provider.isOnline
-                  ? const Color(0xFF27AE60)
-                  : Colors.white38,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

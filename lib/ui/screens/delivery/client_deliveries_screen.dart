@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class Delivery {
   final String acougue;
@@ -23,7 +24,6 @@ class DeliveriesScreen extends StatelessWidget {
   static const Color _cardBg = Color(0xFFE6E6E6);
   static const Color _textDark = Color(0xFF525252);
   static const Color _white = Colors.white;
-  static const Color _headerBg = Color(0xFF3A3A3A);
 
   static final List<Delivery> _deliveries = [
     const Delivery(
@@ -40,7 +40,10 @@ class DeliveriesScreen extends StatelessWidget {
       backgroundColor: _pageBg,
       body: Column(
         children: [
-          _buildHeader(context),
+          ColoredBox(
+            color: const Color(0xFF3A3A3A),
+            child: SafeArea(bottom: false, child: const AppHeader()),
+          ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -63,70 +66,6 @@ class DeliveriesScreen extends StatelessWidget {
           ),
           _buildContactButton(context),
         ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: _headerBg,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: const BoxDecoration(
-                      color: _white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: ClipOval(
-                      child: Image.asset(
-                        'assets/images/logo1.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                          Icons.storefront_outlined,
-                          color: _red,
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'MeatShop',
-                    style: TextStyle(
-                      color: _white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const Spacer(),
-
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: _white, width: 1.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.help_outline,
-                      color: _white,
-                      size: 20,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
