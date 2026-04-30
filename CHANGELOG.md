@@ -11,6 +11,47 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [1.5.0] - 2026-04-XX
+
+### Added
+-`PersonalManagementScreen`: tela de gestão pessoal do entregador, acessível pelo shell do entregador, com duas abas — "Ganhos & Metas" e "Relatórios".
+-Aba "Ganhos & Metas": card de ganhos em tempo real com badge "AO VIVO", mini gráfico de barras dos últimos 7 dias, cards de metas (diária, semanal, mensal) com barra de progresso animada e edição via bottom sheet, e lista de ganhos recentes com badge "NOVO" na entrada mais recente.
+-Aba "Relatórios": seletor de período (Semanal/Mensal), grid 2×2 de métricas (total ganho, entregas, ticket médio, melhor período), botão de exportação e lista de entregas do período.
+-`ReportExportService`: serviço estático para geração e compartilhamento de relatórios. Exportação em PDF via pacote pdf (documento A4 com cabeçalho MeatShop, boxes de resumo e tabela -de entregas) e em CSV via pacote csv (estruturado por seções).
+
+### Changed
+
+---
+
+## [1.4.0] - 2026-04-26
+
+### Added
+- `ModeSelectionPage`: tela de seleção de modo para usuários com perfil `both`, com layout de tela dividida (superior = Cliente, inferior = Entregador), inspirado em split-screen com imagens de fundo representativas de cada perfil. Animação de zoom com esmaecimento do painel não selecionado e indicador de carregamento (dots pulsantes) com delay de 3 segundos antes da navegação.
+- Lógica de redirecionamento pós-login no `AuthProvider` baseada no `app_profile` retornado pelo backend: `client` → shell do cliente, `delivery` → shell do entregador, `both` → tela de seleção de modo.
+- Fluxo completo de conta do entregador (`delivery_account_screen.dart`) com card de perfil, estatísticas de entregas e avaliação média, e menu de navegação com acesso a chats, configurações do veículo, configurações gerais, modo cliente e logout.
+- Tela de configurações do veículo (`vehicle_settings_screen.dart`) com exibição do veículo cadastrado em modo somente leitura e botão para edição via bottom sheet.
+- Bottom sheet de edição de veículo (`vehicle_edit_sheet.dart`) com seletor de tipo de veículo em grid 2x2 (Carro, Moto, Bicicleta, Patinete), campos dinâmicos por tipo (modelo, placa, cor, ano), card de descrição contextual por tipo selecionado, seção de upload de até 3 fotos com indicador de progresso e validação mínima de 3 fotos antes de salvar.
+- Integração de mapa interativo na tela de entrega ativa (`active_delivery_screen.dart`) utilizando OpenStreetMap via `flutter_map`, substituindo a dependência do Google Maps.
+- Rastreamento em tempo real da localização do entregador com atualização a cada 10 metros via `geolocator`.
+- Geocodificação de endereços via API Nominatim (OpenStreetMap), convertendo o endereço do cliente em coordenadas geográficas sem custo.
+- Roteamento via API OSRM com exibição da rota de condução como polilinha vermelha no mapa, conectando a posição do entregador ao destino do pedido.
+- Adicionado dialog de seleção de fonte de imagem (câmera ou galeria) no modal de edição de veículo
+- Fluxo de entrega em duas etapas no `active_delivery_screen.dart`: etapa 1 (retirada no açougue) e etapa 2 (entrega ao cliente), com transição via `confirmPickup()` e indicador visual de etapa ativa/concluída.
+- Navegação externa substituindo o mapa in-app: botão "Navegar" em cada etapa abre o Waze (quando instalado) ou o Google Maps como fallback, via `url_launcher`.
+- `OrderCardWidget` atualizado para exibir rota visual em duas etapas (açougue → cliente) com ícones e linha conectora distintos para cada ponto.
+- `RejectOrderDialog`: dialog de recusa de pedido com seleção múltipla de motivos via `Set<OrderRejectionReason>`. O entregador pode selecionar um ou mais motivos antes de confirmar, com contador dinâmico no botão ("Confirmar (2)") e checkbox animado por tile.
+- Enum `OrderRejectionReason` criado em arquivo dedicado (`delivery_enums.dart`) com os motivos: distância excessiva, problema com veículo, área de risco, excesso de itens, valor baixo e outro. Cada motivo expõe `label` e `icon` para renderização.
+- Fragmentação do `delivery_provider.dart`: modelo `DeliveryOrder` extraído para `models/delivery_order_model.dart` e todos os enums do fluxo de entrega (`DeliveryAvailability`, `DeliveryOrderStatus`, `DeliveryStep`, `OrderRejectionReason`) extraídos para `core/enums/delivery_enums.dart`.
+- `ModeSwitchScreen`: tela de transição exibida ao alternar entre os modos cliente e entregador, com fade-in animado, imagem representativa do perfil de destino e mensagem contextual. Aguarda 5 segundos antes de navegar para a rota de destino recebida via `arguments`. Integrada ao `switchToDeliveryMode` no `AuthProvider` e ao `switchToClientMode` no `DeliveryProvider`.
+
+### Changed
+- `AuthProvider` atualizado para rastrear `appProfile` (perfil do backend) e `activeProfile` (perfil ativo na sessão) de forma independente.
+- `logout` atualizado para limpar `_appProfile` e `_activeProfile` além do estado de autenticação.
+- `rejectOrder()` no `DeliveryProvider` atualizado para receber `List<OrderRejectionReason>` em vez de um único motivo, com log dos motivos selecionados para futura integração com a API.
+- `deliveries_screen.dart` atualizado para aguardar o retorno do `RejectOrderDialog` antes de chamar `rejectOrder()`, garantindo que a rejeição só ocorre quando ao menos um motivo é selecionado.
+
+---
+
 ## [1.3.0] - 2026-04-22
 ### Endereços, pagamentos e configurações do usuário
 
@@ -28,6 +69,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Changed
 - `ChatScreen` e `ChatListScreen` foram refatoradas para alinhar ao sistema de design escuro do aplicativo.
 - Adicionado cálculo dinâmico do valor total na tela de detalhe do produto, refletindo a quantidade selecionada em tempo real.
+- `SplashPage`: trocamos a logo, altura da logo aumentada, textos de boas-vindas centralizados e imagem de fundo adicionada cobrindo a tela toda com opacidade configurável via `BoxFit.cover`.
+- `LoginPage`: removido o container circular branco ao redor da logo, que agora é renderizada diretamente sobre o fundo escuro; adicionado `background.png` ancorado na parte inferior da tela via `Stack` + `Positioned` + `Opacity`.
 
 ---
 

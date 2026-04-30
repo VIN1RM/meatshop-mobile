@@ -3,24 +3,28 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_addresses_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_payments_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/settings_screen.dart';
+import 'package:meatshop_mobile/ui/screens/account/vehicle_settings_screen.dart';
+import 'package:meatshop_mobile/ui/screens/auth/mode_selection_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_detail_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/product_detail_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/bovine_cuts_screen.dart';
+import 'package:meatshop_mobile/ui/screens/fallback/mode_switch_screen.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/welcome_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/register_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/change_password.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
-import 'package:meatshop_mobile/ui/widgets/app_shell.dart';
+import 'package:meatshop_mobile/ui/widgets/shell/client_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/swine_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/poultry_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cuts/fish_cuts_screen.dart';
-import 'package:meatshop_mobile/ui/screens/delivery/deliveries_screen.dart';
+import 'package:meatshop_mobile/ui/screens/delivery/client_deliveries_screen.dart';
+import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   return {
@@ -45,6 +49,9 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.savedAddresses: (_) => const SavedAddressesScreen(),
     AppRoutes.settings: (_) => const SettingsScreen(),
     AppRoutes.savedPayments: (_) => const SavedPaymentsScreen(),
-
+    AppRoutes.modeSelection: (_) => const ModeSelectionPage(),
+    AppRoutes.deliveryShell: (_) => const DeliveryShell(),
+    AppRoutes.vehicleSettings: (_) => const VehicleSettingsScreen(),
+    AppRoutes.modeSwitch: (_) => const ModeSwitchScreen(),
   };
 }

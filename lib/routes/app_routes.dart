@@ -8,9 +8,12 @@ class AppRoutes {
   static const String selectRegister = '/auth/select_register';
   static const String register = '/auth/register';
   static const String changePassword = '/auth/change_password';
+  static const String modeSelection = '/auth/mode_selection';
 
   static const String shell = '/shell';
   static const String home = '/shell';
+
+  static const String deliveryShell = '/delivery/shell';
 
   static const String reviewOrder = '/cart/review';
 
@@ -27,4 +30,7 @@ class AppRoutes {
   static const String savedAddresses = '/account/addresses';
   static const String settings = '/account/settings';
   static const String savedPayments = '/account/payments';
+  static const String vehicleSettings = '/vehicle-settings';
+  static const String modeSwitch = '/mode-switch';
+  static const String personalManagement = '/delivery/personal-management';
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/core/enums/chat_enums.dart';
+import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
 
 class ChatContact {
   final String nome;
@@ -170,7 +172,15 @@ class ChatListScreen extends StatelessWidget {
 
   Widget _buildChatItem(BuildContext context, ChatContact chat) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.chat),
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.chat,
+        arguments: ChatArgs(
+          participantName: chat.nome,
+          participantType: ChatParticipantType.unit,
+          logoAsset: chat.logoAsset.isNotEmpty ? chat.logoAsset : null,
+        ),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

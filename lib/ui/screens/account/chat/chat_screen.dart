@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class ChatMessage {
@@ -6,6 +7,18 @@ class ChatMessage {
   final bool isMe;
 
   const ChatMessage({required this.text, required this.isMe});
+}
+
+class ChatArgs {
+  final String participantName;
+  final ChatParticipantType participantType;
+  final String? logoAsset;
+
+  const ChatArgs({
+    required this.participantName,
+    required this.participantType,
+    this.logoAsset,
+  });
 }
 
 class ChatScreen extends StatefulWidget {
@@ -24,12 +37,15 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  final List<ChatMessage> _messages = [
-    const ChatMessage(text: '', isMe: true),
-    const ChatMessage(text: '', isMe: false),
-    const ChatMessage(text: '', isMe: true),
-    const ChatMessage(text: '', isMe: false),
-  ];
+  final List<ChatMessage> _messages = [];
+
+  ChatArgs? _args;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _args = ModalRoute.of(context)?.settings.arguments as ChatArgs?;
+  }
 
   @override
   void dispose() {
@@ -58,6 +74,20 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  String get _participantName => _args?.participantName ?? 'MeatShop';
+
+  String get _participantLabel =>
+      _args?.participantType.label ?? 'Estabelecimento';
+
+  Color get _accentColor => _args?.participantType == ChatParticipantType.client
+      ? const Color(0xFF27AE60)
+      : _red;
+
+  IconData get _participantIcon =>
+      _args?.participantType == ChatParticipantType.client
+      ? Icons.person_outline
+      : Icons.storefront_outlined;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,19 +98,21 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: Column(
               children: [
-                _buildStoreInfo(),
+                _buildParticipantInfo(),
                 Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      return _buildMessageBubble(_messages[index]);
-                    },
-                  ),
+                  child: _messages.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            return _buildMessageBubble(_messages[index]);
+                          },
+                        ),
                 ),
                 _buildFinalizeButton(),
                 _buildInputBar(),
@@ -165,7 +197,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildStoreInfo() {
+  Widget _buildParticipantInfo() {
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 8),
       child: Column(
@@ -175,35 +207,74 @@ class _ChatScreenState extends State<ChatScreen> {
             height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: _red, width: 2),
+              border: Border.all(color: _accentColor, width: 2),
             ),
             child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo_master.png',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: _surface,
-                  child: const Icon(Icons.store, color: _white, size: 30),
-                ),
-              ),
+              child: _args?.logoAsset != null
+                  ? Image.asset(
+                      _args!.logoAsset!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _defaultAvatar(),
+                    )
+                  : _defaultAvatar(),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Master Carnes',
-            style: TextStyle(
+          Text(
+            _participantName,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: _white,
               letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Online agora',
-            style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
+          const SizedBox(height: 2),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: _accentColor.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              _participantLabel,
+              style: TextStyle(
+                fontSize: 11,
+                color: _accentColor,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
           ),
           const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+
+  Widget _defaultAvatar() {
+    return Container(
+      color: _surface,
+      child: Icon(_participantIcon, color: _white, size: 30),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.chat_bubble_outline, color: Colors.white12, size: 48),
+          const SizedBox(height: 12),
+          Text(
+            'Nenhuma mensagem ainda',
+            style: const TextStyle(color: Colors.white38, fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Inicie a conversa com $_participantName',
+            style: const TextStyle(color: Colors.white24, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -221,7 +292,7 @@ class _ChatScreenState extends State<ChatScreen> {
           minWidth: 80,
         ),
         decoration: BoxDecoration(
-          color: isMe ? _red : _surface,
+          color: isMe ? _accentColor : _surface,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -230,16 +301,14 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: message.text.isNotEmpty
-            ? Text(
-                message.text,
-                style: TextStyle(
-                  color: isMe ? _white : Colors.white70,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-              )
-            : const SizedBox.shrink(),
+        child: Text(
+          message.text,
+          style: TextStyle(
+            color: isMe ? _white : Colors.white70,
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
       ),
     );
   }
@@ -250,13 +319,9 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Align(
         alignment: Alignment.centerRight,
         child: GestureDetector(
-          onTap: () => Navigator.pushNamedAndRemoveUntil(
-            context,
-            AppRoutes.chatList,
-            (route) => route.settings.name == AppRoutes.shell,
-          ),
+          onTap: () => Navigator.pop(context),
           child: const Text(
-            'Finalizar atendimento',
+            'Finalizar conversa',
             style: TextStyle(
               color: Color(0xFF9E9E9E),
               fontSize: 13,
