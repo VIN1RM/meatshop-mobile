@@ -12,7 +12,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [1.6.0] - 2026-05-01
-### Fluxo de Checkout Reestruturado e Tela de Endereço de Entrega
+### Fluxo de Checkout Reestruturado, Tela de Endereço de Entrega e Assistente Virtual (Meatshop - Chatbot)
 
 ### Added
 - `AddressScheduleScreen`: nova tela de seleção de endereço e modalidade de entrega, inserida entre o carrinho e o pagamento. Possui duas abas:
@@ -20,6 +20,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
   - **Agendar**
 - Carrossel de promoções expandindo a quantidade de produtos `HomeScreen`, com scroll infinito contínuo para a direita.
 - Toque nos cards do carrossel de promoções navega para `ProductDetailScreen` via rota nomeada.  
+- Assistente de receitas com Inteligência Artificial integrado ao aplicativo. **Meatshop - Chatbot**
 
 ### Changed
 - Fluxo de checkout reestruturado. Ordem anterior: Carrinho → Revisão → Pagamento → Processamento. 

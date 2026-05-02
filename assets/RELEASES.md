@@ -11,6 +11,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - Resumo Antes de Confirmar: Agora, antes de tudo ser finalizado, você passa por uma tela de resumo completo do pedido — itens, endereço, taxas e total — para ter certeza de que está tudo certo antes de confirmar.
 - Carrossel de Promoções Ampliado: A seção de promoções na tela inicial agora exibe mais produtos, passando automaticamente de um para o outro de forma contínua e infinita.
 - Acesse o Produto Direto pelo Carrossel: Tocar em qualquer card de promoção na tela inicial leva você direto para a tela de detalhes daquele produto.
+- Foi adicionado um novo assistente virtual, para auxiliar em ideias de cortes, receitas, temperos e muito mais.
 
 ### 📈 Melhorias
 - Fluxo de Compra Reorganizado: A ordem das etapas de finalização foi ajustada para ser mais natural — agora você define o endereço e o horário antes de escolher o pagamento, e revisa tudo no final antes de confirmar.
