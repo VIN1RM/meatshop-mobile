@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class _Tip {
   final String title;
@@ -113,7 +114,7 @@ class RecipeTipsScreen extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(context),
+                const AppHeader(),
                 _buildSubtitle(),
                 Expanded(child: _buildList(context)),
               ],
@@ -145,46 +146,6 @@ class RecipeTipsScreen extends StatelessWidget {
                   size: 26,
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: _white,
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo1.png',
-                fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'MeatShop',
-            style: TextStyle(
-              color: _white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
             ),
           ),
         ],

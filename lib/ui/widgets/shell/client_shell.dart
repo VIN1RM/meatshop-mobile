@@ -58,7 +58,7 @@ class _BottomNav extends StatelessWidget {
     _NavItem('Receitas', Icons.menu_book_outlined, Icons.menu_book),
     _NavItem('Carrinho', Icons.shopping_cart_outlined, Icons.shopping_cart),
     _NavItem('Pedidos', Icons.receipt_long_outlined, Icons.receipt_long),
-    _NavItem('Conta', Icons.person_outline, Icons.person),
+    _NavItem('Minha Conta', Icons.person_outline, Icons.person),
   ];
 
   @override
