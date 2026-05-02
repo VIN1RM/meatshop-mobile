@@ -4,12 +4,17 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [1.6.0] — XX de Maio de 2026
+## [1.6.0] — 01 de Maio de 2026
 ### ✨ Novidades
-...
+- Escolha o Endereço Antes de Pagar: Adicionamos uma nova tela entre o carrinho e o pagamento onde você seleciona para qual endereço quer receber o pedido. Seus endereços salvos aparecem logo de cara para facilitar.
+- Peça Agora ou Agende: Na mesma tela de endereço, você pode escolher receber o pedido o quanto antes ou agendar para um dia e horário específico. Basta tocar na aba "Agendar" escolher a data no calendário e selecionar a faixa de horário preferida.
+- Resumo Antes de Confirmar: Agora, antes de tudo ser finalizado, você passa por uma tela de resumo completo do pedido — itens, endereço, taxas e total — para ter certeza de que está tudo certo antes de confirmar.
+- Carrossel de Promoções Ampliado: A seção de promoções na tela inicial agora exibe mais produtos, passando automaticamente de um para o outro de forma contínua e infinita.
+- Acesse o Produto Direto pelo Carrossel: Tocar em qualquer card de promoção na tela inicial leva você direto para a tela de detalhes daquele produto.
 
 ### 📈 Melhorias
-...
+- Fluxo de Compra Reorganizado: A ordem das etapas de finalização foi ajustada para ser mais natural — agora você define o endereço e o horário antes de escolher o pagamento, e revisa tudo no final antes de confirmar.
+- Navegação entre Produtos Sugeridos: Ao tocar em um produto sugerido na tela de detalhes, o app abre diretamente aquele produto sem acumular telas desnecessárias.
 
 ---
 
