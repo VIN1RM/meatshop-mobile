@@ -75,7 +75,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Sem Scaffold próprio — o AppShell já fornece
     return Scaffold(
       backgroundColor: const Color(0xFF2A2A2A),
       body: Stack(
@@ -143,7 +142,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
             ),
           ),
           const Spacer(),
-          // Botão limpar conversa
+
           Container(
             width: 38,
             height: 38,
@@ -284,8 +283,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
     );
   }
 }
-
-// --- Modelos e widgets auxiliares ---
 
 class _RecipeMsg {
   final String text;

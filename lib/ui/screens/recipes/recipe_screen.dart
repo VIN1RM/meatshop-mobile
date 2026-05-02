@@ -119,7 +119,7 @@ class RecipeTipsScreen extends StatelessWidget {
               ],
             ),
           ),
-          // FAB chatbot
+
           Positioned(
             bottom: 24,
             right: 20,
