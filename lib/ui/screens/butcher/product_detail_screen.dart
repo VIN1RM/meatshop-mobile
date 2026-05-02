@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/butcher_product_model.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -309,12 +310,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildSuggestionCard(ButcherProduct product) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushReplacement(
+        Navigator.pushReplacementNamed(
           context,
-          MaterialPageRoute(
-            builder: (_) => const ProductDetailScreen(),
-            settings: RouteSettings(arguments: product),
-          ),
+          AppRoutes.productDetail,
+          arguments: product,
         );
       },
       child: SizedBox(

@@ -11,6 +11,22 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [1.6.0] - 2026-05-01
+### Fluxo de Checkout Reestruturado e Tela de Endereço de Entrega
+
+### Added
+- `AddressScheduleScreen`: nova tela de seleção de endereço e modalidade de entrega, inserida entre o carrinho e o pagamento. Possui duas abas:
+  - **Pedir agora**
+  - **Agendar**
+- Carrossel de promoções expandindo a quantidade de produtos `HomeScreen`, com scroll infinito contínuo para a direita.
+- Toque nos cards do carrossel de promoções navega para `ProductDetailScreen` via rota nomeada.  
+
+### Changed
+- Fluxo de checkout reestruturado. Ordem anterior: Carrinho → Revisão → Pagamento → Processamento. 
+  -Nova ordem: Carrinho → Endereço/Agendamento → Pagamento → Resumo → Processamento.
+
+---
+
 ## [1.5.0] - 2026-04-30
 ### Pagamentos, Confirmação de Compra e Gestão do Entregador
 

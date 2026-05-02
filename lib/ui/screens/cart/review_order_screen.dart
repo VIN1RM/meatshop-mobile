@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/screens/fallback/order_processing_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
-import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
 
 class _ReviewItem {
   final String nome;
@@ -155,7 +155,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 16),
       child: Text(
-        'REVISE SEU PEDIDO',
+        'RESUMO DO PEDIDO',
         style: TextStyle(
           color: _white,
           fontSize: 22,
@@ -401,7 +401,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => PaymentScreen(total: _total)),
+            MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
           );
         },
         style: ElevatedButton.styleFrom(
@@ -417,7 +417,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Ir para pagamento',
+              'Confirmar pedido',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(width: 8),
