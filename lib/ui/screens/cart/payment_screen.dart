@@ -1020,17 +1020,10 @@ class _PaymentScreenState extends State<PaymentScreen>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'Confirmar e pagar',
+                  'Confirmar',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '· ${_fmt(widget.total)}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
               ],
             ),
           ),

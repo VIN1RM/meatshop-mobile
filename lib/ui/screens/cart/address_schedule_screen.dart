@@ -50,16 +50,6 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     '18:00 – 20:00',
   ];
 
-  String _fmt(double valor) {
-    final s = valor.toStringAsFixed(2).replaceAll('.', ',');
-    final parts = s.split(',');
-    final inteiro = parts[0].replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (m) => '${m[1]}.',
-    );
-    return 'R\$$inteiro,${parts[1]}';
-  }
-
   bool get _canProceed {
     if (_tabController.index == 0) return true;
     return _selectedDate != null && _selectedTime != null;
@@ -735,13 +725,8 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Ir para pagamento',
+              'Confirmar',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '· ${_fmt(widget.total)}',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
         ),

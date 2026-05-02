@@ -40,6 +40,13 @@ class _HomeBodyState extends State<HomeBody> {
     _Promocao('Picanha', 'R\$58,99', '/kg'),
     _Promocao('Peito de frango', 'R\$9,99', '/kg'),
     _Promocao('Lombo suíno', 'R\$17,99', '/kg'),
+    _Promocao('Costela bovina', 'R\$42,90', '/kg'),
+    _Promocao('Filé de tilápia', 'R\$29,99', '/kg'),
+    _Promocao('Fraldinha', 'R\$54,90', '/kg'),
+    _Promocao('Linguiça toscana', 'R\$19,99', '/kg'),
+    _Promocao('Alcatra', 'R\$49,90', '/kg'),
+    _Promocao('Sobrecoxa', 'R\$12,99', '/kg'),
+    _Promocao('Pernil suíno', 'R\$22,90', '/kg'),
   ];
 
   final List<_Acougue> _acougues = const [
@@ -80,11 +87,11 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   void _startAutoScroll() {
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       if (!_pageController.hasClients) return;
       _pageController.animateToPage(
         _pageController.page!.round() + 1,
-        duration: const Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     });
@@ -239,6 +246,13 @@ class _HomeBodyState extends State<HomeBody> {
       'assets/images/picanha.png',
       'assets/images/peitodefrango.png',
       'assets/images/lombo.png',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
     ];
 
     return Padding(
@@ -248,92 +262,93 @@ class _HomeBodyState extends State<HomeBody> {
         child: PageView.builder(
           controller: _pageController,
           padEnds: false,
-          itemCount: _promocoes.length,
+          itemCount: null,
           itemBuilder: (context, i) {
             final p = _promocoes[i % _promocoes.length];
             final img = imagens[i % imagens.length];
-            return AnimatedBuilder(
-              animation: _pageController,
-              builder: (context, child) {
-                double scale = 1.0;
-                if (_pageController.position.haveDimensions) {
-                  final diff = (_pageController.page! - i).abs();
-                  scale = (1 - diff * 0.08).clamp(0.88, 1.0);
-                }
-                return Transform.scale(scale: scale, child: child);
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A4A4A),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                        child: Image.asset(
-                          img,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFF555555),
-                            child: const Center(
-                              child: Icon(
-                                Icons.image_outlined,
-                                color: Colors.white24,
-                                size: 44,
-                              ),
-                            ),
+            return GestureDetector(
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.productDetail),
+              child: AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  double scale = 1.0;
+                  if (_pageController.position.haveDimensions) {
+                    final diff = (_pageController.page! - i).abs();
+                    scale = (1 - diff * 0.08).clamp(0.88, 1.0);
+                  }
+                  return Transform.scale(scale: scale, child: child);
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A4A4A),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
                           ),
+                          child: img.isNotEmpty
+                              ? Image.asset(
+                                  img,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      _placeholderCard(p.nome),
+                                )
+                              : _placeholderCard(p.nome),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: p.nome,
-                                    style: const TextStyle(
-                                      color: _white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: p.nome,
+                                      style: const TextStyle(
+                                        color: _white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
-                                  TextSpan(
-                                    text: ' ${p.unidade}',
-                                    style: const TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 11,
+                                    TextSpan(
+                                      text: ' ${p.unidade}',
+                                      style: const TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: 11,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          Text(
-                            p.preco,
-                            style: const TextStyle(
-                              color: _red,
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
+                            Text(
+                              p.preco,
+                              style: const TextStyle(
+                                color: _red,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
@@ -406,6 +421,29 @@ class _HomeBodyState extends State<HomeBody> {
           size: 20,
         );
       }),
+    );
+  }
+
+  Widget _placeholderCard(String nome) {
+    return Container(
+      width: double.infinity,
+      color: const Color(0xFF555555),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.lunch_dining_outlined,
+            color: Colors.white12,
+            size: 44,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            nome,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white24, fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 }

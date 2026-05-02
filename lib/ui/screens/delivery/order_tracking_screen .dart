@@ -60,10 +60,10 @@ class DeliveriesScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 20),
                 const Text(
-                  'ENTREGA',
+                  'ACOMPANHAR',
                   style: TextStyle(
-                    color: _red,
-                    fontSize: 28,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    fontSize: 20,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
                   ),

@@ -18,11 +18,12 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `AddressScheduleScreen`: nova tela de seleção de endereço e modalidade de entrega, inserida entre o carrinho e o pagamento. Possui duas abas:
   - **Pedir agora**
   - **Agendar**
+- Carrossel de promoções expandindo a quantidade de produtos `HomeScreen`, com scroll infinito contínuo para a direita.
+- Toque nos cards do carrossel de promoções navega para `ProductDetailScreen` via rota nomeada.  
 
 ### Changed
-- Fluxo de checkout reestruturado. Ordem anterior: Carrinho → Revisão → Pagamento 
-  → Processamento. Nova ordem: Carrinho → Endereço/Agendamento → Pagamento → 
-  Resumo → Processamento.
+- Fluxo de checkout reestruturado. Ordem anterior: Carrinho → Revisão → Pagamento → Processamento. 
+  -Nova ordem: Carrinho → Endereço/Agendamento → Pagamento → Resumo → Processamento.
 
 ---
 
