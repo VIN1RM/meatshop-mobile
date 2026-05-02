@@ -3,6 +3,7 @@ import 'package:meatshop_mobile/ui/screens/home/home_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cart/cart_screen.dart';
 import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/account_screen.dart';
+import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -25,6 +26,7 @@ class _AppShellState extends State<AppShell> {
 
   static const List<Widget> _tabs = [
     HomeBody(),
+    RecipeTipsScreen(),
     CartScreen(),
     OrdersScreen(),
     AccountScreen(),
@@ -53,9 +55,10 @@ class _BottomNav extends StatelessWidget {
 
   static const _items = [
     _NavItem('Início', Icons.home_outlined, Icons.home),
+    _NavItem('Receitas', Icons.menu_book_outlined, Icons.menu_book),
     _NavItem('Carrinho', Icons.shopping_cart_outlined, Icons.shopping_cart),
     _NavItem('Pedidos', Icons.receipt_long_outlined, Icons.receipt_long),
-    _NavItem('Minha conta', Icons.person_outline, Icons.person),
+    _NavItem('Conta', Icons.person_outline, Icons.person),
   ];
 
   @override
@@ -78,21 +81,21 @@ class _BottomNav extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: () => onTap(i),
                 child: SizedBox(
-                  width: 72,
+                  width: 64,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         isActive ? item.activeIcon : item.icon,
                         color: isActive ? _red : Colors.white54,
-                        size: 26,
+                        size: 24,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item.label,
                         style: TextStyle(
                           color: isActive ? _red : Colors.white54,
-                          fontSize: 10.5,
+                          fontSize: 10,
                           fontWeight: isActive
                               ? FontWeight.w700
                               : FontWeight.normal,

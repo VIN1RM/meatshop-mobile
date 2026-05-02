@@ -36,4 +36,6 @@ class AppRoutes {
   static const String paymentOrder = '/cart/payment';
   static const String editProfile = '/edit-profile';
   static const String addressSchedule = '/cart/address';
+  static const String recipeTips = '/recipe-tips';
+  static const String recipeChat = '/recipe-chat';
 }
