@@ -35,4 +35,5 @@ class AppRoutes {
   static const String personalManagement = '/delivery/personal-management';
   static const String paymentOrder = '/cart/payment';
   static const String editProfile = '/edit-profile';
+  static const String addressSchedule = '/cart/address';
 }

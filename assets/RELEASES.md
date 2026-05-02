@@ -4,6 +4,15 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [1.6.0] — XX de Maio de 2026
+### ✨ Novidades
+...
+
+### 📈 Melhorias
+...
+
+---
+
 ## [1.5.0] — 30 de Abril de 2026
 ### ✨ Novidades
 - Pagamento Completo no App: Criamos uma tela dedicada para escolher como pagar o seu pedido, com duas opções claras — pagar agora pelo app ou pagar na hora da entrega. Tudo num só lugar, antes de confirmar.

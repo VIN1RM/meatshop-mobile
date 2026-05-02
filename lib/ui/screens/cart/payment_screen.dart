@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
-import 'package:meatshop_mobile/ui/screens/fallback/order_processing_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double total;
@@ -1004,9 +1004,7 @@ class _PaymentScreenState extends State<PaymentScreen>
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const OrderProcessingScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const ReviewOrderScreen()),
               );
             },
             style: ElevatedButton.styleFrom(

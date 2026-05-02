@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 
 class _CartItem {
   final String nome;
@@ -401,7 +401,12 @@ class _CartScreenState extends State<CartScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.reviewOrder),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AddressScheduleScreen(total: total),
+          ),
+        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFC0392B),
           foregroundColor: Colors.white,
@@ -415,7 +420,7 @@ class _CartScreenState extends State<CartScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Revisar Pedido',
+              'Continuar com Pedido',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(width: 8),

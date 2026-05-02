@@ -27,6 +27,7 @@ import 'package:meatshop_mobile/ui/screens/cuts/fish_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen%20.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
+import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   return {
@@ -57,5 +58,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.modeSwitch: (_) => const ModeSwitchScreen(),
     AppRoutes.paymentOrder: (_) => const PaymentScreen(total: 0),
     AppRoutes.editProfile: (_) => const EditProfileScreen(),
+    AppRoutes.addressSchedule: (_) => const AddressScheduleScreen(total: 0),
   };
 }
