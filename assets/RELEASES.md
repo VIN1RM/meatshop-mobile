@@ -4,7 +4,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [1.6.0] — 01 de Maio de 2026
+## [1.6.0] — 04 de Maio de 2026
 ### ✨ Novidades
 - Escolha o Endereço Antes de Pagar: Adicionamos uma nova tela entre o carrinho e o pagamento onde você seleciona para qual endereço quer receber o pedido. Seus endereços salvos aparecem logo de cara para facilitar.
 - Peça Agora ou Agende: Na mesma tela de endereço, você pode escolher receber o pedido o quanto antes ou agendar para um dia e horário específico. Basta tocar na aba "Agendar" escolher a data no calendário e selecionar a faixa de horário preferida.
