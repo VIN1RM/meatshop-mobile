@@ -11,7 +11,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [1.6.0] - 2026-05-01
+## [1.6.0] - 2026-05-04
 ### Fluxo de Checkout Reestruturado, Tela de Endereço de Entrega e Assistente Virtual (Meatshop - Chatbot)
 
 ### Added
@@ -21,6 +21,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Carrossel de promoções expandindo a quantidade de produtos `HomeScreen`, com scroll infinito contínuo para a direita.
 - Toque nos cards do carrossel de promoções navega para `ProductDetailScreen` via rota nomeada.  
 - Assistente de receitas com Inteligência Artificial integrado ao aplicativo. **Meatshop - Chatbot**
+- `ProductDetailScreen`: seletor de quantidade reformulado com alternância entre gramas (g) e quilos (kg), input numérico livre com botões de incremento (`+50g` / `+0,5kg`) e chips de atalho rápido. Cálculo de total estimado em tempo real na tela de detalhe do produto, exibindo a fórmula `Xg × R$preço/kg` com conversão automática de unidade.
+- Botão "Pedir novamente" adicionado aos cards de pedidos finalizados em `OrdersScreen`, disparando o `ReorderConfirmDialog` com os dados do pedido histórico.
+- `ReorderConfirmDialog`: dialog de confirmação de pedido, exibindo nome do açougue, lista de itens com quantidades, total do pedido e aviso de variação de preço. Ao confirmar, navega para `AddressScheduleScreen`.
 
 ### Changed
 - Fluxo de checkout reestruturado. Ordem anterior: Carrinho → Revisão → Pagamento → Processamento. 

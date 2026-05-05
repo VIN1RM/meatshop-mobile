@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/ui/dialogs/reorder_confirm_dialog.dart';
 
 class _OrderItem {
   final String quantidade;
@@ -26,9 +27,13 @@ class _Order {
   });
 }
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
 
+class _OrdersScreenState extends State<OrdersScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
@@ -83,6 +88,17 @@ class OrdersScreen extends StatelessWidget {
       ],
     ),
   ];
+
+  Future<void> _onReorder(BuildContext context, _Order order) async {
+    await ReorderConfirmDialog.show(
+      context,
+      acougueNome: order.acougueNome,
+      itens: order.itens
+          .map((i) => ReorderItem(nome: i.nome, quantidade: i.quantidade))
+          .toList(),
+      total: order.total,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -299,25 +315,69 @@ class OrdersScreen extends StatelessWidget {
 
           const SizedBox(height: 6),
 
-          Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.deliveries);
-              },
-              child: Text(
-                isActive ? 'Acompanhar Entrega' : (hasMore ? 'Ver mais' : ''),
-                style: TextStyle(
-                  color: _red,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  decoration: isActive
-                      ? TextDecoration.underline
-                      : TextDecoration.none,
-                  decorationColor: _red,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (isActive)
+                GestureDetector(
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.deliveries),
+                  child: const Text(
+                    'Acompanhar Entrega',
+                    style: TextStyle(
+                      color: _red,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                      decorationColor: _red,
+                    ),
+                  ),
+                )
+              else if (hasMore)
+                Text(
+                  '+${order.itens.length - maxVisible} item(s)',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFFAAAAAA),
+                  ),
+                )
+              else
+                const SizedBox.shrink(),
+
+              if (!isActive)
+                GestureDetector(
+                  onTap: () => _onReorder(context, order),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _red,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.replay_rounded,
+                          color: Colors.white,
+                          size: 13,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          'Pedir novamente',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
+            ],
           ),
         ],
       ),

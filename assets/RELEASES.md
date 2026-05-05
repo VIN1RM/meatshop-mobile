@@ -12,6 +12,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - Carrossel de Promoções Ampliado: A seção de promoções na tela inicial agora exibe mais produtos, passando automaticamente de um para o outro de forma contínua e infinita.
 - Acesse o Produto Direto pelo Carrossel: Tocar em qualquer card de promoção na tela inicial leva você direto para a tela de detalhes daquele produto.
 - Foi adicionado um novo assistente virtual, para auxiliar em ideias de cortes, receitas, temperos e muito mais.
+- Peça a Quantidade Certa: Na tela do produto, agora você escolhe exatamente quanto quer pedir — em gramas ou quilos. Digite o valor que quiser ou use os atalhos rápidos. O total é calculado na hora conforme você ajusta.
+- Pedir Novamente com Um Toque: Nos pedidos já finalizados, aparece o botão "Pedir novamente". Ao tocar, o app mostra um resumo do pedido anterior: itens, quantidades e valor total, e te leva direto para a tela de endereço para confirmar.
 
 ### 📈 Melhorias
 - Fluxo de Compra Reorganizado: A ordem das etapas de finalização foi ajustada para ser mais natural — agora você define o endereço e o horário antes de escolher o pagamento, e revisa tudo no final antes de confirmar.
