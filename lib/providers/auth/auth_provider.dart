@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -42,16 +43,23 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: Colors.redAccent,
-          ),
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: _errorMessage!,
         );
       }
     } catch (e) {
       _errorMessage = 'Erro inesperado. Tente novamente.';
       notifyListeners();
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: _errorMessage!,
+        );
+      }
     }
   }
 
@@ -73,13 +81,13 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cadastro realizado! Faça login para continuar.'),
-            backgroundColor: Colors.green,
-          ),
+        CustomDialog.showSuccess(
+          context: context,
+          title: 'Cadastro realizado!',
+          message: 'Faça login para continuar.',
+          onDismiss: () =>
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
         );
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
       return true;
     } on FirebaseAuthException catch (e) {
@@ -87,17 +95,24 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: Colors.redAccent,
-          ),
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro no cadastro',
+          message: _errorMessage!,
         );
       }
       return false;
     } catch (e) {
       _errorMessage = 'Erro inesperado. Tente novamente.';
       notifyListeners();
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro no cadastro',
+          message: _errorMessage!,
+        );
+      }
       return false;
     }
   }
@@ -122,13 +137,13 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cadastro realizado! Faça login para continuar.'),
-            backgroundColor: Colors.green,
-          ),
+        CustomDialog.showSuccess(
+          context: context,
+          title: 'Cadastro realizado!',
+          message: 'Faça login para continuar.',
+          onDismiss: () =>
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
         );
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
       return true;
     } on FirebaseAuthException catch (e) {
@@ -136,17 +151,80 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: Colors.redAccent,
-          ),
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro no cadastro',
+          message: _errorMessage!,
         );
       }
       return false;
     } catch (e) {
       _errorMessage = 'Erro inesperado. Tente novamente.';
       notifyListeners();
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro no cadastro',
+          message: _errorMessage!,
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<bool> registerBoth({
+    required BuildContext context,
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+    required String vehicleType,
+  }) async {
+    _errorMessage = null;
+
+    try {
+      await AuthService.instance.registerBoth(
+        name: name,
+        email: email,
+        password: password,
+        cpf: cpf,
+        vehicleType: vehicleType,
+      );
+
+      if (context.mounted) {
+        CustomDialog.showSuccess(
+          context: context,
+          title: 'Cadastro realizado!',
+          message: 'Faça login para continuar.',
+          onDismiss: () =>
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+        );
+      }
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = _mapAuthError(e.code);
+      notifyListeners();
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro no cadastro',
+          message: _errorMessage!,
+        );
+      }
+      return false;
+    } catch (e) {
+      _errorMessage = 'Erro inesperado. Tente novamente.';
+      notifyListeners();
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro no cadastro',
+          message: _errorMessage!,
+        );
+      }
       return false;
     }
   }
@@ -224,53 +302,5 @@ class AuthProvider extends ChangeNotifier {
       'network-request-failed' => 'Sem conexão com a internet.',
       _ => 'Erro ao autenticar. Tente novamente.',
     };
-  }
-
-  Future<bool> registerBoth({
-    required BuildContext context,
-    required String name,
-    required String email,
-    required String password,
-    required String cpf,
-    required String vehicleType,
-  }) async {
-    _errorMessage = null;
-
-    try {
-      await AuthService.instance.registerBoth(
-        name: name,
-        email: email,
-        password: password,
-        cpf: cpf,
-        vehicleType: vehicleType,
-      );
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cadastro realizado! Faça login para continuar.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-      }
-      return true;
-    } on FirebaseAuthException catch (e) {
-      _errorMessage = _mapAuthError(e.code);
-      notifyListeners();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_errorMessage!),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-      return false;
-    } catch (e) {
-      _errorMessage = 'Erro inesperado. Tente novamente.';
-      notifyListeners();
-      return false;
-    }
   }
 }
