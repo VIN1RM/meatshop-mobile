@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:meatshop_mobile/firebase_options.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/routes/routes_config.dart';
 import 'package:meatshop_mobile/providers/providers_config.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MeatShopApp());
 }
 

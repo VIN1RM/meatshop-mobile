@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "650016222985",
+    "project_id": "meatshop-3c78f",
+    "storage_bucket": "meatshop-3c78f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:650016222985:android:8036544d9b010f256dedd8",
+        "android_client_info": {
+          "package_name": "com.example.meatshop_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzNpWnPO-Vxotx6IrS7959TbVwfRc2Otc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
