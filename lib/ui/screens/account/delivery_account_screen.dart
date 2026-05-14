@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -223,11 +225,14 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
             onTap: () => Navigator.pushNamed(context, AppRoutes.settings),
           ),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
-          _buildMenuItem(
-            icon: Icons.swap_horiz_outlined,
-            label: 'Modo cliente',
-            onTap: () => provider.switchToClientMode(context),
-          ),
+          if (context.read<AuthProvider>().appProfile == AppProfile.both)
+            _buildMenuItem(
+              icon: Icons.swap_horiz_outlined,
+              label: 'Modo cliente',
+              onTap: () => provider.switchToClientMode(context),
+            ),
+          if (context.read<AuthProvider>().appProfile == AppProfile.both)
+            const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           _buildLogoutRow(context, provider),
         ],

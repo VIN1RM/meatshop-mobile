@@ -28,7 +28,6 @@ class AuthService {
     return doc.data()?['app_profile'] as String? ?? 'CLIENT';
   }
 
-
   Future<String> registerClient({
     required String name,
     required String email,
@@ -44,13 +43,13 @@ class AuthService {
         .collection(FirestoreCollections.users)
         .doc(credential.user!.uid)
         .set({
-      'name': name.trim(),
-      'email': email.trim(),
-      'cpf': cpf.trim(),
-      'global_role': 'USER',
-      'app_profile': 'CLIENT',
-      'created_at': FieldValue.serverTimestamp(),
-    });
+          'name': name.trim(),
+          'email': email.trim(),
+          'cpf': cpf.trim(),
+          'global_role': 'USER',
+          'app_profile': 'CLIENT',
+          'created_at': FieldValue.serverTimestamp(),
+        });
 
     return 'CLIENT';
   }
@@ -69,7 +68,6 @@ class AuthService {
 
     final uid = credential.user!.uid;
 
-
     await _db.collection(FirestoreCollections.users).doc(uid).set({
       'name': name.trim(),
       'email': email.trim(),
@@ -79,7 +77,6 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
-
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
       'status': 'PENDING',
@@ -87,20 +84,19 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
-
     await _db
         .collection(FirestoreCollections.deliveryPersons)
         .doc(uid)
         .collection(FirestoreCollections.vehicles)
         .add({
-      'type': vehicleType,
-      'model': '',
-      'plate': '',
-      'color': '',
-      'year': '',
-      'is_active': true,
-      'created_at': FieldValue.serverTimestamp(),
-    });
+          'type': vehicleType,
+          'model': '',
+          'plate': '',
+          'color': '',
+          'year': '',
+          'is_active': true,
+          'created_at': FieldValue.serverTimestamp(),
+        });
 
     return 'DELIVERY';
   }
@@ -111,5 +107,52 @@ class AuthService {
 
   Future<void> sendPasswordResetEmail(String email) async {
     await _auth.sendPasswordResetEmail(email: email.trim());
+  }
+
+  Future<String> registerBoth({
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+    required String vehicleType,
+  }) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+
+    final uid = credential.user!.uid;
+
+    await _db.collection(FirestoreCollections.users).doc(uid).set({
+      'name': name.trim(),
+      'email': email.trim(),
+      'cpf': cpf.trim(),
+      'global_role': 'USER',
+      'app_profile': 'BOTH',
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
+    await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
+      'user_id': uid,
+      'status': 'PENDING',
+      'average_rating': 0.0,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
+    await _db
+        .collection(FirestoreCollections.deliveryPersons)
+        .doc(uid)
+        .collection(FirestoreCollections.vehicles)
+        .add({
+          'type': vehicleType,
+          'model': '',
+          'plate': '',
+          'color': '',
+          'year': '',
+          'is_active': true,
+          'created_at': FieldValue.serverTimestamp(),
+        });
+
+    return 'BOTH';
   }
 }

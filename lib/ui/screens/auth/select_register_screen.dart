@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 
-enum RegisterType { client, deliverer }
+enum RegisterType { client, deliverer, both }
 
 class SelectRegisterPage extends StatefulWidget {
   const SelectRegisterPage({super.key});
@@ -143,6 +143,118 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
                         ),
                       ),
                     ],
+                  ),
+                ),
+
+                SizedBox(height: sh * 0.02),
+
+                Container(
+                  height: 1,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.white24,
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: sh * 0.02),
+
+                GestureDetector(
+                  onTap: () => _onSelect(RegisterType.both),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _selected == RegisterType.both
+                          ? const Color(0xFFC0392B).withValues(alpha: 0.15)
+                          : const Color(0xFF525252),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _selected == RegisterType.both
+                            ? const Color(0xFFC0392B)
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: _selected == RegisterType.both
+                                ? const Color(0xFFC0392B).withValues(alpha: 0.2)
+                                : const Color(0xFF3A3A3A),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.people_outline,
+                            color: _selected == RegisterType.both
+                                ? const Color(0xFFC0392B)
+                                : Colors.white38,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Cliente & Entregador',
+                                style: TextStyle(
+                                  color: _selected == RegisterType.both
+                                      ? const Color(0xFFC0392B)
+                                      : Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              const Text(
+                                'Peça e entregue com o mesmo perfil.',
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _selected == RegisterType.both
+                                ? const Color(0xFFC0392B)
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: _selected == RegisterType.both
+                                  ? const Color(0xFFC0392B)
+                                  : Colors.white38,
+                              width: 2,
+                            ),
+                          ),
+                          child: _selected == RegisterType.both
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 14,
+                                )
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 

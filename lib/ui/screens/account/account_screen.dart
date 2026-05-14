@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -185,11 +186,13 @@ class _AccountScreenState extends State<AccountScreen> {
         'Endereços salvos',
         onTap: () => Navigator.pushNamed(context, AppRoutes.savedAddresses),
       ),
-      _MenuItem(
-        Icons.delivery_dining_outlined,
-        'Modo entregador',
-        onTap: () => context.read<AuthProvider>().switchToDeliveryMode(context),
-      ),
+      if (context.read<AuthProvider>().appProfile == AppProfile.both)
+        _MenuItem(
+          Icons.delivery_dining_outlined,
+          'Modo entregador',
+          onTap: () =>
+              context.read<AuthProvider>().switchToDeliveryMode(context),
+        ),
       _MenuItem(
         Icons.settings_outlined,
         'Configurações',

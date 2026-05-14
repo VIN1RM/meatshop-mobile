@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
@@ -67,6 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   bool get isClient => _registerType == RegisterType.client;
+  bool get isBoth => _registerType == RegisterType.both;
 
   @override
   void dispose() {
@@ -123,6 +123,15 @@ class _RegisterPageState extends State<RegisterPage> {
         password: _passwordController.text,
         cpf: _cpfController.text,
       );
+    } else if (isBoth) {
+      await authProvider.registerBoth(
+        context: context,
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        cpf: _cpfController.text,
+        vehicleType: _selectedVehicle!,
+      );
     } else {
       await authProvider.registerDelivery(
         context: context,
@@ -173,6 +182,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Icon(
                       isClient
                           ? Icons.shopping_bag_outlined
+                          : isBoth
+                          ? Icons.people_outline
                           : Icons.delivery_dining_outlined,
                       color: const Color(0xFFC0392B),
                       size: 20,
@@ -185,6 +196,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         isClient
                             ? 'Cadastro de Cliente'
+                            : isBoth
+                            ? 'Cadastro Completo'
                             : 'Cadastro de Entregador',
                         style: TextStyle(
                           color: Colors.white,
@@ -195,6 +208,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         isClient
                             ? 'Preencha seus dados para começar'
+                            : isBoth
+                            ? 'Preencha todos os seus dados'
                             : 'Preencha seus dados para entregar',
                         style: const TextStyle(
                           color: Colors.white54,
@@ -448,7 +463,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(height: sh * 0.03),
                       ],
 
-                      if (!isClient) ...[
+                      if (!isClient || isBoth) ...[
                         _sectionTitle('Tipo de Veículo'),
                         SizedBox(height: sh * 0.015),
 
