@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -53,6 +56,18 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _hasNumber = false;
   bool _hasSpecialChar = false;
 
+  late RegisterType _registerType;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _registerType =
+        ModalRoute.of(context)?.settings.arguments as RegisterType? ??
+        RegisterType.client;
+  }
+
+  bool get isClient => _registerType == RegisterType.client;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -92,12 +107,34 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!isClient && _selectedVehicle == null) {
+      setState(() {});
+      return;
+    }
     setState(() => _isLoading = true);
 
-    await Future.delayed(const Duration(seconds: 2));
+    final authProvider = context.read<AuthProvider>();
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+    if (isClient) {
+      await authProvider.registerClient(
+        context: context,
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        cpf: _cpfController.text,
+      );
+    } else {
+      await authProvider.registerDelivery(
+        context: context,
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        cpf: _cpfController.text,
+        vehicleType: _selectedVehicle!,
+      );
+    }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override

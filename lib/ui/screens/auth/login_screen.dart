@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';

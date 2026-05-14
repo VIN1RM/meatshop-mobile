@@ -1,15 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
   AppProfile? _appProfile;
   AppProfile? _activeProfile;
+  String? _errorMessage;
 
   bool get isAuthenticated => _isAuthenticated;
   AppProfile? get appProfile => _appProfile;
   AppProfile? get activeProfile => _activeProfile;
+  String? get errorMessage => _errorMessage;
 
   bool get isClient => _activeProfile == AppProfile.client;
   bool get isDelivery => _activeProfile == AppProfile.delivery;
@@ -19,15 +23,132 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    await Future.delayed(const Duration(seconds: 2));
+    _errorMessage = null;
 
-    const profileFromApi = 'BOTH';
-    _isAuthenticated = true;
-    _appProfile = AppProfile.fromString(profileFromApi);
-    notifyListeners();
+    try {
+      final profileFromFirestore = await AuthService.instance.login(
+        email: email,
+        password: password,
+      );
 
-    if (!context.mounted) return;
-    _redirectAfterLogin(context);
+      _isAuthenticated = true;
+      _appProfile = AppProfile.fromString(profileFromFirestore);
+      notifyListeners();
+
+      if (!context.mounted) return;
+      _redirectAfterLogin(context);
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = _mapAuthError(e.code);
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage!),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      _errorMessage = 'Erro inesperado. Tente novamente.';
+      notifyListeners();
+    }
+  }
+
+  Future<bool> registerClient({
+    required BuildContext context,
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+  }) async {
+    _errorMessage = null;
+
+    try {
+      await AuthService.instance.registerClient(
+        name: name,
+        email: email,
+        password: password,
+        cpf: cpf,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cadastro realizado! Faça login para continuar.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      }
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = _mapAuthError(e.code);
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage!),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return false;
+    } catch (e) {
+      _errorMessage = 'Erro inesperado. Tente novamente.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> registerDelivery({
+    required BuildContext context,
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+    required String vehicleType,
+  }) async {
+    _errorMessage = null;
+
+    try {
+      await AuthService.instance.registerDelivery(
+        name: name,
+        email: email,
+        password: password,
+        cpf: cpf,
+        vehicleType: vehicleType,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cadastro realizado! Faça login para continuar.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      }
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = _mapAuthError(e.code);
+      notifyListeners();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage!),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return false;
+    } catch (e) {
+      _errorMessage = 'Erro inesperado. Tente novamente.';
+      notifyListeners();
+      return false;
+    }
   }
 
   void selectActiveProfile({
@@ -48,15 +169,21 @@ class AuthProvider extends ChangeNotifier {
     Navigator.of(context).pushReplacementNamed(route);
   }
 
-  void logout(BuildContext context) {
+  Future<void> logout(BuildContext context) async {
+    await AuthService.instance.logout();
+
     _isAuthenticated = false;
     _appProfile = null;
     _activeProfile = null;
+    _errorMessage = null;
     notifyListeners();
 
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    if (context.mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.login,
+        (route) => false,
+      );
+    }
   }
 
   void switchToDeliveryMode(BuildContext context) {
@@ -83,5 +210,20 @@ class AuthProvider extends ChangeNotifier {
       case null:
         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
     }
+  }
+
+  String _mapAuthError(String code) {
+    return switch (code) {
+      'user-not-found' => 'Usuário não encontrado.',
+      'wrong-password' => 'Senha incorreta.',
+      'invalid-email' => 'E-mail inválido.',
+      'user-disabled' => 'Conta desativada.',
+      'email-already-in-use' => 'Este e-mail já está cadastrado.',
+      'weak-password' => 'Senha muito fraca.',
+      'invalid-credential' => 'E-mail ou senha incorretos.',
+      'too-many-requests' => 'Muitas tentativas. Tente novamente mais tarde.',
+      'network-request-failed' => 'Sem conexão com a internet.',
+      _ => 'Erro ao autenticar. Tente novamente.',
+    };
   }
 }
