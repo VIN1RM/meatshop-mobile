@@ -14,7 +14,8 @@ class _Promocao {
 class _Acougue {
   final String nome;
   final double rating;
-  const _Acougue(this.nome, this.rating);
+  final String imagem;
+  const _Acougue(this.nome, this.rating, this.imagem);
 }
 
 class HomePage extends StatelessWidget {
@@ -50,9 +51,9 @@ class _HomeBodyState extends State<HomeBody> {
   ];
 
   final List<_Acougue> _acougues = const [
-    _Acougue('Master Carnes', 4.5),
-    _Acougue('Frigorífico Goiás', 3.5),
-    _Acougue('Bom Beef', 3.0),
+    _Acougue('Master Carnes', 4.5, 'assets/images/mastercarnes.png'),
+    _Acougue('Frigorífico Goiás', 3.5, 'assets/images/frigoias.png'),
+    _Acougue('Bom Beef', 3.0, 'assets/images/bombeef.png'),
   ];
 
   final List<Map<String, dynamic>> _cortes = const [
@@ -246,13 +247,13 @@ class _HomeBodyState extends State<HomeBody> {
       'assets/images/picanha.png',
       'assets/images/peitodefrango.png',
       'assets/images/lombo.png',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
+      'assets/images/costelabovina.png',
+      'assets/images/filetilapia.png',
+      'assets/images/fraldinha.png',
+      'assets/images/toscana.png',
+      'assets/images/alcatra.png',
+      'assets/images/sobrecoxa.png',
+      'assets/images/pernilsuino.png',
     ];
 
     return Padding(
@@ -296,15 +297,20 @@ class _HomeBodyState extends State<HomeBody> {
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
-                          child: img.isNotEmpty
-                              ? Image.asset(
-                                  img,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      _placeholderCard(p.nome),
-                                )
-                              : _placeholderCard(p.nome),
+                          child: Container(
+                            color: Colors.white,
+                            width: double.infinity,
+                            child: img.isNotEmpty
+                                ? Image.asset(
+                                    img,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (_, __, ___) =>
+                                        _placeholderCard(p.nome),
+                                  )
+                                : _placeholderCard(p.nome),
+                          ),
                         ),
                       ),
                       Padding(
@@ -376,17 +382,26 @@ class _HomeBodyState extends State<HomeBody> {
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: const Color(0xFF555555),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.storefront_outlined,
-                color: Colors.white38,
-                size: 22,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                a.imagem,
+                width: 44,
+                height: 44,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF555555),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.storefront_outlined,
+                    color: Colors.white38,
+                    size: 22,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
