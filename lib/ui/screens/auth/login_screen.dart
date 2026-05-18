@@ -143,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: GestureDetector(
                               onTap: () => Navigator.of(
                                 context,
-                              ).pushNamed(AppRoutes.changePassword),
+                              ).pushNamed(AppRoutes.forgotPassword),
                               child: Text(
                                 'Esqueceu sua senha?',
                                 style: TextStyle(

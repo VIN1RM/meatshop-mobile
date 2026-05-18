@@ -167,4 +167,20 @@ class AuthService {
     await _db.collection(FirestoreCollections.users).doc(user.uid).delete();
     await user.delete();
   }
+
+  Future<void> changePassword({
+    required String email,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Usuário não autenticado.');
+
+    final credential = EmailAuthProvider.credential(
+      email: email.trim(),
+      password: currentPassword,
+    );
+    await user.reauthenticateWithCredential(credential);
+    await user.updatePassword(newPassword);
+  }
 }
