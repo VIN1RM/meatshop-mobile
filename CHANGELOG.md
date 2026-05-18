@@ -11,6 +11,31 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.0.0] - 2026-05-18
+### Integração Firebase, Autenticação Real e Gestão de Perfil
+
+### Added
+- Integração completa com **Firebase Auth**: autenticação real de usuários com e-mail e senha, substituindo o fluxo simulado anterior.
+- Integração com **Cloud Firestore**: carregamento de dados reais do perfil do usuário (nome, e-mail, celular, CPF) a partir da coleção `users`, removendo todos os dados mockados.
+- Integração com **Firebase Storage**: upload de imagens de usuários, produtos e unidades diretamente para o Storage, com URL pública salva no Firestore.
+- **Fluxo de exclusão de conta**: dialog de confirmação com reautenticação via senha antes da exclusão definitiva, garantindo segurança na operação.
+- **Fluxo de alteração de senha real**: reautenticação do usuário com a senha atual via Firebase antes de aplicar a nova senha, substituindo o fluxo anterior sem validação.
+- **Upload de foto de veículo**: upload real das fotos do veículo do entregador para o Firebase Storage durante o cadastro e edição.
+- **Dialogs centralizados**: arquivo dedicado de dialogs reutilizáveis integrado à tela de login.
+- Lógica de exibição condicional do botão "Alternar modo" no shell: visível apenas para usuários com perfil `both`.
+
+### Changed
+- **Foto de perfil**: migração de base64 no Firestore para upload no Firebase Storage, reduzindo o tamanho dos documentos e melhorando a performance de leitura.
+- **Cadastro de veículo**: fotos do veículo agora são enviadas ao Firebase Storage em vez de codificadas em base64, alinhando ao padrão de armazenamento de mídia do projeto.
+- **`AccountScreen` e `DeliveryAccountScreen`**: dados do perfil carregados diretamente do Firestore em tempo real, sem dependência de estado local mockado.
+- `register_screen.dart`: corrigido layout quebrado na seção de endereço — `Row` de Número/Bairro reestruturado, campo de Complemento reposicionado e duplicação do campo Bairro removida.
+
+### Fixed
+- Correção de erro ao editar a foto de perfil que impedia a atualização da imagem em determinados fluxos.
+- Correção do campo `phone` que não era transmitido corretamente pelo fluxo de registro para todos os tipos de perfil (cliente, entregador e ambos).
+
+---
+
 ## [1.6.0] - 2026-05-04
 ### Fluxo de Checkout Reestruturado, Tela de Endereço de Entrega e Assistente Virtual (Meatshop - Chatbot)
 

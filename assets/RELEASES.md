@@ -4,6 +4,22 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.0.0] — 18 de Maio de 2026
+### 🔐 Login Real, Conta Conectada e Fotos de Verdade
+
+### ✨ Novidades
+- **Login e Cadastro de Verdade:** O aplicativo agora usa autenticação real. Seus dados são verificados com segurança e a sua conta é criada diretamente no nosso sistema — nada mais é simulado.
+- **Excluir Conta com Segurança:** Adicionamos um fluxo para exclusão definitiva da conta. Por segurança, você precisa confirmar a sua senha antes de prosseguir.
+- **Alteração de Senha Protegida:** Para trocar a senha, o app agora pede que você confirme a senha atual antes de aceitar a nova. Assim, só você pode fazer essa mudança.
+
+### 📈 Melhorias
+- **Seus Dados São Seus:** As informações exibidas na tela de perfil (nome, e-mail, celular) agora vêm diretamente da sua conta real, sempre atualizadas.
+- **Fotos no Lugar Certo:** As fotos de perfil e as fotos do veículo (para entregadores) agora são armazenadas de forma adequada, deixando o app mais rápido e eficiente.
+- **Celular Salvo no Cadastro:** Corrigimos um problema em que o número de celular não era salvo corretamente durante o cadastro em alguns tipos de conta.
+- **Formulário de Endereço Corrigido:** Ajustamos um erro visual na tela de cadastro que causava campos sobrepostos ou duplicados na seção de endereço.
+
+---
+
 ## [1.6.0] — 04 de Maio de 2026
 ### ✨ Novidades
 - Escolha o Endereço Antes de Pagar: Adicionamos uma nova tela entre o carrinho e o pagamento onde você seleciona para qual endereço quer receber o pedido. Seus endereços salvos aparecem logo de cara para facilitar.
