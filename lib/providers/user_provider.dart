@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'package:meatshop_mobile/models/user_model.dart';
 import 'package:meatshop_mobile/services/user_service.dart';
 
@@ -37,7 +38,13 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateAvatar(String uid, File file) async {
+  Future<void> updateAvatar(String uid, File? file) async {
+    if (file == null) {
+      await UserService.instance.clearAvatar(uid);
+      _user = _user?.copyWith(photoUrl: '');
+      notifyListeners();
+      return;
+    }
     final url = await UserService.instance.updateAvatar(uid, file);
     _user = _user?.copyWith(photoUrl: url);
     notifyListeners();

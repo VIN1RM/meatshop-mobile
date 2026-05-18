@@ -63,13 +63,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       hasPhoto:
           _avatarFile != null ||
           (context.read<UserProvider>().user?.photoUrl.isNotEmpty ?? false),
-      onRemove: () => setState(() => _avatarFile = null),
+      onRemove: () async {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          await context.read<UserProvider>().updateAvatar(uid, null);
+        }
+        setState(() => _avatarFile = null);
+      },
     );
     if (file != null) setState(() => _avatarFile = file);
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final hasExistingPhoto =
+        context.read<UserProvider>().user?.photoUrl.isNotEmpty ?? false;
+    if (_avatarFile == null && !hasExistingPhoto) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Adicione uma foto de perfil para continuar.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     setState(() => _isSaving = true);
 
     try {

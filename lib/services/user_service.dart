@@ -42,4 +42,10 @@ class UserService {
 
     return url;
   }
+
+  Future<void> clearAvatar(String uid) async {
+    await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'photo_url': '',
+    });
+  }
 }
