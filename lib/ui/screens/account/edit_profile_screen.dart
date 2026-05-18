@@ -7,6 +7,7 @@ import 'package:meatshop_mobile/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'dart:convert';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -408,7 +409,7 @@ class _AvatarSection extends StatelessWidget {
                       )
                     : hasNetworkPhoto
                     ? DecorationImage(
-                        image: NetworkImage(currentPhotoUrl!),
+                        image: _avatarImage(currentPhotoUrl!),
                         fit: BoxFit.cover,
                       )
                     : null,
@@ -462,4 +463,11 @@ class _PhoneFormatter extends TextInputFormatter {
       selection: TextSelection.collapsed(offset: text.length),
     );
   }
+}
+
+ImageProvider _avatarImage(String url) {
+  if (url.startsWith('data:image')) {
+    return MemoryImage(base64Decode(url.split(',').last));
+  }
+  return NetworkImage(url);
 }

@@ -6,6 +6,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'dart:convert';
 
 class DeliveryAccountScreen extends StatefulWidget {
   const DeliveryAccountScreen({super.key});
@@ -104,8 +105,21 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
                   color: const Color(0xFFBDBDBD),
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFE0E0E0), width: 2),
+                  image: () {
+                    final url =
+                        context.watch<UserProvider>().user?.photoUrl ?? '';
+                    if (url.isEmpty) return null;
+                    return DecorationImage(
+                      image: _avatarImage(url),
+                      fit: BoxFit.cover,
+                    );
+                  }(),
                 ),
-                child: const Icon(Icons.person, color: Colors.white, size: 32),
+                child:
+                    (context.watch<UserProvider>().user?.photoUrl.isNotEmpty ??
+                        false)
+                    ? null
+                    : const Icon(Icons.person, color: Colors.white, size: 32),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -379,4 +393,11 @@ class _StatCard extends StatelessWidget {
       ),
     );
   }
+}
+
+ImageProvider _avatarImage(String url) {
+  if (url.startsWith('data:image')) {
+    return MemoryImage(base64Decode(url.split(',').last));
+  }
+  return NetworkImage(url);
 }

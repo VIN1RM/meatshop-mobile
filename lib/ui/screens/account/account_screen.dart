@@ -5,6 +5,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'dart:convert';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -65,6 +66,13 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
+  ImageProvider _avatarImage(String url) {
+    if (url.startsWith('data:image')) {
+      return MemoryImage(base64Decode(url.split(',').last));
+    }
+    return NetworkImage(url);
+  }
+
   Widget _pageTitle() {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -104,7 +112,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   border: Border.all(color: const Color(0xFFE0E0E0), width: 2),
                   image: (user?.photoUrl.isNotEmpty ?? false)
                       ? DecorationImage(
-                          image: NetworkImage(user!.photoUrl),
+                          image: _avatarImage(user!.photoUrl),
                           fit: BoxFit.cover,
                         )
                       : null,
