@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meatshop_mobile/ui/dialogs/image_source_dialog.dart';
+import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
+import 'package:provider/provider.dart';
 
 class VehicleEditModal extends StatefulWidget {
-  const VehicleEditModal({super.key});
+  final String vehicleType;
+  const VehicleEditModal({super.key, required this.vehicleType});
 
   @override
   State<VehicleEditModal> createState() => _VehicleEditModalState();
@@ -22,7 +27,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
 
   _VehicleOption? _selectedVehicleType;
   bool _isSaving = false;
-  final List<String> _vehicleImages = [];
+  final List<File> _newImages = [];
+  List<String> _existingUrls = [];
 
   final List<_VehicleOption> _vehicleTypes = const [
     _VehicleOption(
@@ -54,11 +60,44 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   @override
   void initState() {
     super.initState();
-    _selectedVehicleType = null;
+
+    final labelMap = {
+      'MOTORCYCLE': 'Moto',
+      'BIKE': 'Bicicleta',
+      'CAR': 'Carro',
+      'ON_FOOT': null,
+
+      'Moto': 'Moto',
+      'Bicicleta': 'Bicicleta',
+      'Carro': 'Carro',
+      'Patinete': 'Patinete',
+    };
+    final label = labelMap[widget.vehicleType];
+    _selectedVehicleType = label != null
+        ? _vehicleTypes.firstWhere(
+            (v) => v.label == label,
+            orElse: () => _vehicleTypes.first,
+          )
+        : null;
+
     _plateController = TextEditingController();
     _modelController = TextEditingController();
     _colorController = TextEditingController();
     _yearController = TextEditingController();
+
+  
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final info = context.read<VehicleProvider>().vehicleInfo;
+      if (info.isNotEmpty) {
+        _modelController.text = info['model'] ?? '';
+        _plateController.text = info['plate'] ?? '';
+        _colorController.text = info['color'] ?? '';
+        _yearController.text = info['year'] ?? '';
+        setState(() {
+          _existingUrls = List<String>.from(info['photo_urls'] ?? []);
+        });
+      }
+    });
   }
 
   @override
@@ -71,7 +110,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   }
 
   Future<void> _pickImage() async {
-    if (_vehicleImages.length >= 3) {
+    final totalFotos = _existingUrls.length + _newImages.length;
+    if (totalFotos >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Máximo de 3 fotos permitidas.'),
@@ -86,7 +126,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       context: context,
       builder: (ctx) => const ImageSourceDialog(),
     );
-
     if (source == null || !mounted) return;
 
     final picker = ImagePicker();
@@ -95,14 +134,17 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       imageQuality: 80,
       maxWidth: 1080,
     );
-
     if (picked != null && mounted) {
-      setState(() => _vehicleImages.add(picked.path));
+      setState(() => _newImages.add(File(picked.path)));
     }
   }
 
-  void _removeImage(int index) {
-    setState(() => _vehicleImages.removeAt(index));
+  void _removeExistingImage(int index) {
+    setState(() => _existingUrls.removeAt(index));
+  }
+
+  void _removeNewImage(int index) {
+    setState(() => _newImages.removeAt(index));
   }
 
   Future<void> _save() async {
@@ -121,7 +163,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       if (!_formKey.currentState!.validate()) return;
     }
 
-    if (_vehicleImages.length < 3) {
+    final totalFotos = _existingUrls.length + _newImages.length;
+    if (totalFotos < 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Adicione ao menos 3 fotos do veículo.'),
@@ -133,18 +176,50 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
     }
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+
+    if (uid != null && mounted) {
+      try {
+        await context.read<VehicleProvider>().updateVehicle(
+          uid: uid,
+          data: {
+            'type': _selectedVehicleType!.label,
+            'model': _modelController.text.trim(),
+            'plate': _plateController.text.trim(),
+            'color': _colorController.text.trim(),
+            'year': _yearController.text.trim(),
+          },
+          newImages: _newImages,
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erro ao salvar veículo. Tente novamente.'),
+              backgroundColor: _red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        setState(() => _isSaving = false);
+        return;
+      }
+    }
+
     if (!mounted) return;
     setState(() => _isSaving = false);
 
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Veículo atualizado com sucesso!'),
-        backgroundColor: _red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+
+    Navigator.pop(context, <String, dynamic>{
+      'type': _selectedVehicleType!.label,
+      'model': _modelController.text.trim(),
+      'plate': _plateController.text.trim(),
+      'color': _colorController.text.trim(),
+      'year': _yearController.text.trim(),
+      'newImages': _newImages, 
+    });
   }
 
   String _hintForField(String field) {
@@ -409,6 +484,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   }
 
   Widget _buildPhotoSection() {
+    final totalFotos = _existingUrls.length + _newImages.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -427,54 +504,28 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
           style: TextStyle(color: Colors.white38, fontSize: 11),
         ),
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            ...List.generate(_vehicleImages.length, (i) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3A3A3A),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      child: const Icon(
-                        Icons.image_outlined,
-                        color: Colors.white24,
-                        size: 32,
-                      ),
-                    ),
-                    Positioned(
-                      top: -6,
-                      right: -6,
-                      child: GestureDetector(
-                        onTap: () => _removeImage(i),
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: const BoxDecoration(
-                            color: _red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+         
+            ..._existingUrls.asMap().entries.map((e) {
+              return _photoThumb(
+                child: Image.network(e.value, fit: BoxFit.cover),
+                onRemove: () => _removeExistingImage(e.key),
               );
             }),
 
-            if (_vehicleImages.length < 3)
+          
+            ..._newImages.asMap().entries.map((e) {
+              return _photoThumb(
+                child: Image.file(e.value, fit: BoxFit.cover),
+                onRemove: () => _removeNewImage(e.key),
+              );
+            }),
+
+        
+            if (totalFotos < 3)
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
@@ -503,13 +554,11 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                 ),
               ),
 
+
             ...List.generate(
-              _vehicleImages.isEmpty
-                  ? 2
-                  : (2 - _vehicleImages.length).clamp(0, 2),
-              (_) => Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Container(
+              (3 - totalFotos - (totalFotos < 3 ? 1 : 0)).clamp(0, 3),
+              (_) {
+                return Container(
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
@@ -522,16 +571,15 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                     color: Colors.white12,
                     size: 32,
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ],
         ),
-
         const SizedBox(height: 10),
         Row(
           children: List.generate(3, (i) {
-            final filled = i < _vehicleImages.length;
+            final filled = i < totalFotos;
             return Container(
               margin: const EdgeInsets.only(right: 4),
               width: 24,
@@ -542,6 +590,34 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               ),
             );
           }),
+        ),
+      ],
+    );
+  }
+
+  Widget _photoThumb({required Widget child, required VoidCallback onRemove}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: SizedBox(width: 80, height: 80, child: child),
+        ),
+        Positioned(
+          top: -6,
+          right: -6,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(
+                color: _red,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 12),
+            ),
+          ),
         ),
       ],
     );

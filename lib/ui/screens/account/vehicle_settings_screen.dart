@@ -1,18 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
-
 import 'package:provider/provider.dart';
 
-class VehicleSettingsScreen extends StatelessWidget {
+class VehicleSettingsScreen extends StatefulWidget {
   const VehicleSettingsScreen({super.key});
 
+  @override
+  State<VehicleSettingsScreen> createState() => _VehicleSettingsScreenState();
+}
+
+class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
   static const Color _red = Color(0xFFC0392B);
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        context.read<VehicleProvider>().loadVehicle(uid);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final provider = context.watch<DeliveryProvider>();
+    final provider = context.watch<VehicleProvider>();
 
     return Material(
       color: const Color(0xFF1A1A1A),
@@ -73,7 +89,7 @@ class VehicleSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVehicleCard(BuildContext context, DeliveryProvider provider) {
+  Widget _buildVehicleCard(BuildContext context, VehicleProvider provider) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
@@ -89,11 +105,11 @@ class VehicleSettingsScreen extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: _red.withOpacity(0.1),
+                  color: _red.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  _iconForVehicle(provider.vehicle),
+                  _iconForVehicle(provider.vehicleInfo['type'] ?? ''),
                   color: const Color.fromARGB(255, 228, 139, 139),
                   size: 24,
                 ),
@@ -104,8 +120,8 @@ class VehicleSettingsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      provider.vehicle.isNotEmpty
-                          ? provider.vehicle
+                      provider.vehicleInfo['type']?.isNotEmpty == true
+                          ? provider.vehicleInfo['type']!
                           : 'Nenhum veículo cadastrado',
                       style: const TextStyle(
                         color: Colors.white,
@@ -129,18 +145,7 @@ class VehicleSettingsScreen extends StatelessWidget {
           const Divider(height: 1, color: Colors.white12),
           const SizedBox(height: 16),
 
-          _infoRow(
-            'Tipo:',
-            provider.vehicle.isNotEmpty ? provider.vehicle : '—',
-          ),
-          const SizedBox(height: 8),
-          _infoRow('Modelo:', '—'),
-          const SizedBox(height: 8),
-          _infoRow('Placa:', '—'),
-          const SizedBox(height: 8),
-          _infoRow('Cor:', '—'),
-          const SizedBox(height: 8),
-          _infoRow('Ano:', '—'),
+          _infoRow('Tipo:', provider.vehicleInfo['type'] ?? '—'),
 
           const SizedBox(height: 18),
 
@@ -149,7 +154,9 @@ class VehicleSettingsScreen extends StatelessWidget {
               context: context,
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
-              builder: (_) => const VehicleEditModal(),
+              builder: (_) => VehicleEditModal(
+                vehicleType: provider.vehicleInfo['type'] ?? 'MOTORCYCLE',
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

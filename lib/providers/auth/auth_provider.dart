@@ -135,6 +135,7 @@ class AuthProvider extends ChangeNotifier {
     required String cpf,
     required String phone,
     required String vehicleType,
+    required Map<String, dynamic> vehicleData,
   }) async {
     _errorMessage = null;
 
@@ -146,6 +147,7 @@ class AuthProvider extends ChangeNotifier {
         cpf: cpf,
         phone: phone,
         vehicleType: vehicleType,
+        vehicleData: vehicleData,
       );
 
       if (context.mounted) {
@@ -193,6 +195,7 @@ class AuthProvider extends ChangeNotifier {
     required String cpf,
     required String phone,
     required String vehicleType,
+    required Map<String, dynamic> vehicleData,
   }) async {
     _errorMessage = null;
 
@@ -204,6 +207,7 @@ class AuthProvider extends ChangeNotifier {
         cpf: cpf,
         phone: phone,
         vehicleType: vehicleType,
+        vehicleData: vehicleData,
       );
 
       if (context.mounted) {

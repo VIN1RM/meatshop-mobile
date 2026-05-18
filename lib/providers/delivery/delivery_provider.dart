@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
@@ -8,7 +9,8 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
   DeliveryOrder? _activeOrder;
   bool _isLoading = false;
-
+  Map<String, String> _vehicleInfo = {};
+  Map<String, String> get vehicleInfo => _vehicleInfo;
   bool get isOnline => isAvailable;
   void toggleOnline() => toggleAvailability();
 
@@ -243,6 +245,28 @@ class DeliveryProvider extends ChangeNotifier {
     Navigator.of(
       context,
     ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+  }
+
+  Future<void> loadVehicle(String uid) async {
+    final snap = await FirebaseFirestore.instance
+        .collection('delivery_persons')
+        .doc(uid)
+        .collection('vehicles')
+        .where('is_active', isEqualTo: true)
+        .limit(1)
+        .get();
+
+    if (snap.docs.isNotEmpty) {
+      final data = snap.docs.first.data();
+      _vehicleInfo = {
+        'type': data['type'] ?? '',
+        'model': data['model'] ?? '',
+        'plate': data['plate'] ?? '',
+        'color': data['color'] ?? '',
+        'year': data['year'] ?? '',
+      };
+      notifyListeners();
+    }
   }
 
   void switchToClientMode(BuildContext context) {

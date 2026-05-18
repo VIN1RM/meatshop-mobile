@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +31,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
+
+  Map<String, dynamic>? _vehicleData;
 
   String? _selectedVehicle;
   final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'ON_FOOT'];
@@ -113,6 +116,17 @@ class _RegisterPageState extends State<RegisterPage> {
     }
     setState(() => _isLoading = true);
 
+    if (!isClient && _vehicleData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha os dados do veículo para continuar.'),
+          backgroundColor: Color(0xFFC0392B),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final authProvider = context.read<AuthProvider>();
 
     if (isClient) {
@@ -133,6 +147,7 @@ class _RegisterPageState extends State<RegisterPage> {
         cpf: _cpfController.text,
         phone: _phoneController.text,
         vehicleType: _selectedVehicle!,
+        vehicleData: _vehicleData!,
       );
     } else {
       await authProvider.registerDelivery(
@@ -143,6 +158,7 @@ class _RegisterPageState extends State<RegisterPage> {
         cpf: _cpfController.text,
         phone: _phoneController.text,
         vehicleType: _selectedVehicle!,
+        vehicleData: _vehicleData!,
       );
     }
 
@@ -480,7 +496,25 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: _vehicles.map((v) {
                             final selected = _selectedVehicle == v;
                             return GestureDetector(
-                              onTap: () => setState(() => _selectedVehicle = v),
+                              onTap: () async {
+                                final result =
+                                    await showModalBottomSheet<
+                                      Map<String, dynamic>
+                                    >(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) =>
+                                          VehicleEditModal(vehicleType: v),
+                                    );
+                                if (result != null) {
+                                  setState(() {
+                                    _selectedVehicle = v;
+                                    _vehicleData =
+                                        result; 
+                                  });
+                                }
+                              },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
                                 decoration: BoxDecoration(

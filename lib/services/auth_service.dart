@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AuthService {
   AuthService._();
@@ -63,6 +65,7 @@ class AuthService {
     required String cpf,
     required String phone,
     required String vehicleType,
+    required Map<String, dynamic> vehicleData,
   }) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -88,16 +91,22 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
+    final photoUrls = await _uploadVehicleImages(
+      uid,
+      List<File>.from(vehicleData['newImages'] ?? []),
+    );
+
     await _db
         .collection(FirestoreCollections.deliveryPersons)
         .doc(uid)
         .collection(FirestoreCollections.vehicles)
         .add({
           'type': vehicleType,
-          'model': '',
-          'plate': '',
-          'color': '',
-          'year': '',
+          'model': vehicleData['model'] ?? '',
+          'plate': vehicleData['plate'] ?? '',
+          'color': vehicleData['color'] ?? '',
+          'year': vehicleData['year'] ?? '',
+          'photo_urls': photoUrls,
           'is_active': true,
           'created_at': FieldValue.serverTimestamp(),
         });
@@ -120,6 +129,7 @@ class AuthService {
     required String cpf,
     required String phone,
     required String vehicleType,
+    required Map<String, dynamic> vehicleData, 
   }) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -145,16 +155,22 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
+    final photoUrls = await _uploadVehicleImages(
+      uid,
+      List<File>.from(vehicleData['newImages'] ?? []),
+    );
+
     await _db
         .collection(FirestoreCollections.deliveryPersons)
         .doc(uid)
         .collection(FirestoreCollections.vehicles)
         .add({
           'type': vehicleType,
-          'model': '',
-          'plate': '',
-          'color': '',
-          'year': '',
+          'model': vehicleData['model'] ?? '',
+          'plate': vehicleData['plate'] ?? '',
+          'color': vehicleData['color'] ?? '',
+          'year': vehicleData['year'] ?? '',
+          'photo_urls': photoUrls,
           'is_active': true,
           'created_at': FieldValue.serverTimestamp(),
         });
@@ -188,5 +204,21 @@ class AuthService {
     );
     await user.reauthenticateWithCredential(credential);
     await user.updatePassword(newPassword);
+  }
+
+  Future<List<String>> _uploadVehicleImages(
+    String uid,
+    List<File> files,
+  ) async {
+    final storage = FirebaseStorage.instance;
+    final urls = <String>[];
+    for (int i = 0; i < files.length; i++) {
+      final ref = storage.ref(
+        'vehicles/$uid/${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
+      );
+      await ref.putFile(files[i]);
+      urls.add(await ref.getDownloadURL());
+    }
+    return urls;
   }
 }
