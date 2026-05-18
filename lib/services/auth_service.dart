@@ -33,6 +33,7 @@ class AuthService {
     required String email,
     required String password,
     required String cpf,
+    required String phone,
   }) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -46,6 +47,7 @@ class AuthService {
           'name': name.trim(),
           'email': email.trim(),
           'cpf': cpf.trim(),
+          'phone': phone.trim(),
           'global_role': 'USER',
           'app_profile': 'CLIENT',
           'created_at': FieldValue.serverTimestamp(),
@@ -59,6 +61,7 @@ class AuthService {
     required String email,
     required String password,
     required String cpf,
+    required String phone,
     required String vehicleType,
   }) async {
     final credential = await _auth.createUserWithEmailAndPassword(
@@ -72,6 +75,7 @@ class AuthService {
       'name': name.trim(),
       'email': email.trim(),
       'cpf': cpf.trim(),
+      'phone': phone.trim(),
       'global_role': 'USER',
       'app_profile': 'DELIVERY',
       'created_at': FieldValue.serverTimestamp(),
@@ -114,6 +118,7 @@ class AuthService {
     required String email,
     required String password,
     required String cpf,
+    required String phone,
     required String vehicleType,
   }) async {
     final credential = await _auth.createUserWithEmailAndPassword(
@@ -127,6 +132,7 @@ class AuthService {
       'name': name.trim(),
       'email': email.trim(),
       'cpf': cpf.trim(),
+      'phone': phone.trim(),
       'global_role': 'USER',
       'app_profile': 'BOTH',
       'created_at': FieldValue.serverTimestamp(),

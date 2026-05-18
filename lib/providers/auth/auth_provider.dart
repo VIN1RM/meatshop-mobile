@@ -77,6 +77,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
     required String cpf,
+    required String phone,
   }) async {
     _errorMessage = null;
 
@@ -86,6 +87,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
         cpf: cpf,
+        phone: phone,
       );
 
       if (context.mounted) {
@@ -131,6 +133,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
     required String cpf,
+    required String phone,
     required String vehicleType,
   }) async {
     _errorMessage = null;
@@ -141,6 +144,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
         cpf: cpf,
+        phone: phone,
         vehicleType: vehicleType,
       );
 
@@ -187,6 +191,7 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
     required String cpf,
+    required String phone,
     required String vehicleType,
   }) async {
     _errorMessage = null;
@@ -197,6 +202,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
         cpf: cpf,
+        phone: phone,
         vehicleType: vehicleType,
       );
 

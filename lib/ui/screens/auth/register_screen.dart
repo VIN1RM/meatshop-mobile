@@ -122,6 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text,
         password: _passwordController.text,
         cpf: _cpfController.text,
+        phone: _phoneController.text,
       );
     } else if (isBoth) {
       await authProvider.registerBoth(
@@ -130,6 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text,
         password: _passwordController.text,
         cpf: _cpfController.text,
+        phone: _phoneController.text,
         vehicleType: _selectedVehicle!,
       );
     } else {
@@ -139,6 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text,
         password: _passwordController.text,
         cpf: _cpfController.text,
+        phone: _phoneController.text,
         vehicleType: _selectedVehicle!,
       );
     }
