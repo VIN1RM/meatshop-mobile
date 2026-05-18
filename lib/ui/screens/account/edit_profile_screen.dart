@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/ui/components/sheets/avatar_picker_sheet.dart';
-import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -13,16 +15,30 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _bg = Color(0xFF424242);
 
   final _formKey = GlobalKey<FormState>();
   bool _isSaving = false;
   File? _avatarFile;
 
-  final _nameController = TextEditingController(text: 'Ana Clara Goes');
-  final _emailController = TextEditingController(text: 'ana_clara@gmail.com');
-  final _cpfController = TextEditingController(text: '***.***.591-**');
-  final _phoneController = TextEditingController(text: '(62) 9 9567-3791');
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _cpfController = TextEditingController();
+  final _phoneController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Preenche os campos com os dados do provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<UserProvider>().user;
+      if (user != null) {
+        _nameController.text = user.name;
+        _emailController.text = user.email;
+        _cpfController.text = _maskCpf(user.cpf);
+        _phoneController.text = user.phone;
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -31,6 +47,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _cpfController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  String _maskCpf(String cpf) {
+    final digits = cpf.replaceAll(RegExp(r'\D'), '');
+    if (digits.length != 11) return cpf;
+    return '${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}-${digits.substring(9)}';
   }
 
   Future<void> _pickAvatar() async {
@@ -46,17 +68,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
 
-    if (!mounted) return;
-    setState(() => _isSaving = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Dados atualizados com sucesso!'),
-        backgroundColor: Color(0xFF22C55E),
-      ),
-    );
-    Navigator.pop(context);
+      await context.read<UserProvider>().updateUser(
+        uid: uid,
+        name: _nameController.text,
+        email: _emailController.text,
+        phone: _phoneController.text,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dados atualizados com sucesso!'),
+          backgroundColor: Color(0xFF22C55E),
+        ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao salvar. Tente novamente.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override

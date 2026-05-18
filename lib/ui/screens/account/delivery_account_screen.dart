@@ -5,6 +5,7 @@ import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/user_provider.dart';
 
 class DeliveryAccountScreen extends StatefulWidget {
   const DeliveryAccountScreen({super.key});
@@ -112,7 +113,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      provider.deliveryPersonName,
+                      context.watch<UserProvider>().user?.name ?? '—',
                       style: const TextStyle(
                         color: Color(0xFF1A1A1A),
                         fontSize: 18,
@@ -233,7 +234,6 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
             ),
           if (context.read<AuthProvider>().appProfile == AppProfile.both)
             const Divider(height: 1, color: Color(0xFFE0E0E0)),
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
           _buildLogoutRow(context, provider),
         ],
       ),

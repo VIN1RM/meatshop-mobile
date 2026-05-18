@@ -4,6 +4,7 @@ import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/user_provider.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -80,6 +81,8 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget _buildProfileCard() {
+    final user = context.watch<UserProvider>().user;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
@@ -103,10 +106,10 @@ class _AccountScreenState extends State<AccountScreen> {
                 child: const Icon(Icons.person, color: Colors.white, size: 32),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Ana Clara Goes',
-                  style: TextStyle(
+                  user?.name ?? '—',
+                  style: const TextStyle(
                     color: Color(0xFF1A1A1A),
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -120,11 +123,11 @@ class _AccountScreenState extends State<AccountScreen> {
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 14),
 
-          _infoRow('CPF:', '*** . 591 - **'),
+          _infoRow('CPF:', _maskCpf(user?.cpf)),
           const SizedBox(height: 10),
-          _infoRow('Telefone:', '(62) 9 9567 - 3791'),
+          _infoRow('Telefone:', user?.phone ?? '—'),
           const SizedBox(height: 10),
-          _infoRow('E-mail:', 'ana_clara@gmail.com'),
+          _infoRow('E-mail:', user?.email ?? '—'),
 
           const SizedBox(height: 12),
 
@@ -167,6 +170,13 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
       ),
     );
+  }
+
+  String _maskCpf(String? cpf) {
+    if (cpf == null || cpf.isEmpty) return '—';
+    final digits = cpf.replaceAll(RegExp(r'\D'), '');
+    if (digits.length != 11) return cpf;
+    return '${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}-${digits.substring(9)}';
   }
 
   Widget _buildMenuList(BuildContext context) {

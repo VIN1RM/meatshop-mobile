@@ -4,6 +4,8 @@ import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
+import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -35,6 +37,12 @@ class AuthProvider extends ChangeNotifier {
       _isAuthenticated = true;
       _appProfile = AppProfile.fromString(profileFromFirestore);
       notifyListeners();
+
+      if (context.mounted) {
+        await context.read<UserProvider>().loadUser(
+          AuthService.instance.currentUser!.uid,
+        );
+      }
 
       if (!context.mounted) return;
       _redirectAfterLogin(context);
@@ -257,6 +265,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     if (context.mounted) {
+      context.read<UserProvider>().clear();
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);

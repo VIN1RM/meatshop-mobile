@@ -51,6 +51,7 @@ Future<void> _seedUsers() async {
     'name': '',
     'email': '',
     'cpf': '',
+    'phone': '',
     'password_hash': '',
     'global_role': 'USER', // SUPER_ADMIN | USER
     'app_profile': 'CLIENT', // CLIENT | DELIVERY | BOTH
@@ -160,10 +161,7 @@ Future<void> _seedProducts() async {
     'category_ref': null, // DocumentReference
     'created_at': FieldValue.serverTimestamp(),
     // Stock embutido — evita leitura extra para exibição no catálogo
-    'stock': {
-      'quantity': 0,
-      'updated_at': FieldValue.serverTimestamp(),
-    },
+    'stock': {'quantity': 0, 'updated_at': FieldValue.serverTimestamp()},
   });
 }
 
@@ -211,11 +209,7 @@ Future<void> _seedOrders() async {
     'product_id': '',
     'product_ref': null, // DocumentReference
     // Snapshot dos dados do produto no momento do pedido
-    'product_snapshot': {
-      'name': '',
-      'unit_of_measure': '',
-      'image_url': '',
-    },
+    'product_snapshot': {'name': '', 'unit_of_measure': '', 'image_url': ''},
     'quantity': 0,
     'unit_price': 0.0,
   });
@@ -296,11 +290,7 @@ Future<void> _seedCarts() async {
   await ref.collection('items').doc('template_cart_item').set({
     'product_id': '',
     'product_ref': null, // DocumentReference
-    'product_snapshot': {
-      'name': '',
-      'image_url': '',
-      'unit_of_measure': '',
-    },
+    'product_snapshot': {'name': '', 'image_url': '', 'unit_of_measure': ''},
     'quantity': 0,
     'unit_price': 0.0,
     'added_at': FieldValue.serverTimestamp(),
