@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -26,11 +28,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool _hasNumber = false;
   bool _hasSpecialChar = false;
 
+  final _currentPasswordController = TextEditingController();
+  bool _obscureCurrent = true;
+
   @override
   void dispose() {
     _emailController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
+    _currentPasswordController.dispose();
     super.dispose();
   }
 
@@ -58,12 +64,57 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      await AuthService.instance.changePassword(
+        email: _emailController.text.trim(),
+        currentPassword: _currentPasswordController.text,
+        newPassword: _newPasswordController.text,
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      if (!mounted) return;
 
-    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Senha alterada com sucesso.'),
+          backgroundColor: Color(0xFF22C55E),
+          duration: Duration(seconds: 10),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      final message = switch (e.code) {
+        'wrong-password' => 'Senha atual incorreta.',
+        'invalid-credential' => 'Senha atual incorreta.',
+        'user-not-found' => 'Usuário não encontrado.',
+        'too-many-requests' => 'Muitas tentativas. Tente mais tarde.',
+        'weak-password' => 'A nova senha é muito fraca.',
+        'requires-recent-login' => 'Sessão expirada. Faça login novamente.',
+        _ => 'Erro ao alterar senha. Tente novamente.',
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: const Color(0xFFC0392B),
+          duration: const Duration(seconds: 6),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro inesperado. Tente novamente.'),
+          backgroundColor: Color(0xFFC0392B),
+          duration: Duration(seconds: 6),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -140,6 +191,36 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           if (v == null || v.trim().isEmpty)
                             return 'Informe o e-mail';
                           if (!v.contains('@')) return 'E-mail inválido';
+                          return null;
+                        },
+                      ),
+
+                      SizedBox(height: sh * 0.03),
+
+                      _sectionTitle('Senha Atual'),
+                      SizedBox(height: sh * 0.015),
+
+                      _buildTextField(
+                        controller: _currentPasswordController,
+                        label: 'Senha atual',
+                        hint: '••••••••',
+                        icon: Icons.lock_outline,
+                        obscureText: _obscureCurrent,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureCurrent
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: Colors.black45,
+                            size: 20,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscureCurrent = !_obscureCurrent,
+                          ),
+                        ),
+                        validator: (v) {
+                          if (v == null || v.isEmpty)
+                            return 'Informe a senha atual';
                           return null;
                         },
                       ),

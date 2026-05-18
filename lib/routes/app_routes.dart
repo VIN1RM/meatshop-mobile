@@ -38,4 +38,5 @@ class AppRoutes {
   static const String addressSchedule = '/cart/address';
   static const String recipeTips = '/recipe-tips';
   static const String recipeChat = '/recipe-chat';
+  static const String forgotPassword = '/auth/forgot_password';
 }

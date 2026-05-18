@@ -5,6 +5,7 @@ import 'package:meatshop_mobile/ui/screens/account/saved_addresses_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_payments_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/settings_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/vehicle_settings_screen.dart';
+import 'package:meatshop_mobile/ui/screens/auth/forgot_password_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/mode_selection_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_detail_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/butcher_list_screen.dart';
@@ -63,5 +64,6 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.addressSchedule: (_) => const AddressScheduleScreen(total: 0),
     AppRoutes.recipeTips: (_) => const RecipeTipsScreen(),
     AppRoutes.recipeChat: (_) => const RecipeScreen(),
+    AppRoutes.forgotPassword: (_) => const ForgotPasswordPage(),
   };
 }

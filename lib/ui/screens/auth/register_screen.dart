@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -25,9 +28,12 @@ class _RegisterPageState extends State<RegisterPage> {
   final _zipController = TextEditingController();
   final _streetController = TextEditingController();
   final _numberController = TextEditingController();
+  final _complementController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
+
+  Map<String, dynamic>? _vehicleData;
 
   String? _selectedVehicle;
   final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'ON_FOOT'];
@@ -53,6 +59,19 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _hasNumber = false;
   bool _hasSpecialChar = false;
 
+  late RegisterType _registerType;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _registerType =
+        ModalRoute.of(context)?.settings.arguments as RegisterType? ??
+        RegisterType.client;
+  }
+
+  bool get isClient => _registerType == RegisterType.client;
+  bool get isBoth => _registerType == RegisterType.both;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -64,6 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _zipController.dispose();
     _streetController.dispose();
     _numberController.dispose();
+    _complementController.dispose();
     _neighborhoodController.dispose();
     _cityController.dispose();
     _stateController.dispose();
@@ -92,12 +112,59 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!isClient && _selectedVehicle == null) {
+      setState(() {});
+      return;
+    }
     setState(() => _isLoading = true);
 
-    await Future.delayed(const Duration(seconds: 2));
+    if (!isClient && _vehicleData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Preencha os dados do veículo para continuar.'),
+          backgroundColor: Color(0xFFC0392B),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+    final authProvider = context.read<AuthProvider>();
+
+    if (isClient) {
+      await authProvider.registerClient(
+        context: context,
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        cpf: _cpfController.text,
+        phone: _phoneController.text,
+      );
+    } else if (isBoth) {
+      await authProvider.registerBoth(
+        context: context,
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        cpf: _cpfController.text,
+        phone: _phoneController.text,
+        vehicleType: _selectedVehicle!,
+        vehicleData: _vehicleData!,
+      );
+    } else {
+      await authProvider.registerDelivery(
+        context: context,
+        name: _nameController.text,
+        email: _emailController.text,
+        password: _passwordController.text,
+        cpf: _cpfController.text,
+        phone: _phoneController.text,
+        vehicleType: _selectedVehicle!,
+        vehicleData: _vehicleData!,
+      );
+    }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
@@ -136,6 +203,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     child: Icon(
                       isClient
                           ? Icons.shopping_bag_outlined
+                          : isBoth
+                          ? Icons.people_outline
                           : Icons.delivery_dining_outlined,
                       color: const Color(0xFFC0392B),
                       size: 20,
@@ -148,6 +217,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         isClient
                             ? 'Cadastro de Cliente'
+                            : isBoth
+                            ? 'Cadastro Completo'
                             : 'Cadastro de Entregador',
                         style: TextStyle(
                           color: Colors.white,
@@ -158,6 +229,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       Text(
                         isClient
                             ? 'Preencha seus dados para começar'
+                            : isBoth
+                            ? 'Preencha todos os seus dados'
                             : 'Preencha seus dados para entregar',
                         style: const TextStyle(
                           color: Colors.white54,
@@ -343,7 +416,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
 
                         SizedBox(height: sh * 0.018),
-
                         Row(
                           children: [
                             SizedBox(
@@ -372,6 +444,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                             ),
                           ],
+                        ),
+
+                        SizedBox(height: sh * 0.018),
+
+                        _buildTextField(
+                          controller: _complementController,
+                          label: 'Complemento',
+                          hint: 'Apto 12, Bloco B (opcional)',
+                          icon: Icons.home_outlined,
+                          validator: null,
                         ),
 
                         SizedBox(height: sh * 0.018),
@@ -411,7 +493,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(height: sh * 0.03),
                       ],
 
-                      if (!isClient) ...[
+                      if (!isClient || isBoth) ...[
                         _sectionTitle('Tipo de Veículo'),
                         SizedBox(height: sh * 0.015),
 
@@ -425,7 +507,24 @@ class _RegisterPageState extends State<RegisterPage> {
                           children: _vehicles.map((v) {
                             final selected = _selectedVehicle == v;
                             return GestureDetector(
-                              onTap: () => setState(() => _selectedVehicle = v),
+                              onTap: () async {
+                                final result =
+                                    await showModalBottomSheet<
+                                      Map<String, dynamic>
+                                    >(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) =>
+                                          VehicleEditModal(vehicleType: v),
+                                    );
+                                if (result != null) {
+                                  setState(() {
+                                    _selectedVehicle = v;
+                                    _vehicleData = result;
+                                  });
+                                }
+                              },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
                                 decoration: BoxDecoration(

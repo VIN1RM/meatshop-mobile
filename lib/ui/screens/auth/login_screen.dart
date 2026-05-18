@@ -116,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: Colors.white54,
+                                color: Colors.black45,
                                 size: 20,
                               ),
                               onPressed: () {
@@ -143,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: GestureDetector(
                               onTap: () => Navigator.of(
                                 context,
-                              ).pushNamed(AppRoutes.changePassword),
+                              ).pushNamed(AppRoutes.forgotPassword),
                               child: Text(
                                 'Esqueceu sua senha?',
                                 style: TextStyle(

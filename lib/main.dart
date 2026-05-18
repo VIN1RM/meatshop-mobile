@@ -9,7 +9,6 @@ import 'package:meatshop_mobile/providers/providers_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   runApp(const MeatShopApp());
 }
 
