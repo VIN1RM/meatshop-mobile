@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meatshop_mobile/models/user_model.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
+import 'package:meatshop_mobile/services/storage_service.dart';
 
 class UserService {
   UserService._();
@@ -9,16 +11,14 @@ class UserService {
   final _db = FirebaseFirestore.instance;
 
   Future<UserModel?> fetchUser(String uid) async {
-    final doc = await _db
-        .collection(FirestoreCollections.users)
-        .doc(uid)
-        .get();
+    final doc = await _db.collection(FirestoreCollections.users).doc(uid).get();
 
     if (!doc.exists || doc.data() == null) return null;
     return UserModel.fromMap(uid, doc.data()!);
   }
 
-  Future<void> updateUser(String uid, {
+  Future<void> updateUser(
+    String uid, {
     required String name,
     required String email,
     required String phone,
@@ -28,5 +28,18 @@ class UserService {
       'email': email.trim(),
       'phone': phone.trim(),
     });
+  }
+
+  Future<String> updateAvatar(String uid, File file) async {
+    final url = await StorageService.instance.uploadImage(
+      file: file,
+      path: 'users/$uid/avatar.jpg',
+    );
+
+    await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'photo_url': url,
+    });
+
+    return url;
   }
 }

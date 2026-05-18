@@ -102,8 +102,16 @@ class _AccountScreenState extends State<AccountScreen> {
                   color: const Color(0xFFBDBDBD),
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFFE0E0E0), width: 2),
+                  image: (user?.photoUrl.isNotEmpty ?? false)
+                      ? DecorationImage(
+                          image: NetworkImage(user!.photoUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child: const Icon(Icons.person, color: Colors.white, size: 32),
+                child: (user?.photoUrl.isNotEmpty ?? false)
+                    ? null
+                    : const Icon(Icons.person, color: Colors.white, size: 32),
               ),
               const SizedBox(width: 14),
               Expanded(

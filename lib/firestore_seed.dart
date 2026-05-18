@@ -52,6 +52,7 @@ Future<void> _seedUsers() async {
     'email': '',
     'cpf': '',
     'phone': '',
+    'photo_url': '',
     'password_hash': '',
     'global_role': 'USER', // SUPER_ADMIN | USER
     'app_profile': 'CLIENT', // CLIENT | DELIVERY | BOTH

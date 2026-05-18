@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/user_model.dart';
 import 'package:meatshop_mobile/services/user_service.dart';
@@ -25,8 +27,19 @@ class UserProvider extends ChangeNotifier {
     required String email,
     required String phone,
   }) async {
-    await UserService.instance.updateUser(uid, name: name, email: email, phone: phone);
+    await UserService.instance.updateUser(
+      uid,
+      name: name,
+      email: email,
+      phone: phone,
+    );
     _user = _user?.copyWith(name: name, email: email, phone: phone);
+    notifyListeners();
+  }
+
+  Future<void> updateAvatar(String uid, File file) async {
+    final url = await UserService.instance.updateAvatar(uid, file);
+    _user = _user?.copyWith(photoUrl: url);
     notifyListeners();
   }
 

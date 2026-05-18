@@ -5,6 +5,8 @@ import 'package:meatshop_mobile/ui/components/sheets/avatar_picker_sheet.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/providers/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/providers/user_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -28,7 +30,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Preenche os campos com os dados do provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<UserProvider>().user;
       if (user != null) {
@@ -58,7 +59,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _pickAvatar() async {
     final file = await AvatarPickerSheet.show(
       context,
-      hasPhoto: _avatarFile != null,
+      hasPhoto:
+          _avatarFile != null ||
+          (context.read<UserProvider>().user?.photoUrl.isNotEmpty ?? false),
       onRemove: () => setState(() => _avatarFile = null),
     );
     if (file != null) setState(() => _avatarFile = file);
@@ -78,7 +81,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         email: _emailController.text,
         phone: _phoneController.text,
       );
-
+      if (_avatarFile != null) {
+        await context.read<UserProvider>().updateAvatar(uid, _avatarFile!);
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -142,9 +147,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         children: [
                           _AvatarSection(
                             avatarFile: _avatarFile,
+                            currentPhotoUrl: context
+                                .watch<UserProvider>()
+                                .user
+                                ?.photoUrl,
                             onTap: _pickAvatar,
                           ),
-
                           SizedBox(height: sh * 0.035),
 
                           _sectionTitle('Dados Pessoais'),
@@ -366,13 +374,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 }
 
 class _AvatarSection extends StatelessWidget {
-  const _AvatarSection({required this.avatarFile, required this.onTap});
+  const _AvatarSection({
+    required this.avatarFile,
+    required this.onTap,
+    this.currentPhotoUrl,
+  });
 
   final File? avatarFile;
+  final String? currentPhotoUrl;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final hasNetworkPhoto =
+        currentPhotoUrl != null && currentPhotoUrl!.isNotEmpty;
+
     return Center(
       child: GestureDetector(
         onTap: onTap,
@@ -390,9 +406,14 @@ class _AvatarSection extends StatelessWidget {
                         image: FileImage(avatarFile!),
                         fit: BoxFit.cover,
                       )
+                    : hasNetworkPhoto
+                    ? DecorationImage(
+                        image: NetworkImage(currentPhotoUrl!),
+                        fit: BoxFit.cover,
+                      )
                     : null,
               ),
-              child: avatarFile == null
+              child: (avatarFile == null && !hasNetworkPhoto)
                   ? const Icon(Icons.person, color: Colors.white38, size: 52)
                   : null,
             ),
