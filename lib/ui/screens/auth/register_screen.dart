@@ -28,6 +28,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _zipController = TextEditingController();
   final _streetController = TextEditingController();
   final _numberController = TextEditingController();
+  final _complementController = TextEditingController();
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
@@ -82,6 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _zipController.dispose();
     _streetController.dispose();
     _numberController.dispose();
+    _complementController.dispose();
     _neighborhoodController.dispose();
     _cityController.dispose();
     _stateController.dispose();
@@ -414,7 +416,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
 
                         SizedBox(height: sh * 0.018),
-
                         Row(
                           children: [
                             SizedBox(
@@ -443,6 +444,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                             ),
                           ],
+                        ),
+
+                        SizedBox(height: sh * 0.018),
+
+                        _buildTextField(
+                          controller: _complementController,
+                          label: 'Complemento',
+                          hint: 'Apto 12, Bloco B (opcional)',
+                          icon: Icons.home_outlined,
+                          validator: null,
                         ),
 
                         SizedBox(height: sh * 0.018),
@@ -510,8 +521,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 if (result != null) {
                                   setState(() {
                                     _selectedVehicle = v;
-                                    _vehicleData =
-                                        result; 
+                                    _vehicleData = result;
                                   });
                                 }
                               },
