@@ -155,4 +155,16 @@ class AuthService {
 
     return 'BOTH';
   }
+
+  Future<void> deleteAccount({required String password}) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Usuário não autenticado.');
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: password,
+    );
+    await user.reauthenticateWithCredential(credential);
+    await _db.collection(FirestoreCollections.users).doc(user.uid).delete();
+    await user.delete();
+  }
 }

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'package:meatshop_mobile/models/user_model.dart';
 import 'package:meatshop_mobile/services/user_service.dart';
 

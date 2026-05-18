@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/version_service.dart';
+import 'package:meatshop_mobile/ui/dialogs/delete_account_dialog.dart';
 import 'package:meatshop_mobile/ui/dialogs/release_notes_dialog.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -313,40 +316,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context) {
-    showDialog(
+  Future<void> _showDeleteAccountDialog(BuildContext context) async {
+    final password = await DeleteAccountDialog.show(context);
+    if (password == null || !context.mounted) return;
+
+    await context.read<AuthProvider>().deleteAccount(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Excluir conta',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Tem certeza que deseja excluir sua conta? Essa ação não pode ser desfeita.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: Color(0xFF3A3A3A)),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'Excluir',
-              style: TextStyle(
-                color: Color(0xFFC0392B),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
+      password: password,
     );
   }
 }

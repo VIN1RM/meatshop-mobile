@@ -283,6 +283,62 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
+  Future<void> deleteAccount({
+    required BuildContext context,
+    required String password,
+  }) async {
+    try {
+      await AuthService.instance.deleteAccount(password: password);
+
+      _isAuthenticated = false;
+      _appProfile = null;
+      _activeProfile = null;
+      _errorMessage = null;
+      notifyListeners();
+
+      if (context.mounted) {
+        context.read<UserProvider>().clear();
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Sua conta foi excluída com sucesso.'),
+            backgroundColor: Color(0xFFC0392B),
+            duration: Duration(seconds: 10),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      final message = switch (e.code) {
+        'wrong-password' => 'Senha incorreta. Tente novamente.',
+        'invalid-credential' => 'Senha incorreta. Tente novamente.',
+        'too-many-requests' => 'Muitas tentativas. Tente mais tarde.',
+        'requires-recent-login' =>
+          'Sessão expirada. Faça login novamente antes de excluir.',
+        _ => 'Erro ao excluir conta. Tente novamente.',
+      };
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Não foi possível excluir',
+          message: message,
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro inesperado',
+          message: 'Não foi possível excluir sua conta. Tente novamente.',
+        );
+      }
+    }
+  }
+
   void _redirectAfterLogin(BuildContext context) {
     switch (_appProfile) {
       case AppProfile.client:
