@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:convert';
 
 class AuthService {
   AuthService._();
@@ -129,7 +129,7 @@ class AuthService {
     required String cpf,
     required String phone,
     required String vehicleType,
-    required Map<String, dynamic> vehicleData, 
+    required Map<String, dynamic> vehicleData,
   }) async {
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
@@ -210,14 +210,11 @@ class AuthService {
     String uid,
     List<File> files,
   ) async {
-    final storage = FirebaseStorage.instance;
     final urls = <String>[];
-    for (int i = 0; i < files.length; i++) {
-      final ref = storage.ref(
-        'vehicles/$uid/${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
-      );
-      await ref.putFile(files[i]);
-      urls.add(await ref.getDownloadURL());
+    for (final file in files) {
+      final bytes = await file.readAsBytes();
+      final base64Str = base64Encode(bytes);
+      urls.add('data:image/jpeg;base64,$base64Str');
     }
     return urls;
   }

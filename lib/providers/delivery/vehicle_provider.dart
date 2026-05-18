@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 class VehicleProvider extends ChangeNotifier {
   final _db = FirebaseFirestore.instance;
@@ -40,7 +41,6 @@ class VehicleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-
       final existingUrls = List<String>.from(_vehicleInfo['photo_urls'] ?? []);
       final uploadedUrls = await _uploadImages(uid, newImages);
       final allUrls = [...existingUrls, ...uploadedUrls];
@@ -86,7 +86,6 @@ class VehicleProvider extends ChangeNotifier {
     final urls = List<String>.from(_vehicleInfo['photo_urls'] ?? []);
     urls.remove(imageUrl);
 
-
     try {
       await _storage.refFromURL(imageUrl).delete();
     } catch (_) {}
@@ -105,12 +104,9 @@ class VehicleProvider extends ChangeNotifier {
   Future<List<String>> _uploadImages(String uid, List<File> files) async {
     final urls = <String>[];
     for (final file in files) {
-      final fileName =
-          'vehicles/$uid/${DateTime.now().millisecondsSinceEpoch}_${urls.length}.jpg';
-      final ref = _storage.ref().child(fileName);
-      await ref.putFile(file);
-      final url = await ref.getDownloadURL();
-      urls.add(url);
+      final bytes = await file.readAsBytes();
+      final base64Str = base64Encode(bytes);
+      urls.add('data:image/jpeg;base64,$base64Str');
     }
     return urls;
   }
