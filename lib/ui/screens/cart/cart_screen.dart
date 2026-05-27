@@ -53,8 +53,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _surface = Color(0xFF3A3A3A);
-  static const Color _white = Colors.white;
+  static const Color _surface = Color(0xFFF5F5F5);
 
   late final List<_AcougueCarrinho> _acougues;
 
@@ -181,7 +180,7 @@ class _CartScreenState extends State<CartScreen> {
                   height: 44,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF555555),
+                    color: const Color(0xFFE0E0E0),
                     border: Border.all(color: _red, width: 1.5),
                   ),
                   child: ClipOval(
@@ -190,7 +189,7 @@ class _CartScreenState extends State<CartScreen> {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => const Icon(
                         Icons.storefront_outlined,
-                        color: Colors.white38,
+                        color: Color(0xFF888888),
                         size: 22,
                       ),
                     ),
@@ -201,7 +200,7 @@ class _CartScreenState extends State<CartScreen> {
                   child: Text(
                     acougue.nome,
                     style: const TextStyle(
-                      color: _white,
+                      color: const Color(0xFF1A1A1A),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -212,11 +211,11 @@ class _CartScreenState extends State<CartScreen> {
             ),
           ),
 
-          const Divider(color: Color(0xFF555555), height: 1),
+          const Divider(color: Color(0xFFE0E0E0), height: 1),
 
           ...acougue.itens.map((item) => _buildCartItem(item, acougue)),
 
-          const Divider(color: Color(0xFF555555), height: 1),
+          const Divider(color: Color(0xFFE0E0E0), height: 1),
 
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
@@ -248,7 +247,7 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       acougue.entregaGratis ? 'R\$0,00' : 'R\$5,99',
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: Color(0xFF555555),
                         fontSize: 13,
                       ),
                     ),
@@ -260,12 +259,12 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     const Text(
                       'Subtotal',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: Color(0xFF555555), fontSize: 14),
                     ),
                     Text(
                       _formatPreco(acougue.subtotal),
                       style: const TextStyle(
-                        color: _white,
+                        color: const Color(0xFF1A1A1A),
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                       ),
@@ -299,12 +298,12 @@ class _CartScreenState extends State<CartScreen> {
                     width: 54,
                     height: 54,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF555555),
+                      color: const Color(0xFFE0E0E0),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.image_outlined,
-                      color: Colors.white24,
+                      color: const Color(0xFFBDBDBD),
                       size: 28,
                     ),
                   ),
@@ -319,7 +318,7 @@ class _CartScreenState extends State<CartScreen> {
                     Text(
                       item.nome,
                       style: const TextStyle(
-                        color: _white,
+                        color: const Color(0xFF1A1A1A),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -339,7 +338,7 @@ class _CartScreenState extends State<CartScreen> {
                           const TextSpan(
                             text: '/kg',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: Color(0xFF888888),
                               fontSize: 11,
                             ),
                           ),
@@ -370,7 +369,7 @@ class _CartScreenState extends State<CartScreen> {
                 child: Text(
                   '${item.quantidade}',
                   style: const TextStyle(
-                    color: _white,
+                    color: const Color(0xFF1A1A1A),
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -378,7 +377,7 @@ class _CartScreenState extends State<CartScreen> {
               ),
               const Text(
                 'KG',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
+                style: TextStyle(color: Color(0xFF888888), fontSize: 12),
               ),
               const SizedBox(width: 8),
 
