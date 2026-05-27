@@ -3,19 +3,15 @@ import 'dart:async';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
+import 'package:meatshop_mobile/models/unit_model.dart';
 
 class _Promocao {
   final String nome;
   final String preco;
   final String unidade;
   const _Promocao(this.nome, this.preco, this.unidade);
-}
-
-class _Acougue {
-  final String nome;
-  final double rating;
-  final String imagem;
-  const _Acougue(this.nome, this.rating, this.imagem);
 }
 
 class HomePage extends StatelessWidget {
@@ -50,12 +46,6 @@ class _HomeBodyState extends State<HomeBody> {
     _Promocao('Pernil suíno', 'R\$22,90', '/kg'),
   ];
 
-  final List<_Acougue> _acougues = const [
-    _Acougue('Master Carnes', 4.5, 'assets/images/mastercarnes.png'),
-    _Acougue('Frigorífico Goiás', 3.5, 'assets/images/frigoias.png'),
-    _Acougue('Bom Beef', 3.0, 'assets/images/bombeef.png'),
-  ];
-
   final List<Map<String, dynamic>> _cortes = const [
     {'label': 'Bovino', 'icon': Icons.looks_one},
     {'label': 'Suíno', 'icon': Icons.looks_two},
@@ -76,6 +66,7 @@ class _HomeBodyState extends State<HomeBody> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoScroll();
+      context.read<UnitProvider>().loadUnits();
     });
   }
 
@@ -365,12 +356,33 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   Widget _buildAcougues() {
-    return Column(
-      children: _acougues.map((a) => _buildAcougueItem(a)).toList(),
+    return Consumer<UnitProvider>(
+      builder: (context, provider, _) {
+        if (provider.loading) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator(color: _red)),
+          );
+        }
+        if (provider.units.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Nenhum açougue disponível.',
+              style: TextStyle(color: Colors.white38),
+            ),
+          );
+        }
+
+        final lista = provider.units.take(3).toList();
+        return Column(
+          children: lista.map((u) => _buildAcougueItemFromUnit(u)).toList(),
+        );
+      },
     );
   }
 
-  Widget _buildAcougueItem(_Acougue a) {
+  Widget _buildAcougueItemFromUnit(UnitModel u) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, AppRoutes.butcherDetail),
       child: Container(
@@ -384,30 +396,20 @@ class _HomeBodyState extends State<HomeBody> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                a.imagem,
-                width: 44,
-                height: 44,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF555555),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.storefront_outlined,
-                    color: Colors.white38,
-                    size: 22,
-                  ),
-                ),
-              ),
+              child: u.imageUrl.isNotEmpty
+                  ? Image.network(
+                      u.imageUrl,
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _unitLogoFallback(),
+                    )
+                  : _unitLogoFallback(),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                a.nome,
+                u.name,
                 style: const TextStyle(
                   color: _white,
                   fontSize: 15,
@@ -415,27 +417,27 @@ class _HomeBodyState extends State<HomeBody> {
                 ),
               ),
             ),
-            _buildStars(a.rating),
+
+            const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 18),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStars(double rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i) {
-        final filled = i < rating.floor();
-        final half = !filled && i < rating;
-        return Icon(
-          half
-              ? Icons.star_half_rounded
-              : (filled ? Icons.star_rounded : Icons.star_outline_rounded),
-          color: const Color(0xFFFFB800),
-          size: 20,
-        );
-      }),
+  Widget _unitLogoFallback() {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: const Color(0xFF555555),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Icon(
+        Icons.storefront_outlined,
+        color: Colors.white38,
+        size: 22,
+      ),
     );
   }
 

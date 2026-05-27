@@ -2,22 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/butcher_filter_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
-
-class AcougueModel {
-  final String nome;
-  final double rating;
-  final int faixaPreco;
-  final String logoAsset;
-
-  const AcougueModel({
-    required this.nome,
-    required this.rating,
-    required this.faixaPreco,
-    required this.logoAsset,
-  });
-
-  String get faixaPrecoLabel => '\$' * faixaPreco;
-}
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
+import 'package:meatshop_mobile/models/unit_model.dart';
 
 class AcouguesScreen extends StatefulWidget {
   const AcouguesScreen({super.key});
@@ -33,87 +20,33 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
   static const Color _white = Colors.white;
 
   AcougueOrdem _ordemAtual = AcougueOrdem.avaliacaoMaior;
+  final TextEditingController _searchController = TextEditingController();
 
-  final List<AcougueModel> _todos = const [
-    AcougueModel(
-      nome: 'Master Carnes',
-      rating: 5.0,
-      faixaPreco: 2,
-      logoAsset: 'assets/images/logo_master.png',
-    ),
-    AcougueModel(
-      nome: 'Frigorífico Goiás',
-      rating: 4.5,
-      faixaPreco: 3,
-      logoAsset: 'assets/images/logo_frigorifico.png',
-    ),
-    AcougueModel(
-      nome: 'Bom Beef',
-      rating: 4.0,
-      faixaPreco: 3,
-      logoAsset: 'assets/images/logo_bombeff.png',
-    ),
-    AcougueModel(
-      nome: 'Bifão Carnes',
-      rating: 4.0,
-      faixaPreco: 3,
-      logoAsset: 'assets/images/logo_bifao.png',
-    ),
-    AcougueModel(
-      nome: 'Mendes',
-      rating: 4.0,
-      faixaPreco: 2,
-      logoAsset: 'assets/images/logo_mendes.png',
-    ),
-    AcougueModel(
-      nome: 'Disk Suíno',
-      rating: 3.5,
-      faixaPreco: 2,
-      logoAsset: 'assets/images/logo_disksuino.png',
-    ),
-    AcougueModel(
-      nome: 'Rio Branco',
-      rating: 3.5,
-      faixaPreco: 2,
-      logoAsset: 'assets/images/logo_riobranco.png',
-    ),
-    AcougueModel(
-      nome: 'Casa de Carne Marcos',
-      rating: 3.0,
-      faixaPreco: 1,
-      logoAsset: 'assets/images/logo_marcos.png',
-    ),
-    AcougueModel(
-      nome: 'Filé de Ouro',
-      rating: 2.5,
-      faixaPreco: 1,
-      logoAsset: 'assets/images/logo_fileouro.png',
-    ),
-    AcougueModel(
-      nome: 'Peixaria do Ronaldão',
-      rating: 2.0,
-      faixaPreco: 1,
-      logoAsset: 'assets/images/logo_ronaldao.png',
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UnitProvider>().loadUnits();
+    });
+  }
 
-  List<AcougueModel> get _ordenados {
-    final lista = List<AcougueModel>.from(_todos);
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<UnitModel> _ordenar(List<UnitModel> lista) {
+    final copia = List<UnitModel>.from(lista);
     switch (_ordemAtual) {
       case AcougueOrdem.nomeAZ:
-        lista.sort((a, b) => a.nome.compareTo(b.nome));
+        copia.sort((a, b) => a.name.compareTo(b.name));
       case AcougueOrdem.nomeZA:
-        lista.sort((a, b) => b.nome.compareTo(a.nome));
-      case AcougueOrdem.avaliacaoMaior:
-        lista.sort((a, b) => b.rating.compareTo(a.rating));
-      case AcougueOrdem.avaliacaoMenor:
-        lista.sort((a, b) => a.rating.compareTo(b.rating));
-      case AcougueOrdem.precoMaior:
-        lista.sort((a, b) => b.faixaPreco.compareTo(a.faixaPreco));
-      case AcougueOrdem.precoMenor:
-        lista.sort((a, b) => a.faixaPreco.compareTo(b.faixaPreco));
+        copia.sort((a, b) => b.name.compareTo(a.name));
+      default:
+        break;
     }
-    return lista;
+    return copia;
   }
 
   String get _ordemLabel {
@@ -142,8 +75,6 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lista = _ordenados;
-
     return Scaffold(
       backgroundColor: _bg,
       body: Stack(
@@ -162,7 +93,6 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -219,7 +149,6 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                           ],
                         ),
                       ),
-
                       Padding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                         child: Align(
@@ -248,13 +177,31 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                           ),
                         ),
                       ),
-
                       Expanded(
-                        child: ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount: lista.length,
-                          itemBuilder: (_, i) => _buildAcougueItem(lista[i]),
+                        child: Consumer<UnitProvider>(
+                          builder: (context, provider, _) {
+                            if (provider.loading) {
+                              return const Center(
+                                child: CircularProgressIndicator(color: _red),
+                              );
+                            }
+                            if (provider.units.isEmpty) {
+                              return const Center(
+                                child: Text(
+                                  'Nenhum açougue disponível.',
+                                  style: TextStyle(color: Colors.white38),
+                                ),
+                              );
+                            }
+                            final lista = _ordenar(provider.units);
+                            return ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                              itemCount: lista.length,
+                              itemBuilder: (_, i) =>
+                                  _buildAcougueItem(lista[i]),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -268,9 +215,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
     );
   }
 
-  final TextEditingController _searchController = TextEditingController();
-
-  Widget _buildAcougueItem(AcougueModel a) {
+  Widget _buildAcougueItem(UnitModel u) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 5),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -280,73 +225,48 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: const BoxDecoration(
-              color: Color(0xFF555555),
-              shape: BoxShape.circle,
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                a.logoAsset,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(
-                  Icons.storefront_outlined,
-                  color: Colors.white38,
-                  size: 22,
-                ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: u.imageUrl.isNotEmpty
+                ? Image.network(
+                    u.imageUrl,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _logoFallback(),
+                  )
+                : _logoFallback(),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              u.name,
+              style: const TextStyle(
+                color: _white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  a.nome,
-                  style: const TextStyle(
-                    color: _white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  a.faixaPrecoLabel,
-                  style: const TextStyle(
-                    color: Colors.white38,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          _buildStars(a.rating),
+          const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 18),
         ],
       ),
     );
   }
 
-  Widget _buildStars(double rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i) {
-        final filled = i < rating.floor();
-        final half = !filled && i < rating;
-        return Icon(
-          half
-              ? Icons.star_half_rounded
-              : (filled ? Icons.star_rounded : Icons.star_outline_rounded),
-          color: const Color(0xFFFFB800),
-          size: 18,
-        );
-      }),
+  Widget _logoFallback() {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: const Color(0xFF555555),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Icon(
+        Icons.storefront_outlined,
+        color: Colors.white38,
+        size: 22,
+      ),
     );
   }
 }
