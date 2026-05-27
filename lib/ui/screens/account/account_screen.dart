@@ -4,7 +4,7 @@ import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
-import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'dart:convert';
 
 class AccountScreen extends StatefulWidget {

@@ -22,7 +22,7 @@ class DeliveryProvider extends ChangeNotifier {
       destLng: -46.6558,
       unitName: 'Açougue Central',
       unitAddress: AddressModel(
-        id: 10,
+        id: '10',
         label: 'Açougue',
         street: 'Rua das Carnes',
         number: '123',
@@ -36,7 +36,7 @@ class DeliveryProvider extends ChangeNotifier {
       unitLat: -23.5500,
       unitLng: -46.6333,
       address: AddressModel(
-        id: 1,
+        id: '1',
         label: 'Casa',
         street: 'Avenida Paulista',
         number: '1578',
@@ -57,7 +57,7 @@ class DeliveryProvider extends ChangeNotifier {
       destLng: -46.6388,
       unitName: 'Açougue do Bairro',
       unitAddress: AddressModel(
-        id: 11,
+        id: '11',
         label: 'Açougue',
         street: 'Rua das Pedras',
         number: '456',
@@ -71,7 +71,7 @@ class DeliveryProvider extends ChangeNotifier {
       unitLat: -23.5450,
       unitLng: -46.6350,
       address: AddressModel(
-        id: 2,
+        id: '2',
         label: 'Trabalho',
         street: 'Avenida Ibirapuera',
         number: '3103',
@@ -93,7 +93,7 @@ class DeliveryProvider extends ChangeNotifier {
       clientName: 'Carlos Lima',
       unitName: 'Açougue Central',
       unitAddress: AddressModel(
-        id: 12,
+        id: '12',
         label: 'Açougue',
         street: 'Rua das Carnes',
         number: '123',
@@ -105,7 +105,7 @@ class DeliveryProvider extends ChangeNotifier {
         isDefault: false,
       ),
       address: AddressModel(
-        id: 3,
+        id: '3',
         label: 'Casa',
         street: 'Rua Augusta',
         number: '789',
@@ -125,7 +125,7 @@ class DeliveryProvider extends ChangeNotifier {
       clientName: 'Ana Paula',
       unitName: 'Açougue do Bairro',
       unitAddress: AddressModel(
-        id: 13,
+        id: '13',
         label: 'Açougue',
         street: 'Rua das Pedras',
         number: '456',
@@ -137,7 +137,7 @@ class DeliveryProvider extends ChangeNotifier {
         isDefault: false,
       ),
       address: AddressModel(
-        id: 4,
+        id: '4',
         label: 'Outro',
         street: 'Alameda Santos',
         number: '321',

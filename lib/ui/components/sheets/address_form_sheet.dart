@@ -7,7 +7,7 @@ class AddressFormSheet extends StatefulWidget {
   const AddressFormSheet({super.key, this.address, required this.onSave});
 
   final AddressModel? address;
-  final void Function(AddressModel) onSave;
+  final Future<void> Function(AddressModel) onSave;
 
   @override
   State<AddressFormSheet> createState() => _AddressFormSheetState();
@@ -89,24 +89,40 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSaving = true);
-    if (!mounted) return;
 
-    widget.onSave(
-      AddressModel(
-        id: widget.address?.id ?? 0,
-        label: _labelCtrl.text.trim(),
-        street: _streetCtrl.text.trim(),
-        number: _numberCtrl.text.trim(),
-        complement: _complementCtrl.text.trim(),
-        neighborhood: _neighborhoodCtrl.text.trim(),
-        city: _cityCtrl.text.trim(),
-        state: _stateCtrl.text.trim().toUpperCase(),
-        zipCode: _zipCtrl.text.trim(),
-        isDefault: _isDefault,
-      ),
-    );
-    Navigator.pop(context);
+    setState(() => _isSaving = true);
+
+    try {
+      await widget.onSave(
+        AddressModel(
+          id: widget.address?.id ?? '',
+          label: _labelCtrl.text.trim(),
+          street: _streetCtrl.text.trim(),
+          number: _numberCtrl.text.trim(),
+          complement: _complementCtrl.text.trim(),
+          neighborhood: _neighborhoodCtrl.text.trim(),
+          city: _cityCtrl.text.trim(),
+          state: _stateCtrl.text.trim().toUpperCase(),
+          zipCode: _zipCtrl.text.trim(),
+          isDefault: _isDefault,
+        ),
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível salvar o endereço. Tente novamente.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
@@ -227,9 +243,11 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                               ),
                               LengthLimitingTextInputFormatter(2),
                             ],
-                            validator: (v) => (v == null || v.length < 2)
-                                ? 'UF inválida'
-                                : null,
+                            validator: (v) {
+                              final value = v?.trim() ?? '';
+                              if (value.length != 2) return 'UF inválida';
+                              return null;
+                            },
                           ),
                         ),
                       ],

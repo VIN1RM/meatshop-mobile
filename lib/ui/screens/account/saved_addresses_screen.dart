@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
+import 'package:provider/provider.dart';
 
 class SavedAddressesScreen extends StatefulWidget {
   const SavedAddressesScreen({super.key});
@@ -14,64 +16,34 @@ class SavedAddressesScreen extends StatefulWidget {
 
 class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _dark = Color(0xFF3A3A3A);
   static const Color _white = Colors.white;
 
-  List<AddressModel> _addresses = [
-    const AddressModel(
-      id: 1,
-      label: 'Casa',
-      street: 'Avenida Rodovanio Rodovalho',
-      number: '17',
-      complement: 'Casa cinza',
-      neighborhood: 'Bairro Eldorado',
-      city: 'Anápolis',
-      state: 'GO',
-      zipCode: '75113-460',
-      isDefault: true,
-    ),
-    const AddressModel(
-      id: 2,
-      label: 'Trabalho',
-      street: 'Rua Ângelo Teles',
-      number: 'SN',
-      complement: '',
-      neighborhood: 'Centro',
-      city: 'Anápolis',
-      state: 'GO',
-      zipCode: '75113-300',
-      isDefault: false,
-    ),
-  ];
-
-  void _setDefault(int id) {
-    setState(() {
-      _addresses = _addresses
-          .map(
-            (a) => AddressModel(
-              id: a.id,
-              label: a.label,
-              street: a.street,
-              number: a.number,
-              complement: a.complement,
-              neighborhood: a.neighborhood,
-              city: a.city,
-              state: a.state,
-              zipCode: a.zipCode,
-              isDefault: a.id == id,
-            ),
-          )
-          .toList();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = context.read<AuthProvider>().currentUser?.uid;
+      if (uid != null) {
+        context.read<AddressProvider>().load(uid);
+      }
     });
   }
 
-  void _deleteAddress(int id) {
-    setState(() {
-      _addresses.removeWhere((a) => a.id == id);
-    });
+  String? get _uid => context.read<AuthProvider>().currentUser?.uid;
+
+  void _setDefault(String id) {
+    if (_uid == null) return;
+    context.read<AddressProvider>().setDefault(_uid!, id);
+  }
+
+  void _deleteAddress(String id) {
+    if (_uid == null) return;
+    context.read<AddressProvider>().delete(_uid!, id);
   }
 
   void _openAddressSheet({AddressModel? address}) {
+    if (_uid == null) return;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -80,22 +52,12 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
       useRootNavigator: true,
       builder: (_) => AddressFormSheet(
         address: address,
-        onSave: (newAddress) {
-          setState(() {
-            if (newAddress.isDefault) {
-              _addresses = _addresses
-                  .map((a) => a.copyWith(isDefault: false))
-                  .toList();
-            }
-            if (address != null) {
-              final idx = _addresses.indexWhere((a) => a.id == address.id);
-              if (idx != -1) _addresses[idx] = newAddress;
-            } else {
-              _addresses.add(
-                newAddress.copyWith(id: DateTime.now().millisecondsSinceEpoch),
-              );
-            }
-          });
+        onSave: (newAddress) async {
+          if (address != null) {
+            await context.read<AddressProvider>().update(_uid!, newAddress);
+          } else {
+            await context.read<AddressProvider>().add(_uid!, newAddress);
+          }
         },
       ),
     );
@@ -103,8 +65,10 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<AddressProvider>();
+
     return Scaffold(
-      backgroundColor: _dark,
+      backgroundColor: const Color(0xFF3A3A3A),
       body: Stack(
         children: [
           Positioned(
@@ -126,42 +90,59 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
               children: [
                 const AppHeader(),
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        const _SectionTitle('ENDEREÇOS SALVOS'),
-                        const SizedBox(height: 6),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'Gerencie os seus endereços de entrega.',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 13,
-                            ),
+                  child: provider.loading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFC0392B),
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 20),
+                              const _SectionTitle('ENDEREÇOS SALVOS'),
+                              const SizedBox(height: 6),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'Gerencie os seus endereços de entrega.',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              if (provider.error != null)
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(
+                                    provider.error!,
+                                    style: const TextStyle(
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: 20),
+                              if (provider.addresses.isEmpty &&
+                                  !provider.loading)
+                                const _EmptyState()
+                              else
+                                ...provider.addresses.map(
+                                  (a) => _AddressCard(
+                                    address: a,
+                                    onSetDefault: () => _setDefault(a.id),
+                                    onEdit: () => _openAddressSheet(address: a),
+                                    onDelete: () => _confirmDelete(a),
+                                  ),
+                                ),
+                              const SizedBox(height: 24),
+                              _AddNewButton(onTap: () => _openAddressSheet()),
+                              const SizedBox(height: 32),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        if (_addresses.isEmpty)
-                          const _EmptyState()
-                        else
-                          ..._addresses.map(
-                            (a) => _AddressCard(
-                              address: a,
-                              onSetDefault: () => _setDefault(a.id),
-                              onEdit: () => _openAddressSheet(address: a),
-                              onDelete: () => _confirmDelete(a),
-                            ),
-                          ),
-                        const SizedBox(height: 24),
-                        _AddNewButton(onTap: () => _openAddressSheet()),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -206,11 +187,10 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
   }
 }
 
+
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title);
-
   final String title;
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -289,7 +269,6 @@ class _AddressCard extends StatelessWidget {
                         : null,
                   ),
                 ),
-
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,7 +278,7 @@ class _AddressCard extends StatelessWidget {
                           Text(
                             address.label,
                             style: const TextStyle(
-                              color: const Color(0xFF1A1A1A),
+                              color: Color(0xFF1A1A1A),
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                             ),
@@ -313,7 +292,6 @@ class _AddressCard extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: _red.withValues(alpha: 0.15),
-
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Text(
@@ -332,7 +310,7 @@ class _AddressCard extends StatelessWidget {
                       Text(
                         address.fullAddress,
                         style: const TextStyle(
-                          color: const Color(0xFF555555),
+                          color: Color(0xFF555555),
                           fontSize: 13,
                           height: 1.4,
                         ),
@@ -341,7 +319,7 @@ class _AddressCard extends StatelessWidget {
                       Text(
                         address.formattedZip,
                         style: const TextStyle(
-                          color: const Color(0xFF888888),
+                          color: Color(0xFF888888),
                           fontSize: 12,
                         ),
                       ),
@@ -352,7 +330,6 @@ class _AddressCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
@@ -371,7 +348,6 @@ class _AddressCard extends StatelessWidget {
                   label: 'Editar',
                   icon: Icons.edit_outlined,
                   color: const Color(0xFF888888),
-
                   onTap: onEdit,
                 ),
                 const SizedBox(width: 16),
@@ -428,7 +404,6 @@ class _ActionButton extends StatelessWidget {
 
 class _AddNewButton extends StatelessWidget {
   const _AddNewButton({required this.onTap});
-
   final VoidCallback onTap;
 
   @override

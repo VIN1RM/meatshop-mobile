@@ -1,5 +1,5 @@
 class AddressModel {
-  final int id;
+  final String id; 
   final String label;
   final String street;
   final String number;
@@ -24,7 +24,7 @@ class AddressModel {
   });
 
   AddressModel copyWith({
-    int? id,
+    String? id,
     String? label,
     String? street,
     String? number,
@@ -56,21 +56,22 @@ class AddressModel {
 
   String get formattedZip => 'CEP: $zipCode';
 
-  factory AddressModel.fromJson(Map<String, dynamic> json) => AddressModel(
-    id: json['id'] as int,
-    label: json['label'] as String,
-    street: json['street'] as String,
-    number: json['number'] as String,
-    complement: json['complement'] as String? ?? '',
-    neighborhood: json['neighborhood'] as String,
-    city: json['city'] as String,
-    state: json['state'] as String,
-    zipCode: json['zip_code'] as String,
-    isDefault: json['is_default'] as bool,
-  );
+  factory AddressModel.fromFirestore(String docId, Map<String, dynamic> data) {
+    return AddressModel(
+      id: docId,
+      label: data['label'] as String? ?? '',
+      street: data['street'] as String? ?? '',
+      number: data['number'] as String? ?? '',
+      complement: data['complement'] as String? ?? '',
+      neighborhood: data['neighborhood'] as String? ?? '',
+      city: data['city'] as String? ?? '',
+      state: data['state'] as String? ?? '',
+      zipCode: data['zip_code'] as String? ?? '',
+      isDefault: data['is_default'] as bool? ?? false,
+    );
+  }
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
+  Map<String, dynamic> toFirestore() => {
     'label': label,
     'street': street,
     'number': number,

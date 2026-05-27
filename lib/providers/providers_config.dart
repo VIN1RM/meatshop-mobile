@@ -1,7 +1,8 @@
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
-import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
+import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -13,5 +14,6 @@ class ProvidersConfig {
     ChangeNotifierProvider(create: (_) => UserProvider()),
     ChangeNotifierProvider(create: (_) => VehicleProvider()),
     ChangeNotifierProvider(create: (_) => UnitProvider()), 
+    ChangeNotifierProvider(create: (_) => AddressProvider()),
   ];
 }

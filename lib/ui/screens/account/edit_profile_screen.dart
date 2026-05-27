@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/ui/components/sheets/avatar_picker_sheet.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 

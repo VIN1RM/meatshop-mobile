@@ -6,7 +6,7 @@ import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
-import 'package:meatshop_mobile/providers/user_provider.dart';
+import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:provider/provider.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -22,6 +22,8 @@ class AuthProvider extends ChangeNotifier {
 
   bool get isClient => _activeProfile == AppProfile.client;
   bool get isDelivery => _activeProfile == AppProfile.delivery;
+  User? get currentUser => AuthService.instance.currentUser;
+
 
   Future<void> login({
     required BuildContext context,
