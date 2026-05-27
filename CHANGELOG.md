@@ -19,11 +19,24 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `UnitProvider`: provider com gerenciamento de estado de carregamento e erro para listagem de unidades.
 - `SplashPage`: chamada a `getIdToken()` no splash para renovação silenciosa do ID token expirado antes de restaurar a sessão.
 - `AuthProvider.restoreSession()`: método que reidrata o estado de autenticação (`_isAuthenticated`, `_appProfile`) a partir do Firestore e redireciona o usuário para a rota correta sem exigir novo login.
+- Fluxo de gerenciamento de endereços salvos do cliente integrado ao Firestore.
+- `RemoveAddressDialog`: componente dedicado para confirmação de remoção de endereço salvo.
+- Busca automática de endereço por CEP no formulário de cadastro de cliente.
 
 ### Changed
 - `HomeScreen`: seção de açougues agora exibe até 3 unidades reais do Firestore, removendo os dados mockados anteriores.
 - `AcouguesScreen`: listagem completa de açougues migrada para dados reais do Firestore, com suporte a ordenação por nome (A→Z e Z→A).
 - Usuários autenticados são redirecionados diretamente para o shell correto (cliente, entregador ou seleção de modo) ao reabrir o app, sem passar pela tela de boas-vindas ou login.
+- Fluxo de criação e edição de endereços do cliente atualizado para salvar dados de forma assíncrona no Firestore.
+- Cores dos cards padronizadas para o tema claro nas telas de carrinho, pedidos, dicas de receitas e endereços salvos.
+- Cor de fundo das telas ajustada para seguir o padrão visual da aplicação.
+- Estado de carregamento da lista de açougues atualizado para utilizar o loader padrão da aplicação.
+- Formulário de cadastro de cliente atualizado para preencher rua, bairro, cidade e UF automaticamente ao informar um CEP válido.
+
+### Fixed
+- Corrigido o fluxo de salvamento de endereços para aguardar a conclusão das operações de criação e edição antes de fechar o formulário.
+- Corrigido o fluxo de restauração de sessão para manter usuários autenticados após reiniciar o app.
+- Corrigida a ausência de preenchimento automático de endereço durante o cadastro de cliente.
 
 ---
 

@@ -6,6 +6,7 @@ import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/services/cep_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -32,6 +33,9 @@ class _RegisterPageState extends State<RegisterPage> {
   final _neighborhoodController = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
+
+  bool _isLoadingCep = false;
+  String? _cepError;
 
   Map<String, dynamic>? _vehicleData;
 
@@ -108,6 +112,38 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_hasNumber) return 'Adicione um número';
     if (!_hasSpecialChar) return 'Adicione um caractere especial';
     return null;
+  }
+
+  Future<void> _fetchCep(String raw) async {
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.length != 8) return;
+
+    setState(() {
+      _isLoadingCep = true;
+      _cepError = null;
+    });
+
+    final result = await CepService.fetch(digits);
+
+    if (!mounted) return;
+
+    result.fold(
+      onSuccess: (data) {
+        _streetController.text = data.street;
+        _neighborhoodController.text = data.neighborhood;
+        _cityController.text = data.city;
+        _stateController.text = data.state;
+
+        FocusScope.of(context).nextFocus();
+      },
+      onFailure: (message) {
+        setState(() => _cepError = message);
+      },
+    );
+
+    if (mounted) {
+      setState(() => _isLoadingCep = false);
+    }
   }
 
   void _onRegister() async {
@@ -395,9 +431,26 @@ class _RegisterPageState extends State<RegisterPage> {
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(8),
                           ],
+                          onChanged: (v) {
+                            if (v.length == 8) _fetchCep(v);
+                          },
+                          suffixIcon: _isLoadingCep
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFFC0392B),
+                                    ),
+                                  ),
+                                )
+                              : null,
                           validator: (v) {
                             if (v == null || v.isEmpty) return 'Informe o CEP';
                             if (v.length < 8) return 'CEP inválido';
+                            if (_cepError != null) return _cepError;
                             return null;
                           },
                         ),
