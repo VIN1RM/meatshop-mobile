@@ -33,6 +33,7 @@ Future<void> seedFirestore() async {
     _seedDeliveryReviews(),
     _seedSupportTickets(),
     _seedAuditLogs(),
+    _seedUniqueIndexes(),
   ]);
 
   // ignore: avoid_print
@@ -432,4 +433,9 @@ Future<void> _seedAuditLogs() async {
     'new_data': null, // Map com dados novos
     'created_at': FieldValue.serverTimestamp(),
   });
+}
+
+Future<void> _seedUniqueIndexes() async {
+  await _db.collection('unique_cpfs').doc('template').set({'user_id': ''});
+  await _db.collection('unique_phones').doc('template').set({'user_id': ''});
 }

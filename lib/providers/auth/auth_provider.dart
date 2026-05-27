@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
+import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
@@ -113,7 +114,9 @@ class AuthProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      _errorMessage = 'Erro inesperado. Tente novamente.';
+      _errorMessage = e is ApiException
+          ? e.message
+          : ApiException.fromFirestore(e);
       notifyListeners();
 
       if (context.mounted) {
@@ -173,7 +176,9 @@ class AuthProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      _errorMessage = 'Erro inesperado. Tente novamente.';
+      _errorMessage = e is ApiException
+          ? e.message
+          : ApiException.fromFirestore(e);
       notifyListeners();
 
       if (context.mounted) {
@@ -233,7 +238,9 @@ class AuthProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      _errorMessage = 'Erro inesperado. Tente novamente.';
+      _errorMessage = e is ApiException
+          ? e.message
+          : ApiException.fromFirestore(e);
       notifyListeners();
 
       if (context.mounted) {

@@ -23,6 +23,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - **Upload de foto de veículo**: upload real das fotos do veículo do entregador para o Firebase Storage durante o cadastro e edição.
 - **Dialogs centralizados**: arquivo dedicado de dialogs reutilizáveis integrado à tela de login.
 - Lógica de exibição condicional do botão "Alternar modo" no shell: visível apenas para usuários com perfil `both`.
+- Reset de senha via E-mail funcionando perfeitamente.
 
 ### Changed
 - **Foto de perfil**: migração de base64 no Firestore para upload no Firebase Storage, reduzindo o tamanho dos documentos e melhorando a performance de leitura.

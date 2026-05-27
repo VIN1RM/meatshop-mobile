@@ -294,13 +294,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         hint: '000.000.000-00',
                         icon: Icons.badge_outlined,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(11),
-                        ],
+                        inputFormatters: [CpfInputFormatter()],
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Informe o CPF';
-                          if (v.length < 11) return 'CPF inválido';
+                          if (v.replaceAll(RegExp(r'\D'), '').length < 11)
+                            return 'CPF inválido';
                           return null;
                         },
                       ),
@@ -811,6 +809,27 @@ class PhoneInputFormatter extends TextInputFormatter {
       if (i == 0) buffer.write('(');
       if (i == 2) buffer.write(') ');
       if (i == 7) buffer.write('-');
+      buffer.write(digits[i]);
+    }
+    final text = buffer.toString();
+    return newValue.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+  }
+}
+
+class CpfInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final buffer = StringBuffer();
+    for (int i = 0; i < digits.length && i < 11; i++) {
+      if (i == 3 || i == 6) buffer.write('.');
+      if (i == 9) buffer.write('-');
       buffer.write(digits[i]);
     }
     final text = buffer.toString();

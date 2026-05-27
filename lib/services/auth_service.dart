@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -37,6 +38,8 @@ class AuthService {
     required String cpf,
     required String phone,
   }) async {
+    await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
+
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -55,6 +58,12 @@ class AuthService {
           'created_at': FieldValue.serverTimestamp(),
         });
 
+    await _registerUniqueFields(
+      uid: credential.user!.uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+    );
+
     return 'CLIENT';
   }
 
@@ -67,6 +76,8 @@ class AuthService {
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
   }) async {
+    await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
+
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -83,6 +94,8 @@ class AuthService {
       'app_profile': 'DELIVERY',
       'created_at': FieldValue.serverTimestamp(),
     });
+
+    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
 
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
@@ -131,6 +144,8 @@ class AuthService {
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
   }) async {
+    await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
+
     final credential = await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -147,6 +162,8 @@ class AuthService {
       'app_profile': 'BOTH',
       'created_at': FieldValue.serverTimestamp(),
     });
+
+    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
 
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
@@ -204,6 +221,28 @@ class AuthService {
     );
     await user.reauthenticateWithCredential(credential);
     await user.updatePassword(newPassword);
+  }
+
+Future<void> _checkUniqueFields({
+    required String cpf,
+    required String phone,
+  }) async {
+    final cpfDoc = await _db.collection('unique_cpfs').doc(cpf).get();
+    if (cpfDoc.exists) throw ApiException('Este CPF já está sendo utilizado por outra conta.');
+
+    final phoneDoc = await _db.collection('unique_phones').doc(phone).get();
+    if (phoneDoc.exists) throw ApiException('Este número de celular já está sendo utilizado por outra conta.');
+  }
+
+  Future<void> _registerUniqueFields({
+    required String uid,
+    required String cpf,
+    required String phone,
+  }) async {
+    final batch = _db.batch();
+    batch.set(_db.collection('unique_cpfs').doc(cpf), {'user_id': uid});
+    batch.set(_db.collection('unique_phones').doc(phone), {'user_id': uid});
+    await batch.commit();
   }
 
   Future<List<String>> _uploadVehicleImages(
