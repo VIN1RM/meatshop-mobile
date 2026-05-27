@@ -11,6 +11,19 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.1.0] - 2026-05-27
+### Integração de Açougues com Firestore e Remoção de Dados Mockados
+
+### Added
+- `UnitModel`: modelo de dados para açougues com suporte a CNPJ, `image_url` e serialização completa (`fromMap`/`toMap`).
+- `UnitProvider`: provider com gerenciamento de estado de carregamento e erro para listagem de unidades.
+
+### Changed
+- `HomeScreen`: seção de açougues agora exibe até 3 unidades reais do Firestore, removendo os dados mockados anteriores.
+- `AcouguesScreen`: listagem completa de açougues migrada para dados reais do Firestore, com suporte a ordenação por nome (A→Z e Z→A).
+
+---
+
 ## [2.0.0] - 2026-05-18
 ### Integração Firebase, Autenticação Real e Gestão de Perfil
 
