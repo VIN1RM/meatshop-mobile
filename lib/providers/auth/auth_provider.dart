@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
@@ -286,6 +287,34 @@ class AuthProvider extends ChangeNotifier {
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    }
+  }
+
+  Future<void> restoreSession(BuildContext context, User firebaseUser) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
+
+      final profileString = doc.data()?['app_profile'] as String? ?? 'CLIENT';
+
+      _isAuthenticated = true;
+      _appProfile = AppProfile.fromString(profileString);
+      notifyListeners();
+
+      if (context.mounted) {
+        await context.read<UserProvider>().loadUser(firebaseUser.uid);
+      }
+
+      if (!context.mounted) return;
+      _redirectAfterLogin(context);
+    } catch (_) {
+      _isAuthenticated = false;
+      notifyListeners();
+      if (context.mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      }
     }
   }
 

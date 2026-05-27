@@ -1,7 +1,9 @@
-import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/welcome_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
+import 'package:provider/provider.dart';
 
 class MeatShopColors {
   MeatShopColors._();
@@ -25,16 +27,42 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  bool _isReturningUser = false;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 5), () {
-      if (!mounted) return;
+    _isReturningUser = FirebaseAuth.instance.currentUser != null;
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+
+    if (firebaseUser == null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const WelcomePage()),
       );
-    });
+      return;
+    }
+
+    try {
+      await firebaseUser.getIdToken();
+      if (!mounted) return;
+      await context.read<AuthProvider>().restoreSession(context, firebaseUser);
+    } catch (_) {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const WelcomePage()),
+        );
+      }
+    }
   }
 
   @override
@@ -42,7 +70,6 @@ class _SplashPageState extends State<SplashPage> {
     final size = MediaQuery.of(context).size;
     final sw = size.width;
     final sh = size.height;
-
     final double fontScale = (sw / 390).clamp(0.60, 1.20);
 
     return Scaffold(
@@ -57,11 +84,9 @@ class _SplashPageState extends State<SplashPage> {
               fit: BoxFit.cover,
             ),
           ),
-
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-
               children: [
                 Padding(
                   padding: EdgeInsets.only(
@@ -69,11 +94,12 @@ class _SplashPageState extends State<SplashPage> {
                     left: sw * 0.06,
                     right: sw * 0.06,
                   ),
-                  child: _WelcomeText(fontScale: fontScale),
+                  child: _WelcomeText(
+                    fontScale: fontScale,
+                    isReturningUser: _isReturningUser,
+                  ),
                 ),
-
                 const Spacer(),
-
                 Center(
                   child: MeatShopLoader(
                     color: MeatShopColors.grey500,
@@ -81,9 +107,7 @@ class _SplashPageState extends State<SplashPage> {
                     spacing: sw * 0.015,
                   ),
                 ),
-
                 const Spacer(),
-
                 Center(
                   child: Padding(
                     padding: EdgeInsets.only(bottom: sh * 0.06),
@@ -105,13 +129,19 @@ class _SplashPageState extends State<SplashPage> {
 
 class _WelcomeText extends StatelessWidget {
   final double fontScale;
-  const _WelcomeText({required this.fontScale});
+  final bool isReturningUser;
+
+  const _WelcomeText({required this.fontScale, required this.isReturningUser});
 
   @override
   Widget build(BuildContext context) {
+    final title = isReturningUser ? 'BEM VINDO\nDE VOLTA' : 'BEM VINDO';
+    final subtitle = isReturningUser
+        ? 'Que bom ter você aqui novamente!'
+        : 'Encontre os melhores cortes perto de você.';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
-
       children: [
         RichText(
           textAlign: TextAlign.center,
@@ -122,19 +152,20 @@ class _WelcomeText extends StatelessWidget {
               color: MeatShopColors.grey900,
               letterSpacing: 0.5,
             ),
-            children: const [
-              TextSpan(text: 'SEJA '),
+            children: [
+              const TextSpan(text: 'SEJA '),
               TextSpan(
-                text: 'BEM VINDO',
-                style: TextStyle(color: MeatShopColors.redPrimary),
+                text: title,
+                style: const TextStyle(color: MeatShopColors.redPrimary),
               ),
-              TextSpan(text: '!'),
+              const TextSpan(text: '!'),
             ],
           ),
         ),
         SizedBox(height: 6 * fontScale),
         Text(
-          'Sentimos sua falta.',
+          subtitle,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 18 * fontScale,
             fontWeight: FontWeight.w600,
