@@ -183,7 +183,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       child: Text(
         label,
         style: const TextStyle(
-          color: _white,
+          color: const Color(0xFFE0E0E0),
           fontSize: 16,
           fontWeight: FontWeight.w700,
         ),
@@ -248,10 +248,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     order.logoAsset,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFF555555),
+                      color: const Color(0xFFE0E0E0),
+
                       child: const Icon(
                         Icons.storefront_outlined,
-                        color: Colors.white54,
+                        color: const Color(0xFFBDBDBD),
                         size: 18,
                       ),
                     ),

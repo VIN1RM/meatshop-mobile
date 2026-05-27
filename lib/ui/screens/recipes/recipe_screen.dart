@@ -190,7 +190,7 @@ class RecipeTipsScreen extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
-          color: _cardDark,
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Padding(
@@ -214,7 +214,7 @@ class RecipeTipsScreen extends StatelessWidget {
                     Text(
                       tip.title,
                       style: const TextStyle(
-                        color: _white,
+                        color: const Color(0xFF1A1A1A),
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -223,7 +223,7 @@ class RecipeTipsScreen extends StatelessWidget {
                     Text(
                       tip.subtitle,
                       style: const TextStyle(
-                        color: Colors.white54,
+                        color: Color.fromARGB(255, 85, 85, 85),
                         fontSize: 12,
                       ),
                     ),
@@ -251,7 +251,8 @@ class RecipeTipsScreen extends StatelessWidget {
               ),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: Colors.white38,
+                color: const Color(0xFFBDBDBD),
+
                 size: 22,
               ),
             ],
