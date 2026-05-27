@@ -4,6 +4,25 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.1.0] — 27 de Maio de 2026
+### 🥩 Açougues Reais, Sessão Persistente e Endereços Melhorados
+
+### ✨ Novidades
+- **Açougues Conectados ao Firestore:** A tela inicial e a lista de açougues agora exibem unidades reais cadastradas no banco de dados, removendo os dados simulados.
+- **Sessão Mantida ao Reabrir o App:** Agora, ao fechar e abrir o aplicativo novamente, o usuário continua conectado e é direcionado automaticamente para a área correta.
+- **Endereços Salvos do Cliente:** O gerenciamento de endereços agora está integrado ao Firestore, permitindo carregar, adicionar, editar, definir como padrão e remover endereços reais.
+- **Busca Automática por CEP no Cadastro:** Ao informar um CEP válido durante o cadastro de cliente, o app preenche automaticamente rua, bairro, cidade e UF.
+- **Confirmação de Remoção de Endereço:** A remoção de endereços salvos agora possui um componente próprio de confirmação.
+
+### 📈 Melhorias
+- **Cadastro de Cliente Mais Rápido:** O formulário de cadastro ficou mais prático, preenchendo automaticamente os dados do endereço a partir do CEP informado.
+- **Fluxo de Endereços Mais Seguro:** O app agora aguarda a conclusão das operações de criação e edição de endereço antes de fechar o formulário.
+- **Cards Mais Consistentes:** As telas de carrinho, pedidos, dicas de receitas e endereços salvos receberam padronização visual nos cards.
+- **Carregamento Padronizado:** A lista de açougues agora usa o carregamento padrão do aplicativo.
+- **Fundo das Telas Padronizado:** Ajustamos a cor de fundo das telas para manter a consistência visual da aplicação.
+
+---
+
 ## [2.0.0] — 18 de Maio de 2026
 ### 🔐 Login Real, Conta Conectada e Fotos de Verdade
 
