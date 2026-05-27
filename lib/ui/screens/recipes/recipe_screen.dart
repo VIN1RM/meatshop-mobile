@@ -96,7 +96,7 @@ class RecipeTipsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: const Color(0xFF2E2E2E),
       body: Stack(
         children: [
           Positioned(

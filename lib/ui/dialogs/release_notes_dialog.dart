@@ -32,7 +32,7 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: const Color(0xFF2E2E2E),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.75,
