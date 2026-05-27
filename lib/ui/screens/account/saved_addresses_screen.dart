@@ -6,6 +6,7 @@ import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/ui/dialogs/remove_address_dialog.dart';
 
 class SavedAddressesScreen extends StatefulWidget {
   const SavedAddressesScreen({super.key});
@@ -15,8 +16,6 @@ class SavedAddressesScreen extends StatefulWidget {
 }
 
 class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
-  static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
 
   @override
   void initState() {
@@ -155,38 +154,13 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
   void _confirmDelete(AddressModel address) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF2E2E2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Remover endereço',
-          style: TextStyle(color: _white, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          'Deseja remover "${address.label}"?',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: Colors.white54),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteAddress(address.id);
-            },
-            child: const Text('Remover', style: TextStyle(color: _red)),
-          ),
-        ],
+      builder: (_) => RemoveAddressDialog(
+        address: address,
+        onConfirm: () => _deleteAddress(address.id),
       ),
     );
   }
 }
-
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title);
