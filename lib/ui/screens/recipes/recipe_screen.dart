@@ -23,7 +23,6 @@ class RecipeTipsScreen extends StatelessWidget {
   static const Color _surface = Color(0xFF3A3A3A);
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
-  static const Color _cardDark = Color(0xFF4A4A4A);
 
   static const List<_Tip> _tips = [
     _Tip(

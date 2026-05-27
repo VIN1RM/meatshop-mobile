@@ -14,8 +14,7 @@ class SavedAddressesScreen extends StatefulWidget {
 
 class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _dark = Color(0xFF2E2E2E);
-  static const Color _surface = Color(0xFF2E2E2E);
+  static const Color _dark = Color(0xFF3A3A3A);
   static const Color _white = Colors.white;
 
   List<AddressModel> _addresses = [
@@ -140,7 +139,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                           child: Text(
                             'Gerencie os seus endereços de entrega.',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: Color.fromARGB(255, 255, 255, 255),
                               fontSize: 13,
                             ),
                           ),
@@ -176,7 +175,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: _surface,
+        backgroundColor: const Color(0xFF2E2E2E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Remover endereço',
@@ -219,7 +218,7 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          color: Color(0xFFC0392B),
+          color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
@@ -243,8 +242,7 @@ class _AddressCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   static const Color _red = Color(0xFFC0392B);
-  static const Color _surface = Color(0xFF2E2E2E);
-  static const Color _white = Colors.white;
+  static const Color _surface = Color(0xFFF5F5F5);
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +269,9 @@ class _AddressCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: address.isDefault ? _red : Colors.white38,
+                        color: address.isDefault
+                            ? _red
+                            : const Color(0xFFBDBDBD),
                         width: 2,
                       ),
                     ),
@@ -299,7 +299,7 @@ class _AddressCard extends StatelessWidget {
                           Text(
                             address.label,
                             style: const TextStyle(
-                              color: _white,
+                              color: const Color(0xFF1A1A1A),
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                             ),
@@ -332,7 +332,7 @@ class _AddressCard extends StatelessWidget {
                       Text(
                         address.fullAddress,
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: const Color(0xFF555555),
                           fontSize: 13,
                           height: 1.4,
                         ),
@@ -341,7 +341,7 @@ class _AddressCard extends StatelessWidget {
                       Text(
                         address.formattedZip,
                         style: const TextStyle(
-                          color: Colors.white38,
+                          color: const Color(0xFF888888),
                           fontSize: 12,
                         ),
                       ),
@@ -351,7 +351,7 @@ class _AddressCard extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFF3A3A3A)),
+          const Divider(height: 1, color: Color(0xFFE0E0E0)),
 
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -361,7 +361,7 @@ class _AddressCard extends StatelessWidget {
                   _ActionButton(
                     label: 'Definir como padrão',
                     icon: Icons.check_circle_outline,
-                    color: Colors.white54,
+                    color: const Color(0xFF888888),
                     onTap: onSetDefault,
                   ),
                   const Spacer(),
@@ -370,7 +370,8 @@ class _AddressCard extends StatelessWidget {
                 _ActionButton(
                   label: 'Editar',
                   icon: Icons.edit_outlined,
-                  color: Colors.white54,
+                  color: const Color(0xFF888888),
+
                   onTap: onEdit,
                 ),
                 const SizedBox(width: 16),

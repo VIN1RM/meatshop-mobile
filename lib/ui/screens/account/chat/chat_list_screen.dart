@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class ChatContact {
   final String nome;
@@ -23,9 +24,7 @@ class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
   static const Color _red = Color(0xFFC0392B);
-  static const Color _pageBg = Color(0xFF2E2E2E);
-  static const Color _cardBg = Color(0xFF2E2E2E);
-  static const Color _white = Colors.white;
+  static const Color _pageBg = Color(0xFF3A3A3A);
 
   static final List<ChatContact> _chats = [
     const ChatContact(
@@ -69,29 +68,55 @@ class ChatListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _pageBg,
-      body: Column(
+      body: Stack(
         children: [
-          SizedBox(height: 90, child: Stack(fit: StackFit.expand)),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: 130,
+              child: Image.asset(
+                'assets/images/background.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: const Color(0xFF1A1A1A)),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
               children: [
-                const Text(
-                  'CHATS',
-                  style: TextStyle(
-                    color: _red,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
+                const AppHeader(),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    children: [
+                      const Text(
+                        'CHATS',
+                        style: TextStyle(
+                          color: const Color(0xFFF5F5F5),
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Suas conversas com os estabelecimentos',
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 253, 253),
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ..._chats.map((chat) => _buildChatItem(context, chat)),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Suas conversas com os estabelecimentos',
-                  style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                ..._chats.map((chat) => _buildChatItem(context, chat)),
               ],
             ),
           ),
@@ -115,7 +140,7 @@ class ChatListScreen extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: _cardBg,
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -129,7 +154,8 @@ class ChatListScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF3A3A3A),
+                      color: const Color(0xFFE0E0E0),
+
                       width: 1.5,
                     ),
                   ),
@@ -138,8 +164,13 @@ class ChatListScreen extends StatelessWidget {
                       chat.logoAsset,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFF3A3A3A),
-                        child: const Icon(Icons.store, color: _white, size: 22),
+                        color: const Color(0xFFE0E0E0),
+
+                        child: const Icon(
+                          Icons.store,
+                          color: Color(0xFFBDBDBD),
+                          size: 22,
+                        ),
                       ),
                     ),
                   ),
@@ -159,7 +190,7 @@ class ChatListScreen extends StatelessWidget {
                         child: Text(
                           '${chat.mensagensNaoLidas}',
                           style: const TextStyle(
-                            color: _white,
+                            color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -179,7 +210,7 @@ class ChatListScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: _white,
+                      color: const Color(0xFF1A1A1A),
                     ),
                   ),
                   if (chat.ultimaMensagem.isNotEmpty)
@@ -189,7 +220,7 @@ class ChatListScreen extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF9E9E9E),
+                        color: Color.fromARGB(255, 112, 112, 112),
                       ),
                     ),
                 ],
@@ -198,7 +229,7 @@ class ChatListScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               chat.horario,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E)),
+              style: const TextStyle(fontSize: 11, color: Color.fromARGB(255, 0, 0, 0)),
             ),
           ],
         ),

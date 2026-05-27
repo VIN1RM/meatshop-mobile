@@ -35,7 +35,6 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
 
   static final List<_Order> _orders = [
     _Order(
