@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'dart:async';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -361,7 +362,7 @@ class _HomeBodyState extends State<HomeBody> {
         if (provider.loading) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator(color: _red)),
+            child: Center(child: MeatShopLoader()),
           );
         }
         if (provider.units.isEmpty) {

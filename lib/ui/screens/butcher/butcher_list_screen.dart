@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/butcher_filter_sheet.dart';
+import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
@@ -181,8 +182,9 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                         child: Consumer<UnitProvider>(
                           builder: (context, provider, _) {
                             if (provider.loading) {
-                              return const Center(
-                                child: CircularProgressIndicator(color: _red),
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Center(child: MeatShopLoader()),
                               );
                             }
                             if (provider.units.isEmpty) {
