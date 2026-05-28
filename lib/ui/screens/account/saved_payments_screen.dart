@@ -127,7 +127,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
       child: Text(
         'FORMAS DE PAGAMENTO',
         style: TextStyle(
-          color: _red,
+          color: Color.fromARGB(255, 255, 255, 255),
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,

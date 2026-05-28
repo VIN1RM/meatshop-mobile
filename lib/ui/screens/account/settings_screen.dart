@@ -17,10 +17,10 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   static const Color _red = Color(0xFFC0392B);
 
-  bool _notifOrders = true;
-  bool _notifDelivery = true;
+  bool _notifOrders = false;
+  bool _notifDelivery = false;
   bool _notifPromotions = false;
-  bool _notifSystem = true;
+  bool _notifSystem = false;
   String _appVersion = '...';
 
   @override
@@ -198,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Text(
         'CONFIGURAÇÕES',
         style: TextStyle(
-          color: _red,
+          color: Color.fromARGB(255, 255, 255, 255),
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,

@@ -18,8 +18,6 @@ class DeliveryAccountScreen extends StatefulWidget {
 class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
   bool _isLoggingOut = false;
 
-  static const Color _red = Color(0xFFC0392B);
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<DeliveryProvider>();
@@ -76,7 +74,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
       child: Text(
         'MINHA CONTA',
         style: TextStyle(
-          color: _red,
+          color: Color.fromARGB(255, 255, 255, 255),
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,

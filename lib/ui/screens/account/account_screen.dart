@@ -79,7 +79,7 @@ class _AccountScreenState extends State<AccountScreen> {
       child: Text(
         'MINHA CONTA',
         style: TextStyle(
-          color: _red,
+          color: Color.fromARGB(255, 255, 255, 255),
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
@@ -139,8 +139,8 @@ class _AccountScreenState extends State<AccountScreen> {
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 14),
 
-          _infoRow('CPF:', _maskCpf(user?.cpf)),
-          const SizedBox(height: 10),
+          // _infoRow('CPF:', _maskCpf(user?.cpf)),
+          // const SizedBox(height: 10),
           _infoRow('Telefone:', user?.phone ?? '—'),
           const SizedBox(height: 10),
           _infoRow('E-mail:', user?.email ?? '—'),
@@ -186,13 +186,6 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
       ),
     );
-  }
-
-  String _maskCpf(String? cpf) {
-    if (cpf == null || cpf.isEmpty) return '—';
-    final digits = cpf.replaceAll(RegExp(r'\D'), '');
-    if (digits.length != 11) return cpf;
-    return '${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}-${digits.substring(9)}';
   }
 
   Widget _buildMenuList(BuildContext context) {
