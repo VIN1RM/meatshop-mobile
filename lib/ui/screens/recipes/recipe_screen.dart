@@ -162,7 +162,7 @@ class RecipeTipsScreen extends StatelessWidget {
           Icon(Icons.menu_book_rounded, color: _red, size: 20),
           SizedBox(width: 8),
           Text(
-            'DICAS DE RECEITAS',
+            'RECEITAS DA SEMANA',
             style: TextStyle(
               color: _white,
               fontSize: 13,

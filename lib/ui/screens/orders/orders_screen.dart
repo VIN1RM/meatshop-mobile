@@ -167,7 +167,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       child: Text(
         'PEDIDOS',
         style: TextStyle(
-          color: _red,
+          color: Color.fromARGB(255, 255, 255, 255),
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
@@ -182,7 +182,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       child: Text(
         label,
         style: const TextStyle(
-          color: const Color(0xFFE0E0E0),
+          color: Color.fromARGB(255, 255, 255, 255),
           fontSize: 16,
           fontWeight: FontWeight.w700,
         ),

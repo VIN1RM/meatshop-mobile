@@ -15,7 +15,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     with SingleTickerProviderStateMixin {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
-  static const Color _surface = Color(0xFF3A3A3A);
+  static const Color _surface = Color(0xFFF5F5F5);
   static const Color _bg = Color(0xFF2E2E2E);
 
   late TabController _tabController;
@@ -150,7 +150,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: _surface,
+          color: const Color(0xFFE8E8E8),
           borderRadius: BorderRadius.circular(12),
         ),
         child: TabBar(
@@ -162,7 +162,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
           labelColor: _white,
-          unselectedLabelColor: Colors.white54,
+          unselectedLabelColor: const Color(0xFF666666),
           labelStyle: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 14,
@@ -231,10 +231,10 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         decoration: BoxDecoration(
-          color: selected ? _red.withOpacity(0.10) : _surface,
+          color: selected ? _red : _surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? _red : const Color(0xFF555555),
+            color: selected ? _red : const Color(0xFFBDBDBD),
             width: 1.5,
           ),
         ),
@@ -248,15 +248,13 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
               height: 20,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: selected ? _red : Colors.transparent,
+                color: selected ? _white : Colors.transparent,
                 border: Border.all(
-                  color: selected ? _red : Colors.white38,
+                  color: selected ? _white : const Color(0xFFBDBDBD),
                   width: 2,
                 ),
               ),
-              child: selected
-                  ? const Icon(Icons.check, color: _white, size: 12)
-                  : null,
+              child: selected ? Icon(Icons.check, color: _red, size: 12) : null,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -271,13 +269,15 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                           vertical: 3,
                         ),
                         decoration: BoxDecoration(
-                          color: selected ? _red : const Color(0xFF555555),
+                          color: selected
+                              ? _white.withOpacity(0.25)
+                              : const Color(0xFFDDDDDD),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           address['label']!,
-                          style: const TextStyle(
-                            color: _white,
+                          style: TextStyle(
+                            color: selected ? _white : const Color(0xFF555555),
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                           ),
@@ -289,7 +289,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                   Text(
                     address['street']!,
                     style: TextStyle(
-                      color: selected ? _white : Colors.white70,
+                      color: selected ? _white : const Color(0xFF1A1A1A),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -297,25 +297,34 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                   if ((address['complement'] ?? '').isNotEmpty)
                     Text(
                       address['complement']!,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: selected
+                            ? _white.withOpacity(0.75)
+                            : const Color(0xFF777777),
                         fontSize: 12,
                       ),
                     ),
                   Text(
                     '${address['district']} · ${address['city']}',
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(
+                      color: selected
+                          ? _white.withOpacity(0.75)
+                          : const Color(0xFF777777),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
             ),
             GestureDetector(
               onTap: () {},
-              child: const Padding(
-                padding: EdgeInsets.only(left: 8),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
                 child: Icon(
                   Icons.edit_outlined,
-                  color: Colors.white38,
+                  color: selected
+                      ? _white.withOpacity(0.6)
+                      : const Color(0xFFBDBDBD),
                   size: 18,
                 ),
               ),
@@ -332,26 +341,23 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.transparent,
+          color: _surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: const Color(0xFF555555),
-            style: BorderStyle.solid,
-          ),
+          border: Border.all(color: _red.withOpacity(0.35)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(
               Icons.add_location_alt_outlined,
-              color: Colors.white38,
+              color: _red.withOpacity(0.7),
               size: 20,
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               'Adicionar novo endereço',
               style: TextStyle(
-                color: Colors.white54,
+                color: _red.withOpacity(0.8),
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -368,7 +374,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF555555)),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Column(
         children: [
@@ -376,10 +382,10 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
             Icons.timer_outlined,
             'Tempo estimado',
             '30 – 50 min',
-            Colors.white70,
+            const Color(0xFF1A1A1A),
           ),
           const SizedBox(height: 10),
-          const Divider(color: Color(0xFF4A4A4A), height: 1),
+          const Divider(color: Color(0xFFE0E0E0), height: 1),
           const SizedBox(height: 10),
           _estimateRow(
             Icons.delivery_dining,
@@ -400,12 +406,12 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   ) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white38, size: 20),
+        Icon(icon, color: const Color(0xFFBDBDBD), size: 20),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: const TextStyle(color: Color(0xFF555555), fontSize: 13),
           ),
         ),
         Text(
@@ -438,14 +444,12 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           const SizedBox(height: 14),
           _buildDatePickerButton(),
           const SizedBox(height: 24),
-          _sectionLabel('Escolha o horário'),
+          _sectionLabel('Escolha uma faixa de horários'),
           const SizedBox(height: 14),
           _buildTimeSlots(),
           if (_selectedDate != null && _selectedTime != null) ...[
             const SizedBox(height: 20),
-            _buildScheduleSummary(),
           ],
-          const SizedBox(height: 24),
         ],
       ),
     );
@@ -527,12 +531,10 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
-          color: _selectedDate != null
-              ? _red.withValues(alpha: 0.10)
-              : _surface,
+          color: _selectedDate != null ? _red : _surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: _selectedDate != null ? _red : const Color(0xFF555555),
+            color: _selectedDate != null ? _red : const Color(0xFFDDDDDD),
             width: 1.5,
           ),
         ),
@@ -540,7 +542,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           children: [
             Icon(
               Icons.calendar_month_outlined,
-              color: _selectedDate != null ? _red : Colors.white38,
+              color: _selectedDate != null ? _white : const Color(0xFFBDBDBD),
               size: 22,
             ),
             const SizedBox(width: 12),
@@ -548,7 +550,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
               child: _selectedDate == null
                   ? const Text(
                       'Toque para selecionar uma data',
-                      style: TextStyle(color: Colors.white38, fontSize: 14),
+                      style: TextStyle(color: Color(0xFF999999), fontSize: 14),
                     )
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,9 +566,12 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                           ),
                         ),
                         const SizedBox(height: 2),
-                        const Text(
+                        Text(
                           'Toque para alterar',
-                          style: TextStyle(color: Colors.white38, fontSize: 11),
+                          style: TextStyle(
+                            color: _white.withOpacity(0.7),
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
@@ -577,7 +582,11 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                   _selectedDate = null;
                   _selectedTime = null;
                 }),
-                child: const Icon(Icons.close, color: Colors.white38, size: 18),
+                child: Icon(
+                  Icons.close,
+                  color: _white.withOpacity(0.7),
+                  size: 18,
+                ),
               ),
           ],
         ),
@@ -609,14 +618,14 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                   ? _red
                   : enabled
                   ? _surface
-                  : const Color(0xFF333333),
+                  : const Color(0xFFEEEEEE),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: selected
                     ? _red
                     : enabled
-                    ? const Color(0xFF555555)
-                    : const Color(0xFF444444),
+                    ? const Color(0xFFDDDDDD)
+                    : const Color(0xFFE8E8E8),
                 width: 1.5,
               ),
             ),
@@ -629,8 +638,8 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                   color: selected
                       ? _white
                       : enabled
-                      ? Colors.white54
-                      : Colors.white24,
+                      ? const Color(0xFF555555)
+                      : const Color(0xFFBDBDBD),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -639,8 +648,8 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                     color: selected
                         ? _white
                         : enabled
-                        ? Colors.white70
-                        : Colors.white24,
+                        ? const Color(0xFF1A1A1A)
+                        : const Color(0xFFBDBDBD),
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   ),
@@ -650,58 +659,6 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           ),
         );
       },
-    );
-  }
-
-  Widget _buildScheduleSummary() {
-    final weekdays = [
-      '',
-      'Segunda',
-      'Terça',
-      'Quarta',
-      'Quinta',
-      'Sexta',
-      'Sábado',
-    ];
-    final months = [
-      '',
-      'jan',
-      'fev',
-      'mar',
-      'abr',
-      'mai',
-      'jun',
-      'jul',
-      'ago',
-      'set',
-      'out',
-      'nov',
-      'dez',
-    ];
-    final d = _selectedDate!;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _red.withOpacity(0.10),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _red.withOpacity(0.4)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.event_available, color: _red, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '${weekdays[d.weekday]}, ${d.day} de ${months[d.month]} · $_selectedTime',
-              style: const TextStyle(
-                color: _white,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -738,7 +695,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     return Text(
       text,
       style: const TextStyle(
-        color: _red,
+        color: Color.fromARGB(255, 255, 255, 255),
         fontSize: 15,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.3,

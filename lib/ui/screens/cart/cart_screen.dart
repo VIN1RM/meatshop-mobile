@@ -152,7 +152,7 @@ class _CartScreenState extends State<CartScreen> {
       child: Text(
         title,
         style: const TextStyle(
-          color: _red,
+          color: Color.fromARGB(255, 255, 255, 255),
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,

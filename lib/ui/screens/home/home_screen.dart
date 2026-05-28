@@ -126,7 +126,7 @@ class _HomeBodyState extends State<HomeBody> {
                       const SizedBox(height: 12),
                       _buildCortes(),
                       const SizedBox(height: 24),
-                      _sectionTitle('PROMOÇÕES', redTitle: true),
+                      _sectionTitle('PROMOÇÕES'),
                       const SizedBox(height: 12),
                       _buildPromocoes(),
                       const SizedBox(height: 24),
@@ -146,7 +146,7 @@ class _HomeBodyState extends State<HomeBody> {
                             child: const Text(
                               'Ver mais...',
                               style: TextStyle(
-                                color: _red,
+                                color: Color.fromARGB(255, 255, 255, 255),
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
                               ),
