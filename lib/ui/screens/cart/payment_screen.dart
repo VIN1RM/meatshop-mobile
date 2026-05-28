@@ -141,7 +141,7 @@ class _PaymentScreenState extends State<PaymentScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF3A3A3A),
+          color: const Color(0xFFE8E8E8),
           borderRadius: BorderRadius.circular(12),
         ),
         child: TabBar(
@@ -153,7 +153,7 @@ class _PaymentScreenState extends State<PaymentScreen>
           indicatorSize: TabBarIndicatorSize.tab,
           dividerColor: Colors.transparent,
           labelColor: _white,
-          unselectedLabelColor: Colors.white54,
+          unselectedLabelColor: const Color(0xFF666666),
           labelStyle: const TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 14,
@@ -909,43 +909,11 @@ class _PaymentScreenState extends State<PaymentScreen>
 
         if (_selectedBrandIndex >= 0) ...[
           const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: (brands[_selectedBrandIndex]['color'] as Color)
-                  .withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: (brands[_selectedBrandIndex]['color'] as Color)
-                    .withOpacity(0.4),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.credit_card,
-                  color: brands[_selectedBrandIndex]['color'] as Color,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Cartão ${brands[_selectedBrandIndex]['label']} selecionado',
-                  style: TextStyle(
-                    color: (brands[_selectedBrandIndex]['color'] as Color),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
+          _buildDeliveryInfoNote(
+            Icons.warning_amber_outlined,
+            'A disponibilidade da maquininha depende do entregador. Em caso de dúvida, escolha dinheiro.',
           ),
         ],
-
-        const SizedBox(height: 14),
-        _buildDeliveryInfoNote(
-          Icons.warning_amber_outlined,
-          'A disponibilidade da maquininha depende do entregador. Em caso de dúvida, escolha dinheiro.',
-        ),
       ],
     );
   }
