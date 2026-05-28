@@ -32,6 +32,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Cor de fundo das telas ajustada para seguir o padrão visual da aplicação.
 - Estado de carregamento da lista de açougues atualizado para utilizar o loader padrão da aplicação.
 - Formulário de cadastro de cliente atualizado para preencher rua, bairro, cidade e UF automaticamente ao informar um CEP válido.
+- `VehicleSettingsScreen`: lista de veículos reais do Firestore exibida por cards com foto do veículo como avatar, refresh automático após edição.
+- `VehicleEditModal`: fotos existentes renderizadas corretamente via `Image.memory` para URLs em base64; URLs mantidas/removidas transmitidas ao provider via `keptUrls`, garantindo persistência correta no Firestore.
+- `VehicleProvider`: carregamento de todos os veículos da subcoleção em vez de apenas o ativo; `updateVehicle` atualiza somente as URLs preservadas pelo usuário.
+- `SettingsScreen`: todas as notificações iniciam desativadas por padrão.
 
 ### Fixed
 - Corrigido o fluxo de salvamento de endereços para aguardar a conclusão das operações de criação e edição antes de fechar o formulário.
