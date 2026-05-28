@@ -9,8 +9,6 @@ import 'package:provider/provider.dart';
 class DeliveriesTab extends StatelessWidget {
   const DeliveriesTab({super.key});
 
-  static const Color _red = Color(0xFFC0392B);
-
   @override
   Widget build(BuildContext context) {
     return Consumer<DeliveryProvider>(
@@ -87,7 +85,7 @@ class DeliveriesTab extends StatelessWidget {
           child: Text(
             'PEDIDOS DISPONÍVEIS',
             style: TextStyle(
-              color: _red,
+              color: Color.fromARGB(255, 255, 255, 255),
               fontSize: 13,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.1,

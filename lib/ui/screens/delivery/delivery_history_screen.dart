@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
+import 'package:meatshop_mobile/ui/components/sheets/delivery_details_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 
@@ -40,7 +41,7 @@ class DeliveryHistoryScreen extends StatelessWidget {
                         child: Text(
                           'HISTÓRICO DE ENTREGAS',
                           style: TextStyle(
-                            color: Color(0xFFC0392B),
+                            color: Colors.white,
                             fontSize: 13,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.1,
@@ -75,10 +76,7 @@ class _HistoryList extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final order = orders[index];
-        return _HistoryCard(order: order);
-      },
+      itemBuilder: (_, index) => _HistoryCard(order: orders[index]),
     );
   }
 }
@@ -89,12 +87,7 @@ class _HistoryCard extends StatelessWidget {
   final DeliveryOrder order;
 
   void _showOrderDetails(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _OrderDetailsSheet(order: order),
-    );
+    DeliveryDetailsSheet.show(context, order);
   }
 
   @override
@@ -103,97 +96,15 @@ class _HistoryCard extends StatelessWidget {
       onTap: () => _showOrderDetails(context),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF2C2C2C),
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2ECC71).withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check_circle_outline,
-                      color: Color(0xFF2ECC71),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Pedido #${order.id}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          order.clientName,
-                          style: const TextStyle(
-                            color: Colors.white54,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'R\$ ${order.total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: Color(0xFF2ECC71),
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'Entregue',
-                        style: TextStyle(color: Colors.white38, fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Divider(color: Colors.white.withOpacity(0.06), height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    color: Colors.white38,
-                    size: 15,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      order.address.fullAddress,
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _CardHeader(order: order),
+            const Divider(color: Color(0xFFE0E0E0), height: 1),
+            _CardAddress(address: order.address.fullAddress),
           ],
         ),
       ),
@@ -201,155 +112,122 @@ class _HistoryCard extends StatelessWidget {
   }
 }
 
-class _OrderDetailsSheet extends StatelessWidget {
-  const _OrderDetailsSheet({required this.order});
+class _CardHeader extends StatelessWidget {
+  const _CardHeader({required this.order});
 
   final DeliveryOrder order;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF2C2C2C),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      child: Row(
         children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white12,
-                borderRadius: BorderRadius.circular(2),
-              ),
+          _StatusIcon(),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pedido #${order.id}',
+                  style: const TextStyle(
+                    color: Color(0xFF1A1A1A),
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  order.clientName,
+                  style: const TextStyle(
+                    color: Color(0xFF555555),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2ECC71).withOpacity(0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check_circle_outline,
-                  color: Color(0xFF2ECC71),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Pedido #${order.id}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Text(
-                    'Entregue',
-                    style: TextStyle(color: Color(0xFF2ECC71), fontSize: 13),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Text(
-                'R\$ ${order.total.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: Color(0xFF2ECC71),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Divider(color: Colors.white.withOpacity(0.08)),
-          const SizedBox(height: 16),
-          _DetailRow(
-            icon: Icons.person_outline,
-            label: 'Cliente',
-            value: order.clientName,
-          ),
-          const SizedBox(height: 14),
-          _DetailRow(
-            icon: Icons.location_on_outlined,
-            label: 'Endereço',
-            value: order.address.fullAddress,
-          ),
-          const SizedBox(height: 14),
-          _DetailRow(
-            icon: Icons.fastfood_outlined,
-            label: 'Itens',
-            value: order.items,
-          ),
-          const SizedBox(height: 28),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => Navigator.pop(context),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white54,
-                side: BorderSide(color: Colors.white.withOpacity(0.15)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: const Text('Fechar'),
-            ),
-          ),
+          _CardTotal(total: order.total),
         ],
       ),
     );
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
+class _StatusIcon extends StatelessWidget {
+  const _StatusIcon();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2ECC71).withOpacity(0.12),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(
+        Icons.check_circle_outline,
+        color: Color(0xFF2ECC71),
+        size: 20,
+      ),
+    );
+  }
+}
+
+class _CardTotal extends StatelessWidget {
+  const _CardTotal({required this.total});
+
+  final double total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Icon(icon, color: Colors.white38, size: 18),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ],
+        Text(
+          'R\$ ${total.toStringAsFixed(2)}',
+          style: const TextStyle(
+            color: Color(0xFF2ECC71),
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        const Text(
+          'Entregue',
+          style: TextStyle(color: Color(0xFF888888), fontSize: 11),
+        ),
       ],
+    );
+  }
+}
+
+class _CardAddress extends StatelessWidget {
+  const _CardAddress({required this.address});
+
+  final String address;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.location_on_outlined,
+            color: Color(0xFF888888),
+            size: 15,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              address,
+              style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
