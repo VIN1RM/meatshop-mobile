@@ -76,7 +76,7 @@ class _ModeSelectionPageState extends State<ModeSelectionPage>
   @override
   Widget build(BuildContext context) {
     final sh = MediaQuery.of(context).size.height;
-    final sw = MediaQuery.of(context).size.width;
+
     final halfH = sh / 2;
 
     return Scaffold(
@@ -168,11 +168,6 @@ class _HalfPanel extends StatelessWidget {
       begin: 1.0,
       end: 1.18,
     ).animate(CurvedAnimation(parent: zoomController, curve: Curves.easeInOut));
-
-    final dimAnim = Tween<double>(
-      begin: 1.0,
-      end: 0.35,
-    ).animate(CurvedAnimation(parent: zoomController, curve: Curves.easeOut));
 
     return GestureDetector(
       onTap: onTap,

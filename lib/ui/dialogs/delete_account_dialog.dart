@@ -17,7 +17,6 @@ class DeleteAccountDialog extends StatefulWidget {
 
 class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
   static const Color _red = Color(0xFFC0392B);
-  static const Color _dark = Color(0xFF1A1A1A);
 
   final _passwordController = TextEditingController();
   bool _obscure = true;

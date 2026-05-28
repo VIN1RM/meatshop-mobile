@@ -199,7 +199,7 @@ class OrderCardWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: SizedBox(
-                    height: 54,
+                    height: 48,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : onReject,
                       style: ElevatedButton.styleFrom(
@@ -213,12 +213,15 @@ class OrderCardWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text(
-                        'Recusar',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Recusar',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ),
@@ -228,7 +231,7 @@ class OrderCardWidget extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: SizedBox(
-                    height: 54,
+                    height: 48,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : onAccept,
                       style: ElevatedButton.styleFrom(
@@ -251,12 +254,15 @@ class OrderCardWidget extends StatelessWidget {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              'Aceitar entrega',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                          : const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Aceitar entrega',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
                             ),
                     ),
