@@ -162,7 +162,10 @@ class ReportsTab extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: _red.withOpacity(0.3), width: 1.5),
+                border: Border.all(
+                  color: _red.withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -250,7 +253,7 @@ class _ExportOption extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: _red.withOpacity(0.1),
+                color: _red.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: _red, size: 20),

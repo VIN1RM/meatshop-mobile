@@ -30,8 +30,8 @@ class GoalCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: isComplete
-                      ? const Color(0xFF27AE60).withOpacity(0.12)
-                      : _red.withOpacity(0.10),
+                      ? const Color(0xFF27AE60).withValues(alpha: 0.12)
+                      : _red.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(

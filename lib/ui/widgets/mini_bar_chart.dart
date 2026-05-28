@@ -38,7 +38,7 @@ class MiniBarChart extends StatelessWidget {
                           duration: const Duration(milliseconds: 500),
                           height: frac * 65,
                           decoration: BoxDecoration(
-                            color: isLast ? _red : _red.withOpacity(0.25),
+                            color: isLast ? _red : _red.withValues(alpha: 0.25),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),

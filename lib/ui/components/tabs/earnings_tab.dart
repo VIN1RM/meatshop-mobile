@@ -24,8 +24,6 @@ class EarningsTab extends StatelessWidget {
   final double todayTotal;
   final int todayDeliveries;
 
-  static const Color _red = Color(0xFFC0392B);
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -52,7 +50,7 @@ class EarningsTab extends StatelessWidget {
                 child: const Text(
                   '+ Nova meta',
                   style: TextStyle(
-                    color: _red,
+                    color: Color.fromARGB(255, 255, 255, 255),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -90,7 +88,7 @@ class EarningsTab extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: _red.withOpacity(0.25),
+            color: const Color(0xFFC0392B).withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -115,7 +113,7 @@ class EarningsTab extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -179,7 +177,7 @@ class EarningsTab extends StatelessWidget {
     return Text(
       title,
       style: const TextStyle(
-        color: _red,
+        color: Colors.white,
         fontSize: 13,
         fontWeight: FontWeight.w900,
         letterSpacing: 1.0,

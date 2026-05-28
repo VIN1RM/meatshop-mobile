@@ -18,7 +18,7 @@ class EarningRow extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: _red.withOpacity(0.08),
+              color: _red.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: const Icon(
