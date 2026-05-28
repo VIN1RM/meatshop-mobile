@@ -34,7 +34,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
               'assets/images/background.png',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) =>
-                  Container(color: const Color(0xFF1A1A1A)),
+                  Container(color: const Color(0xFF2E2E2E)),
             ),
           ),
         ),

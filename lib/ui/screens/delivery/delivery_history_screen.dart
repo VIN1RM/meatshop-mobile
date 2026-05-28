@@ -12,7 +12,7 @@ class DeliveryHistoryScreen extends StatelessWidget {
     return Consumer<DeliveryProvider>(
       builder: (context, provider, _) {
         return Material(
-          color: const Color(0xFF1A1A1A),
+          color: const Color(0xFF2E2E2E),
           child: Stack(
             children: [
               Positioned(

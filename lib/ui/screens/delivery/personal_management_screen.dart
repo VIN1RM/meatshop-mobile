@@ -177,7 +177,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFF1A1A1A),
+      color: const Color(0xFF2E2E2E),
       child: Stack(
         children: [
           Positioned(
@@ -199,11 +199,11 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
               children: [
                 const AppHeader(),
                 Container(
-                  color: const Color(0xFF1A1A1A),
+                  color: const Color(0xFF2E2E2E),
                   child: TabBar(
                     controller: _tabController,
                     labelColor: _red,
-                    unselectedLabelColor: Colors.white38,
+                    unselectedLabelColor: const Color.fromARGB(255, 255, 255, 255),
                     indicatorColor: _red,
                     indicatorWeight: 3,
                     labelStyle: const TextStyle(
