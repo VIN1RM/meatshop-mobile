@@ -19,10 +19,10 @@ class OrderCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2C),
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: Colors.black.withValues(alpha: 0.06),
           width: 1,
         ),
       ),
@@ -54,7 +54,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         'Pedido #${order.id}',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF1A1A1A),
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
@@ -62,7 +62,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         order.clientName,
                         style: const TextStyle(
-                          color: Colors.white54,
+                          color: const Color(0xFF555555),
                           fontSize: 13,
                         ),
                       ),
@@ -81,7 +81,7 @@ class OrderCardWidget extends StatelessWidget {
             ),
           ),
 
-          Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+          Divider(color: const Color(0xFFE0E0E0), height: 1),
 
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
@@ -103,7 +103,11 @@ class OrderCardWidget extends StatelessWidget {
                         size: 15,
                       ),
                     ),
-                    Container(width: 2, height: 28, color: Colors.white12),
+                    Container(
+                      width: 2,
+                      height: 28,
+                      color: const Color(0xFFE0E0E0),
+                    ),
                     Container(
                       width: 28,
                       height: 28,
@@ -128,7 +132,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         order.unitName,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF1A1A1A),
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -136,7 +140,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         '${order.unitAddress.street}, ${order.unitAddress.number} · ${order.unitAddress.neighborhood}',
                         style: const TextStyle(
-                          color: Colors.white38,
+                          color: const Color(0xFF888888),
                           fontSize: 12,
                         ),
                       ),
@@ -145,7 +149,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         order.clientName,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: const Color(0xFF1A1A1A),
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -153,7 +157,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         '${order.address.street}, ${order.address.number} · ${order.address.neighborhood}',
                         style: const TextStyle(
-                          color: Colors.white38,
+                          color: const Color(0xFF888888),
                           fontSize: 12,
                         ),
                       ),
@@ -171,20 +175,23 @@ class OrderCardWidget extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.fastfood_outlined,
-                  color: Colors.white24,
+                  color: const Color(0xFFBDBDBD),
                   size: 15,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     order.items,
-                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    style: const TextStyle(
+                      color: const Color(0xFF888888),
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+          Divider(color: const Color(0xFFE0E0E0), height: 1),
 
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),

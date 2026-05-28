@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
-import 'package:meatshop_mobile/ui//dialogs/chat_participant_dialog.dart';
+import 'package:meatshop_mobile/ui/dialogs/chat_participant_dialog.dart';
 
 class ActiveDeliveryScreen extends StatelessWidget {
   const ActiveDeliveryScreen({super.key});
@@ -21,7 +21,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
 
         final isPickup = order.step == DeliveryStep.pickup;
         return Material(
-          color: const Color(0xFF1A1A1A),
+          color: const Color(0xFF2E2E2E),
           child: SafeArea(
             child: Column(
               children: [
