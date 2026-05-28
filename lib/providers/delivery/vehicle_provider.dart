@@ -15,33 +15,46 @@ class VehicleProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  List<Map<String, dynamic>> _vehicles = [];
+  List<Map<String, dynamic>> get vehicles => _vehicles;
+
   Future<void> loadVehicle(String uid) async {
     final snap = await _db
         .collection('delivery_persons')
         .doc(uid)
         .collection('vehicles')
-        .where('is_active', isEqualTo: true)
-        .limit(1)
+        .orderBy('created_at', descending: false)
         .get();
 
-    if (snap.docs.isNotEmpty) {
-      final doc = snap.docs.first;
-      _vehicleDocId = doc.id;
-      _vehicleInfo = Map<String, dynamic>.from(doc.data());
-      notifyListeners();
+    _vehicles = snap.docs.map((doc) {
+      final data = Map<String, dynamic>.from(doc.data());
+      data['_docId'] = doc.id;
+      return data;
+    }).toList();
+
+    final active = _vehicles.where((v) => v['is_active'] == true);
+    if (active.isNotEmpty) {
+      _vehicleDocId = active.first['_docId'];
+      _vehicleInfo = active.first;
+    } else if (_vehicles.isNotEmpty) {
+      _vehicleDocId = _vehicles.first['_docId'];
+      _vehicleInfo = _vehicles.first;
     }
+
+    notifyListeners();
   }
 
   Future<void> updateVehicle({
     required String uid,
     required Map<String, String> data,
     List<File> newImages = const [],
+    List<String> keptUrls = const [],
   }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final existingUrls = List<String>.from(_vehicleInfo['photo_urls'] ?? []);
+      final existingUrls = keptUrls;
       final uploadedUrls = await _uploadImages(uid, newImages);
       final allUrls = [...existingUrls, ...uploadedUrls];
 

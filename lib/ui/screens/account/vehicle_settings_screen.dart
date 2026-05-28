@@ -4,6 +4,7 @@ import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 
 class VehicleSettingsScreen extends StatefulWidget {
   const VehicleSettingsScreen({super.key});
@@ -31,7 +32,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
     final provider = context.watch<VehicleProvider>();
 
     return Material(
-      color: const Color(0xFF1A1A1A),
+      color: const Color(0xFF2E2E2E),
       child: Stack(
         children: [
           Positioned(
@@ -63,7 +64,21 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                         const SizedBox(height: 8),
                         _pageTitle(),
                         const SizedBox(height: 20),
-                        _buildVehicleCard(context, provider),
+                        if (provider.isLoading)
+                          const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFC0392B),
+                            ),
+                          )
+                        else if (provider.vehicles.isEmpty)
+                          const Text(
+                            'Nenhum veículo cadastrado.',
+                            style: TextStyle(color: Colors.white38),
+                          )
+                        else
+                          ...provider.vehicles
+                              .map((v) => _buildVehicleCard(context, v))
+                              .toList(),
                         const SizedBox(height: 24),
                       ],
                     ),
@@ -81,7 +96,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
     return const Text(
       'CONFIGURAÇÕES DO VEÍCULO',
       style: TextStyle(
-        color: _red,
+        color: Color.fromARGB(255, 255, 255, 255),
         fontSize: 20,
         fontWeight: FontWeight.w900,
         letterSpacing: 1.2,
@@ -89,11 +104,11 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
     );
   }
 
-  Widget _buildVehicleCard(BuildContext context, VehicleProvider provider) {
+  Widget _buildVehicleCard(BuildContext context, Map<String, dynamic> vehicle) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2C),
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -108,10 +123,34 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                   color: _red.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  _iconForVehicle(provider.vehicleInfo['type'] ?? ''),
-                  color: const Color.fromARGB(255, 228, 139, 139),
-                  size: 24,
+                child: ClipOval(
+                  child: () {
+                    final photos = List<String>.from(
+                      vehicle['photo_urls'] ?? [],
+                    );
+                    if (photos.isNotEmpty) {
+                      final url = photos.first;
+                      if (url.startsWith('data:image')) {
+                        return Image.memory(
+                          base64Decode(url.split(',').last),
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                        );
+                      }
+                      return Image.network(
+                        url,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                      );
+                    }
+                    return Icon(
+                      _iconForVehicle(vehicle['type'] ?? ''),
+                      color: const Color(0xFFC0392B),
+                      size: 24,
+                    );
+                  }(),
                 ),
               ),
               const SizedBox(width: 14),
@@ -120,11 +159,11 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      provider.vehicleInfo['type']?.isNotEmpty == true
-                          ? provider.vehicleInfo['type']!
+                      vehicle['type']?.isNotEmpty == true
+                          ? vehicle['type']!
                           : 'Nenhum veículo cadastrado',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFF1A1A1A),
 
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -133,7 +172,10 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                     const SizedBox(height: 2),
                     const Text(
                       'Veículo principal',
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                      style: TextStyle(
+                        color: const Color(0xFF888888),
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -142,22 +184,30 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
           ),
 
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Colors.white12),
+          const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 16),
 
-          _infoRow('Tipo:', provider.vehicleInfo['type'] ?? '—'),
+          _infoRow('Tipo:', vehicle['type'] ?? '—'),
 
           const SizedBox(height: 18),
 
           GestureDetector(
-            onTap: () => showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => VehicleEditModal(
-                vehicleType: provider.vehicleInfo['type'] ?? 'MOTORCYCLE',
-              ),
-            ),
+            onTap: () async {
+              await showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => VehicleEditModal(
+                  vehicleType: vehicle['type'] ?? 'MOTORCYCLE',
+                ),
+              );
+              if (context.mounted) {
+                final uid = FirebaseAuth.instance.currentUser?.uid;
+                if (uid != null) {
+                  context.read<VehicleProvider>().loadVehicle(uid);
+                }
+              }
+            },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: const [
@@ -182,13 +232,13 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
   Widget _infoRow(String label, String value) {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 13, color: Colors.white54),
+        style: const TextStyle(fontSize: 13, color: const Color(0xFF555555)),
         children: [
           TextSpan(
             text: '$label ',
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: Color(0xFF1A1A1A),
             ),
           ),
           TextSpan(text: value),

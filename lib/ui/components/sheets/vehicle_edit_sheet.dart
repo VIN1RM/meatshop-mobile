@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
 
 class VehicleEditModal extends StatefulWidget {
   final String vehicleType;
@@ -85,7 +86,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
     _colorController = TextEditingController();
     _yearController = TextEditingController();
 
-  
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final info = context.read<VehicleProvider>().vehicleInfo;
       if (info.isNotEmpty) {
@@ -179,7 +179,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
-
     if (uid != null && mounted) {
       try {
         await context.read<VehicleProvider>().updateVehicle(
@@ -192,6 +191,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
             'year': _yearController.text.trim(),
           },
           newImages: _newImages,
+          keptUrls: _existingUrls,
         );
       } catch (e) {
         if (mounted) {
@@ -211,14 +211,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
     if (!mounted) return;
     setState(() => _isSaving = false);
 
-
     Navigator.pop(context, <String, dynamic>{
       'type': _selectedVehicleType!.label,
       'model': _modelController.text.trim(),
       'plate': _plateController.text.trim(),
       'color': _colorController.text.trim(),
       'year': _yearController.text.trim(),
-      'newImages': _newImages, 
+      'newImages': _newImages,
     });
   }
 
@@ -508,15 +507,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
           spacing: 8,
           runSpacing: 8,
           children: [
-         
             ..._existingUrls.asMap().entries.map((e) {
               return _photoThumb(
-                child: Image.network(e.value, fit: BoxFit.cover),
+                child: _buildImageFromUrl(e.value),
                 onRemove: () => _removeExistingImage(e.key),
               );
             }),
 
-          
             ..._newImages.asMap().entries.map((e) {
               return _photoThumb(
                 child: Image.file(e.value, fit: BoxFit.cover),
@@ -524,7 +521,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               );
             }),
 
-        
             if (totalFotos < 3)
               GestureDetector(
                 onTap: _pickImage,
@@ -553,7 +549,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   ),
                 ),
               ),
-
 
             ...List.generate(
               (3 - totalFotos - (totalFotos < 3 ? 1 : 0)).clamp(0, 3),
@@ -676,6 +671,14 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         ),
       ],
     );
+  }
+
+  Widget _buildImageFromUrl(String url) {
+    if (url.startsWith('data:image')) {
+      final base64Str = url.split(',').last;
+      return Image.memory(base64Decode(base64Str), fit: BoxFit.cover);
+    }
+    return Image.network(url, fit: BoxFit.cover);
   }
 }
 
