@@ -251,10 +251,10 @@ class _PaymentScreenState extends State<PaymentScreen>
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: selected ? _red : _surface,
+                  color: selected ? _red : const Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: selected ? _red : const Color(0xFF555555),
+                    color: selected ? _red : const Color(0xFFBDBDBD),
                     width: 1.5,
                   ),
                 ),
@@ -262,14 +262,14 @@ class _PaymentScreenState extends State<PaymentScreen>
                   children: [
                     Icon(
                       m['icon'] as IconData,
-                      color: selected ? _white : Colors.white54,
+                      color: selected ? _white : const Color(0xFF555555),
                       size: 22,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       m['label'] as String,
                       style: TextStyle(
-                        color: selected ? _white : Colors.white54,
+                        color: selected ? _white : const Color(0xFF555555),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -288,9 +288,9 @@ class _PaymentScreenState extends State<PaymentScreen>
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: _surface,
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFF555555)),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Column(
         children: [
@@ -299,7 +299,7 @@ class _PaymentScreenState extends State<PaymentScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00B5A5).withOpacity(0.15),
+                  color: const Color(0xFF00B5A5).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -316,7 +316,7 @@ class _PaymentScreenState extends State<PaymentScreen>
                     Text(
                       'Pagamento via Pix',
                       style: TextStyle(
-                        color: _white,
+                        color: Color(0xFF1A1A1A),
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
@@ -336,7 +336,7 @@ class _PaymentScreenState extends State<PaymentScreen>
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(color: Color(0xFF4A4A4A)),
+          const Divider(color: Color(0xFFE0E0E0)),
           const SizedBox(height: 12),
           _pixInfoRow(Icons.qr_code_2, 'QR Code gerado após confirmar'),
           const SizedBox(height: 10),
@@ -354,9 +354,12 @@ class _PaymentScreenState extends State<PaymentScreen>
   Widget _pixInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white54, size: 18),
+        Icon(icon, color: const Color(0xFFBDBDBD), size: 18),
         const SizedBox(width: 10),
-        Text(text, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        Text(
+          text,
+          style: const TextStyle(color: Color(0xFF555555), fontSize: 13),
+        ),
       ],
     );
   }
@@ -610,10 +613,10 @@ class _PaymentScreenState extends State<PaymentScreen>
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: selected ? _red : _surface,
+                        color: selected ? _red : const Color(0xFFF5F5F5),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: selected ? _red : const Color(0xFF555555),
+                          color: selected ? _red : const Color(0xFFBDBDBD),
                           width: 1.5,
                         ),
                       ),
@@ -621,14 +624,16 @@ class _PaymentScreenState extends State<PaymentScreen>
                         children: [
                           Icon(
                             m['icon'] as IconData,
-                            color: selected ? _white : Colors.white54,
+                            color: selected ? _white : const Color(0xFF555555),
                             size: 22,
                           ),
                           const SizedBox(height: 6),
                           Text(
                             m['label'] as String,
                             style: TextStyle(
-                              color: selected ? _white : Colors.white54,
+                              color: selected
+                                  ? _white
+                                  : const Color(0xFF555555),
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -1036,7 +1041,7 @@ class _PaymentScreenState extends State<PaymentScreen>
     return Text(
       text,
       style: const TextStyle(
-        color: _red,
+        color: Color.fromARGB(255, 255, 255, 255),
         fontSize: 15,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.3,
