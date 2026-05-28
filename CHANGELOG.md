@@ -11,6 +11,27 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.2.0] - 2026-05-XX
+### Padronização Visual, Refatorações e Melhorias de UX
+
+### Changed
+- `PaymentScreen`: padronização do estilo da aba de pagamento e dos cards de método não selecionado, garantindo consistência visual entre as opções.
+- `AddressScheduleScreen`: redesign e padronização do layout da tela de endereço e agendamento.
+- Botões com melhor responsividade e adaptação a diferentes tamanhos de tela.
+- `OrderCardWidget`: cores padronizadas para o tema claro, alinhadas ao padrão visual da `AccountScreen`.
+- `ActiveDeliveryScreen`: padronização do layout e extração do dialog de confirmação de entrega para componente dedicado.
+- `PersonalManagementScreen` (Ganhos e Relatórios): substituição de `withOpacity` depreciado por `withValues` nos widgets de ganhos e relatórios.
+
+### Added
+- `DeliveryConfirmationDialog`: dialog extraído como componente reutilizável em `ui/components/`.
+- `OrderDetailsSheet`: bottom sheet de detalhes do pedido extraído para `ui/components/sheets`, seguindo o princípio de responsabilidade única.
+- `SettingsScreen`: dialog de Termos de Uso com link externo para a página oficial.
+
+### Fixed
+- Corrigido estilo dos cards de método de pagamento não selecionados para seguir o padrão visual da tela.
+
+---
+
 ## [2.1.0] - 2026-05-27
 ### Integração de Açougues com Firestore e Remoção de Dados Mockados
 

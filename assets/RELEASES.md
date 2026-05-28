@@ -4,6 +4,23 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.2.0] — XX de Maio de 2026
+### 🎨 Visual Padronizado, Refatorações e Melhorias de UX
+
+### ✨ Novidades
+- **Termos de Uso:** Adicionamos um dialog de Termos de Uso na tela de configurações, com link direto para a página oficial.
+
+### 📈 Melhorias
+- **Tela de Pagamento Mais Consistente:** Os cards de método de pagamento e as abas da tela de pagamento foram padronizados visualmente, deixando tudo mais coeso e agradável.
+- **Tela de Endereço e Agendamento Renovada:** A tela de seleção de endereço e agendamento recebeu um redesign para melhor organização e leitura.
+- **Botões Mais Responsivos:** Os botões do app foram ajustados para se adaptar melhor a diferentes tamanhos de tela.
+- **Fundo das Telas Unificado:** A cor de fundo foi padronizada globalmente em todas as telas do aplicativo.
+- **Cards de Pedidos Padronizados:** Os cards da tela de pedidos do entregador agora seguem o mesmo padrão visual claro das demais telas.
+- **Confirmação de Entrega Aprimorada:** O dialog de confirmação de entrega foi extraído como componente independente, tornando a tela de entrega ativa mais organizada.
+- **Detalhes do Pedido Aprimorados:** O resumo de detalhes do pedido foi extraído como componente próprio, seguindo o padrão de organização do app.
+
+---
+
 ## [2.1.0] — 27 de Maio de 2026
 ### 🥩 Açougues Reais, Sessão Persistente e Endereços Melhorados
 
