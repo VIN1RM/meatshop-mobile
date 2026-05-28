@@ -8,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
 import 'package:meatshop_mobile/ui/dialogs/chat_participant_dialog.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/ui/dialogs/confirm_delivery_dialog.dart';
 
 class ActiveDeliveryScreen extends StatelessWidget {
   const ActiveDeliveryScreen({super.key});
@@ -25,7 +27,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
           child: SafeArea(
             child: Column(
               children: [
-                _ActiveDeliveryHeader(orderId: order.id, isPickup: isPickup),
+                const AppHeader(),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -140,90 +142,22 @@ class ActiveDeliveryScreen extends StatelessWidget {
     BuildContext context,
     DeliveryProvider provider,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await ConfirmDeliveryDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2C2C2C),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Retirou o pedido?',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Confirme que você retirou o pedido no açougue e está a caminho do cliente.',
-          style: TextStyle(color: Colors.white54),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: Colors.white38),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFC0392B),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
+      isPickup: true,
     );
-
-    if (confirmed == true) {
-      await provider.confirmPickup();
-    }
+    if (confirmed) await provider.confirmPickup();
   }
 
   Future<void> _onConfirmDelivery(
     BuildContext context,
     DeliveryProvider provider,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await ConfirmDeliveryDialog.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2C2C2C),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Confirmar entrega?',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Confirme apenas após entregar o pedido ao cliente.',
-          style: TextStyle(color: Colors.white54),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: Colors.white38),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFC0392B),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
+      isPickup: false,
     );
-
-    if (confirmed == true) {
-      await provider.confirmDelivery();
-    }
+    if (confirmed) await provider.confirmDelivery();
   }
 }
 
@@ -246,47 +180,6 @@ Future<void> _onOpenChat(BuildContext context, order) async {
       participantType: participant,
     ),
   );
-}
-
-class _ActiveDeliveryHeader extends StatelessWidget {
-  const _ActiveDeliveryHeader({required this.orderId, required this.isPickup});
-
-  final int orderId;
-  final bool isPickup;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      color: const Color(0xFF2C2C2C),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: const BoxDecoration(
-              color: Color(0xFF27AE60),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            isPickup ? 'Indo buscar o pedido' : 'Entrega em andamento',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const Spacer(),
-          Text(
-            '#$orderId',
-            style: const TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _StepCard extends StatelessWidget {
@@ -326,12 +219,12 @@ class _StepCard extends StatelessWidget {
       opacity: opacity,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF2C2C2C),
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isActive
                 ? accentColor.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.06),
+                : Colors.black.withValues(alpha: 0.06),
             width: isActive ? 1.5 : 1,
           ),
         ),
@@ -369,7 +262,7 @@ class _StepCard extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFF1A1A1A),
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -377,7 +270,7 @@ class _StepCard extends StatelessWidget {
                     Text(
                       '$subtitle · $neighborhood',
                       style: const TextStyle(
-                        color: Colors.white54,
+                        color: Color(0xFF888888),
                         fontSize: 12,
                       ),
                     ),
@@ -474,7 +367,9 @@ class _RouteConnector extends StatelessWidget {
                 height: 6,
                 margin: const EdgeInsets.symmetric(vertical: 2),
                 decoration: BoxDecoration(
-                  color: isPickup ? Colors.white12 : const Color(0xFF27AE60),
+                  color: isPickup
+                      ? const Color(0xFFE0E0E0)
+                      : const Color(0xFF27AE60),
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -483,7 +378,7 @@ class _RouteConnector extends StatelessWidget {
           const SizedBox(width: 14),
           Text(
             isPickup ? 'A caminho do açougue' : 'A caminho do cliente',
-            style: const TextStyle(color: Colors.white24, fontSize: 11),
+            style: const TextStyle(color: Color(0xFFBDBDBD), fontSize: 11),
           ),
         ],
       ),
@@ -502,9 +397,9 @@ class _OrderItemsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2C2C2C),
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -512,7 +407,7 @@ class _OrderItemsCard extends StatelessWidget {
           const Text(
             'ITENS DO PEDIDO',
             style: TextStyle(
-              color: Colors.white38,
+              color: Color(0xFFBDBDBD),
               fontSize: 10,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.1,
@@ -523,27 +418,30 @@ class _OrderItemsCard extends StatelessWidget {
             children: [
               const Icon(
                 Icons.fastfood_outlined,
-                color: Colors.white38,
+                color: Color(0xFFBDBDBD),
                 size: 16,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   items,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  style: const TextStyle(
+                    color: Color(0xFF555555),
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          const Divider(color: Colors.white12, height: 1),
+          const Divider(color: Color(0xFFE0E0E0), height: 1),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Total',
-                style: TextStyle(color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: Color(0xFF888888), fontSize: 13),
               ),
               Text(
                 'R\$ ${total.toStringAsFixed(2)}',
