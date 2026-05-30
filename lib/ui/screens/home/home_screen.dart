@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/providers/promotion_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'dart:async';
@@ -252,8 +253,29 @@ class _HomeBodyState extends State<HomeBody> {
                 final promo =
                     provider.promotions[i % provider.promotions.length];
                 return GestureDetector(
-                  onTap: () =>
-                      Navigator.pushNamed(context, AppRoutes.productDetail),
+                  onTap: () {
+                    final product = ProductModel(
+                      id: promo.productId,
+                      name: promo.productName.isNotEmpty
+                          ? promo.productName
+                          : promo.title,
+                      description: promo.description,
+                      price: promo.promotionalPrice,
+                      unitOfMeasure: promo.productUnitOfMeasure,
+                      active: true,
+                      brand: '',
+                      imageUrl: promo.productImageUrl,
+                      unitId: promo.unitId,
+                      unitName: '',
+                      categoryId: '',
+                      stockQuantity: 1,
+                    );
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.productDetail,
+                      arguments: product,
+                    );
+                  },
                   child: AnimatedBuilder(
                     animation: _pageController,
                     builder: (context, child) {
