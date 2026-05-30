@@ -4,12 +4,24 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [2.3.0] — XX de Junho de 2026
-### 
+## [2.3.0] — 30 de Maio de 2026
+### 🛒 Carrinho Real, Açougues com Produtos e Promoções do Banco de Dados
+
+### ✨ Novidades
+- **Carrinho Conectado à Sua Conta:** O carrinho agora exibe os produtos reais que você adicionou, diretamente do banco de dados. Nada mais é simulado — tudo que aparece lá é o que você escolheu de verdade.
+- **Produtos Reais no Açougue:** Ao entrar na página de um açougue, você agora vê os produtos reais cadastrados por ele, com foto, preço e unidade de medida vindos diretamente do sistema.
+- **Promoções do Açougue em Destaque:** Caso o açougue tenha promoções ativas, elas aparecem em um carrossel especial no topo da página, com badge de desconto e acesso direto ao produto.
+- **Nome do Açougue nos Cortes:** Na listagem de cortes, cada produto agora exibe o nome do açougue ao qual pertence, logo abaixo do nome do produto.
+
+### 📈 Melhorias
+- **Carrinho Organizado por Açougue:** Os itens do carrinho são agrupados automaticamente por estabelecimento, facilitando a visualização do que você vai pedir de cada lugar.
+- **Remover Item do Carrinho:** Adicionamos um botão de remoção individual em cada item do carrinho, sem precisar zerar a quantidade.
+- **Navegação pelo Carrossel de Promoções:** Tocar em uma promoção na tela inicial agora leva direto para a tela do produto com todos os detalhes corretos.
+- **Foto e Localização do Açougue:** A tela de detalhes do açougue agora exibe a foto real, o nome e a cidade cadastrados no banco de dados.
 
 ---
 
-## [2.2.0] — XX de Maio de 2026
+## [2.2.0] — 28 de Maio de 2026
 ### 🎨 Visual Padronizado, Refatorações e Melhorias de UX
 
 ### ✨ Novidades
