@@ -4,6 +4,11 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.3.0] — XX de Junho de 2026
+### 
+
+---
+
 ## [2.2.0] — XX de Maio de 2026
 ### 🎨 Visual Padronizado, Refatorações e Melhorias de UX
 

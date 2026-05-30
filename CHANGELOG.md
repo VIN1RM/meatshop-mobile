@@ -11,7 +11,13 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.2.0] - 2026-05-XX
+## [2.3.0] - 2026-06-XX
+### 
+
+
+---
+
+## [2.2.0] - 2026-05-29
 ### Padronização Visual, Refatorações e Melhorias de UX
 
 ### Changed
