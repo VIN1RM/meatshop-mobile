@@ -1,48 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/cart_item_model.dart';
+import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
-
-class _CartItem {
-  final String nome;
-  final String preco;
-  final String imagemAsset;
-  int quantidade;
-
-  _CartItem({
-    required this.nome,
-    required this.preco,
-    required this.imagemAsset,
-    this.quantidade = 1,
-  });
-
-  double get precoNumerico {
-    final cleaned = preco
-        .replaceAll('R\$', '')
-        .replaceAll('.', '')
-        .replaceAll(',', '.');
-    return double.tryParse(cleaned) ?? 0;
-  }
-
-  double get subtotal => precoNumerico * quantidade;
-}
-
-class _AcougueCarrinho {
-  final String nome;
-  final double rating;
-  final String logoAsset;
-  final List<_CartItem> itens;
-  final bool entregaGratis;
-
-  const _AcougueCarrinho({
-    required this.nome,
-    required this.rating,
-    required this.logoAsset,
-    required this.itens,
-    this.entregaGratis = false,
-  });
-
-  double get subtotal => itens.fold(0, (sum, i) => sum + i.subtotal);
-}
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -55,44 +17,15 @@ class _CartScreenState extends State<CartScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _surface = Color(0xFFF5F5F5);
 
-  late final List<_AcougueCarrinho> _acougues;
-
   @override
   void initState() {
     super.initState();
-    _acougues = [
-      _AcougueCarrinho(
-        nome: 'Master Carnes',
-        rating: 5,
-        logoAsset: 'assets/images/logo_master.png',
-        entregaGratis: true,
-        itens: [
-          _CartItem(
-            nome: 'Picanha angus',
-            preco: 'R\$150,00',
-            imagemAsset: 'assets/images/picanha.png',
-          ),
-          _CartItem(
-            nome: 'Lombo suíno',
-            preco: 'R\$35,98',
-            imagemAsset: 'assets/images/lombo.png',
-            quantidade: 2,
-          ),
-        ],
-      ),
-      _AcougueCarrinho(
-        nome: 'Frigorífico Goiás',
-        rating: 4,
-        logoAsset: 'assets/images/logo_frigorifico.png',
-        itens: [
-          _CartItem(
-            nome: 'Filé de Tilápia',
-            preco: 'R\$73,48',
-            imagemAsset: 'assets/images/peixe.png',
-          ),
-        ],
-      ),
-    ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = context.read<AuthProvider>().currentUser?.uid;
+      if (uid != null) {
+        context.read<CartProvider>().loadCart();
+      }
+    });
   }
 
   @override
@@ -119,23 +52,68 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               children: [
                 const AppHeader(),
-
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        _sectionTitle('CARRINHO'),
-                        const SizedBox(height: 16),
+                  child: Consumer<CartProvider>(
+                    builder: (_, provider, __) {
+                      if (provider.isLoading) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFC0392B),
+                          ),
+                        );
+                      }
 
-                        ..._acougues.map(_buildAcougueSection),
-                        const SizedBox(height: 24),
-                        _buildFinalizarButton(),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+                      if (provider.error != null) {
+                        return Center(
+                          child: Text(
+                            provider.error!,
+                            style: const TextStyle(color: Colors.white54),
+                          ),
+                        );
+                      }
+
+                      if (provider.items.isEmpty) {
+                        return const Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.shopping_cart_outlined,
+                                color: Colors.white24,
+                                size: 64,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'Seu carrinho está vazio',
+                                style: TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            _sectionTitle('CARRINHO'),
+                            const SizedBox(height: 16),
+                            ...provider.itemsByUnit.entries.map(
+                              (e) =>
+                                  _buildUnitSection(provider, e.key, e.value),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildFinalizarButton(provider),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -152,7 +130,7 @@ class _CartScreenState extends State<CartScreen> {
       child: Text(
         title,
         style: const TextStyle(
-          color: Color.fromARGB(255, 255, 255, 255),
+          color: Colors.white,
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
@@ -161,7 +139,16 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildAcougueSection(_AcougueCarrinho acougue) {
+  Widget _buildUnitSection(
+    CartProvider provider,
+    String unitId,
+    List<CartItemModel> itens,
+  ) {
+    final unitName = itens.first.unitName.isNotEmpty
+        ? itens.first.unitName
+        : 'Açougue';
+    final subtotal = itens.fold<double>(0, (s, i) => s + i.subtotal);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -183,93 +170,45 @@ class _CartScreenState extends State<CartScreen> {
                     color: const Color(0xFFE0E0E0),
                     border: Border.all(color: _red, width: 1.5),
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      acougue.logoAsset,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.storefront_outlined,
-                        color: Color(0xFF888888),
-                        size: 22,
-                      ),
-                    ),
+                  child: const Icon(
+                    Icons.storefront_outlined,
+                    color: Color(0xFF888888),
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    acougue.nome,
+                    unitName,
                     style: const TextStyle(
-                      color: const Color(0xFF1A1A1A),
+                      color: Color(0xFF1A1A1A),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
-                _buildStars(acougue.rating),
               ],
             ),
           ),
-
           const Divider(color: Color(0xFFE0E0E0), height: 1),
-
-          ...acougue.itens.map((item) => _buildCartItem(item, acougue)),
-
+          ...itens.map((item) => _buildCartItem(provider, item)),
           const Divider(color: Color(0xFFE0E0E0), height: 1),
-
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.delivery_dining,
-                          color: Color(0xFF4CAF50),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          acougue.entregaGratis
-                              ? 'Entrega Grátis'
-                              : 'Taxa de entrega',
-                          style: const TextStyle(
-                            color: Color(0xFF4CAF50),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      acougue.entregaGratis ? 'R\$0,00' : 'R\$5,99',
-                      style: const TextStyle(
-                        color: Color(0xFF555555),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'Subtotal',
+                  style: TextStyle(color: Color(0xFF555555), fontSize: 14),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Subtotal',
-                      style: TextStyle(color: Color(0xFF555555), fontSize: 14),
-                    ),
-                    Text(
-                      _formatPreco(acougue.subtotal),
-                      style: const TextStyle(
-                        color: const Color(0xFF1A1A1A),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'R\$${subtotal.toStringAsFixed(2).replaceAll('.', ',')}',
+                  style: const TextStyle(
+                    color: Color(0xFF1A1A1A),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -279,7 +218,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(_CartItem item, _AcougueCarrinho acougue) {
+  Widget _buildCartItem(CartProvider provider, CartItemModel item) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
       child: Column(
@@ -289,36 +228,27 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset(
-                  item.imagemAsset,
+                child: SizedBox(
                   width: 54,
                   height: 54,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0E0E0),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.image_outlined,
-                      color: const Color(0xFFBDBDBD),
-                      size: 28,
-                    ),
-                  ),
+                  child: item.productImageUrl.isNotEmpty
+                      ? Image.network(
+                          item.productImageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _imageFallback(),
+                        )
+                      : _imageFallback(),
                 ),
               ),
               const SizedBox(width: 12),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.nome,
+                      item.productName,
                       style: const TextStyle(
-                        color: const Color(0xFF1A1A1A),
+                        color: Color(0xFF1A1A1A),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -328,16 +258,16 @@ class _CartScreenState extends State<CartScreen> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: item.preco,
+                            text: item.precoFormatado,
                             style: const TextStyle(
                               color: _red,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const TextSpan(
-                            text: '/kg',
-                            style: TextStyle(
+                          TextSpan(
+                            text: '/${item.unitOfMeasure}',
+                            style: const TextStyle(
                               color: Color(0xFF888888),
                               fontSize: 11,
                             ),
@@ -348,44 +278,51 @@ class _CartScreenState extends State<CartScreen> {
                   ],
                 ),
               ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: Color(0xFFAAAAAA),
+                  size: 20,
+                ),
+                onPressed: () => provider.removeItem(item.productId),
+              ),
             ],
           ),
-
           const SizedBox(height: 10),
           Row(
             children: [
               const SizedBox(width: 66),
-
               _QtyButton(
                 icon: Icons.remove,
-                onTap: () {
-                  setState(() {
-                    if (item.quantidade > 1) item.quantidade--;
-                  });
-                },
+                onTap: () => provider.updateQuantity(
+                  item.productId,
+                  item.quantity - 0.5,
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  '${item.quantidade}',
+                  item.quantity % 1 == 0
+                      ? item.quantity.toInt().toString()
+                      : item.quantity.toStringAsFixed(1),
                   style: const TextStyle(
-                    color: const Color(0xFF1A1A1A),
+                    color: Color(0xFF1A1A1A),
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const Text(
-                'KG',
-                style: TextStyle(color: Color(0xFF888888), fontSize: 12),
+              Text(
+                item.unitOfMeasure.toUpperCase(),
+                style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
               ),
               const SizedBox(width: 8),
-
               _QtyButton(
                 icon: Icons.add,
-                onTap: () {
-                  setState(() => item.quantidade++);
-                },
+                onTap: () => provider.updateQuantity(
+                  item.productId,
+                  item.quantity + 0.5,
+                ),
               ),
             ],
           ),
@@ -395,19 +332,18 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildFinalizarButton() {
-    final total = _acougues.fold<double>(0, (s, a) => s + a.subtotal);
+  Widget _buildFinalizarButton(CartProvider provider) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AddressScheduleScreen(total: total),
+            builder: (_) => AddressScheduleScreen(total: provider.total),
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFC0392B),
+          backgroundColor: _red,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(
@@ -424,7 +360,7 @@ class _CartScreenState extends State<CartScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              '· ${_formatPreco(total)}',
+              '· R\$${provider.total.toStringAsFixed(2).replaceAll('.', ',')}',
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
@@ -433,31 +369,15 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildStars(double rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i) {
-        final filled = i < rating.floor();
-        final half = !filled && i < rating;
-        return Icon(
-          half
-              ? Icons.star_half_rounded
-              : (filled ? Icons.star_rounded : Icons.star_outline_rounded),
-          color: const Color(0xFFFFB800),
-          size: 18,
-        );
-      }),
+  Widget _imageFallback() {
+    return Container(
+      color: const Color(0xFFE0E0E0),
+      child: const Icon(
+        Icons.image_outlined,
+        color: Color(0xFFBDBDBD),
+        size: 28,
+      ),
     );
-  }
-
-  String _formatPreco(double valor) {
-    final s = valor.toStringAsFixed(2).replaceAll('.', ',');
-    final parts = s.split(',');
-    final inteiro = parts[0].replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (m) => '${m[1]}.',
-    );
-    return 'R\$$inteiro,${parts[1]}';
   }
 }
 
