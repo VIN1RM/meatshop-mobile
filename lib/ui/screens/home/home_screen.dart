@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/promotion_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'dart:async';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
@@ -7,13 +8,6 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
-
-class _Promocao {
-  final String nome;
-  final String preco;
-  final String unidade;
-  const _Promocao(this.nome, this.preco, this.unidade);
-}
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -33,19 +27,6 @@ class _HomeBodyState extends State<HomeBody> {
   static const Color _surface = Color.fromARGB(255, 58, 58, 58);
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
-
-  final List<_Promocao> _promocoes = const [
-    _Promocao('Picanha', 'R\$58,99', '/kg'),
-    _Promocao('Peito de frango', 'R\$9,99', '/kg'),
-    _Promocao('Lombo suíno', 'R\$17,99', '/kg'),
-    _Promocao('Costela bovina', 'R\$42,90', '/kg'),
-    _Promocao('Filé de tilápia', 'R\$29,99', '/kg'),
-    _Promocao('Fraldinha', 'R\$54,90', '/kg'),
-    _Promocao('Linguiça toscana', 'R\$19,99', '/kg'),
-    _Promocao('Alcatra', 'R\$49,90', '/kg'),
-    _Promocao('Sobrecoxa', 'R\$12,99', '/kg'),
-    _Promocao('Pernil suíno', 'R\$22,90', '/kg'),
-  ];
 
   final List<Map<String, dynamic>> _cortes = const [
     {'label': 'Bovino', 'icon': Icons.looks_one},
@@ -68,6 +49,7 @@ class _HomeBodyState extends State<HomeBody> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoScroll();
       context.read<UnitProvider>().loadUnits();
+      context.read<PromotionProvider>().loadPromotions();
     });
   }
 
@@ -235,124 +217,169 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   Widget _buildPromocoes() {
-    final imagens = [
-      'assets/images/picanha.png',
-      'assets/images/peitodefrango.png',
-      'assets/images/lombo.png',
-      'assets/images/costelabovina.png',
-      'assets/images/filetilapia.png',
-      'assets/images/fraldinha.png',
-      'assets/images/toscana.png',
-      'assets/images/alcatra.png',
-      'assets/images/sobrecoxa.png',
-      'assets/images/pernilsuino.png',
-    ];
+    return Consumer<PromotionProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return const SizedBox(
+            height: 210,
+            child: Center(
+              child: CircularProgressIndicator(color: Color(0xFFC0392B)),
+            ),
+          );
+        }
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 16),
-      child: SizedBox(
-        height: 210,
-        child: PageView.builder(
-          controller: _pageController,
-          padEnds: false,
-          itemCount: null,
-          itemBuilder: (context, i) {
-            final p = _promocoes[i % _promocoes.length];
-            final img = imagens[i % imagens.length];
-            return GestureDetector(
-              onTap: () =>
-                  Navigator.pushNamed(context, AppRoutes.productDetail),
-              child: AnimatedBuilder(
-                animation: _pageController,
-                builder: (context, child) {
-                  double scale = 1.0;
-                  if (_pageController.position.haveDimensions) {
-                    final diff = (_pageController.page! - i).abs();
-                    scale = (1 - diff * 0.08).clamp(0.88, 1.0);
-                  }
-                  return Transform.scale(scale: scale, child: child);
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4A4A4A),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(16),
-                          ),
-                          child: Container(
-                            color: Colors.white,
-                            width: double.infinity,
-                            child: img.isNotEmpty
-                                ? Image.asset(
-                                    img,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) =>
-                                        _placeholderCard(p.nome),
-                                  )
-                                : _placeholderCard(p.nome),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: p.nome,
-                                      style: const TextStyle(
-                                        color: _white,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: ' ${p.unidade}',
-                                      style: const TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Text(
-                              p.preco,
-                              style: const TextStyle(
-                                color: _red,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        if (provider.promotions.isEmpty) {
+          return const SizedBox(
+            height: 210,
+            child: Center(
+              child: Text(
+                'Nenhuma promoção disponível',
+                style: TextStyle(color: Colors.white38),
               ),
-            );
-          },
-        ),
-      ),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: SizedBox(
+            height: 210,
+            child: PageView.builder(
+              controller: _pageController,
+              padEnds: false,
+              itemCount: null,
+              itemBuilder: (context, i) {
+                final promo =
+                    provider.promotions[i % provider.promotions.length];
+                return GestureDetector(
+                  onTap: () =>
+                      Navigator.pushNamed(context, AppRoutes.productDetail),
+                  child: AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      double scale = 1.0;
+                      if (_pageController.position.haveDimensions) {
+                        final diff = (_pageController.page! - i).abs();
+                        scale = (1 - diff * 0.08).clamp(0.88, 1.0);
+                      }
+                      return Transform.scale(scale: scale, child: child);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4A4A4A),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                  child: Container(
+                                    color: Colors.white,
+                                    width: double.infinity,
+                                    child: promo.productImageUrl.isNotEmpty
+                                        ? Image.network(
+                                            promo.productImageUrl,
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (_, __, ___) =>
+                                                _placeholderCard(
+                                                  promo.productName,
+                                                ),
+                                          )
+                                        : _placeholderCard(promo.productName),
+                                  ),
+                                ),
+
+                                if (promo.discountPercentage > 0)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFC0392B),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        promo.descontoLabel,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    promo.productName.isNotEmpty
+                                        ? promo.productName
+                                        : promo.title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: promo.precoFormatado,
+                                        style: const TextStyle(
+                                          color: Color(0xFFC0392B),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: '/${promo.productUnitOfMeasure}',
+                                        style: const TextStyle(
+                                          color: Colors.white54,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
