@@ -10,6 +10,7 @@ class ProductModel {
   final String brand;
   final String imageUrl;
   final String unitId;
+  final String unitName;
   final String categoryId;
   final int stockQuantity;
   final DateTime? createdAt;
@@ -24,6 +25,7 @@ class ProductModel {
     required this.brand,
     required this.imageUrl,
     required this.unitId,
+    required this.unitName,
     required this.categoryId,
     required this.stockQuantity,
     this.createdAt,
@@ -51,9 +53,26 @@ class ProductModel {
       brand: (data['brand'] as String?) ?? '',
       imageUrl: (data['image_url'] as String?) ?? '',
       unitId: (data['unit_id'] as String?) ?? '',
+      unitName: '',
       categoryId: (data['category_id'] as String?) ?? '',
       stockQuantity: qty,
       createdAt: (data['created_at'] as Timestamp?)?.toDate(),
     );
   }
+
+  ProductModel copyWith({String? unitName}) => ProductModel(
+    id: id,
+    name: name,
+    description: description,
+    price: price,
+    unitOfMeasure: unitOfMeasure,
+    active: active,
+    brand: brand,
+    imageUrl: imageUrl,
+    unitId: unitId,
+    unitName: unitName ?? this.unitName,
+    categoryId: categoryId,
+    stockQuantity: stockQuantity,
+    createdAt: createdAt,
+  );
 }

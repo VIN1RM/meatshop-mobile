@@ -331,13 +331,28 @@ class _CutsViewState extends State<_CutsView> {
             ),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                product.name,
-                style: const TextStyle(
-                  color: _white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    product.name,
+                    style: const TextStyle(
+                      color: _white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    product.unitName,
+                    style: const TextStyle(
+                      color: Colors.white38,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ),
             Padding(
@@ -348,7 +363,7 @@ class _CutsViewState extends State<_CutsView> {
                     TextSpan(
                       text: product.precoFormatado,
                       style: const TextStyle(
-                        color: _red,
+                        color: Color.fromARGB(255, 255, 255, 255),
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),

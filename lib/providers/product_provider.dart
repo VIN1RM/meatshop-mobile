@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:meatshop_mobile/services/unit_service.dart';
 import '../models/product_model.dart';
 import '../services/product_service.dart';
 import '../services/category_service.dart';
@@ -124,7 +125,8 @@ class ProductsProvider extends ChangeNotifier {
         startAfter: _lastDoc,
         searchQuery: _searchQuery,
       );
-      _items.addAll(page.items);
+      final resolved = await _resolveUnitNames(page.items);
+      _items.addAll(resolved);
       _lastDoc = page.lastDoc;
       _hasMore = page.hasMore;
       _error = null;
@@ -157,5 +159,19 @@ class ProductsProvider extends ChangeNotifier {
     _sortOrder = order;
     _priceRange = range;
     notifyListeners();
+  }
+
+  Future<List<ProductModel>> _resolveUnitNames(List<ProductModel> items) async {
+    final ids = items.map((p) => p.unitId).where((id) => id.isNotEmpty).toSet();
+    final Map<String, String> nameCache = {};
+    for (final id in ids) {
+      try {
+        final unit = await UnitService().getUnitById(id);
+        if (unit != null) nameCache[id] = unit.name;
+      } catch (_) {}
+    }
+    return items
+        .map((p) => p.copyWith(unitName: nameCache[p.unitId] ?? ''))
+        .toList();
   }
 }
