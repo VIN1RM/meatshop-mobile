@@ -434,7 +434,8 @@ class _HomeBodyState extends State<HomeBody> {
 
   Widget _buildAcougueItemFromUnit(UnitModel u) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, AppRoutes.butcherDetail),
+      onTap: () =>
+          Navigator.pushNamed(context, AppRoutes.butcherDetail, arguments: u),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

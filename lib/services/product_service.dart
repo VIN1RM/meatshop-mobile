@@ -94,4 +94,32 @@ class ProductService {
       hasMore: snapshot.docs.length == _pageSize,
     );
   }
+
+  Future<ProductPage> fetchByUnitId({
+    required String unitId,
+    DocumentSnapshot? startAfter,
+  }) async {
+    Query query = _db
+        .collection('products')
+        .where('unit_id', isEqualTo: unitId)
+        .where('active', isEqualTo: true)
+        .orderBy('name')
+        .limit(50);
+
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
+    final snapshot = await query.get();
+    final items = snapshot.docs
+        .map((doc) => ProductModel.fromFirestore(doc))
+        .where((p) => p.name.isNotEmpty && p.stockQuantity > 0)
+        .toList();
+
+    return ProductPage(
+      items: items,
+      lastDoc: snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+      hasMore: false,
+    );
+  }
 }

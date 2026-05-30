@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/butcher_filter_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
@@ -218,40 +219,44 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
   }
 
   Widget _buildAcougueItem(UnitModel u) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: u.imageUrl.isNotEmpty
-                ? Image.network(
-                    u.imageUrl,
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _logoFallback(),
-                  )
-                : _logoFallback(),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              u.name,
-              style: const TextStyle(
-                color: _white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+    return GestureDetector(
+      onTap: () =>
+          Navigator.pushNamed(context, AppRoutes.butcherDetail, arguments: u),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: u.imageUrl.isNotEmpty
+                  ? Image.network(
+                      u.imageUrl,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _logoFallback(),
+                    )
+                  : _logoFallback(),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                u.name,
+                style: const TextStyle(
+                  color: _white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 18),
-        ],
+            const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 18),
+          ],
+        ),
       ),
     );
   }

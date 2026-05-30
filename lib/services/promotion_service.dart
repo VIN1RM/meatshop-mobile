@@ -50,4 +50,30 @@ class PromotionService {
       return promo;
     }
   }
+
+  Future<List<PromotionModel>> fetchActivePromotionsByUnit({
+    required String unitId,
+    int limit = 10,
+  }) async {
+    final now = Timestamp.now();
+
+    final snap = await _db
+        .collection('promotions')
+        .where('unit_id', isEqualTo: unitId)
+        .where('active', isEqualTo: true)
+        .where('ends_at', isGreaterThanOrEqualTo: now)
+        .orderBy('ends_at')
+        .limit(limit)
+        .get();
+
+    final promotions = snap.docs
+        .map((doc) => PromotionModel.fromFirestore(doc))
+        .toList();
+
+    final enriched = await Future.wait(
+      promotions.map((promo) => _enrichWithProduct(promo)),
+    );
+
+    return enriched;
+  }
 }

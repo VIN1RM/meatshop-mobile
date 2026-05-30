@@ -1,54 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/product_model.dart';
+import 'package:meatshop_mobile/models/unit_model.dart';
+import 'package:meatshop_mobile/providers/unit/butcher_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/models/butcher_product_model.dart';
+import 'package:provider/provider.dart';
 
 class ButcherDetailScreen extends StatelessWidget {
   const ButcherDetailScreen({super.key});
 
   static const Color _red = Color(0xFFBE2C1B);
   static const Color _pageBg = Color(0xFFEFEFEF);
+
+  @override
+  Widget build(BuildContext context) {
+    final unit = ModalRoute.of(context)?.settings.arguments as UnitModel?;
+
+    if (unit == null) {
+      return Scaffold(
+        backgroundColor: _pageBg,
+        appBar: AppBar(backgroundColor: _red),
+        body: const Center(child: Text('Açougue não encontrado.')),
+      );
+    }
+
+    return ChangeNotifierProvider(
+      create: (_) => ButcherProvider(unitId: unit.id)..loadProducts(),
+      child: _ButcherDetailView(unit: unit),
+    );
+  }
+}
+
+class _ButcherDetailView extends StatelessWidget {
+  final UnitModel unit;
+  const _ButcherDetailView({required this.unit});
+
+  static const Color _red = Color(0xFFBE2C1B);
+  static const Color _pageBg = Color(0xFFEFEFEF);
   static const Color _white = Colors.white;
   static const Color _textDark = Color(0xFF1A1A1A);
   static const Color _textGray = Color(0xFF555555);
-
-  static const List<ButcherProduct> _products = [
-    ButcherProduct(
-      nome: 'Picanha angus',
-      preco: 'R\$75,00',
-      unidade: '/kg',
-      imageAsset: 'assets/images/picanha.png',
-    ),
-    ButcherProduct(
-      nome: 'Lombo suíno',
-      preco: 'R\$17,99',
-      unidade: '/kg',
-      imageAsset: 'assets/images/lombo.png',
-    ),
-    ButcherProduct(
-      nome: 'Costela bovina',
-      preco: 'R\$31,49',
-      unidade: '/kg',
-      imageAsset: 'assets/images/costela.png',
-    ),
-    ButcherProduct(
-      nome: 'Coxa de frango',
-      preco: 'R\$9,99',
-      unidade: '/kg',
-      imageAsset: 'assets/images/frango.png',
-    ),
-    ButcherProduct(
-      nome: 'Alcatra',
-      preco: 'R\$44,90',
-      unidade: '/kg',
-      imageAsset: 'assets/images/alcatra.png',
-    ),
-    ButcherProduct(
-      nome: 'Filé mignon',
-      preco: 'R\$89,90',
-      unidade: '/kg',
-      imageAsset: 'assets/images/file_mignon.png',
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +52,11 @@ class ButcherDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeroBanner(),
-                  _buildInfoCard(),
+                  _buildHeroBanner(unit),
+                  _buildInfoCard(unit),
                   const SizedBox(height: 20),
-                  _buildSectionTitle('Promoções'),
+                  _buildPromocoesSection(context),
+                  _buildSectionTitle('Produtos'),
                   const SizedBox(height: 12),
                   _buildProductList(context),
                   const SizedBox(height: 32),
@@ -78,7 +69,7 @@ class ButcherDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroBanner() {
+  Widget _buildHeroBanner(UnitModel unit) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.bottomCenter,
@@ -101,7 +92,6 @@ class ButcherDetailScreen extends StatelessWidget {
             ),
           ),
         ),
-
         Positioned(
           bottom: -40,
           child: Container(
@@ -113,12 +103,14 @@ class ButcherDetailScreen extends StatelessWidget {
               color: const Color(0xFF1A1A1A),
             ),
             child: ClipOval(
-              child: Image.asset(
-                'assets/images/logo_master.png',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Icon(Icons.store, color: _white, size: 40),
-              ),
+              child: unit.imageUrl.isNotEmpty
+                  ? Image.network(
+                      unit.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.store, color: _white, size: 40),
+                    )
+                  : const Icon(Icons.store, color: _white, size: 40),
             ),
           ),
         ),
@@ -126,7 +118,7 @@ class ButcherDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(UnitModel unit) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 52, 16, 0),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
@@ -143,72 +135,36 @@ class ButcherDetailScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text(
-            'Master Carnes',
-            style: TextStyle(
+          Text(
+            unit.name,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: _textDark,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Aqui você é o cheff!!',
-            style: TextStyle(fontSize: 13, color: _textGray),
-          ),
           const SizedBox(height: 12),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStars(4.0),
-              const Text(
-                '\$\$\$',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF9E9E9E),
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
           const Divider(color: Color(0xFFEEEEEE), height: 1),
           const SizedBox(height: 10),
-
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Icon(Icons.location_on_outlined, color: _red, size: 16),
-              SizedBox(width: 6),
+            children: [
+              const Icon(Icons.location_on_outlined, color: _red, size: 16),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Avenida Universitária, 1522 - Vila Santa Isabel, Anápolis - GO',
-                  style: TextStyle(fontSize: 12, color: _textGray, height: 1.4),
+                  '${unit.city}, ${unit.state}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: _textGray,
+                    height: 1.4,
+                  ),
                 ),
               ),
             ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildStars(double rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i) {
-        final filled = i < rating.floor();
-        final half = !filled && i < rating;
-        return Icon(
-          half
-              ? Icons.star_half_rounded
-              : (filled ? Icons.star_rounded : Icons.star_outline_rounded),
-          color: const Color(0xFFFFB800),
-          size: 22,
-        );
-      }),
     );
   }
 
@@ -227,13 +183,189 @@ class ButcherDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductList(BuildContext context) {
-    return Column(
-      children: _products.map((p) => _buildProductItem(context, p)).toList(),
+  Widget _buildPromocoesSection(BuildContext context) {
+    return Consumer<ButcherProvider>(
+      builder: (_, provider, __) {
+        if (provider.promotions.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle('Promoções'),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 160,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: provider.promotions.length,
+                itemBuilder: (_, i) {
+                  final promo = provider.promotions[i];
+                  return GestureDetector(
+                    onTap: () {
+                      final product = ProductModel(
+                        id: promo.productId,
+                        name: promo.productName.isNotEmpty
+                            ? promo.productName
+                            : promo.title,
+                        description: promo.description,
+                        price: promo.promotionalPrice,
+                        unitOfMeasure: promo.productUnitOfMeasure,
+                        active: true,
+                        brand: '',
+                        imageUrl: promo.productImageUrl,
+                        unitId: promo.unitId,
+                        unitName: unit.name,
+                        categoryId: '',
+                        stockQuantity: 1,
+                      );
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.productDetail,
+                        arguments: product,
+                      );
+                    },
+                    child: Container(
+                      width: 140,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE6E6E6),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(14),
+                            ),
+                            child: Stack(
+                              children: [
+                                SizedBox(
+                                  height: 90,
+                                  width: double.infinity,
+                                  child: promo.productImageUrl.isNotEmpty
+                                      ? Image.network(
+                                          promo.productImageUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              _imageFallback(),
+                                        )
+                                      : _imageFallback(),
+                                ),
+                                if (promo.discountPercentage > 0)
+                                  Positioned(
+                                    top: 6,
+                                    right: 6,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _red,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        promo.descontoLabel,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+                            child: Text(
+                              promo.productName.isNotEmpty
+                                  ? promo.productName
+                                  : promo.title,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _textDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              promo.precoFormatado,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: _red,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildProductItem(BuildContext context, ButcherProduct product) {
+  Widget _buildProductList(BuildContext context) {
+    return Consumer<ButcherProvider>(
+      builder: (_, provider, __) {
+        if (provider.isLoading) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: CircularProgressIndicator(color: Color(0xFFBE2C1B)),
+            ),
+          );
+        }
+
+        if (provider.error != null) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Text(
+                provider.error!,
+                style: const TextStyle(color: _textGray),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        if (provider.items.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Text(
+                'Nenhum produto disponível.',
+                style: TextStyle(color: Color(0xFF9E9E9E)),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: provider.items
+              .map((p) => _buildProductItem(context, p))
+              .toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildProductItem(BuildContext context, ProductModel product) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(
         context,
@@ -254,24 +386,19 @@ class ButcherDetailScreen extends StatelessWidget {
               child: SizedBox(
                 width: 60,
                 height: 60,
-                child: Image.asset(
-                  product.imageAsset,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFFCCCCCC),
-                    child: const Icon(
-                      Icons.image_outlined,
-                      color: Color(0xFF9E9E9E),
-                      size: 28,
-                    ),
-                  ),
-                ),
+                child: product.imageUrl.isNotEmpty
+                    ? Image.network(
+                        product.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _imageFallback(),
+                      )
+                    : _imageFallback(),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                product.nome,
+                product.name,
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -283,7 +410,7 @@ class ButcherDetailScreen extends StatelessWidget {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: product.preco,
+                    text: product.precoFormatado,
                     style: const TextStyle(
                       color: _textDark,
                       fontSize: 15,
@@ -291,7 +418,7 @@ class ButcherDetailScreen extends StatelessWidget {
                     ),
                   ),
                   TextSpan(
-                    text: product.unidade,
+                    text: '/${product.unitOfMeasure}',
                     style: const TextStyle(
                       color: _red,
                       fontSize: 11,
@@ -303,6 +430,17 @@ class ButcherDetailScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _imageFallback() {
+    return Container(
+      color: const Color(0xFFCCCCCC),
+      child: const Icon(
+        Icons.image_outlined,
+        color: Color(0xFF9E9E9E),
+        size: 28,
       ),
     );
   }
