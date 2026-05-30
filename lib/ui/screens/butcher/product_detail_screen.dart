@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:meatshop_mobile/models/butcher_product_model.dart';
-import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/models/product_model.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -25,27 +24,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   static const List<int> _chipsG = [100, 200, 300, 500, 750];
   static const List<double> _chipsKg = [0.5, 1.0, 1.5, 2.0, 3.0];
 
-  static const List<ButcherProduct> _suggestions = [
-    ButcherProduct(
-      nome: 'Picanha angus',
-      preco: 'R\$75,00',
-      unidade: '/kg',
-      imageAsset: 'assets/images/picanha.png',
-    ),
-    ButcherProduct(
-      nome: 'Costela bovina',
-      preco: 'R\$31,49',
-      unidade: '/kg',
-      imageAsset: 'assets/images/costela.png',
-    ),
-    ButcherProduct(
-      nome: 'Coxa de frango',
-      preco: 'R\$9,99',
-      unidade: '/kg',
-      imageAsset: 'assets/images/frango.png',
-    ),
-  ];
-
   @override
   void dispose() {
     _qtyController.dispose();
@@ -54,20 +32,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final product =
-        ModalRoute.of(context)?.settings.arguments as ButcherProduct? ??
-        const ButcherProduct(
-          nome: 'Lombo Suíno',
-          preco: 'R\$17,99',
-          unidade: '/kg',
-          imageAsset: 'assets/images/lombo.png',
-          descricao:
-              'Explore a excelência gastronômica com nosso Lombo Suíno '
-              'Premium, uma escolha irresistível para os amantes da boa '
-              'comida! Cada peça é cuidadosamente selecionada para garantir '
-              'a máxima qualidade, suculência e sabor inigualável em cada '
-              'mordida.',
-        );
+    final product = ModalRoute.of(context)?.settings.arguments as ProductModel?;
+
+    if (product == null) {
+      return Scaffold(
+        backgroundColor: _pageBg,
+        appBar: AppBar(backgroundColor: _red),
+        body: const Center(child: Text('Produto não encontrado.')),
+      );
+    }
 
     return Scaffold(
       backgroundColor: _pageBg,
@@ -83,10 +56,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   _buildProductInfo(product),
                   const SizedBox(height: 8),
                   _buildQuantitySection(product),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Compre também'),
-                  const SizedBox(height: 12),
-                  _buildSuggestions(),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -97,28 +66,57 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildHeroBanner(ButcherProduct product) {
-    return SizedBox(
-      width: double.infinity,
-      height: 220,
-      child: Image.asset(
-        product.imageAsset,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(
-          color: const Color(0xFF2A2A2A),
-          child: const Center(
-            child: Icon(Icons.image_outlined, color: Colors.white24, size: 60),
+  Widget _buildHeroBanner(ProductModel product) {
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 240,
+          child: product.imageUrl.isNotEmpty
+              ? Image.network(
+                  product.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _heroBannerFallback(),
+                )
+              : _heroBannerFallback(),
+        ),
+
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 8,
+          left: 12,
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black45,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _heroBannerFallback() {
+    return Container(
+      color: const Color(0xFF2A2A2A),
+      child: const Center(
+        child: Icon(Icons.image_outlined, color: Colors.white24, size: 60),
       ),
     );
   }
 
-  Widget _buildProductInfo(ButcherProduct product) {
-    final String desc = product.descricao.isEmpty
-        ? 'Produto selecionado com qualidade premium para garantir o melhor '
-              'sabor e suculência na sua mesa.'
-        : product.descricao;
+  Widget _buildProductInfo(ProductModel product) {
+    final desc = product.description.isNotEmpty
+        ? product.description
+        : 'Produto selecionado com qualidade premium para garantir o melhor sabor e suculência na sua mesa.';
 
     return Container(
       color: _white,
@@ -132,7 +130,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             children: [
               Expanded(
                 child: Text(
-                  product.nome,
+                  product.name,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
@@ -144,7 +142,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: product.preco,
+                      text: product.precoFormatado,
                       style: const TextStyle(
                         color: _red,
                         fontSize: 20,
@@ -152,7 +150,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     TextSpan(
-                      text: product.unidade,
+                      text: '/${product.unitOfMeasure}',
                       style: const TextStyle(
                         color: _red,
                         fontSize: 13,
@@ -164,7 +162,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ],
           ),
+
+          if (product.brand.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(
+                  Icons.storefront_outlined,
+                  size: 14,
+                  color: Color(0xFF888888),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  product.brand,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF888888),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
           const SizedBox(height: 12),
+
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
@@ -187,7 +208,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildQuantitySection(ButcherProduct product) {
+  Widget _buildQuantitySection(ProductModel product) {
     return Container(
       color: _white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -203,16 +224,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-
           _buildUnitTabs(),
           const SizedBox(height: 16),
-
           _buildQtyInput(),
           const SizedBox(height: 12),
-
           _buildQtyChips(),
           const SizedBox(height: 14),
-
           _buildTotalBox(product),
         ],
       ),
@@ -225,23 +242,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         _buildUnitTab(
           label: 'Gramas (g)',
           selected: _isGrams,
-          onTap: () {
-            setState(() {
-              _isGrams = true;
-              _qtyController.text = '300';
-            });
-          },
+          onTap: () => setState(() {
+            _isGrams = true;
+            _qtyController.text = '300';
+          }),
         ),
         const SizedBox(width: 8),
         _buildUnitTab(
           label: 'Quilos (kg)',
           selected: !_isGrams,
-          onTap: () {
-            setState(() {
-              _isGrams = false;
-              _qtyController.text = '0.5';
-            });
-          },
+          onTap: () => setState(() {
+            _isGrams = false;
+            _qtyController.text = '0.5';
+          }),
         ),
       ],
     );
@@ -353,11 +366,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           onTap: () {
             final current = double.tryParse(_qtyController.text) ?? 0;
             final step = _isGrams ? 50.0 : 0.5;
-            final next = current + step;
             setState(() {
               _qtyController.text = _isGrams
-                  ? next.toInt().toString()
-                  : next.toStringAsFixed(1);
+                  ? (current + step).toInt().toString()
+                  : (current + step).toStringAsFixed(1);
             });
           },
         ),
@@ -385,16 +397,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildQtyChips() {
     final currentVal = double.tryParse(_qtyController.text) ?? 0;
-
     if (_isGrams) {
       return Wrap(
         spacing: 8,
         runSpacing: 8,
         children: _chipsG.map((g) {
-          final selected = currentVal == g.toDouble();
           return _buildChip(
             label: '${g}g',
-            selected: selected,
+            selected: currentVal == g.toDouble(),
             onTap: () => setState(() => _qtyController.text = g.toString()),
           );
         }).toList(),
@@ -404,10 +414,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         spacing: 8,
         runSpacing: 8,
         children: _chipsKg.map((kg) {
-          final selected = currentVal == kg;
           return _buildChip(
             label: '${kg}kg',
-            selected: selected,
+            selected: currentVal == kg,
             onTap: () =>
                 setState(() => _qtyController.text = kg.toStringAsFixed(1)),
           );
@@ -443,8 +452,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildTotalBox(ButcherProduct product) {
-    final total = _calcTotal(product);
+  Widget _buildTotalBox(ProductModel product) {
+    final inputVal = double.tryParse(_qtyController.text) ?? 0;
+    final qtyKg = _isGrams ? inputVal / 1000.0 : inputVal;
+    final total = product.price * qtyKg;
+    final totalFormatado =
+        'R\$${total.toStringAsFixed(2).replaceAll('.', ',')}';
     final qty = _qtyController.text.isEmpty ? '0' : _qtyController.text;
     final unit = _isGrams ? 'g' : 'kg';
 
@@ -472,13 +485,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                '$qty$unit × ${product.preco}/kg',
+                '$qty$unit × ${product.precoFormatado}/${product.unitOfMeasure}',
                 style: const TextStyle(fontSize: 11, color: _textGray),
               ),
             ],
           ),
           Text(
-            total,
+            totalFormatado,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -488,120 +501,5 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: _red,
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSuggestions() {
-    return SizedBox(
-      height: 160,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (context, i) => _buildSuggestionCard(_suggestions[i]),
-      ),
-    );
-  }
-
-  Widget _buildSuggestionCard(ButcherProduct product) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.productDetail,
-          arguments: product,
-        );
-      },
-      child: SizedBox(
-        width: 110,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 110,
-                height: 100,
-                child: Image.asset(
-                  product.imageAsset,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFFCCCCCC),
-                    child: const Icon(
-                      Icons.image_outlined,
-                      color: Color(0xFF9E9E9E),
-                      size: 32,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              product.nome,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _textDark,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: product.preco,
-                    style: const TextStyle(
-                      color: _red,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  TextSpan(
-                    text: product.unidade,
-                    style: const TextStyle(
-                      color: _red,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _calcTotal(ButcherProduct product) {
-    final raw = product.preco
-        .replaceAll('R\$', '')
-        .replaceAll('.', '')
-        .replaceAll(',', '.');
-    final pricePerKg = double.tryParse(raw) ?? 0.0;
-    final inputVal = double.tryParse(_qtyController.text) ?? 0.0;
-
-    final qtyKg = _isGrams ? inputVal / 1000.0 : inputVal;
-    final total = pricePerKg * qtyKg;
-
-    return 'R\$${total.toStringAsFixed(2).replaceAll('.', ',')}';
   }
 }

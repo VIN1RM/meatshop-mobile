@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/cuts_filter_sheet.dart';
@@ -308,53 +309,63 @@ class _CutsViewState extends State<_CutsView> {
   }
 
   Widget _buildProductItem(ProductModel product) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xFF3A3A3A),
-        borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.productDetail,
+        arguments: product,
       ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3A3A3A),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(12),
+              ),
+              child: _buildProductImage(product),
             ),
-            child: _buildProductImage(product),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              product.name,
-              style: const TextStyle(
-                color: _white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                product.name,
+                style: const TextStyle(
+                  color: _white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: product.precoFormatado,
-                    style: const TextStyle(
-                      color: _red,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.only(right: 14),
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: product.precoFormatado,
+                      style: const TextStyle(
+                        color: _red,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  TextSpan(
-                    text: '/${product.unitOfMeasure}',
-                    style: const TextStyle(color: Colors.white38, fontSize: 11),
-                  ),
-                ],
+                    TextSpan(
+                      text: '/${product.unitOfMeasure}',
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
