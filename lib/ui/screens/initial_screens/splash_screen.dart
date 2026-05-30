@@ -112,8 +112,8 @@ class _SplashPageState extends State<SplashPage> {
                   child: Padding(
                     padding: EdgeInsets.only(bottom: sh * 0.06),
                     child: Image.asset(
-                      'assets/images/logo_delivery.png',
-                      height: sh * 0.30,
+                      'assets/images/logo1.png',
+                      height: sh * 0.20,
                       fit: BoxFit.contain,
                     ),
                   ),

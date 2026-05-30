@@ -11,7 +11,29 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.2.0] - 2026-05-XX
+## [2.3.0] - 2026-05-30
+### Integração de Produtos, Açougues e Carrinho com Firestore
+
+### Added
+- `CartItemModel`: modelo de dados para itens do carrinho com suporte a `fromMap`, `toMap` e `copyWith`.
+- `CartService`: serviço para buscar, atualizar quantidade e remover itens do carrinho no Firestore.
+- `CartProvider`: provider com gerenciamento de estado do carrinho agrupado por açougue, com suporte a loading, erro e estado vazio.
+- `ButcherProvider`: provider que carrega produtos e promoções ativas de um açougue específico em paralelo via `Future.wait`.
+- `fetchByUnitId` no `ProductService`: busca produtos ativos com estoque disponível filtrando por `unit_id`.
+- `fetchActivePromotionsByUnit` no `PromotionService`: busca promoções ativas de uma unidade específica com enriquecimento dos dados do produto.
+
+### Changed
+- `CartScreen`: substituição completa dos dados mockados por dados reais do Firestore via `CartProvider`. Itens agrupados por açougue, com controles de quantidade reais, botão de remoção por item e estados de loading, erro e carrinho vazio.
+- `ButcherDetailScreen`: reescrita para receber `UnitModel` como argumento de rota, exibindo imagem, nome e cidade/estado reais do açougue. Produtos e promoções carregados do Firestore via `ButcherProvider`.
+- Seção de promoções na `ButcherDetailScreen`: carrossel horizontal exibido apenas quando o açougue possui promoções ativas, com badge de desconto e navegação para `ProductDetailScreen`.
+- `HomeScreen` e `AcouguesScreen`: navegação para `ButcherDetailScreen` agora passa o `UnitModel` real como argumento.
+- Carrossel de promoções na `HomeScreen`: toque nos cards navega para `ProductDetailScreen` montando um `ProductModel` com os dados da promoção.
+- `CutsScreen`: subtitle abaixo do nome do produto exibe o nome da unidade (açougue) resolvido via `UnitService`.
+- `ProductModel`: adicionado campo `unitName` com suporte a `copyWith` para resolução assíncrona do nome da unidade.
+
+---
+
+## [2.2.0] - 2026-05-28
 ### Padronização Visual, Refatorações e Melhorias de UX
 
 ### Changed
