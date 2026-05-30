@@ -50,7 +50,7 @@ class ProductsProvider extends ChangeNotifier {
   ProductPriceRange get priceRange => _priceRange;
 
   List<ProductModel> get _filteredAndSorted {
-    var list = List<ProductModel>.from(_items);
+    var list = _items.where((p) => p.stockQuantity > 0).toList();
 
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();

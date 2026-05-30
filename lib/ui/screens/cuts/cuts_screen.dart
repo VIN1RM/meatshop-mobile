@@ -6,28 +6,35 @@ import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/providers/product_provider.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 
-const String _kBovineCategoryName = 'Bovinos';
+class CutsScreen extends StatelessWidget {
+  final String title;
+  final String categoryName;
 
-class BovineCortsScreen extends StatelessWidget {
-  const BovineCortsScreen({super.key});
+  const CutsScreen({
+    super.key,
+    required this.title,
+    required this.categoryName,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ProductsProvider(categoryName: 'Bovinos')..loadFirstPage(),
-      child: const _BovineCortsView(),
+      create: (_) =>
+          ProductsProvider(categoryName: categoryName)..loadFirstPage(),
+      child: _CutsView(title: title),
     );
   }
 }
 
-class _BovineCortsView extends StatefulWidget {
-  const _BovineCortsView();
+class _CutsView extends StatefulWidget {
+  final String title;
+  const _CutsView({required this.title});
 
   @override
-  State<_BovineCortsView> createState() => _BovineCortsViewState();
+  State<_CutsView> createState() => _CutsViewState();
 }
 
-class _BovineCortsViewState extends State<_BovineCortsView> {
+class _CutsViewState extends State<_CutsView> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _surface = Color(0xFF3A3A3A);
   static const Color _bg = Color(0xFF2E2E2E);
@@ -121,7 +128,6 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
@@ -143,9 +149,9 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
                             padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
                             child: Row(
                               children: [
-                                const Text(
-                                  'CORTES BOVINOS',
-                                  style: TextStyle(
+                                Text(
+                                  widget.title,
+                                  style: const TextStyle(
                                     color: _red,
                                     fontSize: 22,
                                     fontWeight: FontWeight.w900,
@@ -171,7 +177,6 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
                               ],
                             ),
                           ),
-
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
                             child: Align(
@@ -200,7 +205,6 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
                               ),
                             ),
                           ),
-
                           Expanded(child: _buildBody(provider)),
                         ],
                       );
@@ -255,17 +259,13 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
     }
 
     if (provider.items.isEmpty) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.search_off_rounded,
-              color: Colors.white24,
-              size: 48,
-            ),
-            const SizedBox(height: 12),
-            const Text(
+            Icon(Icons.search_off_rounded, color: Colors.white24, size: 48),
+            SizedBox(height: 12),
+            Text(
               'Nenhum corte encontrado',
               style: TextStyle(color: Colors.white38, fontSize: 14),
             ),
@@ -284,7 +284,6 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-
         itemCount: provider.items.length + (provider.isLoadingMore ? 1 : 0),
         itemBuilder: (_, i) {
           if (i == provider.items.length) {
@@ -302,7 +301,6 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
               ),
             );
           }
-
           return _buildProductItem(provider.items[i]);
         },
       ),
@@ -325,34 +323,16 @@ class _BovineCortsViewState extends State<_BovineCortsView> {
             child: _buildProductImage(product),
           ),
           const SizedBox(width: 14),
-
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  product.name,
-                  style: const TextStyle(
-                    color: _white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (product.stockQuantity > 0)
-                  Text(
-                    '${product.stockQuantity} ${product.unitOfMeasure} em estoque',
-                    style: const TextStyle(color: Colors.white38, fontSize: 11),
-                  ),
-                if (product.stockQuantity == 0)
-                  const Text(
-                    'Fora de estoque',
-                    style: TextStyle(color: Color(0xFFE57373), fontSize: 11),
-                  ),
-              ],
+            child: Text(
+              product.name,
+              style: const TextStyle(
+                color: _white,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: RichText(

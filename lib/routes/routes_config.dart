@@ -12,7 +12,7 @@ import 'package:meatshop_mobile/ui/screens/butcher/butcher_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/butcher/product_detail_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_list_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
-import 'package:meatshop_mobile/ui/screens/cuts/bovine_cuts_screen.dart';
+import 'package:meatshop_mobile/ui/screens/cuts/cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/fallback/mode_switch_screen.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/welcome_screen.dart';
@@ -24,9 +24,6 @@ import 'package:meatshop_mobile/ui/widgets/shell/client_shell.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_assistant_screen.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
-import 'package:meatshop_mobile/ui/screens/cuts/swine_cuts_screen.dart';
-import 'package:meatshop_mobile/ui/screens/cuts/poultry_cuts_screen.dart';
-import 'package:meatshop_mobile/ui/screens/cuts/fish_cuts_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen%20.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
@@ -43,10 +40,14 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.shell: (_) => const AppShell(),
     AppRoutes.reviewOrder: (_) => const ReviewOrderScreen(),
     AppRoutes.acougues: (_) => const AcouguesScreen(),
-    AppRoutes.cortesBovinos: (_) => const BovineCortsScreen(),
-    // AppRoutes.cortesSuinos: (_) => const SwineCortsScreen(),
-    // AppRoutes.cortesAves: (_) => const PoultryCortsScreen(),
-    // AppRoutes.cortesPeixes: (_) => const FishCortsScreen(),
+    AppRoutes.cortesBovinos: (_) =>
+        const CutsScreen(title: 'CORTES BOVINOS', categoryName: 'Bovinos'),
+    AppRoutes.cortesSuinos: (_) =>
+        const CutsScreen(title: 'CORTES SUÍNOS', categoryName: 'Suínos'),
+    AppRoutes.cortesAves: (_) =>
+        const CutsScreen(title: 'CORTES DE AVES', categoryName: 'Aves'),
+    AppRoutes.cortesPeixes: (_) =>
+        const CutsScreen(title: 'CORTES DE PEIXE', categoryName: 'Peixes'),
     AppRoutes.deliveries: (_) => const DeliveriesScreen(),
     AppRoutes.chat: (_) => const ChatScreen(),
     AppRoutes.chatList: (_) => const ChatListScreen(),
