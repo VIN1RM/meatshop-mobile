@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -126,182 +127,173 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF424242),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: sw * 0.04,
-                vertical: sh * 0.01,
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: 130,
+              child: Image.asset(
+                'assets/images/background.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: const Color(0xFF1A1A1A)),
               ),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new,
-                      color: Colors.white,
-                      size: 20,
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                const AppHeader(showBack: true),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: sw * 0.04,
+                    vertical: sh * 0.01,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Alterar Senha',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17 * fontScale,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          'Crie uma nova senha segura',
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Alterar Senha',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17 * fontScale,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        'Crie uma nova senha segura',
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            Container(height: 1, color: Colors.white12),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: sw * 0.06,
-                  vertical: sh * 0.03,
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionTitle('Identificação'),
-                      SizedBox(height: sh * 0.015),
-
-                      _buildTextField(
-                        controller: _emailController,
-                        label: 'E-mail cadastrado',
-                        hint: 'seu@email.com',
-                        icon: Icons.email_outlined,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty)
-                            return 'Informe o e-mail';
-                          if (!v.contains('@')) return 'E-mail inválido';
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: sh * 0.03),
-
-                      _sectionTitle('Senha Atual'),
-                      SizedBox(height: sh * 0.015),
-
-                      _buildTextField(
-                        controller: _currentPasswordController,
-                        label: 'Senha atual',
-                        hint: '••••••••',
-                        icon: Icons.lock_outline,
-                        obscureText: _obscureCurrent,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureCurrent
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.black45,
-                            size: 20,
+                Container(height: 1, color: Colors.white12),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: sw * 0.06,
+                      vertical: sh * 0.03,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _sectionTitle('Identificação'),
+                          SizedBox(height: sh * 0.015),
+                          _buildTextField(
+                            controller: _emailController,
+                            label: 'E-mail cadastrado',
+                            hint: 'seu@email.com',
+                            icon: Icons.email_outlined,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty)
+                                return 'Informe o e-mail';
+                              if (!v.contains('@')) return 'E-mail inválido';
+                              return null;
+                            },
                           ),
-                          onPressed: () => setState(
-                            () => _obscureCurrent = !_obscureCurrent,
+                          SizedBox(height: sh * 0.03),
+                          _sectionTitle('Senha Atual'),
+                          SizedBox(height: sh * 0.015),
+                          _buildTextField(
+                            controller: _currentPasswordController,
+                            label: 'Senha atual',
+                            hint: '••••••••',
+                            icon: Icons.lock_outline,
+                            obscureText: _obscureCurrent,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureCurrent
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: Colors.black45,
+                                size: 20,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscureCurrent = !_obscureCurrent,
+                              ),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty)
+                                return 'Informe a senha atual';
+                              return null;
+                            },
                           ),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty)
-                            return 'Informe a senha atual';
-                          return null;
-                        },
-                      ),
-
-                      SizedBox(height: sh * 0.03),
-
-                      _sectionTitle('Informe a Nova Senha'),
-                      SizedBox(height: sh * 0.015),
-
-                      _buildTextField(
-                        controller: _newPasswordController,
-                        label: 'Nova senha',
-                        hint: '••••••••',
-                        icon: Icons.lock_outline,
-                        obscureText: _obscureNew,
-                        onChanged: _checkPassword,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureNew
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.black45,
-                            size: 20,
+                          SizedBox(height: sh * 0.03),
+                          _sectionTitle('Informe a Nova Senha'),
+                          SizedBox(height: sh * 0.015),
+                          _buildTextField(
+                            controller: _newPasswordController,
+                            label: 'Nova senha',
+                            hint: '••••••••',
+                            icon: Icons.lock_outline,
+                            obscureText: _obscureNew,
+                            onChanged: _checkPassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureNew
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: Colors.black45,
+                                size: 20,
+                              ),
+                              onPressed: () =>
+                                  setState(() => _obscureNew = !_obscureNew),
+                            ),
+                            validator: _validateNewPassword,
                           ),
-                          onPressed: () =>
-                              setState(() => _obscureNew = !_obscureNew),
-                        ),
-                        validator: _validateNewPassword,
-                      ),
-
-                      SizedBox(height: sh * 0.010),
-
-                      _passwordRequirements(),
-
-                      SizedBox(height: sh * 0.018),
-
-                      _buildTextField(
-                        controller: _confirmPasswordController,
-                        label: 'Confirmar nova senha',
-                        hint: '••••••••',
-                        icon: Icons.lock_outline,
-                        obscureText: _obscureConfirm,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirm
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.black45,
-                            size: 20,
+                          SizedBox(height: sh * 0.010),
+                          _passwordRequirements(),
+                          SizedBox(height: sh * 0.018),
+                          _buildTextField(
+                            controller: _confirmPasswordController,
+                            label: 'Confirmar nova senha',
+                            hint: '••••••••',
+                            icon: Icons.lock_outline,
+                            obscureText: _obscureConfirm,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirm
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: Colors.black45,
+                                size: 20,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscureConfirm = !_obscureConfirm,
+                              ),
+                            ),
+                            validator: (v) {
+                              if (v == null || v.isEmpty)
+                                return 'Confirme a nova senha';
+                              if (v != _newPasswordController.text)
+                                return 'As senhas não coincidem';
+                              return null;
+                            },
                           ),
-                          onPressed: () => setState(
-                            () => _obscureConfirm = !_obscureConfirm,
+                          SizedBox(height: sh * 0.04),
+                          PrimaryButton(
+                            label: 'SALVAR NOVA SENHA',
+                            isLoading: _isLoading,
+                            onPressed: _isLoading ? null : _onChangePassword,
                           ),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Confirme a nova senha';
-                          }
-                          if (v != _newPasswordController.text) {
-                            return 'As senhas não coincidem';
-                          }
-                          return null;
-                        },
+                          SizedBox(height: sh * 0.03),
+                        ],
                       ),
-
-                      SizedBox(height: sh * 0.04),
-
-                      PrimaryButton(
-                        label: 'SALVAR NOVA SENHA',
-                        isLoading: _isLoading,
-                        onPressed: _isLoading ? null : _onChangePassword,
-                      ),
-
-                      SizedBox(height: sh * 0.03),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

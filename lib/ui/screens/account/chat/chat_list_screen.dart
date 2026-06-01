@@ -87,7 +87,7 @@ class ChatListScreen extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                const AppHeader(),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.symmetric(
@@ -229,7 +229,10 @@ class ChatListScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               chat.horario,
-              style: const TextStyle(fontSize: 11, color: Color.fromARGB(255, 0, 0, 0)),
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color.fromARGB(255, 0, 0, 0),
+              ),
             ),
           ],
         ),

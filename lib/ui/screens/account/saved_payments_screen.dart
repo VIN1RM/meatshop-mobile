@@ -74,7 +74,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
           SafeArea(
             child: Column(
               children: [
-                const AppHeader(),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
