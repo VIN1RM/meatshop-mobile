@@ -265,4 +265,18 @@ class CustomDialog {
     );
     return result ?? false;
   }
+
+  static Future<bool> showRemoveCartItem({
+    required BuildContext context,
+    required String productName,
+  }) {
+    return showConfirm(
+      context: context,
+      title: 'Remover item?',
+      message: '$productName será removido do seu carrinho.',
+      confirmLabel: 'Remover',
+      cancelLabel: 'Manter',
+      destructive: true,
+    );
+  }
 }
