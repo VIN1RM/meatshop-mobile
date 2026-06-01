@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class ChatMessage {
   final String text;
@@ -18,6 +20,48 @@ class ChatArgs {
     required this.participantType,
     this.logoAsset,
   });
+}
+
+class _AttachOption extends StatelessWidget {
+  const _AttachOption({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFF424242),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFF666666)),
+            ),
+            child: Icon(icon, color: const Color(0xFFC0392B), size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.white70,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class ChatScreen extends StatefulWidget {
@@ -91,12 +135,28 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _pageBg,
-      body: Column(
+      resizeToAvoidBottomInset: false,
+      body: Stack(
         children: [
-          SizedBox(height: 80, child: Stack(fit: StackFit.expand)),
-          Expanded(
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: 130,
+              child: Image.asset(
+                'assets/images/background.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: const Color(0xFF1A1A1A)),
+              ),
+            ),
+          ),
+          SafeArea(
+            bottom: false,
             child: Column(
               children: [
+                const AppHeader(showBack: true),
                 _buildParticipantInfo(),
                 Expanded(
                   child: _messages.isEmpty
@@ -108,12 +168,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             vertical: 8,
                           ),
                           itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            return _buildMessageBubble(_messages[index]);
-                          },
+                          itemBuilder: (context, index) =>
+                              _buildMessageBubble(_messages[index]),
                         ),
                 ),
-                _buildFinalizeButton(),
                 _buildInputBar(),
               ],
             ),
@@ -239,37 +297,26 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildFinalizeButton() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16, bottom: 6),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: const Text(
-            'Finalizar conversa',
-            style: TextStyle(
-              color: Color(0xFF9E9E9E),
-              fontSize: 13,
-              decoration: TextDecoration.underline,
-              decorationColor: Color(0xFF9E9E9E),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildInputBar() {
-    return SafeArea(
-      top: false,
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: bottomInset),
       child: Container(
-        color: _pageBg,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        color: const Color(0xFFF5F5F5),
+        padding: EdgeInsets.only(
+          left: 12,
+          right: 12,
+          top: 10,
+          bottom: 10 + bottomPadding,
+        ),
         child: Row(
           children: [
             GestureDetector(
-              onTap: () {},
+              onTap: _showAttachmentOptions,
               child: const Padding(
                 padding: EdgeInsets.only(right: 8),
                 child: Icon(Icons.attach_file_rounded, color: _red, size: 26),
@@ -279,17 +326,24 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Container(
                 height: 44,
                 decoration: BoxDecoration(
-                  color: _surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: const Color(0xFF3A3A3A)),
+                  border: Border.all(color: const Color(0xFFDDDDDD)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 child: TextField(
                   controller: _messageController,
-                  style: const TextStyle(fontSize: 14, color: _white),
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
                   decoration: const InputDecoration(
                     hintText: 'Mensagem...',
                     hintStyle: TextStyle(
-                      color: Color(0xFF9E9E9E),
+                      color: Color(0xFFAAAAAA),
                       fontSize: 14,
                     ),
                     border: InputBorder.none,
@@ -305,8 +359,112 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: _sendMessage,
-              child: const Icon(Icons.send_rounded, color: _red, size: 26),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: _red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.send_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAttachmentOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+        decoration: BoxDecoration(
+          color: const Color(0xFF525252),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFF777777),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Anexar arquivo',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Escolha como deseja enviar',
+              style: TextStyle(fontSize: 13, color: Colors.white54),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _AttachOption(
+                  icon: Icons.camera_alt_outlined,
+                  label: 'Câmera',
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picker = ImagePicker();
+                    await picker.pickImage(
+                      source: ImageSource.camera,
+                      imageQuality: 85,
+                    );
+                  },
+                ),
+                _AttachOption(
+                  icon: Icons.photo_library_outlined,
+                  label: 'Galeria',
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picker = ImagePicker();
+                    await picker.pickImage(
+                      source: ImageSource.gallery,
+                      imageQuality: 85,
+                    );
+                  },
+                ),
+                _AttachOption(
+                  icon: Icons.insert_drive_file_outlined,
+                  label: 'Arquivo',
+                  onTap: () async {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(
+                  color: Color(0xFFC0392B),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
