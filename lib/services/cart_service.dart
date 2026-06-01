@@ -36,4 +36,8 @@ class CartService {
     }
     await batch.commit();
   }
+
+  Future<void> addItem(String uid, CartItemModel item) async {
+    await _itemsRef(uid).doc(item.productId).set(item.toMap());
+  }
 }

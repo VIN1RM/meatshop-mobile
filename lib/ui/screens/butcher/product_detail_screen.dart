@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/providers/cart_provider.dart';
+import 'package:meatshop_mobile/models/cart_item_model.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -28,6 +32,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void dispose() {
     _qtyController.dispose();
     super.dispose();
+  }
+
+  Future<void> _addToCart(BuildContext context, ProductModel product) async {
+    final inputVal = double.tryParse(_qtyController.text) ?? 0;
+    if (inputVal <= 0) return;
+
+    final qtyInUom = _isGrams ? inputVal / 1000.0 : inputVal;
+
+    final uid = context.read<AuthProvider>().currentUser?.uid;
+    if (uid == null) return;
+
+    final item = CartItemModel(
+      productId: product.id,
+      productName: product.name,
+      productImageUrl: product.imageUrl,
+      unitId: product.unitId,
+      unitName: product.unitName,
+      unitOfMeasure: product.unitOfMeasure,
+      unitPrice: product.price,
+      quantity: qtyInUom,
+    );
+
+    await context.read<CartProvider>().addItem(item);
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} - Foi adicionado ao carrinho'),
+        backgroundColor: const Color.fromARGB(255, 1, 172, 24),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -61,6 +98,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
           ),
+          _buildAddToCartBar(context, product),
         ],
       ),
     );
@@ -499,6 +537,67 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAddToCartBar(BuildContext context, ProductModel product) {
+    final inputVal = double.tryParse(_qtyController.text) ?? 0;
+    final qtyKg = _isGrams ? inputVal / 1000.0 : inputVal;
+    final total = product.price * qtyKg;
+    final isValid = inputVal > 0;
+
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: MediaQuery.of(context).padding.bottom + 12,
+      ),
+      decoration: BoxDecoration(
+        color: _white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          onPressed: isValid ? () => _addToCart(context, product) : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _red,
+            disabledBackgroundColor: _red.withOpacity(0.4),
+            foregroundColor: _white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.shopping_cart_outlined, size: 20),
+              const SizedBox(width: 8),
+              const Text(
+                'Adicionar no Carrinho',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '· R\$${total.toStringAsFixed(2).replaceAll('.', ',')}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

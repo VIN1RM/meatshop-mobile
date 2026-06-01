@@ -44,6 +44,25 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> addItem(CartItemModel item) async {
+    try {
+      final existing = _items.indexWhere((i) => i.productId == item.productId);
+      if (existing != -1) {
+        final updated = _items[existing].copyWith(
+          quantity: _items[existing].quantity + item.quantity,
+        );
+        await _service.updateQuantity(uid, item.productId, updated.quantity);
+        _items[existing] = updated;
+      } else {
+        await _service.addItem(uid, item);
+        _items.add(item);
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[CartProvider] addItem error: $e');
+    }
+  }
+
   Future<void> updateQuantity(String productId, double quantity) async {
     if (quantity <= 0) {
       await removeItem(productId);
