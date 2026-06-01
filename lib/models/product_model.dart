@@ -34,9 +34,7 @@ class ProductModel {
   String get precoFormatado =>
       'R\$${price.toStringAsFixed(2).replaceAll('.', ',')}';
 
-  factory ProductModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-
+  factory ProductModel.fromMap(Map<String, dynamic> data, String id) {
     final stockRaw = data['stock'];
     int qty = 0;
     if (stockRaw is Map) {
@@ -44,7 +42,7 @@ class ProductModel {
     }
 
     return ProductModel(
-      id: doc.id,
+      id: id,
       name: (data['name'] as String?) ?? '',
       description: (data['description'] as String?) ?? '',
       price: (data['price'] as num?)?.toDouble() ?? 0.0,
@@ -59,6 +57,9 @@ class ProductModel {
       createdAt: (data['created_at'] as Timestamp?)?.toDate(),
     );
   }
+
+  factory ProductModel.fromFirestore(DocumentSnapshot doc) =>
+      ProductModel.fromMap(doc.data() as Map<String, dynamic>? ?? {}, doc.id);
 
   ProductModel copyWith({String? unitName}) => ProductModel(
     id: id,

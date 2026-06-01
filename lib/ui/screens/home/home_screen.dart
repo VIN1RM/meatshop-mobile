@@ -93,10 +93,14 @@ class _HomeBodyState extends State<HomeBody> {
           child: Column(
             children: [
               const AppHeader(),
-              SearchWidget(
-                controller: _searchController,
-                hintText: 'Procure por produto ou estabelecimento',
-                onSubmitted: (value) {},
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(context, AppRoutes.search),
+                child: AbsorbPointer(
+                  child: SearchWidget(
+                    controller: _searchController,
+                    hintText: 'Procure por produto ou estabelecimento',
+                  ),
+                ),
               ),
               Expanded(
                 child: SingleChildScrollView(

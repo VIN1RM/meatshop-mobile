@@ -1,0 +1,1 @@
+enum SearchResultType { product, category, butcher }

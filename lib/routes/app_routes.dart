@@ -39,4 +39,5 @@ class AppRoutes {
   static const String recipeTips = '/recipe-tips';
   static const String recipeChat = '/recipe-chat';
   static const String forgotPassword = '/auth/forgot_password';
+  static const String search = '/search';
 }
