@@ -21,12 +21,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   static const Color _textGray = Color(0xFF555555);
 
   bool _isGrams = true;
-  final TextEditingController _qtyController = TextEditingController(
-    text: '300',
-  );
+  final TextEditingController _qtyController = TextEditingController(text: '');
 
   static const List<int> _chipsG = [100, 200, 300, 500, 750];
   static const List<double> _chipsKg = [0.5, 1.0, 1.5, 2.0, 3.0];
+
+  bool _isEditingCart = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        final item = args['cartItem'] as CartItemModel?;
+        if (item != null) {
+          setState(() {
+            _isEditingCart = true;
+            final isKg = item.unitOfMeasure.toLowerCase() == 'kg';
+            _isGrams = !isKg;
+            _qtyController.text = isKg
+                ? item.quantity.toStringAsFixed(1)
+                : (item.quantity * 1000).toInt().toString();
+          });
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -39,37 +60,57 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (inputVal <= 0) return;
 
     final qtyInUom = _isGrams ? inputVal / 1000.0 : inputVal;
-
     final uid = context.read<AuthProvider>().currentUser?.uid;
     if (uid == null) return;
 
-    final item = CartItemModel(
-      productId: product.id,
-      productName: product.name,
-      productImageUrl: product.imageUrl,
-      unitId: product.unitId,
-      unitName: product.unitName,
-      unitOfMeasure: product.unitOfMeasure,
-      unitPrice: product.price,
-      quantity: qtyInUom,
-    );
+    final cart = context.read<CartProvider>();
 
-    await context.read<CartProvider>().addItem(item);
+    if (_isEditingCart) {
+      await cart.updateQuantity(product.id, qtyInUom);
+    } else {
+      final item = CartItemModel(
+        productId: product.id,
+        productName: product.name,
+        productImageUrl: product.imageUrl,
+        unitId: product.unitId,
+        unitName: product.unitName,
+        unitOfMeasure: product.unitOfMeasure,
+        unitPrice: product.price,
+        quantity: qtyInUom,
+      );
+      await cart.addItem(item);
+    }
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${product.name} - Foi adicionado ao carrinho'),
-        backgroundColor: const Color.fromARGB(255, 1, 172, 24),
+        content: Text(
+          _isEditingCart
+              ? '${product.name} - Carrinho atualizado'
+              : '${product.name} - Adicionado ao carrinho',
+        ),
+        backgroundColor: const Color(0xFF01AC18),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
     );
+
+    if (_isEditingCart && context.mounted) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final product = ModalRoute.of(context)?.settings.arguments as ProductModel?;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final ProductModel? product;
+    final CartItemModel? existingItem;
+
+    if (args is Map<String, dynamic>) {
+      product = args['product'] as ProductModel?;
+      existingItem = args['cartItem'] as CartItemModel?;
+    } else {
+      product = args as ProductModel?;
+      existingItem = null;
+    }
 
     if (product == null) {
       return Scaffold(
@@ -583,9 +624,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             children: [
               const Icon(Icons.shopping_cart_outlined, size: 20),
               const SizedBox(width: 8),
-              const Text(
-                'Adicionar no Carrinho',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              Text(
+                _isEditingCart ? 'Salvar alterações' : 'Adicionar no Carrinho',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(width: 8),
               Text(

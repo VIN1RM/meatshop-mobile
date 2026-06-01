@@ -5,6 +5,8 @@ import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/models/product_model.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -191,7 +193,21 @@ class _CartScreenState extends State<CartScreen> {
             ),
           ),
           const Divider(color: Color(0xFFE0E0E0), height: 1),
-          ...itens.map((item) => _buildCartItem(provider, item)),
+          ...itens.asMap().entries.map((entry) {
+            final isLast = entry.key == itens.length - 1;
+            return Column(
+              children: [
+                _buildCartItem(provider, entry.value),
+                if (!isLast)
+                  const Divider(
+                    color: Color.fromARGB(255, 190, 190, 190),
+                    height: 1,
+                    indent: 14,
+                    endIndent: 14,
+                  ),
+              ],
+            );
+          }),
           const Divider(color: Color(0xFFE0E0E0), height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
@@ -219,115 +235,141 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCartItem(CartProvider provider, CartItemModel item) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: SizedBox(
-                  width: 54,
-                  height: 54,
-                  child: item.productImageUrl.isNotEmpty
-                      ? Image.network(
-                          item.productImageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _imageFallback(),
-                        )
-                      : _imageFallback(),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.productName,
-                      style: const TextStyle(
-                        color: Color(0xFF1A1A1A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: item.precoFormatado,
-                            style: const TextStyle(
-                              color: _red,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          TextSpan(
-                            text: '/${item.unitOfMeasure}',
-                            style: const TextStyle(
-                              color: Color(0xFF888888),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: Color(0xFFAAAAAA),
-                  size: 20,
-                ),
-                onPressed: () => provider.removeItem(item.productId),
-              ),
-            ],
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.productDetail,
+        arguments: {
+          'product': ProductModel(
+            id: item.productId,
+            name: item.productName,
+            description: '',
+            price: item.unitPrice,
+            unitOfMeasure: item.unitOfMeasure,
+            active: true,
+            brand: '',
+            imageUrl: item.productImageUrl,
+            unitId: item.unitId,
+            unitName: item.unitName,
+            categoryId: '',
+            stockQuantity: 999,
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const SizedBox(width: 66),
-              _QtyButton(
-                icon: Icons.remove,
-                onTap: () => provider.updateQuantity(
-                  item.productId,
-                  item.quantity - 0.5,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  item.quantity % 1 == 0
-                      ? item.quantity.toInt().toString()
-                      : item.quantity.toStringAsFixed(1),
-                  style: const TextStyle(
-                    color: Color(0xFF1A1A1A),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+          'cartItem': item,
+        },
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: 54,
+                    height: 54,
+                    child: item.productImageUrl.isNotEmpty
+                        ? Image.network(
+                            item.productImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _imageFallback(),
+                          )
+                        : _imageFallback(),
                   ),
                 ),
-              ),
-              Text(
-                item.unitOfMeasure.toUpperCase(),
-                style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
-              ),
-              const SizedBox(width: 8),
-              _QtyButton(
-                icon: Icons.add,
-                onTap: () => provider.updateQuantity(
-                  item.productId,
-                  item.quantity + 0.5,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.productName,
+                        style: const TextStyle(
+                          color: Color(0xFF1A1A1A),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: item.precoFormatado,
+                              style: const TextStyle(
+                                color: _red,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '/${item.unitOfMeasure}',
+                              style: const TextStyle(
+                                color: Color(0xFF888888),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-        ],
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Color(0xFFAAAAAA),
+                    size: 20,
+                  ),
+                  onPressed: () => provider.removeItem(item.productId),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const SizedBox(width: 66),
+                _QtyButton(
+                  icon: Icons.remove,
+                  onTap: () => provider.updateQuantity(
+                    item.productId,
+                    item.quantity - 0.5,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    item.quantity % 1 == 0
+                        ? item.quantity.toInt().toString()
+                        : item.quantity.toStringAsFixed(1),
+                    style: const TextStyle(
+                      color: Color(0xFF1A1A1A),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Text(
+                  item.unitOfMeasure.toUpperCase(),
+                  style: const TextStyle(
+                    color: Color(0xFF888888),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _QtyButton(
+                  icon: Icons.add,
+                  onTap: () => provider.updateQuantity(
+                    item.productId,
+                    item.quantity + 0.5,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }
