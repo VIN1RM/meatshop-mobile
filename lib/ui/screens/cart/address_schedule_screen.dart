@@ -85,8 +85,9 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
 
   String? get _uid => context.read<AuthProvider>().currentUser?.uid;
 
-  void _openAddressSheet() {
+  void _openAddressSheet({AddressModel? address}) {
     if (_uid == null) return;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -94,13 +95,23 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
       useSafeArea: true,
       useRootNavigator: true,
       builder: (_) => AddressFormSheet(
+        address: address,
         onSave: (newAddress) async {
-          final created = await context.read<AddressProvider>().add(
-            _uid!,
-            newAddress,
-          );
-          if (mounted) {
-            setState(() => _selectedAddressId = created.id);
+          if (address != null) {
+            await context.read<AddressProvider>().update(_uid!, newAddress);
+
+            if (mounted) {
+              setState(() => _selectedAddressId = newAddress.id);
+            }
+          } else {
+            final created = await context.read<AddressProvider>().add(
+              _uid!,
+              newAddress,
+            );
+
+            if (mounted) {
+              setState(() => _selectedAddressId = created.id);
+            }
           }
         },
       ),
@@ -354,7 +365,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
               ),
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () => _openAddressSheet(address: address),
               child: Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: Icon(
