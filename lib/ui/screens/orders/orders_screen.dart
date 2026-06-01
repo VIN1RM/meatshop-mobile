@@ -1,34 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/services/order_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/dialogs/reorder_confirm_dialog.dart';
 
-class _OrderItem {
-  final String quantidade;
-  final String nome;
-  const _OrderItem(this.quantidade, this.nome);
-}
-
-enum _OrderStatus { emAndamento, finalizado }
-
-class _Order {
-  final String acougueNome;
-  final String logoAsset;
-  final String total;
-  final List<_OrderItem> itens;
-  final _OrderStatus status;
-
-  const _Order({
-    required this.acougueNome,
-    required this.logoAsset,
-    required this.total,
-    required this.itens,
-    required this.status,
-  });
-}
-
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
+
   @override
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
@@ -36,78 +15,24 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   static const Color _red = Color(0xFFC0392B);
 
-  static final List<_Order> _orders = [
-    _Order(
-      acougueNome: 'Master Carnes',
-      logoAsset: 'assets/images/logo_master.png',
-      total: 'R\$185,98',
-      status: _OrderStatus.emAndamento,
-      itens: const [
-        _OrderItem('1 KG', 'Lombo suíno'),
-        _OrderItem('1 KG', 'Picanha Angus'),
-      ],
-    ),
-    _Order(
-      acougueNome: 'Frigorífico Goiás',
-      logoAsset: 'assets/images/logo_frigorifico.png',
-      total: 'R\$78,98',
-      status: _OrderStatus.emAndamento,
-      itens: const [_OrderItem('1 KG', 'Filé de Tilápia')],
-    ),
+  final OrderService _service = OrderService();
 
-    _Order(
-      acougueNome: 'Master Carnes',
-      logoAsset: 'assets/images/logo_master.png',
-      total: 'R\$178,75',
-      status: _OrderStatus.finalizado,
-      itens: const [
-        _OrderItem('2,5 KG', 'Pintado'),
-        _OrderItem('4 KG', 'Linguiça Toscana Sadia'),
-        _OrderItem('2 KG', 'Coxa de Frango'),
-      ],
-    ),
-    _Order(
-      acougueNome: 'Mendes',
-      logoAsset: 'assets/images/logo_mendes.png',
-      total: 'R\$237,45',
-      status: _OrderStatus.finalizado,
-      itens: const [
-        _OrderItem('1,5 KG', 'Filé Mignon'),
-        _OrderItem('1 KG', 'Salmão'),
-      ],
-    ),
-    _Order(
-      acougueNome: 'Mendes',
-      logoAsset: 'assets/images/logo_mendes.png',
-      total: 'R\$306,97',
-      status: _OrderStatus.finalizado,
-      itens: const [
-        _OrderItem('2 KG', 'Prime Rib'),
-        _OrderItem('0,8 KG', 'Maminha Steak'),
-      ],
-    ),
-  ];
-
-  Future<void> _onReorder(BuildContext context, _Order order) async {
+  Future<void> _onReorder(BuildContext context, OrderModel order) async {
     await ReorderConfirmDialog.show(
       context,
-      acougueNome: order.acougueNome,
-      itens: order.itens
-          .map((i) => ReorderItem(nome: i.nome, quantidade: i.quantidade))
+      acougueNome: order.unitName,
+      itens: order.items
+          .map(
+            (i) =>
+                ReorderItem(nome: i.productName, quantidade: i.quantityLabel),
+          )
           .toList(),
-      total: order.total,
+      total: order.formattedTotal,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final emAndamento = _orders
-        .where((o) => o.status == _OrderStatus.emAndamento)
-        .toList();
-    final finalizados = _orders
-        .where((o) => o.status == _OrderStatus.finalizado)
-        .toList();
-
     return Stack(
       children: [
         Positioned(
@@ -128,7 +53,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
           child: Column(
             children: [
               const AppHeader(),
-
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -141,13 +65,25 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
                       _groupTitle('Em andamento'),
                       const SizedBox(height: 10),
-                      _buildGroup(context, emAndamento, isActive: true),
+                      _ActiveOrdersSection(
+                        service: _service,
+                        onReorder: _onReorder,
+                        red: _red,
+                      ),
 
                       const SizedBox(height: 24),
 
                       _groupTitle('Finalizados'),
+                      const SizedBox(height: 4),
+                      _groupSubtitle(
+                        'Últimos 3 meses · Concluídos e Cancelados',
+                      ),
                       const SizedBox(height: 10),
-                      _buildGroup(context, finalizados, isActive: false),
+                      _FinishedOrdersSection(
+                        service: _service,
+                        onReorder: _onReorder,
+                        red: _red,
+                      ),
 
                       const SizedBox(height: 24),
                     ],
@@ -161,42 +97,198 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  Widget _pageTitle() {
+  Widget _pageTitle() => const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16),
+    child: Text(
+      'PEDIDOS',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 22,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.2,
+      ),
+    ),
+  );
+
+  Widget _groupTitle(String label) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
+
+  Widget _groupSubtitle(String label) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Color(0xAAFFFFFF),
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+      ),
+    ),
+  );
+}
+
+class _ActiveOrdersSection extends StatelessWidget {
+  const _ActiveOrdersSection({
+    required this.service,
+    required this.onReorder,
+    required this.red,
+  });
+
+  final OrderService service;
+  final Future<void> Function(BuildContext, OrderModel) onReorder;
+  final Color red;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<OrderModel>>(
+      stream: service.activeOrdersStream(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return _Loading();
+        }
+        if (snap.hasError) {
+          return _ErrorTile(message: snap.error.toString());
+        }
+        final orders = snap.data ?? [];
+        if (orders.isEmpty) {
+          return _EmptyTile(message: 'Nenhum pedido em andamento.');
+        }
+        return _OrderGroup(
+          orders: orders,
+          isActive: true,
+          red: red,
+          onReorder: onReorder,
+        );
+      },
+    );
+  }
+}
+
+class _FinishedOrdersSection extends StatelessWidget {
+  const _FinishedOrdersSection({
+    required this.service,
+    required this.onReorder,
+    required this.red,
+  });
+
+  final OrderService service;
+  final Future<void> Function(BuildContext, OrderModel) onReorder;
+  final Color red;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<OrderModel>>(
+      stream: service.finishedOrdersStream(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return _Loading();
+        }
+        if (snap.hasError) {
+          return _ErrorTile(message: snap.error.toString());
+        }
+        final orders = snap.data ?? [];
+        if (orders.isEmpty) {
+          return _EmptyTile(
+            message: 'Nenhum pedido finalizado nos últimos 3 meses.',
+          );
+        }
+        return _OrderGroup(
+          orders: orders,
+          isActive: false,
+          red: red,
+          onReorder: onReorder,
+        );
+      },
+    );
+  }
+}
+
+class _Loading extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        'PEDIDOS',
-        style: TextStyle(
-          color: Color.fromARGB(255, 255, 255, 255),
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.2,
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFFC0392B),
+          strokeWidth: 2.5,
         ),
       ),
     );
   }
+}
 
-  Widget _groupTitle(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Color.fromARGB(255, 255, 255, 255),
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
+class _EmptyTile extends StatelessWidget {
+  const _EmptyTile({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Text(
+          message,
+          style: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+          textAlign: TextAlign.center,
         ),
       ),
     );
   }
+}
 
-  Widget _buildGroup(
-    BuildContext context,
-    List<_Order> orders, {
-    required bool isActive,
-  }) {
-    if (orders.isEmpty) return const SizedBox.shrink();
+class _ErrorTile extends StatelessWidget {
+  const _ErrorTile({required this.message});
+  final String message;
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF0F0),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Text(
+          'Erro ao carregar pedidos.',
+          style: const TextStyle(color: Color(0xFFC0392B), fontSize: 13),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderGroup extends StatelessWidget {
+  const _OrderGroup({
+    required this.orders,
+    required this.isActive,
+    required this.red,
+    required this.onReorder,
+  });
+
+  final List<OrderModel> orders;
+  final bool isActive;
+  final Color red;
+  final Future<void> Function(BuildContext, OrderModel) onReorder;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -208,7 +300,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
           final isLast = i == orders.length - 1;
           return Column(
             children: [
-              _buildOrderCard(context, orders[i], isActive: isActive),
+              _OrderCard(
+                order: orders[i],
+                isActive: isActive,
+                red: red,
+                onReorder: onReorder,
+              ),
               if (!isLast)
                 const Divider(
                   height: 1,
@@ -221,15 +318,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
       ),
     );
   }
+}
 
-  Widget _buildOrderCard(
-    BuildContext context,
-    _Order order, {
-    required bool isActive,
-  }) {
-    const int maxVisible = 2;
-    final visibleItems = order.itens.take(maxVisible).toList();
-    final hasMore = order.itens.length > maxVisible;
+class _OrderCard extends StatelessWidget {
+  const _OrderCard({
+    required this.order,
+    required this.isActive,
+    required this.red,
+    required this.onReorder,
+  });
+
+  final OrderModel order;
+  final bool isActive;
+  final Color red;
+  final Future<void> Function(BuildContext, OrderModel) onReorder;
+
+  static const int _maxVisible = 2;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleItems = order.items.take(_maxVisible).toList();
+    final extraCount = order.items.length - _maxVisible;
+    final hasMore = extraCount > 0;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
@@ -238,41 +348,27 @@ class _OrdersScreenState extends State<OrdersScreen> {
         children: [
           Row(
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(shape: BoxShape.circle),
-                child: ClipOval(
-                  child: Image.asset(
-                    order.logoAsset,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFFE0E0E0),
-
-                      child: const Icon(
-                        Icons.storefront_outlined,
-                        color: const Color(0xFFBDBDBD),
-                        size: 18,
+              _UnitAvatar(logoUrl: order.unitLogoUrl),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.unitName,
+                      style: const TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
+
+                    if (!isActive) _StatusBadge(order: order, red: red),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-
-              Expanded(
-                child: Text(
-                  order.acougueNome,
-                  style: const TextStyle(
-                    color: Color(0xFF1A1A1A),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-
               Text(
-                order.total,
+                order.formattedTotal,
                 style: const TextStyle(
                   color: Color(0xFF1A1A1A),
                   fontSize: 15,
@@ -292,7 +388,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   SizedBox(
                     width: 52,
                     child: Text(
-                      item.quantidade,
+                      item.quantityLabel,
                       style: const TextStyle(
                         color: Color(0xFF555555),
                         fontSize: 13,
@@ -301,7 +397,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      item.nome,
+                      item.productName,
                       style: const TextStyle(
                         color: Color(0xFF1A1A1A),
                         fontSize: 13,
@@ -322,20 +418,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 GestureDetector(
                   onTap: () =>
                       Navigator.pushNamed(context, AppRoutes.deliveries),
-                  child: const Text(
+                  child: Text(
                     'Acompanhar Entrega',
                     style: TextStyle(
-                      color: _red,
+                      color: red,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
-                      decorationColor: _red,
+                      decorationColor: red,
                     ),
                   ),
                 )
               else if (hasMore)
                 Text(
-                  '+${order.itens.length - maxVisible} item(s)',
+                  '+$extraCount item(s)',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFFAAAAAA),
@@ -346,14 +442,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
               if (!isActive)
                 GestureDetector(
-                  onTap: () => _onReorder(context, order),
+                  onTap: () => onReorder(context, order),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: _red,
+                      color: red,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Row(
@@ -379,8 +475,81 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
             ],
           ),
+
+          if (order.isCancelled && order.cancellationReason != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Cancelado: ${order.cancellationReason}',
+              style: const TextStyle(
+                color: Color(0xFFC0392B),
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _UnitAvatar extends StatelessWidget {
+  const _UnitAvatar({required this.logoUrl});
+  final String logoUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      child: ClipOval(
+        child: logoUrl.isNotEmpty
+            ? Image.network(
+                logoUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _placeholder(),
+              )
+            : _placeholder(),
+      ),
+    );
+  }
+
+  Widget _placeholder() => Container(
+    color: const Color(0xFFE0E0E0),
+    child: const Icon(
+      Icons.storefront_outlined,
+      color: Color(0xFFBDBDBD),
+      size: 18,
+    ),
+  );
+}
+
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.order, required this.red});
+  final OrderModel order;
+  final Color red;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCancelled = order.isCancelled;
+    return Row(
+      children: [
+        Icon(
+          isCancelled ? Icons.cancel_outlined : Icons.check_circle_outline,
+          size: 11,
+          color: isCancelled ? red : const Color(0xFF27AE60),
+        ),
+        const SizedBox(width: 3),
+        Text(
+          isCancelled ? 'Cancelado' : 'Concluído',
+          style: TextStyle(
+            fontSize: 11,
+            color: isCancelled ? red : const Color(0xFF27AE60),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
