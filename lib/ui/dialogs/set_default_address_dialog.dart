@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 
-class RemoveAddressDialog extends StatelessWidget {
-  const RemoveAddressDialog({
+class SetDefaultAddressDialog extends StatelessWidget {
+  const SetDefaultAddressDialog({
     super.key,
     required this.address,
     required this.onConfirm,
@@ -34,14 +34,14 @@ class RemoveAddressDialog extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.delete_outline_rounded,
+                Icons.location_on_outlined,
                 color: _red,
                 size: 28,
               ),
             ),
             const SizedBox(height: 16),
             const Text(
-              'Remover endereço?',
+              'Definir endereço padrão?',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 17,
@@ -52,7 +52,7 @@ class RemoveAddressDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '"${address.label}" será removido permanentemente da sua lista de endereços.',
+              '"${address.label}" será usado como seu endereço de entrega padrão.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
@@ -101,7 +101,7 @@ class RemoveAddressDialog extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      'Remover',
+                      'Definir',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,

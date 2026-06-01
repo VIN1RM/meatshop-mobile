@@ -184,30 +184,51 @@ class CustomDialog {
       barrierDismissible: false,
       builder: (ctx) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF5F5F5),
         insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: destructive
+                      ? const Color(0xFFC0392B).withValues(alpha: 0.10)
+                      : const Color(0xFF1A1A1A).withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  destructive
+                      ? Icons.delete_outline_rounded
+                      : Icons.check_circle_outline_rounded,
+                  color: destructive
+                      ? const Color(0xFFC0392B)
+                      : const Color(0xFF1A1A1A),
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 title,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: _dark,
+                  color: Color(0xFF1A1A1A),
                   height: 1.3,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 message,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w400,
-                  color: _grey,
+                  color: Color(0xFF555555),
                   height: 1.5,
                 ),
               ),
@@ -218,7 +239,7 @@ class CustomDialog {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(ctx).pop(false),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: _dark,
+                        foregroundColor: const Color(0xFF1A1A1A),
                         side: const BorderSide(color: Color(0xFFDDDDDD)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -228,7 +249,7 @@ class CustomDialog {
                       child: Text(
                         cancelLabel,
                         style: const TextStyle(
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -239,7 +260,9 @@ class CustomDialog {
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(ctx).pop(true),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: destructive ? _red : _dark,
+                        backgroundColor: destructive
+                            ? const Color(0xFFC0392B)
+                            : const Color(0xFF1A1A1A),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -250,8 +273,8 @@ class CustomDialog {
                       child: Text(
                         confirmLabel,
                         style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),

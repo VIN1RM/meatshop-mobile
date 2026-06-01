@@ -7,6 +7,7 @@ import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/dialogs/remove_address_dialog.dart';
+import 'package:meatshop_mobile/ui/dialogs/set_default_address_dialog.dart';
 
 class SavedAddressesScreen extends StatefulWidget {
   const SavedAddressesScreen({super.key});
@@ -16,7 +17,6 @@ class SavedAddressesScreen extends StatefulWidget {
 }
 
 class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -30,9 +30,50 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
 
   String? get _uid => context.read<AuthProvider>().currentUser?.uid;
 
-  void _setDefault(String id) {
+  Future<void> _setDefault(AddressModel address) async {
     if (_uid == null) return;
-    context.read<AddressProvider>().setDefault(_uid!, id);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) =>
+          SetDefaultAddressDialog(address: address, onConfirm: () {}),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    await context.read<AddressProvider>().setDefault(_uid!, address.id);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 5),
+        backgroundColor: const Color(0xFF22C55E),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Endereço "${address.label}" definido como padrão!',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _deleteAddress(String id) {
@@ -87,7 +128,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
           SafeArea(
             child: Column(
               children: [
-           const AppHeader(showBack: true),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: provider.loading
                       ? const Center(
@@ -131,7 +172,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                                 ...provider.addresses.map(
                                   (a) => _AddressCard(
                                     address: a,
-                                    onSetDefault: () => _setDefault(a.id),
+                                    onSetDefault: () => _setDefault(a),
                                     onEdit: () => _openAddressSheet(address: a),
                                     onDelete: () => _confirmDelete(a),
                                   ),
