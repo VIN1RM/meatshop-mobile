@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
+import 'package:meatshop_mobile/models/address_model.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 
 class AddressScheduleScreen extends StatefulWidget {
   final double total;
@@ -20,23 +26,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
 
   late TabController _tabController;
 
-  int _selectedAddressIndex = 0;
-  final List<Map<String, String>> _savedAddresses = const [
-    {
-      'label': 'Casa',
-      'street': 'Avenida Rodovanio Rodovalho, Nº 17',
-      'complement': 'Casa cinza',
-      'district': 'Bairro Eldorado',
-      'city': 'Anápolis, Goiás',
-    },
-    {
-      'label': 'Trabalho',
-      'street': 'Rua das Flores, Nº 200',
-      'complement': 'Sala 302',
-      'district': 'Centro',
-      'city': 'Anápolis, Goiás',
-    },
-  ];
+  String? _selectedAddressId;
 
   DateTime? _selectedDate;
   String? _selectedTime;
@@ -51,6 +41,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   ];
 
   bool get _canProceed {
+    if (_selectedAddressId == null) return false;
     if (_tabController.index == 0) return true;
     return _selectedDate != null && _selectedTime != null;
   }
@@ -60,6 +51,23 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() => setState(() {}));
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final provider = context.read<AddressProvider>();
+        provider.load(uid).then((_) {
+          final addresses = provider.addresses;
+          if (addresses.isNotEmpty && _selectedAddressId == null) {
+            setState(() {
+              _selectedAddressId = addresses
+                  .firstWhere((a) => a.isDefault, orElse: () => addresses.first)
+                  .id;
+            });
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -72,6 +80,30 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => PaymentScreen(total: widget.total)),
+    );
+  }
+
+  String? get _uid => context.read<AuthProvider>().currentUser?.uid;
+
+  void _openAddressSheet() {
+    if (_uid == null) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      useRootNavigator: true,
+      builder: (_) => AddressFormSheet(
+        onSave: (newAddress) async {
+          final created = await context.read<AddressProvider>().add(
+            _uid!,
+            newAddress,
+          );
+          if (mounted) {
+            setState(() => _selectedAddressId = created.id);
+          }
+        },
+      ),
     );
   }
 
@@ -201,6 +233,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   Widget _buildNowTab() {
+    final provider = context.watch<AddressProvider>();
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
@@ -209,9 +242,17 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         children: [
           _sectionLabel('Selecione o endereço de entrega'),
           const SizedBox(height: 14),
-          ..._savedAddresses.asMap().entries.map(
-            (e) => _buildAddressCard(e.key, e.value),
-          ),
+          if (provider.loading)
+            const Center(child: CircularProgressIndicator(color: _red))
+          else if (provider.error != null)
+            Text(
+              provider.error!,
+              style: const TextStyle(color: Colors.redAccent),
+            )
+          else if (provider.addresses.isEmpty)
+            _buildEmptyAddresses()
+          else
+            ...provider.addresses.map((a) => _buildAddressCard(a)),
           const SizedBox(height: 12),
           _buildAddNewAddress(),
           const SizedBox(height: 20),
@@ -222,10 +263,10 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     );
   }
 
-  Widget _buildAddressCard(int index, Map<String, String> address) {
-    final selected = _selectedAddressIndex == index;
+  Widget _buildAddressCard(AddressModel address) {
+    final selected = _selectedAddressId == address.id;
     return GestureDetector(
-      onTap: () => setState(() => _selectedAddressIndex = index),
+      onTap: () => setState(() => _selectedAddressId = address.id),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 12),
@@ -261,42 +302,38 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? _white.withOpacity(0.25)
-                              : const Color(0xFFDDDDDD),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          address['label']!,
-                          style: TextStyle(
-                            color: selected ? _white : const Color(0xFF555555),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? _white.withOpacity(0.25)
+                          : const Color(0xFFDDDDDD),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      address.label,
+                      style: TextStyle(
+                        color: selected ? _white : const Color(0xFF555555),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    address['street']!,
+                    '${address.street}, ${address.number}',
                     style: TextStyle(
                       color: selected ? _white : const Color(0xFF1A1A1A),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if ((address['complement'] ?? '').isNotEmpty)
+                  if (address.complement.isNotEmpty)
                     Text(
-                      address['complement']!,
+                      address.complement,
                       style: TextStyle(
                         color: selected
                             ? _white.withOpacity(0.75)
@@ -305,7 +342,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                       ),
                     ),
                   Text(
-                    '${address['district']} · ${address['city']}',
+                    '${address.neighborhood} · ${address.city}, ${address.state}',
                     style: TextStyle(
                       color: selected
                           ? _white.withOpacity(0.75)
@@ -337,7 +374,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
 
   Widget _buildAddNewAddress() {
     return GestureDetector(
-      onTap: () {},
+      onTap: _openAddressSheet,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
@@ -364,6 +401,31 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyAddresses() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.location_off_outlined,
+            color: Colors.white24,
+            size: 48,
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Nenhum endereço salvo.',
+            style: TextStyle(color: Colors.white54, fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Adicione um endereço para continuar.',
+            style: TextStyle(color: Colors.white38, fontSize: 12),
+          ),
+        ],
       ),
     );
   }
@@ -427,6 +489,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   Widget _buildScheduleTab() {
+    final provider = context.watch<AddressProvider>();
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
@@ -435,9 +498,17 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         children: [
           _sectionLabel('Selecione o endereço de entrega'),
           const SizedBox(height: 14),
-          ..._savedAddresses.asMap().entries.map(
-            (e) => _buildAddressCard(e.key, e.value),
-          ),
+          if (provider.loading)
+            const Center(child: CircularProgressIndicator(color: _red))
+          else if (provider.error != null)
+            Text(
+              provider.error!,
+              style: const TextStyle(color: Colors.redAccent),
+            )
+          else if (provider.addresses.isEmpty)
+            _buildEmptyAddresses()
+          else
+            ...provider.addresses.map((a) => _buildAddressCard(a)),
           _buildAddNewAddress(),
           const SizedBox(height: 24),
           _sectionLabel('Escolha a data'),
@@ -447,9 +518,8 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           _sectionLabel('Escolha uma faixa de horários'),
           const SizedBox(height: 14),
           _buildTimeSlots(),
-          if (_selectedDate != null && _selectedTime != null) ...[
+          if (_selectedDate != null && _selectedTime != null)
             const SizedBox(height: 20),
-          ],
         ],
       ),
     );

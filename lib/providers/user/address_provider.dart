@@ -27,13 +27,14 @@ class AddressProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> add(String uid, AddressModel address) async {
+  Future<AddressModel> add(String uid, AddressModel address) async {
     final created = await _service.addAddress(uid, address);
     if (address.isDefault) {
       _addresses = _addresses.map((a) => a.copyWith(isDefault: false)).toList();
     }
     _addresses.add(created);
     notifyListeners();
+    return created;
   }
 
   Future<void> update(String uid, AddressModel address) async {
