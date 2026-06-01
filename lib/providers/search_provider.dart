@@ -47,12 +47,12 @@ class SearchProvider extends ChangeNotifier {
     });
   }
 
-  void clear() {
+  void clear({bool notify = true}) {
     _query = '';
     _results = [];
     _isLoading = false;
     _debounce?.cancel();
-    notifyListeners();
+    if (notify) notifyListeners();
   }
 
   @override
