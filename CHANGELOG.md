@@ -11,6 +11,32 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.4.0] - 2026-06-01
+### Integração de Pedidos, Busca Global, Carrinho e Endereços com Firebase
+
+### Added
+- Utilitário de máscaras de entrada criado em `utils`, centralizando formatações reutilizáveis no aplicativo.
+- **OrdersScreen:** integração com Firebase Firestore para carregamento dinâmico dos pedidos.
+- **AddressScheduleScreen:** integração com Firestore para carregar endereços reais do usuário.
+- Busca global com consulta otimizada por *debounce* e resultados de múltiplos tipos.
+- **AppBackButton:** componente reutilizável de botão de voltar com navegação segura usando `maybePop`.
+- **Carrinho:** adição de produtos diretamente pela `ProductDetailScreen`.
+- **Carrinho:** remoção de itens com gesto de deslizar, *dialog* de confirmação e *snackbar* de feedback.
+- **Carrinho:** confirmação antes de remover um item ao reduzir a quantidade para zero.
+- **Endereços:** *dialog* de confirmação para definir endereço padrão, com *snackbar* de feedback.
+- **Endereços:** suporte à atualização de endereço pela *bottom sheet* de endereço de entrega.
+
+### Changed
+- **ChatScreen:** redesign da barra de entrada de mensagem e melhoria geral no layout da tela.
+- **CartScreen:** adicionado suporte para editar item ao tocar no produto e divisores visuais entre itens.
+- Telas de endereço: padronização visual dos *dialogs* para manter consistência de UI.
+- **ChangePasswordScreen:** substituição do botão de voltar customizado por `AppHeader` e `AppBackButton`.
+
+### Fixed
+- Corrigido problema na busca que podia chamar `notifyListeners` durante o descarte da árvore de widgets.
+
+---
+
 ## [2.3.0] - 2026-05-30
 ### Integração de Produtos, Açougues e Carrinho com Firestore
 

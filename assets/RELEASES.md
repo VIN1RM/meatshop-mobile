@@ -4,6 +4,32 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.4.0] — 01 de Junho de 2026
+### 🔎 Busca Global, Pedidos Reais, Carrinho Melhorado e Endereços Dinâmicos
+
+### ✨ Novidades
+- **Busca Global no Aplicativo:** Agora o app conta com uma tela de busca global, permitindo pesquisar diferentes tipos de informações em um só lugar.
+- **Pedidos Conectados ao Firestore:** A tela de pedidos agora carrega informações reais do Firebase Firestore, substituindo os dados simulados.
+- **Endereços Dinâmicos no Agendamento:** A tela de endereço e agendamento agora exibe os endereços reais cadastrados pelo usuário no Firestore.
+- **Adicionar Produto ao Carrinho:** Agora é possível adicionar produtos ao carrinho diretamente pela tela de detalhes do produto.
+- **Botão de Voltar Reutilizável:** Foi criado um novo componente padrão de botão de voltar, deixando a navegação mais segura e consistente entre as telas.
+- **Máscaras de Entrada Reutilizáveis:** Foram adicionadas máscaras em utilitários para padronizar campos de entrada e melhorar a experiência de preenchimento.
+
+### 📈 Melhorias
+- **Carrinho Mais Intuitivo:** Agora é possível tocar em um item do carrinho para editar o produto, além da inclusão de divisores visuais entre os itens.
+- **Remoção de Itens com Confirmação:** O carrinho agora permite remover itens deslizando para o lado, com dialog de confirmação e mensagem de feedback.
+- **Proteção ao Reduzir Quantidade:** Ao tentar diminuir a quantidade de um item para zero, o app solicita confirmação antes de remover o produto.
+- **Chat com Visual Melhorado:** A barra de digitação do chat foi redesenhada e o layout da tela recebeu melhorias para ficar mais organizado.
+- **Endereços com Interface Padronizada:** Os dialogs relacionados a endereços foram ajustados para seguir o mesmo padrão visual do aplicativo.
+- **Definição de Endereço Padrão Melhorada:** Agora, ao definir um endereço como padrão, o app exibe confirmação e feedback visual para o usuário.
+- **Edição de Endereço pelo Agendamento:** A bottom sheet de endereço de entrega agora permite atualizar os dados do endereço selecionado.
+- **Tela de Alteração de Senha Padronizada:** O botão de voltar customizado foi substituído pelo cabeçalho padrão do app e pelo novo botão reutilizável.
+
+### 🐞 Correções
+- **Correção na Busca:** Corrigido um problema em que a busca podia tentar atualizar a interface durante o encerramento da tela.
+
+---
+
 ## [2.3.0] — 30 de Maio de 2026
 ### 🛒 Carrinho Real, Açougues com Produtos e Promoções do Banco de Dados
 
