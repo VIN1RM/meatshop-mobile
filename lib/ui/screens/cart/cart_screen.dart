@@ -347,10 +347,29 @@ class _CartScreenState extends State<CartScreen> {
                     const SizedBox(width: 66),
                     _QtyButton(
                       icon: Icons.remove,
-                      onTap: () => provider.updateQuantity(
-                        item.productId,
-                        item.quantity - 0.5,
-                      ),
+                      onTap: () async {
+                        final novaQty = item.quantity - 0.5;
+                        if (novaQty <= 0) {
+                          final confirmed =
+                              await CustomDialog.showRemoveCartItem(
+                                context: context,
+                                productName: item.productName,
+                              );
+                          if (confirmed) {
+                            provider.removeItem(item.productId);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Produto Removido do Carrinho'),
+                                backgroundColor: Color(0xFF22C55E),
+                                behavior: SnackBarBehavior.floating,
+                                duration: Duration(seconds: 5),
+                              ),
+                            );
+                          }
+                        } else {
+                          provider.updateQuantity(item.productId, novaQty);
+                        }
+                      },
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
