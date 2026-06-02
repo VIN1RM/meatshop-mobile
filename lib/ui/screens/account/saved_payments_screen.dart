@@ -33,11 +33,24 @@ String _detectBrand(String number) {
   return 'credit_card';
 }
 
-class SavedPaymentsScreen extends StatelessWidget {
+class SavedPaymentsScreen extends StatefulWidget {
   const SavedPaymentsScreen({super.key});
 
+  @override
+  State<SavedPaymentsScreen> createState() => _SavedPaymentsScreenState();
+}
+
+class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PaymentProvider>().init();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +109,7 @@ class SavedPaymentsScreen extends StatelessWidget {
                         ],
 
                         const SizedBox(height: 20),
-                        _sectionLabel('OUTRAS FORMAS'),
+                        _sectionLabel('OUTRAS FORMAS DE PAGAMENTO DO APP'),
                         const SizedBox(height: 10),
                         _buildOtherMethods(),
                         const SizedBox(height: 24),

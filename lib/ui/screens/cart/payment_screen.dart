@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/providers/payment_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/models/payment_model.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double total;
@@ -27,23 +30,6 @@ class _PaymentScreenState extends State<PaymentScreen>
   bool _needsChange = false;
   final TextEditingController _changeController = TextEditingController();
   int _selectedBrandIndex = -1;
-
-  final List<Map<String, dynamic>> _savedCards = const [
-    {
-      'brand': 'Visa',
-      'lastFour': '4321',
-      'holder': 'JOÃO P SILVA',
-      'expiry': '08/27',
-      'icon': Icons.credit_card,
-    },
-    {
-      'brand': 'Mastercard',
-      'lastFour': '9876',
-      'holder': 'JOÃO P SILVA',
-      'expiry': '03/26',
-      'icon': Icons.credit_card,
-    },
-  ];
 
   @override
   void initState() {
@@ -192,6 +178,8 @@ class _PaymentScreenState extends State<PaymentScreen>
   }
 
   Widget _buildOnlineTab() {
+    final cards = context.watch<PaymentProvider>().cards;
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
@@ -205,10 +193,10 @@ class _PaymentScreenState extends State<PaymentScreen>
           if (_onlineMethodIndex == 0) ...[
             _buildPixInfo(),
           ] else ...[
-            if (_savedCards.isNotEmpty) ...[
+            if (cards.isNotEmpty) ...[
               _sectionLabel('Cartões salvos'),
               const SizedBox(height: 12),
-              ..._savedCards.asMap().entries.map(
+              ...cards.asMap().entries.map(
                 (e) => _buildSavedCard(e.key, e.value),
               ),
               const SizedBox(height: 4),
@@ -364,7 +352,7 @@ class _PaymentScreenState extends State<PaymentScreen>
     );
   }
 
-  Widget _buildSavedCard(int index, Map<String, dynamic> card) {
+  Widget _buildSavedCard(int index, PaymentMethodModel card) {
     final selected = _selectedSavedCardIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedSavedCardIndex = index),
@@ -383,7 +371,7 @@ class _PaymentScreenState extends State<PaymentScreen>
         child: Row(
           children: [
             Icon(
-              card['icon'] as IconData,
+              Icons.credit_card,
               color: selected ? _red : Colors.white54,
               size: 28,
             ),
@@ -393,7 +381,7 @@ class _PaymentScreenState extends State<PaymentScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${card['brand']} •••• ${card['lastFour']}',
+                    '${card.brand.toUpperCase()} •••• ${card.lastFour}',
                     style: TextStyle(
                       color: selected ? _white : Colors.white70,
                       fontWeight: FontWeight.w700,
@@ -402,7 +390,7 @@ class _PaymentScreenState extends State<PaymentScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${card['holder']} · ${card['expiry']}',
+                    '${card.holderName} · ${card.expirationMonth}/${card.expirationYear.length == 4 ? card.expirationYear.substring(2) : card.expirationYear}',
                     style: const TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ],
