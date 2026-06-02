@@ -413,12 +413,12 @@ class ReviewOrderScreen extends StatelessWidget {
             summary: summary,
             items: cart.items,
             total: total,
+            cartProvider: cart,
           );
 
           if (!context.mounted) return;
 
           if (success) {
-            await cart.clearCart();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
