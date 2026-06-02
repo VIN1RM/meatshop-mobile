@@ -39,7 +39,15 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.register: (_) => const RegisterPage(),
     AppRoutes.changePassword: (_) => const ChangePasswordPage(),
     AppRoutes.shell: (_) => const AppShell(),
-    AppRoutes.reviewOrder: (_) => const ReviewOrderScreen(),
+    AppRoutes.reviewOrder: (_) => const Scaffold(
+      backgroundColor: Color(0xFF2E2E2E),
+      body: Center(
+        child: Text(
+          'Use o fluxo do carrinho',
+          style: TextStyle(color: Colors.white54),
+        ),
+      ),
+    ),
     AppRoutes.acougues: (_) => const AcouguesScreen(),
     AppRoutes.cortesBovinos: (_) =>
         const CutsScreen(title: 'CORTES BOVINOS', categoryName: 'Bovinos'),
@@ -61,7 +69,15 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.deliveryShell: (_) => const DeliveryShell(),
     AppRoutes.vehicleSettings: (_) => const VehicleSettingsScreen(),
     AppRoutes.modeSwitch: (_) => const ModeSwitchScreen(),
-    AppRoutes.paymentOrder: (_) => const PaymentScreen(total: 0),
+    AppRoutes.paymentOrder: (_) => const Scaffold(
+      backgroundColor: Color(0xFF2E2E2E),
+      body: Center(
+        child: Text(
+          'Use o fluxo do carrinho',
+          style: TextStyle(color: Colors.white54),
+        ),
+      ),
+    ),
     AppRoutes.editProfile: (_) => const EditProfileScreen(),
     AppRoutes.addressSchedule: (_) => const AddressScheduleScreen(total: 0),
     AppRoutes.recipeTips: (_) => const RecipeTipsScreen(),

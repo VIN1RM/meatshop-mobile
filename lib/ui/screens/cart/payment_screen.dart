@@ -4,11 +4,23 @@ import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/payment_model.dart';
+import 'package:meatshop_mobile/models/checkout_summary_model.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double total;
+  final String addressId;
+  final bool isScheduled;
+  final DateTime? scheduledDate;
+  final String? scheduledTime;
 
-  const PaymentScreen({super.key, required this.total});
+  const PaymentScreen({
+    super.key,
+    required this.total,
+    required this.addressId,
+    this.isScheduled = false,
+    this.scheduledDate,
+    this.scheduledTime,
+  });
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -43,6 +55,60 @@ class _PaymentScreenState extends State<PaymentScreen>
     _tabController.dispose();
     _changeController.dispose();
     super.dispose();
+  }
+
+  void _confirm() {
+    final cards = context.read<PaymentProvider>().cards;
+
+    String method;
+    String? savedCardId;
+    String? cardBrand;
+
+    if (_tabController.index == 0) {
+      if (_onlineMethodIndex == 0) {
+        method = 'pix';
+      } else if (_onlineMethodIndex == 1) {
+        method = 'credit';
+      } else {
+        method = 'debit';
+      }
+      if (_selectedSavedCardIndex >= 0 &&
+          _selectedSavedCardIndex < cards.length) {
+        savedCardId = cards[_selectedSavedCardIndex].id;
+      }
+    } else {
+      if (_deliveryMethodIndex == 0) {
+        method = 'cash';
+      } else {
+        method = 'machine';
+        final brands = [
+          'Visa',
+          'Mastercard',
+          'Elo',
+          'Hipercard',
+          'Amex',
+          'Cabal',
+        ];
+        if (_selectedBrandIndex >= 0) {
+          cardBrand = brands[_selectedBrandIndex];
+        }
+      }
+    }
+
+    final summary = CheckoutSummaryModel(
+      addressId: widget.addressId,
+      isScheduled: widget.isScheduled,
+      scheduledDate: widget.scheduledDate,
+      scheduledTime: widget.scheduledTime,
+      paymentMethod: method,
+      savedCardId: savedCardId,
+      cardBrand: cardBrand,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ReviewOrderScreen(summary: summary)),
+    );
   }
 
   String _fmt(double valor) {
@@ -962,12 +1028,7 @@ class _PaymentScreenState extends State<PaymentScreen>
           ),
           const SizedBox(height: 14),
           ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ReviewOrderScreen()),
-              );
-            },
+            onPressed: _confirm,
             style: ElevatedButton.styleFrom(
               backgroundColor: _red,
               foregroundColor: _white,
@@ -977,14 +1038,14 @@ class _PaymentScreenState extends State<PaymentScreen>
               ),
               elevation: 0,
             ),
-            child: Row(
+            child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Confirmar',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
               ],
             ),
           ),

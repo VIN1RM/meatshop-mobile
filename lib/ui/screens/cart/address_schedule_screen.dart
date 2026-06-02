@@ -79,7 +79,15 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   void _proceed() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => PaymentScreen(total: widget.total)),
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          total: widget.total,
+          addressId: _selectedAddressId!,
+          isScheduled: _tabController.index == 1,
+          scheduledDate: _selectedDate,
+          scheduledTime: _selectedTime,
+        ),
+      ),
     );
   }
 

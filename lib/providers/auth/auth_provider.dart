@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
+import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
@@ -23,7 +24,6 @@ class AuthProvider extends ChangeNotifier {
   bool get isClient => _activeProfile == AppProfile.client;
   bool get isDelivery => _activeProfile == AppProfile.delivery;
   User? get currentUser => AuthService.instance.currentUser;
-
 
   Future<void> login({
     required BuildContext context,
@@ -46,6 +46,10 @@ class AuthProvider extends ChangeNotifier {
         await context.read<UserProvider>().loadUser(
           AuthService.instance.currentUser!.uid,
         );
+      }
+
+      if (context.mounted) {
+        context.read<PaymentProvider>().init();
       }
 
       if (!context.mounted) return;
@@ -309,6 +313,10 @@ class AuthProvider extends ChangeNotifier {
         await context.read<UserProvider>().loadUser(firebaseUser.uid);
       }
 
+      if (context.mounted) {
+        context.read<PaymentProvider>().init();
+      }
+
       if (!context.mounted) return;
       _redirectAfterLogin(context);
     } catch (_) {
@@ -346,6 +354,7 @@ class AuthProvider extends ChangeNotifier {
 
       if (context.mounted) {
         context.read<UserProvider>().clear();
+        context.read<PaymentProvider>().clear();
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);

@@ -1,103 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/checkout_summary_model.dart';
+import 'package:meatshop_mobile/providers/cart_provider.dart';
+import 'package:meatshop_mobile/providers/payment_provider.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
 import 'package:meatshop_mobile/ui/screens/fallback/order_processing_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:provider/provider.dart';
 
-class _ReviewItem {
-  final String nome;
-  final String imagemAsset;
-  final int quantidade;
-  final String unidade;
+class ReviewOrderScreen extends StatelessWidget {
+  final CheckoutSummaryModel summary;
+  const ReviewOrderScreen({super.key, required this.summary});
 
-  const _ReviewItem({
-    required this.nome,
-    required this.imagemAsset,
-    required this.quantidade,
-    this.unidade = 'KG',
-  });
-}
-
-class _ReviewGroup {
-  final String acougueNome;
-  final String logoAsset;
-  final List<_ReviewItem> itens;
-  final bool entregaGratis;
-  final double taxaEntrega;
-  final double subtotal;
-
-  const _ReviewGroup({
-    required this.acougueNome,
-    required this.logoAsset,
-    required this.itens,
-    required this.subtotal,
-    this.entregaGratis = false,
-    this.taxaEntrega = 5.50,
-  });
-}
-
-class ReviewOrderScreen extends StatefulWidget {
-  const ReviewOrderScreen({super.key});
-
-  @override
-  State<ReviewOrderScreen> createState() => _ReviewOrderScreenState();
-}
-
-class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
-  int _paymentIndex = 0;
-
-  final String _endereco =
-      'Avenida Rodovanio Rodovalho, Nº 17, Casa cinza\nBairro Eldorado - Anápolis, Goiás';
-
-  final List<_ReviewGroup> _grupos = const [
-    _ReviewGroup(
-      acougueNome: 'Master Carnes',
-      logoAsset: 'assets/images/logo_master.png',
-      entregaGratis: true,
-      taxaEntrega: 0,
-      subtotal: 185.98,
-      itens: [
-        _ReviewItem(
-          nome: 'Picanha angus',
-          imagemAsset: 'assets/images/picanha.png',
-          quantidade: 1,
-        ),
-        _ReviewItem(
-          nome: 'Lombo suíno',
-          imagemAsset: 'assets/images/lombo.png',
-          quantidade: 1,
-        ),
-      ],
-    ),
-    _ReviewGroup(
-      acougueNome: 'Frigorífico Goiás',
-      logoAsset: 'assets/images/logo_frigorifico.png',
-      entregaGratis: false,
-      taxaEntrega: 5.50,
-      subtotal: 78.98,
-      itens: [
-        _ReviewItem(
-          nome: 'Filé de Tilápia',
-          imagemAsset: 'assets/images/peixe.png',
-          quantidade: 1,
-        ),
-      ],
-    ),
-  ];
-
-  final List<_PaymentOption> _paymentOptions = const [
-    _PaymentOption(Icons.pix, 'Pix'),
-    _PaymentOption(Icons.credit_card, 'Crédito'),
-    _PaymentOption(Icons.credit_card_outlined, 'Débito'),
-    _PaymentOption(Icons.money, 'Dinheiro'),
-  ];
-
-  double get _total =>
-      _grupos.fold(0, (s, g) => s + g.subtotal + g.taxaEntrega);
-
   @override
   Widget build(BuildContext context) {
+    final cart = context.watch<CartProvider>();
+    final addressProvider = context.watch<AddressProvider>();
+    final paymentProvider = context.watch<PaymentProvider>();
+
+    final address = addressProvider.addresses.cast<dynamic>().firstWhere(
+      (a) => a.id == summary.addressId,
+      orElse: () => null,
+    );
+
+    final savedCard = summary.savedCardId != null
+        ? paymentProvider.cards.cast<dynamic>().firstWhere(
+            (c) => c.id == summary.savedCardId,
+            orElse: () => null,
+          )
+        : null;
+
     return Scaffold(
       backgroundColor: const Color(0xFF2E2E2E),
       body: Stack(
@@ -129,15 +63,25 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         const SizedBox(height: 20),
                         _pageTitle(),
                         const SizedBox(height: 16),
-                        _buildEndereco(),
-                        const SizedBox(height: 20),
 
-                        ..._grupos.map(_buildGrupo),
+                        if (address != null) _buildAddressCard(address),
+                        const SizedBox(height: 16),
 
-                        _buildTotal(),
+                        if (summary.isScheduled &&
+                            summary.scheduledDate != null)
+                          _buildScheduleCard(),
+                        if (summary.isScheduled) const SizedBox(height: 16),
+
+                        ...cart.itemsByUnit.entries.map(
+                          (e) => _buildUnitGroup(e.key, e.value, cart),
+                        ),
+
+                        _buildPaymentCard(savedCard),
+                        const SizedBox(height: 16),
+
+                        _buildTotal(cart.total),
                         const SizedBox(height: 32),
-
-                        _buildConfirmarButton(),
+                        _buildConfirmarButton(context, cart.total),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -166,10 +110,10 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildEndereco() {
+  Widget _buildAddressCard(dynamic address) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(14),
@@ -187,33 +131,13 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            _endereco,
+            '${address.street}, ${address.number}'
+            '${address.complement.isNotEmpty ? ' – ${address.complement}' : ''}\n'
+            '${address.neighborhood} · ${address.city}, ${address.state}',
             style: const TextStyle(
               color: Color(0xFF555555),
               fontSize: 13,
               height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: () {},
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.edit_outlined, color: _red, size: 14),
-                  SizedBox(width: 4),
-                  Text(
-                    'Editar',
-                    style: TextStyle(
-                      color: _red,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
@@ -221,87 +145,150 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildGrupo(_ReviewGroup grupo) {
+  Widget _buildScheduleCard() {
+    final months = [
+      '',
+      'janeiro',
+      'fevereiro',
+      'março',
+      'abril',
+      'maio',
+      'junho',
+      'julho',
+      'agosto',
+      'setembro',
+      'outubro',
+      'novembro',
+      'dezembro',
+    ];
+    final d = summary.scheduledDate!;
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today_outlined, color: _red, size: 20),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Entrega agendada',
+                style: TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                '${d.day} de ${months[d.month]} · ${summary.scheduledTime ?? ''}',
+                style: const TextStyle(color: Color(0xFF555555), fontSize: 12),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUnitGroup(String unitId, List items, CartProvider cart) {
+    final unitName = items.isNotEmpty && items.first.unitName.isNotEmpty
+        ? items.first.unitName
+        : 'Açougue';
+    final subtotal = items.fold<double>(0, (s, i) => s + i.subtotal);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         children: [
-          ...grupo.itens.map((item) => _buildItemRow(item)),
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
-
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
             child: Row(
               children: [
                 const Icon(
-                  Icons.delivery_dining,
-                  color: Color(0xFF4CAF50),
-                  size: 18,
+                  Icons.storefront_outlined,
+                  color: Color(0xFF888888),
+                  size: 20,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    grupo.entregaGratis ? 'Entrega Grátis' : 'Entrega',
-                    style: TextStyle(
-                      color: grupo.entregaGratis
-                          ? const Color(0xFF4CAF50)
-                          : const Color(0xFF555555),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                    unitName,
+                    style: const TextStyle(
+                      color: Color(0xFF1A1A1A),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                ),
-                Text(
-                  grupo.entregaGratis ? 'R\$0,00' : _fmt(grupo.taxaEntrega),
-                  style: const TextStyle(
-                    color: Color(0xFF555555),
-                    fontSize: 13,
                   ),
                 ),
               ],
             ),
           ),
+          const Divider(height: 1, color: Color(0xFFE0E0E0)),
 
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: ClipOval(
-                    child: Image.asset(
-                      grupo.logoAsset,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFF555555),
-                        child: const Icon(
-                          Icons.storefront_outlined,
-                          color: Colors.white54,
-                          size: 16,
-                        ),
+          ...items.map(
+            (item) => Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: item.productImageUrl.isNotEmpty
+                          ? Image.network(
+                              item.productImageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _imageFallback(),
+                            )
+                          : _imageFallback(),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      item.productName,
+                      style: const TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    grupo.acougueNome,
+                  Text(
+                    '${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity.toStringAsFixed(1)} ${item.unitOfMeasure.toUpperCase()}',
                     style: const TextStyle(
-                      color: Color(0xFF1A1A1A),
+                      color: _red,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
+                ],
+              ),
+            ),
+          ),
+
+          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Subtotal',
+                  style: TextStyle(color: Color(0xFF555555), fontSize: 13),
                 ),
                 Text(
-                  _fmt(grupo.subtotal),
+                  _fmt(subtotal),
                   style: const TextStyle(
                     color: Color(0xFF1A1A1A),
                     fontSize: 15,
@@ -316,60 +303,78 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildItemRow(_ReviewItem item) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+  Widget _buildPaymentCard(dynamic savedCard) {
+    String label;
+    IconData icon;
+
+    switch (summary.paymentMethod) {
+      case 'pix':
+        label = 'Pix';
+        icon = Icons.pix;
+        break;
+      case 'credit':
+        label = savedCard != null
+            ? '${savedCard.brand.toUpperCase()} •••• ${savedCard.lastFour}'
+            : 'Cartão de crédito';
+        icon = Icons.credit_card;
+        break;
+      case 'debit':
+        label = savedCard != null
+            ? '${savedCard.brand.toUpperCase()} •••• ${savedCard.lastFour}'
+            : 'Cartão de débito';
+        icon = Icons.credit_card_outlined;
+        break;
+      case 'cash':
+        label = 'Dinheiro na entrega';
+        icon = Icons.money;
+        break;
+      case 'machine':
+        label = summary.cardBrand != null
+            ? 'Maquininha · ${summary.cardBrand}'
+            : 'Maquininha na entrega';
+        icon = Icons.point_of_sale;
+        break;
+      default:
+        label = summary.paymentMethod;
+        icon = Icons.payment;
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              item.imagemAsset,
-              width: 52,
-              height: 52,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0E0E0),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.image_outlined,
-                  color: Colors.black26,
-                  size: 26,
-                ),
-              ),
-            ),
-          ),
+          Icon(icon, color: _red, size: 22),
           const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              item.nome,
-              style: const TextStyle(
-                color: Color(0xFF1A1A1A),
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Forma de pagamento',
+                style: TextStyle(
+                  color: Color(0xFF1A1A1A),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
               ),
-            ),
-          ),
-          Text(
-            '${item.quantidade} ${item.unidade}',
-            style: const TextStyle(
-              color: _red,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
+              Text(
+                label,
+                style: const TextStyle(color: Color(0xFF555555), fontSize: 12),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTotal() {
+  Widget _buildTotal(double total) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -382,7 +387,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             ),
           ),
           Text(
-            _fmt(_total),
+            _fmt(total),
             style: const TextStyle(
               color: _white,
               fontSize: 20,
@@ -394,16 +399,14 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildConfirmarButton() {
+  Widget _buildConfirmarButton(BuildContext context, double total) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
-          );
-        },
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
+        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
           foregroundColor: _white,
@@ -422,7 +425,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              '· ${_fmt(_total)}',
+              '· ${_fmt(total)}',
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ],
@@ -430,6 +433,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       ),
     );
   }
+
+  Widget _imageFallback() => Container(
+    color: const Color(0xFFE0E0E0),
+    child: const Icon(Icons.image_outlined, color: Color(0xFFBDBDBD), size: 26),
+  );
 
   String _fmt(double valor) {
     final s = valor.toStringAsFixed(2).replaceAll('.', ',');
@@ -440,10 +448,4 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
     return 'R\$$inteiro,${parts[1]}';
   }
-}
-
-class _PaymentOption {
-  final IconData icon;
-  final String label;
-  const _PaymentOption(this.icon, this.label);
 }
