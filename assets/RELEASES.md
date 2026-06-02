@@ -5,7 +5,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.4.0] — 01 de Junho de 2026
-### 🔎 Busca Global, Pedidos Reais, Carrinho Melhorado e Endereços Dinâmicos
+### 🔎 Pedidos e Acompanhamento em Tempo Real, Chat com o Açougue Certo
 
 ### ✨ Novidades
 - **Busca Global no Aplicativo:** Agora o app conta com uma tela de busca global, permitindo pesquisar diferentes tipos de informações em um só lugar.
@@ -14,6 +14,11 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Adicionar Produto ao Carrinho:** Agora é possível adicionar produtos ao carrinho diretamente pela tela de detalhes do produto.
 - **Botão de Voltar Reutilizável:** Foi criado um novo componente padrão de botão de voltar, deixando a navegação mais segura e consistente entre as telas.
 - **Máscaras de Entrada Reutilizáveis:** Foram adicionadas máscaras em utilitários para padronizar campos de entrada e melhorar a experiência de preenchimento.
+- **Pedidos em Tempo Real:** A tela de pedidos agora carrega diretamente do banco de dados, exibindo seus pedidos em andamento e finalizados dos últimos 3 meses sem nenhum dado simulado.
+- **Acompanhamento de Entrega ao Vivo:** A tela de acompanhamento agora exibe seus pedidos ativos em tempo real, com o status atualizado automaticamente conforme o açougue processa o pedido.
+- **Cancelar Pedido pelo App:** Agora você pode cancelar um pedido diretamente pela tela de acompanhamento, enquanto ele ainda estiver aguardando confirmação ou confirmado.
+- **Contatar o Açougue Certo:** O botão "Contatar estabelecimento" na tela de acompanhamento agora leva você direto para a conversa com o açougue responsável pelo seu pedido. Se você tiver pedidos de mais de um açougue ao mesmo tempo, o app pergunta com qual deles você quer falar.
+- **Carrinho Limpo Após o Pedido:** Ao confirmar um pedido com sucesso, o carrinho é esvaziado automaticamente, tanto no app quanto no banco de dados.
 
 ### 📈 Melhorias
 - **Carrinho Mais Intuitivo:** Agora é possível tocar em um item do carrinho para editar o produto, além da inclusão de divisores visuais entre os itens.
@@ -24,6 +29,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Definição de Endereço Padrão Melhorada:** Agora, ao definir um endereço como padrão, o app exibe confirmação e feedback visual para o usuário.
 - **Edição de Endereço pelo Agendamento:** A bottom sheet de endereço de entrega agora permite atualizar os dados do endereço selecionado.
 - **Tela de Alteração de Senha Padronizada:** O botão de voltar customizado foi substituído pelo cabeçalho padrão do app e pelo novo botão reutilizável.
+- **Chat Mais Inteligente:** O chat agora identifica corretamente o açougue com quem você está conversando, independentemente de como a conversa foi iniciada.
 
 ### 🐞 Correções
 - **Correção na Busca:** Corrigido um problema em que a busca podia tentar atualizar a interface durante o encerramento da tela.

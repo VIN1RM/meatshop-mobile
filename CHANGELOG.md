@@ -12,7 +12,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [2.4.0] - 2026-06-01
-### Integração de Pedidos, Busca Global, Carrinho e Endereços com Firebase
+### Integração de Pedidos, Rastreamento e Chat com Estabelecimentos
 
 ### Added
 - Utilitário de máscaras de entrada criado em `utils`, centralizando formatações reutilizáveis no aplicativo.
@@ -25,15 +25,36 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - **Carrinho:** confirmação antes de remover um item ao reduzir a quantidade para zero.
 - **Endereços:** *dialog* de confirmação para definir endereço padrão, com *snackbar* de feedback.
 - **Endereços:** suporte à atualização de endereço pela *bottom sheet* de endereço de entrega.
+- `OrderItemModel`: modelo de dados para itens de pedido com getter `quantityLabel` para exibição formatada de quantidade e unidade.
+- `ActiveOrderModel`: modelo leve para rastreamento de pedidos ativos sem carregamento da subcoleção de itens, com getters `isCancelled` e `canCancel`.
+- `OrderStatus` (enum): enum com extensão `OrderStatusX` contendo `fromString`, `label` e `canCancel`, extraído para `core/enums/order_status_enum.dart`.
+- `OrdersScreen`: integração com Firestore via streams `activeOrdersStream` e `finishedOrdersStream` no `OrderService`, substituindo dados mockados.
+- `DeliveriesScreen`: integração com Firestore via stream `activeOrdersTrackingStream`, exibindo pedidos ativos em tempo real sem dados mockados.
+- `activeOrdersTrackingStream` no `OrderService`: stream leve para rastreamento de pedidos com busca de nome e logo da unidade sem carregar subcoleção de itens.
+- `cancelOrder` no `OrderService`: cancela pedido no Firestore atualizando status, motivo, timestamp e registrando no histórico de status.
+- `SelectUnitChatDialog`: dialog de seleção de açougue exibido quando o usuário possui pedidos ativos de mais de uma unidade ao tentar contatar um estabelecimento.
+- Botão "Contatar estabelecimento" na `DeliveriesScreen` agora navega diretamente para o chat quando há apenas uma unidade ativa, ou exibe o `SelectUnitChatDialog` para seleção quando há múltiplas unidades.
+- `unitId` adicionado ao `ChatArgs` para identificação correta da unidade no chat.
+- `unitId` adicionado ao `ChatContact` para navegação correta a partir da `ChatListScreen`.
+- Limpeza automática do carrinho no Firestore e no estado local após pedido confirmado com sucesso via `OrderProvider`.
 
 ### Changed
 - **ChatScreen:** redesign da barra de entrada de mensagem e melhoria geral no layout da tela.
 - **CartScreen:** adicionado suporte para editar item ao tocar no produto e divisores visuais entre itens.
 - Telas de endereço: padronização visual dos *dialogs* para manter consistência de UI.
 - **ChangePasswordScreen:** substituição do botão de voltar customizado por `AppHeader` e `AppBackButton`.
+- `OrderModel`: adicionados campos `unitName`, `unitLogoUrl`, `cancellationReason`, `items` e getters computados `isCancelled` e `formattedTotal`. Adicionado `copyWith` para hidratação assíncrona dos dados da unidade.
+- `OrderService`: adicionados métodos `_fetchItems`, `_toModelWithItems`, `activeOrdersStream`, `finishedOrdersStream`, `activeOrdersTrackingStream` e `cancelOrder`.
+- `OrderProvider`: adicionada dependência de `CartService` e `CartProvider` para limpeza do carrinho pós-pedido. Parâmetro `cartProvider` adicionado ao `placeOrder`.
+- `ChatScreen`: `didChangeDependencies` atualizado para aceitar tanto `ChatArgs` quanto `Map` como argumento de rota, eliminando erro de cast de tipo.
+- `app_routes_builder.dart`: rota `AppRoutes.chat` atualizada para resolver `unitId` e `unitName` a partir de `Map` ou `ChatArgs`, construindo `ChatArgs` corretamente em ambos os casos.
+- `ReviewOrderScreen`: removida chamada duplicada a `cart.clearCart()`, delegando a limpeza ao `OrderProvider`.
 
 ### Fixed
 - Corrigido problema na busca que podia chamar `notifyListeners` durante o descarte da árvore de widgets.
+- Corrigido crash `_TypeError` na `ChatScreen` causado por cast inválido de `Map` para `ChatArgs` ao navegar a partir da `DeliveriesScreen`.
+- Corrigido `undefined_identifier 'unit'` na `ChatListScreen` e `ActiveDeliveryScreen`, substituído por `chat.unitId` e `order.unitId` respectivamente.
+- Corrigida linha solta `_latestOrders = orders` fora de método na `DeliveriesScreen`, movida para dentro do `StreamBuilder`.
 
 ---
 
