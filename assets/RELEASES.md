@@ -4,6 +4,12 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.5.0] — 02 de Junho de 2026
+###
+
+
+---
+
 ## [2.4.0] — 01 de Junho de 2026
 ### 🔎 Pedidos e Acompanhamento em Tempo Real, Chat com o Açougue Certo
 

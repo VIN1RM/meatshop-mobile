@@ -11,6 +11,28 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.5.0] - 2026-06-02
+### Chat em Tempo Real com Firestore
+
+### Added
+- `ChatConversation`, `ChatMessage` e `ChatParticipant`: modelos de dados para o sistema de chat com suporte a `fromDoc` e serialização completa.
+- `ChatArgs`: classe de argumentos de navegação com geração automática do `conversationId` a partir dos IDs dos dois participantes.
+- `ChatService`: serviço com todas as operações Firestore do chat — criar ou buscar conversa, stream de conversas, stream de mensagens, envio com batch atômico, marcação de lidas e contagem total de não lidos.
+- `ChatListProvider`: provider com stream em tempo real da lista de conversas do usuário autenticado.
+- `ChatProvider`: provider da conversa aberta com stream de mensagens, envio e marcação automática de lidas ao abrir a tela.
+- `ChatUnreadProvider`: provider global para badge de não lidos no header ou barra de navegação.
+- Valor `delivery` adicionado ao enum `ChatParticipantType` com label "Entregador" e ícone 🛵.
+- Regras de segurança do Firestore para a coleção `chat_conversations` e subcoleção `messages`.
+
+### Changed
+- `ChatListScreen`: substituição completa dos dados mockados por stream real do Firestore via `ChatListProvider`. Badge de não lidos dinâmico por conversa.
+- `ChatScreen`: refatorado para ler `ChatArgs` via `ModalRoute` no `didChangeDependencies` e consumir `ChatProvider`. Adicionados separador de datas entre mensagens e scroll automático ao receber nova mensagem.
+- `ActiveDeliveryScreen`: `_onOpenChat` atualizado para construir `ChatArgs` com `currentUserId` real do `AuthProvider` e `currentUserType` como `delivery`.
+- `routes_config.dart`: rota `AppRoutes.chat` simplificada para `const ChatScreen()`, sem passagem de argumentos no construtor.
+- Estrutura Firestore migrada de documentos flat na coleção `chats` para coleção `chat_conversations` com subcoleção `messages`, separando metadados de conversa das mensagens individuais.
+
+---
+
 ## [2.4.0] - 2026-06-01
 ### Integração de Pedidos, Rastreamento e Chat com Estabelecimentos
 
