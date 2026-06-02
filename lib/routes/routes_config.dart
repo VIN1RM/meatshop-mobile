@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/screens/account/edit_profile_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_addresses_screen.dart';
@@ -56,7 +57,22 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.cortesPeixes: (_) =>
         const CutsScreen(title: 'CORTES DE PEIXE', categoryName: 'Peixes'),
     AppRoutes.deliveries: (_) => const DeliveriesScreen(),
-    AppRoutes.chat: (_) => const ChatScreen(),
+    AppRoutes.chat: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      ChatArgs? chatArgs;
+
+      if (args is ChatArgs) {
+        chatArgs = args;
+      } else if (args is Map) {
+        chatArgs = ChatArgs(
+          unitId: args['unitId'] as String? ?? '',
+          participantName: args['unitName'] as String? ?? 'Açougue',
+          participantType: ChatParticipantType.unit,
+        );
+      }
+
+      return ChatScreen(args: chatArgs);
+    },
     AppRoutes.chatList: (_) => const ChatListScreen(),
     AppRoutes.butcherDetail: (_) => const ButcherDetailScreen(),
     AppRoutes.productDetail: (_) => const ProductDetailScreen(),

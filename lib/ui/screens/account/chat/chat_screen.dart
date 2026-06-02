@@ -11,11 +11,13 @@ class ChatMessage {
 }
 
 class ChatArgs {
+  final String unitId;
   final String participantName;
   final ChatParticipantType participantType;
   final String? logoAsset;
 
   const ChatArgs({
+    required this.unitId,
     required this.participantName,
     required this.participantType,
     this.logoAsset,
@@ -65,7 +67,8 @@ class _AttachOption extends StatelessWidget {
 }
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final ChatArgs? args;
+  const ChatScreen({super.key, this.args});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -87,7 +90,16 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _args = ModalRoute.of(context)?.settings.arguments as ChatArgs?;
+    final raw = ModalRoute.of(context)?.settings.arguments;
+    if (raw is ChatArgs) {
+      _args = raw;
+    } else if (raw is Map) {
+      _args = ChatArgs(
+        unitId: raw['unitId'] as String? ?? '',
+        participantName: raw['unitName'] as String? ?? 'Açougue',
+        participantType: ChatParticipantType.unit,
+      );
+    }
   }
 
   @override

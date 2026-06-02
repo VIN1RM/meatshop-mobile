@@ -3,6 +3,7 @@ import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
 import 'package:meatshop_mobile/models/active_order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
+import 'package:meatshop_mobile/ui/dialogs/select_unit_chat_dialog.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/dialogs/cancel_order_dialog.dart';
 
@@ -20,6 +21,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   static const Color _white = Colors.white;
 
   final OrderService _service = OrderService();
+  List<ActiveOrderModel> _latestOrders = [];
 
   void _showCancelDialog(ActiveOrderModel order) {
     showModalBottomSheet(
@@ -84,6 +86,38 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
     }
   }
 
+  void _onContactTap() {
+    final orders = _latestOrders;
+
+    if (orders.isEmpty) return;
+
+    final seen = <String>{};
+    final units = <({String unitId, String unitName})>[];
+    for (final o in orders) {
+      if (seen.add(o.unitId)) {
+        units.add((unitId: o.unitId, unitName: o.unitName));
+      }
+    }
+
+    if (units.length == 1) {
+      Navigator.pushNamed(
+        context,
+        AppRoutes.chat,
+        arguments: {'unitId': units.first.unitId},
+      );
+    } else {
+      SelectUnitChatDialog.show(
+        context,
+        units: units,
+        onSelect: (unitId) => Navigator.pushNamed(
+          context,
+          AppRoutes.chat,
+          arguments: {'unitId': unitId},
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,6 +160,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
                   );
                 }
                 final orders = snap.data ?? [];
+                _latestOrders = orders;
                 if (orders.isEmpty) {
                   return const Center(
                     child: Text(
@@ -310,7 +345,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         child: SizedBox(
           height: 62,
           child: ElevatedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.chat),
+            onPressed: _onContactTap,
             style: ElevatedButton.styleFrom(
               backgroundColor: _red,
               foregroundColor: _white,

@@ -5,6 +5,7 @@ import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class ChatContact {
+  final String unitId;
   final String nome;
   final String ultimaMensagem;
   final String horario;
@@ -12,6 +13,7 @@ class ChatContact {
   final int mensagensNaoLidas;
 
   const ChatContact({
+    required this.unitId,
     required this.nome,
     required this.ultimaMensagem,
     required this.horario,
@@ -28,6 +30,7 @@ class ChatListScreen extends StatelessWidget {
 
   static final List<ChatContact> _chats = [
     const ChatContact(
+      unitId: 'unit_master_1',
       nome: 'Master Carnes',
       ultimaMensagem: '',
       horario: 'Há 1 minuto',
@@ -35,6 +38,7 @@ class ChatListScreen extends StatelessWidget {
       mensagensNaoLidas: 0,
     ),
     const ChatContact(
+      unitId: 'unit_frigorifico_1',
       nome: 'Frigorífico Goiás',
       ultimaMensagem: '',
       horario: 'Hoje às 20:15',
@@ -42,6 +46,7 @@ class ChatListScreen extends StatelessWidget {
       mensagensNaoLidas: 2,
     ),
     const ChatContact(
+      unitId: 'unit_mendes_1',
       nome: 'Mendes',
       ultimaMensagem: '',
       horario: '06/12/2023',
@@ -49,6 +54,7 @@ class ChatListScreen extends StatelessWidget {
       mensagensNaoLidas: 0,
     ),
     const ChatContact(
+      unitId: 'unit_master_2',
       nome: 'Master Carnes',
       ultimaMensagem: '',
       horario: '22/11/2023',
@@ -56,6 +62,7 @@ class ChatListScreen extends StatelessWidget {
       mensagensNaoLidas: 0,
     ),
     const ChatContact(
+      unitId: 'unit_master_3',
       nome: 'Master Carnes',
       ultimaMensagem: '',
       horario: '08/11/2023',
@@ -63,7 +70,6 @@ class ChatListScreen extends StatelessWidget {
       mensagensNaoLidas: 0,
     ),
   ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,6 +137,7 @@ class ChatListScreen extends StatelessWidget {
         context,
         AppRoutes.chat,
         arguments: ChatArgs(
+          unitId: chat.unitId,
           participantName: chat.nome,
           participantType: ChatParticipantType.unit,
           logoAsset: chat.logoAsset.isNotEmpty ? chat.logoAsset : null,

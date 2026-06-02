@@ -195,6 +195,9 @@ Future<void> _onOpenChat(BuildContext context, order) async {
     context,
     AppRoutes.chat,
     arguments: ChatArgs(
+      unitId: participant == ChatParticipantType.unit
+          ? order.unitId
+          : order.clientId,
       participantName: participant == ChatParticipantType.unit
           ? order.unitName
           : order.clientName,
