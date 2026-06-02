@@ -2,6 +2,7 @@ import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
+import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/providers/promotion_provider.dart';
 import 'package:meatshop_mobile/providers/search_provider.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
@@ -21,6 +22,7 @@ class ProvidersConfig {
     ChangeNotifierProvider(create: (_) => AddressProvider()),
     ChangeNotifierProvider(create: (_) => SearchProvider()),
     ChangeNotifierProvider(create: (_) => PromotionProvider()),
+    ChangeNotifierProvider(create: (_) => PaymentProvider()),
     ChangeNotifierProvider(
       create: (_) =>
           CartProvider(uid: AuthService.instance.currentUser?.uid ?? ''),

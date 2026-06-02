@@ -1,58 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/payment_model.dart';
+import 'package:meatshop_mobile/providers/payment_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/payment_card_form_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
-class _SavedCard {
-  final String id;
-  final String brand;
-  final String lastFour;
-  final String holderName;
-  final String expiration;
-  final bool isDefault;
-
-  const _SavedCard({
-    required this.id,
-    required this.brand,
-    required this.lastFour,
-    required this.holderName,
-    required this.expiration,
-    this.isDefault = false,
-  });
+PaymentMethodModel _buildModel(
+  PaymentCardData data, {
+  String mpCardId = '',
+  String mpCustomerId = '',
+}) {
+  return PaymentMethodModel(
+    id: '',
+    mpCardId: mpCardId,
+    mpCustomerId: mpCustomerId,
+    brand: _detectBrand(data.cardNumber),
+    lastFour: data.cardNumber
+        .replaceAll(' ', '')
+        .substring(data.cardNumber.replaceAll(' ', '').length - 4),
+    holderName: data.holderName.toUpperCase(),
+    expirationMonth: data.expirationMonth,
+    expirationYear: data.expirationYear,
+    isDefault: data.isDefault,
+  );
 }
 
-class SavedPaymentsScreen extends StatefulWidget {
+String _detectBrand(String number) {
+  final n = number.replaceAll(' ', '');
+  if (n.startsWith('4')) return 'visa';
+  if (n.startsWith('5') || n.startsWith('2')) return 'mastercard';
+  if (n.startsWith('6362') || n.startsWith('6363')) return 'elo';
+  return 'credit_card';
+}
+
+class SavedPaymentsScreen extends StatelessWidget {
   const SavedPaymentsScreen({super.key});
 
-  @override
-  State<SavedPaymentsScreen> createState() => _SavedPaymentsScreenState();
-}
-
-class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
-  bool _isLoading = false;
-
-  final List<_SavedCard> _cards = const [
-    _SavedCard(
-      id: 'mp_card_001',
-      brand: 'visa',
-      lastFour: '4242',
-      holderName: 'ANA CLARA GOES',
-      expiration: '08/27',
-      isDefault: true,
-    ),
-    _SavedCard(
-      id: 'mp_card_002',
-      brand: 'mastercard',
-      lastFour: '1234',
-      holderName: 'ANA CLARA GOES',
-      expiration: '03/26',
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<PaymentProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFF3A3A3A),
       body: Stack(
@@ -86,20 +76,23 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
                         const SizedBox(height: 6),
                         _buildSubtitle(),
                         const SizedBox(height: 20),
-
-                        if (_isLoading)
+                        if (provider.isLoading)
                           const Center(
                             child: Padding(
                               padding: EdgeInsets.all(40),
                               child: CircularProgressIndicator(color: _red),
                             ),
                           )
-                        else if (_cards.isEmpty)
+                        else if (provider.error != null)
+                          _buildError(provider.error!)
+                        else if (provider.cards.isEmpty)
                           _buildEmptyState()
                         else ...[
                           _sectionLabel('CARTÕES SALVOS'),
                           const SizedBox(height: 10),
-                          ..._cards.map((c) => _buildCardItem(c)),
+                          ...provider.cards.map(
+                            (c) => _buildCardItem(context, c),
+                          ),
                         ],
 
                         const SizedBox(height: 20),
@@ -107,7 +100,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
                         const SizedBox(height: 10),
                         _buildOtherMethods(),
                         const SizedBox(height: 24),
-                        _buildAddCardButton(),
+                        _buildAddCardButton(context),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -127,7 +120,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
       child: Text(
         'FORMAS DE PAGAMENTO',
         style: TextStyle(
-          color: Color.fromARGB(255, 255, 255, 255),
+          color: Colors.white,
           fontSize: 22,
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
@@ -146,7 +139,18 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
     );
   }
 
-  Widget _buildCardItem(_SavedCard card) {
+  Widget _buildError(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+      child: Text(
+        message,
+        style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildCardItem(BuildContext context, PaymentMethodModel card) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
@@ -168,7 +172,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
             ),
             child: Center(
               child: Icon(
-                _brandIcon(card.brand),
+                Icons.credit_card,
                 color: _brandColor(card.brand),
                 size: 22,
               ),
@@ -216,7 +220,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${card.holderName}  •  ${card.expiration}',
+                  '${card.holderName}  •  ${card.expirationMonth}/${card.expirationYear.length == 4 ? card.expirationYear.substring(2) : card.expirationYear}',
                   style: const TextStyle(
                     color: Color(0xFF9E9E9E),
                     fontSize: 12,
@@ -227,7 +231,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
           ),
 
           GestureDetector(
-            onTap: () => _showCardOptions(card),
+            onTap: () => _showCardOptions(context, card),
             child: const Icon(
               Icons.more_vert,
               color: Color(0xFF9E9E9E),
@@ -308,11 +312,11 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
     );
   }
 
-  Widget _buildAddCardButton() {
+  Widget _buildAddCardButton(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GestureDetector(
-        onTap: _openCardSheet,
+        onTap: () => _openCardSheet(context),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -341,48 +345,16 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
     );
   }
 
-  void _openCardSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      useSafeArea: true,
-      useRootNavigator: true,
-      builder: (_) => PaymentCardFormSheet(
-        onSave: (cardData) {
-          setState(() {
-            _cards.add(
-              _SavedCard(
-                id: 'mp_card_${DateTime.now().millisecondsSinceEpoch}',
-                brand: _detectBrand(cardData.cardNumber),
-                lastFour: cardData.cardNumber.substring(
-                  cardData.cardNumber.length - 4,
-                ),
-                holderName: cardData.holderName,
-                expiration:
-                    '${cardData.expirationMonth}/${cardData.expirationYear.substring(2)}',
-                isDefault: cardData.isDefault,
-              ),
-            );
-          });
-        },
-      ),
-    );
-  }
-
-  String _detectBrand(String number) {
-    if (number.startsWith('4')) return 'visa';
-    if (number.startsWith('5') || number.startsWith('2')) return 'mastercard';
-    if (number.startsWith('6362') || number.startsWith('6363')) return 'elo';
-    return 'credit_card';
-  }
-
   Widget _buildEmptyState() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
       child: Column(
         children: [
-          Icon(Icons.credit_card_off_outlined, color: Colors.white24, size: 64),
+          const Icon(
+            Icons.credit_card_off_outlined,
+            color: Colors.white24,
+            size: 64,
+          ),
           const SizedBox(height: 16),
           const Text(
             'Nenhum cartão salvo',
@@ -418,18 +390,6 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
     );
   }
 
-  IconData _brandIcon(String brand) {
-    switch (brand) {
-      case 'visa':
-      case 'mastercard':
-      case 'elo':
-      case 'hipercard':
-        return Icons.credit_card;
-      default:
-        return Icons.credit_card;
-    }
-  }
-
   Color _brandColor(String brand) {
     switch (brand) {
       case 'visa':
@@ -445,7 +405,27 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
     }
   }
 
-  void _showCardOptions(_SavedCard card) {
+  void _openCardSheet(BuildContext context) {
+    final provider = context.read<PaymentProvider>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      useRootNavigator: true,
+      builder: (_) => PaymentCardFormSheet(
+        onSave: (cardData) {
+          final model = _buildModel(cardData);
+          provider.addCard(model);
+        },
+      ),
+    );
+  }
+
+  void _showCardOptions(BuildContext context, PaymentMethodModel card) {
+    final provider = context.read<PaymentProvider>();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFFF5F5F5),
@@ -475,6 +455,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
                 title: const Text('Definir como padrão'),
                 onTap: () {
                   Navigator.pop(context);
+                  provider.setDefault(card.id);
                 },
               ),
             ListTile(
@@ -488,7 +469,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
               ),
               onTap: () {
                 Navigator.pop(context);
-                _showRemoveConfirmation(card);
+                _showRemoveConfirmation(context, card);
               },
             ),
             const SizedBox(height: 8),
@@ -498,7 +479,9 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
     );
   }
 
-  void _showRemoveConfirmation(_SavedCard card) {
+  void _showRemoveConfirmation(BuildContext context, PaymentMethodModel card) {
+    final provider = context.read<PaymentProvider>();
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -508,7 +491,8 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Deseja remover o cartão terminado em ${card.lastFour}? Esta ação não pode ser desfeita.',
+          'Deseja remover o cartão terminado em ${card.lastFour}? '
+          'Esta ação não pode ser desfeita.',
         ),
         actions: [
           TextButton(
@@ -521,6 +505,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
+              provider.removeCard(card.id);
             },
             child: const Text(
               'Remover',

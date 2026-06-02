@@ -23,7 +23,7 @@ class _SwipeTooltipState extends State<SwipeTooltip>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 350),
+      duration: const Duration(milliseconds: 1000),
     );
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _checkAndShow();
