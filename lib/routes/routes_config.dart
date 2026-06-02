@@ -24,10 +24,8 @@ import 'package:meatshop_mobile/ui/screens/search_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/client_shell.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_assistant_screen.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
-import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen%20.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
-import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {

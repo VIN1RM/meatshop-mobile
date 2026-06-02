@@ -1,106 +1,153 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
+import 'package:meatshop_mobile/models/cart_item_model.dart';
+import 'package:meatshop_mobile/models/checkout_summary_model.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 
 class OrderService {
-  OrderService({
-    FirebaseFirestore? firestore,
-    FirebaseAuth? auth,
-  })  : _db = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+  OrderService({FirebaseFirestore? firestore, FirebaseAuth? auth})
+    : _db = firestore ?? FirebaseFirestore.instance,
+      _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _db;
   final FirebaseAuth _auth;
 
   String get _uid {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) throw StateError('No authenticated user.');
+    if (uid == null) throw Exception('Usuário não autenticado.');
     return uid;
   }
 
-  CollectionReference<Map<String, dynamic>> get _ordersRef =>
-      _db.collection(FirestoreCollections.orders);
-
-  CollectionReference<Map<String, dynamic>> get _unitsRef =>
-      _db.collection(FirestoreCollections.units);
-
   Future<List<OrderItemModel>> _fetchItems(String orderId) async {
-    final snap = await _ordersRef
+    final snap = await _db
+        .collection('orders')
         .doc(orderId)
-        .collection(FirestoreCollections.items)
+        .collection('items')
         .get();
-    return snap.docs
-        .map((d) => OrderItemModel.fromMap(d.data()))
-        .toList();
+
+    return snap.docs.map((d) {
+      final data = d.data();
+      final snapshot = data['product_snapshot'] as Map<String, dynamic>? ?? {};
+      return OrderItemModel(
+        productName: snapshot['name'] as String? ?? '',
+        unitOfMeasure: snapshot['unit_of_measure'] as String? ?? 'un',
+        quantity: (data['quantity'] as num?)?.toDouble() ?? 1,
+        unitPrice: (data['unit_price'] as num?)?.toDouble() ?? 0,
+        productImageUrl: snapshot['image_url'] as String? ?? '',
+      );
+    }).toList();
   }
 
-  final Map<String, ({String name, String logoUrl})> _unitCache = {};
+  Future<OrderModel> _toModelWithItems(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) async {
+    final base = OrderModel.fromFirestore(doc);
 
-  Future<({String name, String logoUrl})> _fetchUnit(String unitId) async {
-    if (_unitCache.containsKey(unitId)) return _unitCache[unitId]!;
+    final unitDoc = await _db.collection('units').doc(base.unitId).get();
+    final unitData = unitDoc.data() ?? {};
 
-    final doc = await _unitsRef.doc(unitId).get();
-    final data = doc.data() ?? {};
-    final record = (
-      name: data['name'] as String? ?? '',
-      logoUrl: data['logo_url'] as String? ?? '',
+    final items = await _fetchItems(doc.id);
+
+    return base.copyWith(
+      unitName: unitData['name'] as String? ?? '',
+      unitLogoUrl: unitData['logo_url'] as String? ?? '',
+      items: items,
     );
-    _unitCache[unitId] = record;
-    return record;
   }
 
   Stream<List<OrderModel>> activeOrdersStream() {
-    const activeStatuses = [
-      'PENDING',
-      'CONFIRMED',
-      'PREPARING',
-      'READY',
-      'OUT_FOR_DELIVERY',
-    ];
-
-    return _ordersRef
-        .where('client_id', isEqualTo: _uid)
-        .where('status', whereIn: activeStatuses)
+    final uid = _uid;
+    return _db
+        .collection('orders')
+        .where('client_id', isEqualTo: uid)
+        .where('status', whereIn: ['PENDING', 'IN_PROGRESS'])
         .orderBy('order_date', descending: true)
         .snapshots()
-        .asyncMap((snap) => _enrichOrders(snap.docs));
+        .asyncMap((snap) => Future.wait(snap.docs.map(_toModelWithItems)));
   }
 
   Stream<List<OrderModel>> finishedOrdersStream() {
-    final threeMonthsAgo = DateTime.now().subtract(const Duration(days: 90));
-
-    return _ordersRef
-        .where('client_id', isEqualTo: _uid)
+    final uid = _uid;
+    final since = DateTime.now().subtract(const Duration(days: 90));
+    return _db
+        .collection('orders')
+        .where('client_id', isEqualTo: uid)
         .where('status', whereIn: ['DELIVERED', 'CANCELLED'])
-        .where('order_date',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(threeMonthsAgo))
+        .where('order_date', isGreaterThanOrEqualTo: Timestamp.fromDate(since))
         .orderBy('order_date', descending: true)
         .snapshots()
-        .asyncMap((snap) => _enrichOrders(snap.docs));
+        .asyncMap((snap) => Future.wait(snap.docs.map(_toModelWithItems)));
   }
 
-  Future<List<OrderModel>> _enrichOrders(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
-  ) async {
-    final futures = docs.map((doc) async {
-      final data = doc.data();
-      final unitId = data['unit_id'] as String? ?? '';
+  Future<String> createOrder({
+    required CheckoutSummaryModel summary,
+    required List<CartItemModel> items,
+    required double total,
+  }) async {
+    final uid = _uid;
 
-      final unitInfo =
-          unitId.isNotEmpty ? await _fetchUnit(unitId) : (name: '', logoUrl: '');
-      final items = await _fetchItems(doc.id);
+    final byUnit = <String, List<CartItemModel>>{};
+    for (final item in items) {
+      byUnit.putIfAbsent(item.unitId, () => []).add(item);
+    }
 
-      return OrderModel.fromDoc(
-        doc,
-        items: items,
-        unitName: unitInfo.name,
-        unitLogoUrl: unitInfo.logoUrl,
+    String firstOrderId = '';
+
+    for (final entry in byUnit.entries) {
+      final unitId = entry.key;
+      final unitItems = entry.value;
+      final subtotal = unitItems.fold<double>(0, (s, i) => s + i.subtotal);
+
+      final order = OrderModel(
+        id: '',
+        clientId: uid,
+        unitId: unitId,
+        addressId: summary.addressId,
+        status: 'PENDING',
+        deliveryStatus: 'WAITING_DELIVERY_PERSON',
+        deliveryType: 'DELIVERY',
+        paymentStatus: 'PENDING',
+        paymentMethod: summary.paymentMethod,
+        subtotal: subtotal,
+        deliveryFee: 0,
+        discountAmount: 0,
+        totalAmount: subtotal,
+        isScheduled: summary.isScheduled,
+        scheduledDeliveryDate: summary.scheduledDate,
+        scheduledTime: summary.scheduledTime,
       );
-    });
 
-    return Future.wait(futures);
+      final orderRef = await _db.collection('orders').add(order.toFirestore());
+
+      if (firstOrderId.isEmpty) firstOrderId = orderRef.id;
+
+      final batch = _db.batch();
+      for (final item in unitItems) {
+        final itemRef = orderRef.collection('items').doc();
+        batch.set(itemRef, {
+          'product_id': item.productId,
+          'product_ref': null,
+          'product_snapshot': {
+            'name': item.productName,
+            'unit_of_measure': item.unitOfMeasure,
+            'image_url': item.productImageUrl,
+          },
+          'quantity': item.quantity,
+          'unit_price': item.unitPrice,
+        });
+      }
+
+      final histRef = orderRef.collection('status_history').doc();
+      batch.set(histRef, {
+        'status': 'PENDING',
+        'updated_by': uid,
+        'updated_by_ref': null,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      await batch.commit();
+    }
+
+    return firstOrderId;
   }
-
-
 }

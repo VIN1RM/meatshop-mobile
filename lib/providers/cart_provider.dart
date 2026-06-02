@@ -89,4 +89,9 @@ class CartProvider extends ChangeNotifier {
       debugPrint('[CartProvider] erro ao remover: $e');
     }
   }
+
+  Future<void> clearCart() async {
+    _items.clear();
+    notifyListeners();
+  }
 }

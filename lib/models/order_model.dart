@@ -1,80 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrderItemModel {
-  final String productId;
   final String productName;
   final String unitOfMeasure;
-  final String imageUrl;
-  final int quantity;
+  final double quantity;
   final double unitPrice;
+  final String productImageUrl;
 
   const OrderItemModel({
-    required this.productId,
     required this.productName,
     required this.unitOfMeasure,
-    required this.imageUrl,
     required this.quantity,
     required this.unitPrice,
+    required this.productImageUrl,
   });
 
-  factory OrderItemModel.fromMap(Map<String, dynamic> map) {
-    final snapshot = map['product_snapshot'] as Map<String, dynamic>? ?? {};
-    return OrderItemModel(
-      productId: map['product_id'] as String? ?? '',
-      productName: snapshot['name'] as String? ?? '',
-      unitOfMeasure: snapshot['unit_of_measure'] as String? ?? '',
-      imageUrl: snapshot['image_url'] as String? ?? '',
-      quantity: (map['quantity'] as num?)?.toInt() ?? 0,
-      unitPrice: (map['unit_price'] as num?)?.toDouble() ?? 0.0,
-    );
-  }
-
   String get quantityLabel {
-    if (unitOfMeasure.isEmpty) return '$quantity';
-    return '$quantity ${unitOfMeasure.toUpperCase()}';
-  }
-}
-
-enum OrderStatus {
-  pending,
-  confirmed,
-  preparing,
-  ready,
-  outForDelivery,
-  delivered,
-  cancelled,
-  unknown;
-
-  static OrderStatus fromString(String? value) {
-    switch (value?.toUpperCase()) {
-      case 'PENDING':
-        return OrderStatus.pending;
-      case 'CONFIRMED':
-        return OrderStatus.confirmed;
-      case 'PREPARING':
-        return OrderStatus.preparing;
-      case 'READY':
-        return OrderStatus.ready;
-      case 'OUT_FOR_DELIVERY':
-        return OrderStatus.outForDelivery;
-      case 'DELIVERED':
-        return OrderStatus.delivered;
-      case 'CANCELLED':
-        return OrderStatus.cancelled;
-      default:
-        return OrderStatus.unknown;
+    if (unitOfMeasure == 'kg' || unitOfMeasure == 'g') {
+      final grams = (quantity * 1000).round();
+      return grams >= 1000 ? '${quantity.toStringAsFixed(0)} kg' : '$grams g';
     }
+    return '${quantity.toStringAsFixed(0)} $unitOfMeasure';
   }
-
-  bool get isActive =>
-      this == OrderStatus.pending ||
-      this == OrderStatus.confirmed ||
-      this == OrderStatus.preparing ||
-      this == OrderStatus.ready ||
-      this == OrderStatus.outForDelivery;
-
-  bool get isFinished =>
-      this == OrderStatus.delivered || this == OrderStatus.cancelled;
 }
 
 class OrderModel {
@@ -83,73 +30,135 @@ class OrderModel {
   final String unitId;
   final String unitName;
   final String unitLogoUrl;
-  final OrderStatus status;
+  final String addressId;
+  final String status;
+  final String deliveryStatus;
+  final String deliveryType;
+  final String paymentStatus;
+  final String paymentMethod;
+  final double subtotal;
+  final double deliveryFee;
+  final double discountAmount;
   final double totalAmount;
-  final DateTime orderDate;
-  final List<OrderItemModel> items;
-
+  final bool isScheduled;
+  final DateTime? scheduledDeliveryDate;
+  final String? scheduledTime;
+  final DateTime? orderDate;
   final String? cancellationReason;
-  final DateTime? cancelledAt;
-  final String? cancelledBy;
+  final List<OrderItemModel> items;
 
   const OrderModel({
     required this.id,
     required this.clientId,
     required this.unitId,
-    required this.unitName,
-    required this.unitLogoUrl,
+    this.unitName = '',
+    this.unitLogoUrl = '',
+    required this.addressId,
     required this.status,
+    required this.deliveryStatus,
+    required this.deliveryType,
+    required this.paymentStatus,
+    required this.paymentMethod,
+    required this.subtotal,
+    required this.deliveryFee,
+    required this.discountAmount,
     required this.totalAmount,
-    required this.orderDate,
-    required this.items,
+    required this.isScheduled,
+    this.scheduledDeliveryDate,
+    this.scheduledTime,
+    this.orderDate,
     this.cancellationReason,
-    this.cancelledAt,
-    this.cancelledBy,
+    this.items = const [],
   });
 
-  factory OrderModel.fromDoc(
-    DocumentSnapshot doc, {
-    List<OrderItemModel> items = const [],
-    String unitName = '',
-    String unitLogoUrl = '',
-  }) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-    final rawDate = data['order_date'];
-    final DateTime orderDate;
-    if (rawDate is Timestamp) {
-      orderDate = rawDate.toDate();
-    } else {
-      orderDate = DateTime.now();
-    }
+  bool get isCancelled => status == 'CANCELLED';
 
-    final rawCancelledAt = data['cancelled_at'];
-    DateTime? cancelledAt;
-    if (rawCancelledAt is Timestamp) {
-      cancelledAt = rawCancelledAt.toDate();
-    }
+  String get formattedTotal =>
+      'R\$ ${totalAmount.toStringAsFixed(2).replaceAll('.', ',')}';
 
+  OrderModel copyWith({
+    String? unitName,
+    String? unitLogoUrl,
+    List<OrderItemModel>? items,
+  }) => OrderModel(
+    id: id,
+    clientId: clientId,
+    unitId: unitId,
+    unitName: unitName ?? this.unitName,
+    unitLogoUrl: unitLogoUrl ?? this.unitLogoUrl,
+    addressId: addressId,
+    status: status,
+    deliveryStatus: deliveryStatus,
+    deliveryType: deliveryType,
+    paymentStatus: paymentStatus,
+    paymentMethod: paymentMethod,
+    subtotal: subtotal,
+    deliveryFee: deliveryFee,
+    discountAmount: discountAmount,
+    totalAmount: totalAmount,
+    isScheduled: isScheduled,
+    scheduledDeliveryDate: scheduledDeliveryDate,
+    scheduledTime: scheduledTime,
+    orderDate: orderDate,
+    cancellationReason: cancellationReason,
+    items: items ?? this.items,
+  );
+
+  Map<String, dynamic> toFirestore() => {
+    'client_id': clientId,
+    'client_ref': null,
+    'unit_id': unitId,
+    'unit_ref': null,
+    'delivery_person_id': null,
+    'delivery_person_ref': null,
+    'address_id': addressId,
+    'address_ref': null,
+    'coupon_id': null,
+    'coupon_ref': null,
+    'order_date': FieldValue.serverTimestamp(),
+    'scheduled_delivery_date': scheduledDeliveryDate != null
+        ? Timestamp.fromDate(scheduledDeliveryDate!)
+        : null,
+    'scheduled_time': scheduledTime,
+    'is_scheduled': isScheduled,
+    'delivery_type': deliveryType,
+    'status': status,
+    'delivery_status': deliveryStatus,
+    'delivery_step': null,
+    'payment_status': paymentStatus,
+    'payment_method': paymentMethod,
+    'subtotal': subtotal,
+    'delivery_fee': deliveryFee,
+    'discount_amount': discountAmount,
+    'total_amount': totalAmount,
+    'cancellation_reason': null,
+    'cancelled_at': null,
+    'cancelled_by': null,
+  };
+
+  factory OrderModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final d = doc.data()!;
     return OrderModel(
       id: doc.id,
-      clientId: data['client_id'] as String? ?? '',
-      unitId: data['unit_id'] as String? ?? '',
-      unitName: unitName,
-      unitLogoUrl: unitLogoUrl,
-      status: OrderStatus.fromString(data['status'] as String?),
-      totalAmount: (data['total_amount'] as num?)?.toDouble() ?? 0.0,
-      orderDate: orderDate,
-      items: items,
-      cancellationReason: data['cancellation_reason'] as String?,
-      cancelledAt: cancelledAt,
-      cancelledBy: data['cancelled_by'] as String?,
+      clientId: d['client_id'] as String? ?? '',
+      unitId: d['unit_id'] as String? ?? '',
+      addressId: d['address_id'] as String? ?? '',
+      status: d['status'] as String? ?? 'PENDING',
+      deliveryStatus:
+          d['delivery_status'] as String? ?? 'WAITING_DELIVERY_PERSON',
+      deliveryType: d['delivery_type'] as String? ?? 'DELIVERY',
+      paymentStatus: d['payment_status'] as String? ?? 'PENDING',
+      paymentMethod: d['payment_method'] as String? ?? '',
+      subtotal: (d['subtotal'] as num?)?.toDouble() ?? 0,
+      deliveryFee: (d['delivery_fee'] as num?)?.toDouble() ?? 0,
+      discountAmount: (d['discount_amount'] as num?)?.toDouble() ?? 0,
+      totalAmount: (d['total_amount'] as num?)?.toDouble() ?? 0,
+      isScheduled: d['is_scheduled'] as bool? ?? false,
+      scheduledDeliveryDate: (d['scheduled_delivery_date'] as Timestamp?)
+          ?.toDate(),
+      scheduledTime: d['scheduled_time'] as String?,
+      orderDate: (d['order_date'] as Timestamp?)?.toDate(),
+      cancellationReason: d['cancellation_reason'] as String?,
     );
   }
-
-  String get formattedTotal {
-    return 'R\$${totalAmount.toStringAsFixed(2).replaceAll('.', ',')}';
-  }
-
-  bool get isActive => status.isActive;
-  bool get isFinished => status.isFinished;
-  bool get isCancelled => status == OrderStatus.cancelled;
-  bool get isDelivered => status == OrderStatus.delivered;
 }

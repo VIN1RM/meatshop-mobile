@@ -6,6 +6,7 @@ import 'package:meatshop_mobile/providers/user/address_provider.dart';
 import 'package:meatshop_mobile/ui/screens/fallback/order_processing_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/order_provider.dart';
 
 class ReviewOrderScreen extends StatelessWidget {
   final CheckoutSummaryModel summary;
@@ -112,7 +113,8 @@ class ReviewOrderScreen extends StatelessWidget {
 
   Widget _buildAddressCard(dynamic address) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
@@ -400,13 +402,39 @@ class ReviewOrderScreen extends StatelessWidget {
   }
 
   Widget _buildConfirmarButton(BuildContext context, double total) {
+    final orderProvider = context.read<OrderProvider>();
+    final cart = context.read<CartProvider>();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
-        ),
+        onPressed: () async {
+          final success = await orderProvider.placeOrder(
+            summary: summary,
+            items: cart.items,
+            total: total,
+          );
+
+          if (!context.mounted) return;
+
+          if (success) {
+            await cart.clearCart();
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  orderProvider.error ?? 'Erro ao confirmar pedido',
+                ),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
           foregroundColor: _white,
