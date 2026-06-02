@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/models/active_order_model.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
@@ -149,5 +150,61 @@ class OrderService {
     }
 
     return firstOrderId;
+  }
+
+  Stream<List<ActiveOrderModel>> activeOrdersTrackingStream() {
+    final uid = _uid;
+    return _db
+        .collection('orders')
+        .where('client_id', isEqualTo: uid)
+        .where(
+          'status',
+          whereIn: [
+            'PENDING',
+            'CONFIRMED',
+            'PREPARING',
+            'READY',
+            'OUT_FOR_DELIVERY',
+          ],
+        )
+        .orderBy('order_date', descending: true)
+        .snapshots()
+        .asyncMap((snap) async {
+          final futures = snap.docs.map((doc) async {
+            final unitId = doc.data()['unit_id'] as String? ?? '';
+            final unitDoc = await _db.collection('units').doc(unitId).get();
+            final unitData = unitDoc.data() ?? {};
+            return ActiveOrderModel.fromFirestore(
+              doc,
+              unitName: unitData['name'] as String? ?? '',
+              unitLogoUrl: unitData['logo_url'] as String? ?? '',
+            );
+          });
+          return Future.wait(futures);
+        });
+  }
+
+  Future<void> cancelOrder({
+    required String orderId,
+    required String reason,
+  }) async {
+    final uid = _uid;
+    await _db.collection('orders').doc(orderId).update({
+      'status': 'CANCELLED',
+      'cancellation_reason': reason,
+      'cancelled_at': FieldValue.serverTimestamp(),
+      'cancelled_by': 'CLIENT',
+    });
+
+    await _db
+        .collection('orders')
+        .doc(orderId)
+        .collection('status_history')
+        .add({
+          'status': 'CANCELLED',
+          'updated_by': uid,
+          'updated_by_ref': null,
+          'created_at': FieldValue.serverTimestamp(),
+        });
   }
 }
