@@ -1,0 +1,155 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:meatshop_mobile/models/chat_model.dart';
+import 'package:meatshop_mobile/services/chat_service.dart';
+
+// ─────────────────────────────────────────────
+// Provider da lista de conversas
+// ─────────────────────────────────────────────
+class ChatListProvider extends ChangeNotifier {
+  final ChatService _service;
+  final String currentUserId;
+
+  ChatListProvider({required ChatService service, required this.currentUserId})
+    : _service = service {
+    _init();
+  }
+
+  List<ChatConversation> _conversations = [];
+  bool _loading = true;
+  StreamSubscription<List<ChatConversation>>? _sub;
+
+  List<ChatConversation> get conversations => _conversations;
+  bool get loading => _loading;
+
+  void _init() {
+    _sub = _service
+        .conversationsStream(currentUserId)
+        .listen(
+          (list) {
+            _conversations = list;
+            _loading = false;
+            notifyListeners();
+          },
+          onError: (_) {
+            _loading = false;
+            notifyListeners();
+          },
+        );
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+}
+
+// ─────────────────────────────────────────────
+// Provider de uma conversa aberta
+// ─────────────────────────────────────────────
+class ChatProvider extends ChangeNotifier {
+  final ChatService _service;
+  final String currentUserId;
+  final String conversationId;
+  final String receiverId;
+
+  ChatProvider({
+    required ChatService service,
+    required this.currentUserId,
+    required this.conversationId,
+    required this.receiverId,
+  }) : _service = service {
+    _init();
+  }
+
+  List<ChatMessage> _messages = [];
+  bool _loading = true;
+  bool _sending = false;
+  StreamSubscription<List<ChatMessage>>? _sub;
+
+  List<ChatMessage> get messages => _messages;
+  bool get loading => _loading;
+  bool get sending => _sending;
+
+  void _init() {
+    // Marca como lido ao abrir
+    _service.markConversationAsRead(
+      conversationId: conversationId,
+      userId: currentUserId,
+    );
+
+    _sub = _service.messagesStream(conversationId).listen((msgs) {
+      _messages = msgs;
+      _loading = false;
+      notifyListeners();
+
+      // Marca novas mensagens recebidas como lidas automaticamente
+      _service.markConversationAsRead(
+        conversationId: conversationId,
+        userId: currentUserId,
+      );
+    });
+  }
+
+  Future<void> sendMessage(String text) async {
+    if (text.trim().isEmpty || _sending) return;
+    _sending = true;
+    notifyListeners();
+
+    try {
+      await _service.sendMessage(
+        conversationId: conversationId,
+        senderId: currentUserId,
+        receiverId: receiverId,
+        text: text,
+      );
+    } finally {
+      _sending = false;
+      notifyListeners();
+    }
+  }
+
+  bool isMyMessage(ChatMessage msg) => msg.senderId == currentUserId;
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+}
+
+// ─────────────────────────────────────────────
+// Provider para badge de não lidos (header/nav)
+// ─────────────────────────────────────────────
+class ChatUnreadProvider extends ChangeNotifier {
+  final ChatService _service;
+  final String currentUserId;
+
+  ChatUnreadProvider({
+    required ChatService service,
+    required this.currentUserId,
+  }) : _service = service {
+    _init();
+  }
+
+  int _total = 0;
+  StreamSubscription<int>? _sub;
+
+  int get total => _total;
+  bool get hasUnread => _total > 0;
+
+  void _init() {
+    _sub = _service.totalUnreadStream(currentUserId).listen((count) {
+      _total = count;
+      notifyListeners();
+    });
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+}

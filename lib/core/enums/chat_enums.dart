@@ -1,6 +1,7 @@
 enum ChatParticipantType {
   unit,
-  client;
+  client,
+  delivery;
 
   String get label {
     switch (this) {
@@ -8,6 +9,8 @@ enum ChatParticipantType {
         return 'Açougue';
       case ChatParticipantType.client:
         return 'Cliente';
+      case ChatParticipantType.delivery:
+        return 'Entregador';
     }
   }
 
@@ -17,6 +20,8 @@ enum ChatParticipantType {
         return '🏪';
       case ChatParticipantType.client:
         return '👤';
+      case ChatParticipantType.delivery:
+        return '🛵';
     }
   }
 }

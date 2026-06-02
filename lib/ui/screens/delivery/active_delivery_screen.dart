@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
+import 'package:meatshop_mobile/core/utils/chat_args.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
-import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
 import 'package:meatshop_mobile/ui/dialogs/chat_participant_dialog.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/dialogs/confirm_delivery_dialog.dart';
@@ -191,17 +192,24 @@ Future<void> _onOpenChat(BuildContext context, order) async {
 
   if (participant == null || !context.mounted) return;
 
+  final auth = context.read<AuthProvider>();
+  final currentUser = auth.currentUser;
+  if (currentUser == null) return;
+
   Navigator.pushNamed(
     context,
     AppRoutes.chat,
     arguments: ChatArgs(
-      unitId: participant == ChatParticipantType.unit
+      currentUserId: currentUser.uid,
+      currentUserName: 'Você', // ou auth.currentUser.displayName se tiver
+      currentUserType: ChatParticipantType.delivery,
+      otherUserId: participant == ChatParticipantType.unit
           ? order.unitId
           : order.clientId,
-      participantName: participant == ChatParticipantType.unit
+      otherUserName: participant == ChatParticipantType.unit
           ? order.unitName
           : order.clientName,
-      participantType: participant,
+      otherUserType: participant,
     ),
   );
 }
