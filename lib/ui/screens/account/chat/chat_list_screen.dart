@@ -7,24 +7,28 @@ import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
-
-  static const String _mockCurrentUserId = 'current_user_id';
-  static const String _mockCurrentUserName = 'Você';
-  static const ChatParticipantType _mockCurrentUserType =
-      ChatParticipantType.client;
 
   static const Color _red = Color(0xFFC0392B);
   static const Color _pageBg = Color(0xFF3A3A3A);
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.read<AuthProvider>();
+    final currentUserId = auth.currentUser?.uid ?? '';
+    final currentUserName = auth.currentUser?.displayName ?? 'Você';
+    final activeType = auth.isDelivery
+        ? ChatParticipantType.delivery
+        : ChatParticipantType.client;
+
     return ChangeNotifierProvider(
       create: (_) => ChatListProvider(
         service: ChatService(),
-        currentUserId: _mockCurrentUserId,
+        currentUserId: currentUserId,
+        activeType: activeType,
       ),
       child: Scaffold(
         backgroundColor: _pageBg,
@@ -88,9 +92,9 @@ class ChatListScreen extends StatelessWidget {
                             ...provider.conversations.map(
                               (conv) => _ConversationTile(
                                 conversation: conv,
-                                currentUserId: _mockCurrentUserId,
-                                currentUserName: _mockCurrentUserName,
-                                currentUserType: _mockCurrentUserType,
+                                currentUserId: currentUserId,
+                                currentUserName: currentUserName,
+                                currentUserType: activeType,
                               ),
                             ),
                           ],

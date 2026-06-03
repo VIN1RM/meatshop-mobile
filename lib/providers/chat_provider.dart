@@ -1,18 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/models/chat_model.dart';
 import 'package:meatshop_mobile/services/chat_service.dart';
 
 class ChatListProvider extends ChangeNotifier {
   final ChatService _service;
   final String currentUserId;
+  final ChatParticipantType activeType;
 
-  ChatListProvider({required ChatService service, required this.currentUserId})
-    : _service = service {
+  ChatListProvider({
+    required ChatService service,
+    required this.currentUserId,
+    required this.activeType,
+  }) : _service = service {
     _init();
   }
-
   List<ChatConversation> _conversations = [];
   bool _loading = true;
   StreamSubscription<List<ChatConversation>>? _sub;
@@ -22,7 +26,7 @@ class ChatListProvider extends ChangeNotifier {
 
   void _init() {
     _sub = _service
-        .conversationsStream(currentUserId)
+        .conversationsStream(currentUserId, activeType)
         .listen(
           (list) {
             _conversations = list;

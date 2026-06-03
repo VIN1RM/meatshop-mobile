@@ -44,16 +44,27 @@ class ChatService {
         'last_message_sender_id': null,
         'unread_count': {currentUserId: 0, otherUserId: 0},
         'created_at': FieldValue.serverTimestamp(),
+        'participant_types': {
+          currentUserId: currentUserType.name.toUpperCase(),
+          otherUserId: otherUserType.name.toUpperCase(),
+        },
       });
     }
 
     return conversationId;
   }
 
-  Stream<List<ChatConversation>> conversationsStream(String userId) {
+  Stream<List<ChatConversation>> conversationsStream(
+    String userId,
+    ChatParticipantType activeType,
+  ) {
     return _db
         .collection(_kConversations)
         .where('participant_ids', arrayContains: userId)
+        .where(
+          'participant_types.$userId',
+          isEqualTo: activeType.name.toUpperCase(),
+        )
         .orderBy('last_message_at', descending: true)
         .snapshots()
         .map((snap) => snap.docs.map(ChatConversation.fromDoc).toList());
@@ -91,12 +102,12 @@ class ChatService {
       'attachment_type': null,
     });
 
-    batch.update(convRef, {
+    batch.set(convRef, {
       'last_message': text.trim(),
       'last_message_at': FieldValue.serverTimestamp(),
       'last_message_sender_id': senderId,
       'unread_count.$receiverId': FieldValue.increment(1),
-    });
+    }, SetOptions(merge: true));
 
     await batch.commit();
   }
