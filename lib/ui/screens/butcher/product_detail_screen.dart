@@ -102,14 +102,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)?.settings.arguments;
     final ProductModel? product;
-    final CartItemModel? existingItem;
 
     if (args is Map<String, dynamic>) {
       product = args['product'] as ProductModel?;
-      existingItem = args['cartItem'] as CartItemModel?;
     } else {
       product = args as ProductModel?;
-      existingItem = null;
     }
 
     if (product == null) {
