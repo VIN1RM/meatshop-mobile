@@ -4,9 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:meatshop_mobile/models/chat_model.dart';
 import 'package:meatshop_mobile/services/chat_service.dart';
 
-// ─────────────────────────────────────────────
-// Provider da lista de conversas
-// ─────────────────────────────────────────────
 class ChatListProvider extends ChangeNotifier {
   final ChatService _service;
   final String currentUserId;
@@ -46,9 +43,6 @@ class ChatListProvider extends ChangeNotifier {
   }
 }
 
-// ─────────────────────────────────────────────
-// Provider de uma conversa aberta
-// ─────────────────────────────────────────────
 class ChatProvider extends ChangeNotifier {
   final ChatService _service;
   final String currentUserId;
@@ -74,7 +68,6 @@ class ChatProvider extends ChangeNotifier {
   bool get sending => _sending;
 
   void _init() {
-    // Marca como lido ao abrir
     _service.markConversationAsRead(
       conversationId: conversationId,
       userId: currentUserId,
@@ -85,7 +78,6 @@ class ChatProvider extends ChangeNotifier {
       _loading = false;
       notifyListeners();
 
-      // Marca novas mensagens recebidas como lidas automaticamente
       _service.markConversationAsRead(
         conversationId: conversationId,
         userId: currentUserId,
@@ -120,9 +112,6 @@ class ChatProvider extends ChangeNotifier {
   }
 }
 
-// ─────────────────────────────────────────────
-// Provider para badge de não lidos (header/nav)
-// ─────────────────────────────────────────────
 class ChatUnreadProvider extends ChangeNotifier {
   final ChatService _service;
   final String currentUserId;

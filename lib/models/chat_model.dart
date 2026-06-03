@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 
-// ─────────────────────────────────────────────
-// Participante resumido (embutido na conversa)
-// ─────────────────────────────────────────────
 class ChatParticipant {
   final String userId;
   final String name;
@@ -36,25 +33,14 @@ class ChatParticipant {
   };
 }
 
-// ─────────────────────────────────────────────
-// Conversa entre dois participantes
-// Coleção: chat_conversations/{conversationId}
-// conversationId = sorted([userId1, userId2]).join('_')
-// ─────────────────────────────────────────────
 class ChatConversation {
   final String id;
 
-  /// IDs dos dois participantes
   final List<String> participantIds;
-
-  /// Dados resumidos de cada participante (keyed por userId)
   final Map<String, ChatParticipant> participants;
-
   final String? lastMessage;
   final DateTime? lastMessageAt;
   final String? lastMessageSenderId;
-
-  /// Contagem de não lidos por userId: {'userId1': 2, 'userId2': 0}
   final Map<String, int> unreadCount;
 
   final DateTime createdAt;
@@ -99,7 +85,6 @@ class ChatConversation {
     );
   }
 
-  /// Retorna o participante que NÃO é o currentUser
   ChatParticipant? otherParticipant(String currentUserId) {
     final otherId = participantIds.firstWhere(
       (id) => id != currentUserId,
@@ -116,10 +101,6 @@ class ChatConversation {
   }
 }
 
-// ─────────────────────────────────────────────
-// Mensagem individual
-// Coleção: chat_conversations/{id}/messages/{msgId}
-// ─────────────────────────────────────────────
 class ChatMessage {
   final String id;
   final String senderId;
@@ -127,9 +108,8 @@ class ChatMessage {
   final DateTime sentAt;
   final bool read;
 
-  /// Tipo de anexo futuro (null = só texto)
   final String? attachmentUrl;
-  final String? attachmentType; // 'image' | 'file'
+  final String? attachmentType;
 
   const ChatMessage({
     required this.id,
@@ -154,5 +134,5 @@ class ChatMessage {
     );
   }
 
-  bool get isMe => false; // resolvido na camada de UI com currentUserId
+  bool get isMe => false;
 }

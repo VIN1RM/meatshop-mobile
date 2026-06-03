@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/models/chat_model.dart';
 
-/// Coleção raiz para conversas (separada de "chats" legada)
 const _kConversations = 'chat_conversations';
 const _kMessages = 'messages';
 
@@ -11,12 +10,6 @@ class ChatService {
 
   ChatService({FirebaseFirestore? db}) : _db = db ?? FirebaseFirestore.instance;
 
-  // ─────────────────────────────────────────────
-  // CONVERSAS
-  // ─────────────────────────────────────────────
-
-  /// Busca ou cria uma conversa entre dois usuários.
-  /// Retorna o ID da conversa.
   Future<String> getOrCreateConversation({
     required String currentUserId,
     required String currentUserName,
@@ -57,7 +50,6 @@ class ChatService {
     return conversationId;
   }
 
-  /// Stream de todas as conversas de um usuário, ordenadas por última mensagem.
   Stream<List<ChatConversation>> conversationsStream(String userId) {
     return _db
         .collection(_kConversations)
@@ -67,11 +59,6 @@ class ChatService {
         .map((snap) => snap.docs.map(ChatConversation.fromDoc).toList());
   }
 
-  // ─────────────────────────────────────────────
-  // MENSAGENS
-  // ─────────────────────────────────────────────
-
-  /// Stream de mensagens de uma conversa, em ordem cronológica.
   Stream<List<ChatMessage>> messagesStream(String conversationId) {
     return _db
         .collection(_kConversations)
@@ -82,7 +69,6 @@ class ChatService {
         .map((snap) => snap.docs.map(ChatMessage.fromDoc).toList());
   }
 
-  /// Envia uma mensagem e atualiza os metadados da conversa atomicamente.
   Future<void> sendMessage({
     required String conversationId,
     required String senderId,
@@ -96,7 +82,6 @@ class ChatService {
 
     final batch = _db.batch();
 
-    // 1. Adiciona a mensagem
     batch.set(msgRef, {
       'sender_id': senderId,
       'text': text.trim(),
@@ -106,7 +91,6 @@ class ChatService {
       'attachment_type': null,
     });
 
-    // 2. Atualiza metadados da conversa + incrementa não lidos do receiver
     batch.update(convRef, {
       'last_message': text.trim(),
       'last_message_at': FieldValue.serverTimestamp(),
@@ -117,14 +101,12 @@ class ChatService {
     await batch.commit();
   }
 
-  /// Marca todas as mensagens não lidas como lidas e zera o contador.
   Future<void> markConversationAsRead({
     required String conversationId,
     required String userId,
   }) async {
     final convRef = _db.collection(_kConversations).doc(conversationId);
 
-    // Busca mensagens não lidas onde o sender NÃO é o usuário atual
     final unreadSnap = await convRef
         .collection(_kMessages)
         .where('read', isEqualTo: false)
@@ -139,13 +121,11 @@ class ChatService {
       batch.update(doc.reference, {'read': true});
     }
 
-    // Zera contador do usuário atual
     batch.update(convRef, {'unread_count.$userId': 0});
 
     await batch.commit();
   }
 
-  /// Total de mensagens não lidas em todas as conversas do usuário.
   Stream<int> totalUnreadStream(String userId) {
     return _db
         .collection(_kConversations)

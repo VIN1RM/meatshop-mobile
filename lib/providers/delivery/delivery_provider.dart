@@ -1,159 +1,26 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
-import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/services/delivery_order_service.dart';
 
 class DeliveryProvider extends ChangeNotifier {
+  final DeliveryOrderService _orderService = DeliveryOrderService();
+
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
   DeliveryOrder? _activeOrder;
   bool _isLoading = false;
   Map<String, String> _vehicleInfo = {};
+  String? _deliveryPersonUid;
+  StreamSubscription<List<DeliveryOrder>>? _ordersSubscription;
+
+  final List<DeliveryOrder> _pendingOrders = [];
+  final List<DeliveryOrder> _historyOrders = [];
+
   Map<String, String> get vehicleInfo => _vehicleInfo;
   bool get isOnline => isAvailable;
-  void toggleOnline() => toggleAvailability();
-
-  final List<DeliveryOrder> _pendingOrders = [
-    DeliveryOrder(
-      id: 1001,
-      clientName: 'João Silva',
-      destLat: -23.5614,
-      destLng: -46.6558,
-      unitName: 'Açougue Central',
-      unitAddress: AddressModel(
-        id: '10',
-        label: 'Açougue',
-        street: 'Rua das Carnes',
-        number: '123',
-        complement: '',
-        neighborhood: 'Centro',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '01001-000',
-        isDefault: false,
-      ),
-      unitLat: -23.5500,
-      unitLng: -46.6333,
-      address: AddressModel(
-        id: '1',
-        label: 'Casa',
-        street: 'Avenida Paulista',
-        number: '1578',
-        complement: '',
-        neighborhood: 'Bela Vista',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '01310-200',
-        isDefault: true,
-      ),
-      items: '2x Picanha, 1x Costela',
-      total: 187.90,
-    ),
-    DeliveryOrder(
-      id: 1002,
-      clientName: 'Maria Souza',
-      destLat: -23.5489,
-      destLng: -46.6388,
-      unitName: 'Açougue do Bairro',
-      unitAddress: AddressModel(
-        id: '11',
-        label: 'Açougue',
-        street: 'Rua das Pedras',
-        number: '456',
-        complement: '',
-        neighborhood: 'Moema',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '04029-000',
-        isDefault: false,
-      ),
-      unitLat: -23.5450,
-      unitLng: -46.6350,
-      address: AddressModel(
-        id: '2',
-        label: 'Trabalho',
-        street: 'Avenida Ibirapuera',
-        number: '3103',
-        complement: '',
-        neighborhood: 'Moema',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '04029-200',
-        isDefault: false,
-      ),
-      items: '1x Fraldinha, 1x Linguiça',
-      total: 94.50,
-    ),
-  ];
-
-  final List<DeliveryOrder> _historyOrders = [
-    DeliveryOrder(
-      id: 998,
-      clientName: 'Carlos Lima',
-      unitName: 'Açougue Central',
-      unitAddress: AddressModel(
-        id: '12',
-        label: 'Açougue',
-        street: 'Rua das Carnes',
-        number: '123',
-        complement: '',
-        neighborhood: 'Centro',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '01001-000',
-        isDefault: false,
-      ),
-      address: AddressModel(
-        id: '3',
-        label: 'Casa',
-        street: 'Rua Augusta',
-        number: '789',
-        complement: 'Casa 2',
-        neighborhood: 'Consolação',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '01305-100',
-        isDefault: true,
-      ),
-      items: '3x Alcatra',
-      total: 210.00,
-      status: DeliveryOrderStatus.delivered,
-    ),
-    DeliveryOrder(
-      id: 999,
-      clientName: 'Ana Paula',
-      unitName: 'Açougue do Bairro',
-      unitAddress: AddressModel(
-        id: '13',
-        label: 'Açougue',
-        street: 'Rua das Pedras',
-        number: '456',
-        complement: '',
-        neighborhood: 'Moema',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '04029-000',
-        isDefault: false,
-      ),
-      address: AddressModel(
-        id: '4',
-        label: 'Outro',
-        street: 'Alameda Santos',
-        number: '321',
-        complement: 'Bloco B, Apto 12',
-        neighborhood: 'Jardim Paulista',
-        city: 'São Paulo',
-        state: 'SP',
-        zipCode: '01419-001',
-        isDefault: false,
-      ),
-      items: '1x Filé Mignon',
-      total: 135.00,
-      status: DeliveryOrderStatus.delivered,
-    ),
-  ];
-
   DeliveryAvailability get availability => _availability;
   bool get isAvailable => _availability == DeliveryAvailability.available;
   DeliveryOrder? get activeOrder => _activeOrder;
@@ -162,9 +29,37 @@ class DeliveryProvider extends ChangeNotifier {
   List<DeliveryOrder> get pendingOrders => List.unmodifiable(_pendingOrders);
   List<DeliveryOrder> get historyOrders => List.unmodifiable(_historyOrders);
 
-  String get deliveryPersonName => 'Rafael Mendes';
+  String get deliveryPersonName => _vehicleInfo['name'] ?? 'Entregador';
   double get averageRating => 4.8;
-  String get vehicle => 'Moto';
+  String get vehicle => _vehicleInfo['type'] ?? 'Moto';
+
+  void startListeningOrders(String uid) {
+    _deliveryPersonUid = uid;
+    _ordersSubscription?.cancel();
+    _ordersSubscription = _orderService.watchAvailableOrders().listen((orders) {
+      _pendingOrders
+        ..clear()
+        ..addAll(orders);
+      notifyListeners();
+    }, onError: (e) => debugPrint('Erro ao ouvir pedidos: $e'));
+
+    _restoreActiveOrder(uid);
+  }
+
+  void stopListeningOrders() {
+    _ordersSubscription?.cancel();
+    _ordersSubscription = null;
+  }
+
+  Future<void> _restoreActiveOrder(String uid) async {
+    final order = await _orderService.fetchActiveOrder(uid);
+    if (order != null) {
+      _activeOrder = order;
+      notifyListeners();
+    }
+  }
+
+  void toggleOnline() => toggleAvailability();
 
   void toggleAvailability() {
     _availability = isAvailable
@@ -177,15 +72,22 @@ class DeliveryProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      await _orderService.acceptOrder(
+        firestoreId: order.firestoreId,
+        deliveryPersonId: _deliveryPersonUid ?? '',
+      );
 
-    _pendingOrders.removeWhere((o) => o.id == order.id);
-    order.status = DeliveryOrderStatus.onTheWay;
-    order.step = DeliveryStep.pickup;
-    _activeOrder = order;
-
-    _isLoading = false;
-    notifyListeners();
+      _pendingOrders.removeWhere((o) => o.firestoreId == order.firestoreId);
+      order.status = DeliveryOrderStatus.onTheWay;
+      order.step = DeliveryStep.pickup;
+      _activeOrder = order;
+    } catch (e) {
+      debugPrint('Erro ao aceitar pedido: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> rejectOrder(
@@ -195,16 +97,18 @@ class DeliveryProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    debugPrint(
-      'Pedido $orderId recusado. Motivos: ${reasons.map((r) => r.label).join(', ')}',
-    );
-
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    _pendingOrders.removeWhere((o) => o.id == orderId);
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      final order = _pendingOrders.firstWhere((o) => o.id == orderId);
+      await _orderService.rejectOrder(
+        firestoreId: order.firestoreId,
+        reasons: reasons.map((r) => r.label).toList(),
+      );
+    } catch (e) {
+      debugPrint('Erro ao recusar pedido: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> confirmPickup() async {
@@ -213,12 +117,15 @@ class DeliveryProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    _activeOrder!.step = DeliveryStep.delivering;
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      await _orderService.confirmPickup(_activeOrder!.firestoreId);
+      _activeOrder!.step = DeliveryStep.delivering;
+    } catch (e) {
+      debugPrint('Erro ao confirmar retirada: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> confirmDelivery() async {
@@ -227,24 +134,17 @@ class DeliveryProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
-
-    _activeOrder!.status = DeliveryOrderStatus.delivered;
-    _historyOrders.insert(0, _activeOrder!);
-    _activeOrder = null;
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  void logout(BuildContext context) {
-    _availability = DeliveryAvailability.unavailable;
-    _activeOrder = null;
-    notifyListeners();
-
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    try {
+      await _orderService.confirmDelivery(_activeOrder!.firestoreId);
+      _activeOrder!.status = DeliveryOrderStatus.delivered;
+      _historyOrders.insert(0, _activeOrder!);
+      _activeOrder = null;
+    } catch (e) {
+      debugPrint('Erro ao confirmar entrega: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> loadVehicle(String uid) async {
@@ -269,9 +169,23 @@ class DeliveryProvider extends ChangeNotifier {
     }
   }
 
-  void switchToClientMode(BuildContext context) {
+  void logout(BuildContext context) {
+    stopListeningOrders();
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
+    _deliveryPersonUid = null;
+    notifyListeners();
+
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+  }
+
+  void switchToClientMode(BuildContext context) {
+    stopListeningOrders();
+    _availability = DeliveryAvailability.unavailable;
+    _activeOrder = null;
+    _deliveryPersonUid = null;
     notifyListeners();
 
     Navigator.of(context).pushNamedAndRemoveUntil(

@@ -30,7 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    if (_args != null) return; // já inicializado
+    if (_args != null) return;
 
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is! ChatArgs) return;
@@ -116,7 +116,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ─── Header com info do outro participante ───
   Widget _buildParticipantHeader() {
     final other = _args!;
     final isUnit = other.otherUserType == ChatParticipantType.unit;
@@ -200,7 +199,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ─── Lista de mensagens ───
   Widget _buildMessageList() {
     return Consumer<ChatProvider>(
       builder: (context, provider, _) {
@@ -212,7 +210,6 @@ class _ChatScreenState extends State<ChatScreen> {
           return _buildEmptyState();
         }
 
-        // Scroll automático quando chegam novas mensagens
         WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
         return ListView.builder(
@@ -277,7 +274,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  // ─── Barra de input ───
   Widget _buildInputBar() {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
@@ -371,10 +367,6 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// Widgets auxiliares
-// ─────────────────────────────────────────────
 
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;

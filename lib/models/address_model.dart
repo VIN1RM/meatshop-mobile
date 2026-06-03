@@ -1,5 +1,5 @@
 class AddressModel {
-  final String id; 
+  final String id;
   final String label;
   final String street;
   final String number;
@@ -68,6 +68,21 @@ class AddressModel {
       state: data['state'] as String? ?? '',
       zipCode: data['zip_code'] as String? ?? '',
       isDefault: data['is_default'] as bool? ?? false,
+    );
+  }
+
+  factory AddressModel.fromMap(Map<String, dynamic> map) {
+    return AddressModel(
+      id: map['id'] as String? ?? '',
+      label: map['label'] as String? ?? '',
+      street: map['street'] as String? ?? '',
+      number: map['number'] as String? ?? '',
+      complement: map['complement'] as String? ?? '',
+      neighborhood: map['neighborhood'] as String? ?? '',
+      city: map['city'] as String? ?? '',
+      state: map['state'] as String? ?? '',
+      zipCode: map['zip_code'] as String? ?? '',
+      isDefault: map['is_default'] as bool? ?? false,
     );
   }
 

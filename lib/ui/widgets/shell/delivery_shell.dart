@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/deliveries_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/delivery_history_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/personal_management_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/delivery_account_screen.dart';
+import 'package:provider/provider.dart';
 
 class DeliveryShell extends StatefulWidget {
   const DeliveryShell({super.key});
@@ -20,6 +23,21 @@ class _DeliveryShellState extends State<DeliveryShell> {
     PersonalManagementScreen(),
     DeliveryAccountScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = context.read<AuthProvider>().currentUser?.uid ?? '';
+      context.read<DeliveryProvider>().startListeningOrders(uid);
+    });
+  }
+
+  @override
+  void dispose() {
+    context.read<DeliveryProvider>().stopListeningOrders();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

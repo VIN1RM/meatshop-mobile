@@ -8,14 +8,9 @@ import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
-/// Exemplo de como obter o usuário logado — adapte ao seu AuthProvider.
-// ignore: non_constant_identifier_names
-// final _auth = FirebaseAuth.instance;
-
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
-  // TODO: substituir pelo currentUserId real do AuthProvider
   static const String _mockCurrentUserId = 'current_user_id';
   static const String _mockCurrentUserName = 'Você';
   static const ChatParticipantType _mockCurrentUserType =
