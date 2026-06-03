@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/services/cart_service.dart';
+import 'package:meatshop_mobile/services/business_hours_service.dart';
 
 class CartProvider extends ChangeNotifier {
   final CartService _service;
@@ -28,6 +29,13 @@ class CartProvider extends ChangeNotifier {
 
   double get total => _items.fold(0, (sum, item) => sum + item.subtotal);
 
+  final BusinessHoursService _hoursService = BusinessHoursService();
+  final Map<String, bool> _unitOpenStatus = {};
+
+  Map<String, bool> get unitOpenStatus => Map.unmodifiable(_unitOpenStatus);
+
+  bool isUnitOpen(String unitId) => _unitOpenStatus[unitId] ?? true;
+
   Future<void> loadCart() async {
     _isLoading = true;
     _error = null;
@@ -41,6 +49,16 @@ class CartProvider extends ChangeNotifier {
     }
 
     _isLoading = false;
+    await _checkUnitsOpen();
+    notifyListeners();
+  }
+
+  Future<void> _checkUnitsOpen() async {
+    final unitIds = _items.map((i) => i.unitId).toSet();
+    for (final unitId in unitIds) {
+      final hours = await _hoursService.fetchToday(unitId);
+      _unitOpenStatus[unitId] = hours?.isOpenNow ?? true;
+    }
     notifyListeners();
   }
 

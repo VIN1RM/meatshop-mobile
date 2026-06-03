@@ -16,6 +16,7 @@ class DeliveryShell extends StatefulWidget {
 
 class _DeliveryShellState extends State<DeliveryShell> {
   int _currentIndex = 0;
+  late final DeliveryProvider _deliveryProvider;
 
   static const List<Widget> _screens = [
     DeliveriesTab(),
@@ -27,15 +28,16 @@ class _DeliveryShellState extends State<DeliveryShell> {
   @override
   void initState() {
     super.initState();
+    _deliveryProvider = context.read<DeliveryProvider>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().currentUser?.uid ?? '';
-      context.read<DeliveryProvider>().startListeningOrders(uid);
+      _deliveryProvider.startListeningOrders(uid);
     });
   }
 
   @override
   void dispose() {
-    context.read<DeliveryProvider>().stopListeningOrders();
+    _deliveryProvider.stopListeningOrders();
     super.dispose();
   }
 

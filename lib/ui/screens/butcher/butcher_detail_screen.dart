@@ -4,6 +4,7 @@ import 'package:meatshop_mobile/models/unit_model.dart';
 import 'package:meatshop_mobile/providers/unit/butcher_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/ui/widgets/business_hours_banner.dart';
 
 class ButcherDetailScreen extends StatelessWidget {
   const ButcherDetailScreen({super.key});
@@ -162,6 +163,10 @@ class _ButcherDetailView extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          Consumer<ButcherProvider>(
+            builder: (_, provider, __) =>
+                BusinessHoursBanner(hours: provider.todayHours),
           ),
         ],
       ),

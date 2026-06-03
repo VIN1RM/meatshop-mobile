@@ -195,6 +195,30 @@ class _CartScreenState extends State<CartScreen> {
               ],
             ),
           ),
+          if (!provider.isUnitOpen(unitId))
+            Container(
+              margin: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDECEC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFFC0392B).withOpacity(0.3),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.access_time, color: Color(0xFFC0392B), size: 14),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Este açougue está fechado no momento. Você pode adicionar itens, mas o pedido só poderá ser finalizado quando estiver aberto.',
+                      style: TextStyle(color: Color(0xFFC0392B), fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const Divider(color: Color(0xFFE0E0E0), height: 1),
           ...itens.asMap().entries.map((entry) {
             final isLast = entry.key == itens.length - 1;
@@ -411,38 +435,79 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildFinalizarButton(CartProvider provider) {
+    final hasClosedUnit = provider.itemsByUnit.keys.any(
+      (unitId) => !provider.isUnitOpen(unitId),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ElevatedButton(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AddressScheduleScreen(total: provider.total),
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _red,
-          foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 52),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Confirmar Itens',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+      child: Column(
+        children: [
+          if (hasClosedUnit)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.store_outlined,
+                    color: Color(0xFFC0392B),
+                    size: 16,
+                  ),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Um ou mais açougues estão fechados. Aguarde o horário de funcionamento para finalizar.',
+                      style: TextStyle(color: Color(0xFFC0392B), fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              '· R\$${provider.total.toStringAsFixed(2).replaceAll('.', ',')}',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          ElevatedButton(
+            onPressed: hasClosedUnit
+                ? null
+                : () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          AddressScheduleScreen(total: provider.total),
+                    ),
+                  ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: hasClosedUnit
+                  ? const Color(0xFFBDBDBD)
+                  : const Color(0xFFC0392B),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 52),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 0,
             ),
-          ],
-        ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  hasClosedUnit ? 'Açougue fechado' : 'Confirmar Itens',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (!hasClosedUnit) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    '· R\$${provider.total.toStringAsFixed(2).replaceAll('.', ',')}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
