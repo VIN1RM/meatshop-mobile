@@ -13,6 +13,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - As mensagens são agrupadas por data, facilitando a leitura do histórico.
 - A tela rola automaticamente para a mensagem mais recente ao abrir uma conversa.
 - O entregador agora pode iniciar conversa tanto com o açougue quanto com o cliente diretamente pela tela de entrega ativa.
+- **Horários de Funcionamento do Açougue:** As informações de horário de funcionamento das unidades agora estão disponíveis no aplicativo.
 
 ### 🛵 Pedidos disponíveis em tempo real para o entregador
 - A aba de entregas agora exibe os pedidos reais feitos pelos clientes, sem dados de exemplo.
@@ -20,6 +21,11 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - Cada card de pedido mostra o nome do cliente, nome do açougue, endereços de retirada e entrega, lista de itens e valor total — tudo buscado diretamente do banco de dados.
 - Ao aceitar um pedido, o status é atualizado imediatamente para todos os envolvidos.
 - Se o app for fechado durante uma entrega em andamento, o pedido ativo é restaurado automaticamente ao reabrir.
+
+### 🐞 Correções
+- Corrigido um problema no carregamento de promoções que podia causar erros ao exibir os dados.
+- Corrigido a exibição do nome do estabelecimento na tela do carrinho.
+- Corrigido um problema no chat que impedia a persistência correta das conversas ao reabrir o app.
 
 ---
 

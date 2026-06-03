@@ -33,6 +33,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Campos `clientId` e `unitId` adicionados ao `DeliveryOrder`.
 - `factory DeliveryOrder.fromFirestore` adicionado ao model.
 - `factory AddressModel.fromMap` adicionado ao model para desserialização de mapas embutidos.
+- `UnitModel`: adicionado suporte a horários de funcionamento da unidade.
+- `ChatService`: integração com autenticação real e correção na persistência de conversas.
+- `DeliveryProvider`: histórico de entregas carregado do Firestore com dados reais.
 
 ### Changed
 - `ChatListScreen`: substituição completa dos dados mockados por stream real do Firestore via `ChatListProvider`. Badge de não lidos dinâmico por conversa.
@@ -47,6 +50,11 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
   - Todos os métodos de ação (`acceptOrder`, `rejectOrder`, `confirmPickup`, `confirmDelivery`) passaram a chamar o `DeliveryOrderService` em vez de simular delay.
   - `logout` e `switchToClientMode` chamam `stopListeningOrders` antes de navegar.
 - `DeliveryShell`: `startListeningOrders` chamado no `initState` via `addPostFrameCallback` com o UID do `AuthProvider`; `stopListeningOrders` chamado no `dispose`.
+
+### Fixed
+- `PromotionService`: removido cast desnecessário de dados do Firestore na busca de promoções.
+- `ProductDetailScreen`: removida variável de item de carrinho não utilizada.
+- `CartScreen`: corrigido problema na exibição do label do estabelecimento.
 
 ---
 
