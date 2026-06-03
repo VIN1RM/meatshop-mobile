@@ -39,8 +39,7 @@ class PromotionService {
           .get();
 
       if (!productDoc.exists) return promo;
-
-      final data = productDoc.data() as Map<String, dynamic>? ?? {};
+      final data = productDoc.data() ?? {};
       return promo.copyWith(
         productName: (data['name'] as String?) ?? '',
         productImageUrl: (data['image_url'] as String?) ?? '',
