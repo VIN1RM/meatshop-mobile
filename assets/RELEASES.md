@@ -5,8 +5,21 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.5.0] — 02 de Junho de 2026
-###
+### 💬 Chat em tempo real
 
+### ✨ Novidades
+- As conversas agora são salvas e sincronizadas em tempo real — suas mensagens aparecem instantaneamente para o outro lado.
+- A lista de conversas mostra um badge com a quantidade de mensagens não lidas por conversa.
+- As mensagens são agrupadas por data, facilitando a leitura do histórico.
+- A tela rola automaticamente para a mensagem mais recente ao abrir uma conversa.
+- O entregador agora pode iniciar conversa tanto com o açougue quanto com o cliente diretamente pela tela de entrega ativa.
+
+### 🛵 Pedidos disponíveis em tempo real para o entregador
+- A aba de entregas agora exibe os pedidos reais feitos pelos clientes, sem dados de exemplo.
+- Os pedidos aparecem automaticamente assim que ficam disponíveis, sem precisar recarregar a tela.
+- Cada card de pedido mostra o nome do cliente, nome do açougue, endereços de retirada e entrega, lista de itens e valor total — tudo buscado diretamente do banco de dados.
+- Ao aceitar um pedido, o status é atualizado imediatamente para todos os envolvidos.
+- Se o app for fechado durante uma entrega em andamento, o pedido ativo é restaurado automaticamente ao reabrir.
 
 ---
 

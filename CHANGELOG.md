@@ -12,7 +12,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [2.5.0] - 2026-06-02
-### Chat em Tempo Real com Firestore
+### Chat em Tempo Real com Firestore e Integração de Pedidos Disponíveis em Tempo Real para o Entregador
 
 ### Added
 - `ChatConversation`, `ChatMessage` e `ChatParticipant`: modelos de dados para o sistema de chat com suporte a `fromDoc` e serialização completa.
@@ -23,6 +23,16 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `ChatUnreadProvider`: provider global para badge de não lidos no header ou barra de navegação.
 - Valor `delivery` adicionado ao enum `ChatParticipantType` com label "Entregador" e ícone 🛵.
 - Regras de segurança do Firestore para a coleção `chat_conversations` e subcoleção `messages`.
+- `DeliveryOrderService`: serviço dedicado ao fluxo de entregas com os seguintes métodos:
+  - `watchAvailableOrders`: stream em tempo real dos pedidos disponíveis no Firestore, filtrando por `delivery_status: WAITING_DELIVERY_PERSON`, `delivery_type: DELIVERY` e `status` nos valores `PENDING`, `CONFIRMED`, `PREPARING` e `READY`.
+  - `_buildOrder`: montagem assíncrona do `DeliveryOrder` a partir do documento do pedido, resolvendo nome do cliente via coleção `users`, nome e endereço da unidade via coleção `units`, endereço de entrega via subcoleção `users/{clientId}/addresses` e lista de itens via subcoleção `orders/{orderId}/items`. Inclui guards de ID vazio e `try/catch` por pedido para evitar que um documento inválido derrube os demais.
+  - `_fetchItemsLabel`: monta a string de itens no formato `Nx Nome` lendo a subcoleção de itens e o campo `product_snapshot`.
+  - `acceptOrder`, `rejectOrder`, `confirmPickup` e `confirmDelivery`: escrevem as transições de status corretas no Firestore.
+  - `fetchActiveOrder`: busca pedido em andamento do entregador para restaurar o estado ao reabrir o app.
+- Campo `firestoreId` adicionado ao `DeliveryOrder` para referenciar o doc ID do Firestore separadamente do campo `id` inteiro.
+- Campos `clientId` e `unitId` adicionados ao `DeliveryOrder`.
+- `factory DeliveryOrder.fromFirestore` adicionado ao model.
+- `factory AddressModel.fromMap` adicionado ao model para desserialização de mapas embutidos.
 
 ### Changed
 - `ChatListScreen`: substituição completa dos dados mockados por stream real do Firestore via `ChatListProvider`. Badge de não lidos dinâmico por conversa.
@@ -30,6 +40,13 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `ActiveDeliveryScreen`: `_onOpenChat` atualizado para construir `ChatArgs` com `currentUserId` real do `AuthProvider` e `currentUserType` como `delivery`.
 - `routes_config.dart`: rota `AppRoutes.chat` simplificada para `const ChatScreen()`, sem passagem de argumentos no construtor.
 - Estrutura Firestore migrada de documentos flat na coleção `chats` para coleção `chat_conversations` com subcoleção `messages`, separando metadados de conversa das mensagens individuais.
+- `DeliveryProvider`: substituição completa dos dados mockados por integração real com o Firestore.
+  - Listas `_pendingOrders` e `_historyOrders` passaram a ser populadas pelo stream do `DeliveryOrderService`.
+  - Adicionados `startListeningOrders(uid)` e `stopListeningOrders()` para gerenciar o ciclo de vida da `StreamSubscription`.
+  - `_deliveryPersonUid` armazenado internamente e repassado nas chamadas de `acceptOrder`.
+  - Todos os métodos de ação (`acceptOrder`, `rejectOrder`, `confirmPickup`, `confirmDelivery`) passaram a chamar o `DeliveryOrderService` em vez de simular delay.
+  - `logout` e `switchToClientMode` chamam `stopListeningOrders` antes de navegar.
+- `DeliveryShell`: `startListeningOrders` chamado no `initState` via `addPostFrameCallback` com o UID do `AuthProvider`; `stopListeningOrders` chamado no `dispose`.
 
 ---
 
