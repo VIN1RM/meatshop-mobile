@@ -201,7 +201,7 @@ Future<void> _onOpenChat(BuildContext context, order) async {
     AppRoutes.chat,
     arguments: ChatArgs(
       currentUserId: currentUser.uid,
-      currentUserName: 'Você', // ou auth.currentUser.displayName se tiver
+      currentUserName: 'Você', 
       currentUserType: ChatParticipantType.delivery,
       otherUserId: participant == ChatParticipantType.unit
           ? order.unitId

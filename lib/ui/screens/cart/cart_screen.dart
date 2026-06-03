@@ -444,20 +444,32 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         children: [
           if (hasClosedUnit)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 10),
-              child: Row(
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDECEC),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFFC0392B).withOpacity(0.3),
+                ),
+              ),
+              child: const Row(
                 children: [
                   Icon(
                     Icons.store_outlined,
                     color: Color(0xFFC0392B),
                     size: 16,
                   ),
-                  SizedBox(width: 6),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Um ou mais açougues estão fechados. Aguarde o horário de funcionamento para finalizar.',
-                      style: TextStyle(color: Color(0xFFC0392B), fontSize: 12),
+                      style: TextStyle(
+                        color: Color(0xFFC0392B),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],

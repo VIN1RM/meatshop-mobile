@@ -16,6 +16,25 @@ class CartService {
         .toList();
   }
 
+  Future<String> fetchUnitName(String unitId) async {
+    try {
+      final doc = await _db.collection('units').doc(unitId).get();
+      return (doc.data()?['name'] as String?) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<void> patchUnitName(
+    String uid,
+    String productId,
+    String unitName,
+  ) async {
+    try {
+      await _itemsRef(uid).doc(productId).update({'unit_name': unitName});
+    } catch (_) {}
+  }
+
   Future<void> updateQuantity(
     String uid,
     String productId,

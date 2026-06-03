@@ -138,9 +138,6 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 16),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 14),
-
-          // _infoRow('CPF:', _maskCpf(user?.cpf)),
-          // const SizedBox(height: 10),
           _infoRow('Telefone:', user?.phone ?? '—'),
           const SizedBox(height: 10),
           _infoRow('E-mail:', user?.email ?? '—'),

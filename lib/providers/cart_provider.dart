@@ -42,14 +42,25 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _items = await _service.fetchItems(uid);
+      final raw = await _service.fetchItems(uid);
+      _items = await Future.wait(
+        raw.map((item) async {
+          if (item.unitName.isNotEmpty) return item;
+          final name = await _service.fetchUnitName(item.unitId);
+
+          if (name.isNotEmpty) {
+            await _service.patchUnitName(uid, item.productId, name);
+          }
+          return item.copyWith(unitName: name);
+        }),
+      );
     } catch (e) {
       _error = 'Não foi possível carregar o carrinho.';
       debugPrint('[CartProvider] erro: $e');
     }
 
-    _isLoading = false;
     await _checkUnitsOpen();
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -59,7 +70,6 @@ class CartProvider extends ChangeNotifier {
       final hours = await _hoursService.fetchToday(unitId);
       _unitOpenStatus[unitId] = hours?.isOpenNow ?? true;
     }
-    notifyListeners();
   }
 
   Future<void> addItem(CartItemModel item) async {

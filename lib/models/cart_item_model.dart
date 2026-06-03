@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class CartItemModel {
   final String productId;
   final String productName;
@@ -28,6 +30,7 @@ class CartItemModel {
       'R\$${subtotal.toStringAsFixed(2).replaceAll('.', ',')}';
 
   factory CartItemModel.fromMap(Map<String, dynamic> map) {
+    debugPrint('[CartItemModel] unit_name: ${map['unit_name']}');
     final snapshot = map['product_snapshot'] as Map<String, dynamic>? ?? {};
     return CartItemModel(
       productId: (map['product_id'] as String?) ?? '',
@@ -54,7 +57,7 @@ class CartItemModel {
     },
   };
 
-  CartItemModel copyWith({double? quantity}) => CartItemModel(
+  CartItemModel copyWith({double? quantity, String? unitName}) => CartItemModel(
     productId: productId,
     productName: productName,
     productImageUrl: productImageUrl,
@@ -62,6 +65,6 @@ class CartItemModel {
     unitPrice: unitPrice,
     quantity: quantity ?? this.quantity,
     unitId: unitId,
-    unitName: unitName,
+    unitName: unitName ?? this.unitName,
   );
 }
