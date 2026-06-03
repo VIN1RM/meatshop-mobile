@@ -18,6 +18,8 @@ class DeliveryProvider extends ChangeNotifier {
 
   final List<DeliveryOrder> _pendingOrders = [];
   final List<DeliveryOrder> _historyOrders = [];
+  bool _isLoadingHistory = false;
+  String? _historyError;
 
   Map<String, String> get vehicleInfo => _vehicleInfo;
   bool get isOnline => isAvailable;
@@ -28,6 +30,8 @@ class DeliveryProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   List<DeliveryOrder> get pendingOrders => List.unmodifiable(_pendingOrders);
   List<DeliveryOrder> get historyOrders => List.unmodifiable(_historyOrders);
+  bool get isLoadingHistory => _isLoadingHistory;
+  String? get historyError => _historyError;
 
   String get deliveryPersonName => _vehicleInfo['name'] ?? 'Entregador';
   double get averageRating => 4.8;
@@ -137,7 +141,6 @@ class DeliveryProvider extends ChangeNotifier {
     try {
       await _orderService.confirmDelivery(_activeOrder!.firestoreId);
       _activeOrder!.status = DeliveryOrderStatus.delivered;
-      _historyOrders.insert(0, _activeOrder!);
       _activeOrder = null;
     } catch (e) {
       debugPrint('Erro ao confirmar entrega: $e');
@@ -193,5 +196,28 @@ class DeliveryProvider extends ChangeNotifier {
       (route) => false,
       arguments: AppRoutes.shell,
     );
+  }
+
+  Future<void> loadHistory() async {
+    if (_deliveryPersonUid == null || _deliveryPersonUid!.isEmpty) return;
+
+    _isLoadingHistory = true;
+    _historyError = null;
+    notifyListeners();
+
+    try {
+      final orders = await _orderService.fetchDeliveryHistory(
+        _deliveryPersonUid!,
+      );
+      _historyOrders
+        ..clear()
+        ..addAll(orders);
+    } catch (e) {
+      _historyError = 'Erro ao carregar histórico';
+      debugPrint('Erro ao carregar histórico: $e');
+    } finally {
+      _isLoadingHistory = false;
+      notifyListeners();
+    }
   }
 }

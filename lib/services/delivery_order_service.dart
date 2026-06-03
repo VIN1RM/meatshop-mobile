@@ -102,6 +102,24 @@ class DeliveryOrderService {
     }
   }
 
+  Future<List<DeliveryOrder>> fetchDeliveryHistory(
+    String deliveryPersonId,
+  ) async {
+    final since = DateTime.now().subtract(const Duration(days: 30));
+
+    final snap = await _db
+        .collection('orders')
+        .where('delivery_person_id', isEqualTo: deliveryPersonId)
+        .where('delivery_status', isEqualTo: 'DELIVERED')
+        .where('order_date', isGreaterThanOrEqualTo: Timestamp.fromDate(since))
+        .orderBy('order_date', descending: true)
+        .get();
+
+    final futures = snap.docs.map(_buildOrder);
+    final results = await Future.wait(futures);
+    return results.whereType<DeliveryOrder>().toList();
+  }
+
   AddressModel _emptyAddress() => const AddressModel(
     id: '',
     label: '',

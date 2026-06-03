@@ -5,8 +5,21 @@ import 'package:meatshop_mobile/ui/components/sheets/delivery_details_sheet.dart
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 
-class DeliveryHistoryScreen extends StatelessWidget {
+class DeliveryHistoryScreen extends StatefulWidget {
   const DeliveryHistoryScreen({super.key});
+
+  @override
+  State<DeliveryHistoryScreen> createState() => _DeliveryHistoryScreenState();
+}
+
+class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DeliveryProvider>().loadHistory();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,26 +47,8 @@ class DeliveryHistoryScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const AppHeader(),
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'HISTÓRICO DE ENTREGAS',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: provider.historyOrders.isEmpty
-                          ? const _EmptyHistory()
-                          : _HistoryList(orders: provider.historyOrders),
-                    ),
+                    _HistoryHeader(onRefresh: provider.loadHistory),
+                    Expanded(child: _HistoryBody(provider: provider)),
                   ],
                 ),
               ),
@@ -61,6 +56,142 @@ class DeliveryHistoryScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _HistoryHeader extends StatelessWidget {
+  const _HistoryHeader({required this.onRefresh});
+
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 8, 12),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'HISTÓRICO DE ENTREGAS',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: onRefresh,
+            icon: const Icon(Icons.refresh, color: Colors.white54, size: 20),
+            tooltip: 'Atualizar',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryBody extends StatelessWidget {
+  const _HistoryBody({required this.provider});
+
+  final DeliveryProvider provider;
+
+  @override
+  Widget build(BuildContext context) {
+    if (provider.isLoadingHistory) {
+      return const _LoadingHistory();
+    }
+
+    if (provider.historyError != null) {
+      return _ErrorHistory(
+        message: provider.historyError!,
+        onRetry: provider.loadHistory,
+      );
+    }
+
+    if (provider.historyOrders.isEmpty) {
+      return const _EmptyHistory();
+    }
+
+    return _HistoryList(orders: provider.historyOrders);
+  }
+}
+
+class _LoadingHistory extends StatelessWidget {
+  const _LoadingHistory();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: CircularProgressIndicator(
+        color: Color(0xFFC0392B),
+        strokeWidth: 2.5,
+      ),
+    );
+  }
+}
+
+class _ErrorHistory extends StatelessWidget {
+  const _ErrorHistory({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.cloud_off, color: Colors.white24, size: 48),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: const TextStyle(color: Colors.white54, fontSize: 15),
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: onRetry,
+            child: const Text(
+              'Tentar novamente',
+              style: TextStyle(color: Color(0xFFC0392B)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyHistory extends StatelessWidget {
+  const _EmptyHistory();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.history, color: Colors.white12, size: 56),
+          SizedBox(height: 16),
+          Text(
+            'Nenhuma entrega ainda',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 6),
+          Text(
+            'Suas entregas do último mês aparecerão aqui',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white38, fontSize: 13),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -86,14 +217,10 @@ class _HistoryCard extends StatelessWidget {
 
   final DeliveryOrder order;
 
-  void _showOrderDetails(BuildContext context) {
-    DeliveryDetailsSheet.show(context, order);
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showOrderDetails(context),
+      onTap: () => DeliveryDetailsSheet.show(context, order),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFFF5F5F5),
@@ -123,7 +250,7 @@ class _CardHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       child: Row(
         children: [
-          _StatusIcon(),
+          const _StatusIcon(),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -225,37 +352,6 @@ class _CardAddress extends StatelessWidget {
               address,
               style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyHistory extends StatelessWidget {
-  const _EmptyHistory();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.history, color: Colors.white12, size: 56),
-          SizedBox(height: 16),
-          Text(
-            'Nenhuma entrega ainda',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 6),
-          Text(
-            'Suas entregas concluídas aparecerão aqui',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38, fontSize: 13),
           ),
         ],
       ),
