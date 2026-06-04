@@ -122,14 +122,25 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (note.title.isNotEmpty) ...[
+                Text(
+                  note.title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+              ],
               Text(
                 note.date,
                 style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 12),
               ),
               const SizedBox(height: 16),
-              ...note.sections.entries.map(
-                (entry) => _buildSection(entry.key, entry.value),
-              ),
+              ...note.sections.entries
+                  .where((entry) => entry.key != note.title)
+                  .map((entry) => _buildSection(entry.key, entry.value)),
             ],
           ),
         );
@@ -151,13 +162,18 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
             children: [
               Icon(sectionMeta.$1, color: sectionMeta.$2, size: 16),
               const SizedBox(width: 6),
-              Text(
-                title.toUpperCase(),
-                style: TextStyle(
-                  color: sectionMeta.$2,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
+              Expanded(
+                child: Text(
+                  title.toUpperCase(),
+                  style: TextStyle(
+                    color: sectionMeta.$2,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                  softWrap: true,
                 ),
               ),
             ],

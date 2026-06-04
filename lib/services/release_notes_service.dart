@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 class ReleaseNote {
   final String version;
   final String date;
+  final String title;
   final Map<String, List<String>> sections;
 
   const ReleaseNote({
     required this.version,
     required this.date,
+    required this.title,
     required this.sections,
   });
 }
@@ -32,6 +34,8 @@ class ReleaseNotesService {
       final headerMatch = RegExp(
         r'##\s+\[(\d+\.\d+\.\d+)\]\s*[—–-]+\s*(.+)',
       ).firstMatch(block);
+      final titleMatch = RegExp(r'###\s+(.+)').firstMatch(block);
+      final title = titleMatch?.group(1)?.trim() ?? '';
       if (headerMatch == null) continue;
 
       final blockVersion = headerMatch.group(1)!;
@@ -39,7 +43,12 @@ class ReleaseNotesService {
 
       final date = headerMatch.group(2)!.trim();
       final sections = _parseSections(block);
-      return ReleaseNote(version: blockVersion, date: date, sections: sections);
+      return ReleaseNote(
+        version: blockVersion,
+        date: date,
+        title: title,
+        sections: sections,
+      );
     }
 
     return null;
