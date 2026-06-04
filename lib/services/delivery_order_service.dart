@@ -133,7 +133,8 @@ class DeliveryOrderService {
     isDefault: false,
   );
 
-  Stream<List<DeliveryOrder>> watchAvailableOrders() {
+  Stream<List<DeliveryOrder>> watchAvailableOrders(String deliveryPersonUid) {
+    debugPrint('🔍 Iniciando watchAvailableOrders...');
     return _db
         .collection('orders')
         .where('delivery_status', isEqualTo: 'WAITING_DELIVERY_PERSON')
@@ -142,11 +143,17 @@ class DeliveryOrderService {
           'status',
           whereIn: ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'],
         )
+        .where('client_id', isNotEqualTo: deliveryPersonUid)
         .orderBy('order_date', descending: true)
         .snapshots()
         .handleError((e) => debugPrint('ERRO NA QUERY: $e'))
         .asyncMap((snap) async {
-          debugPrint('Docs retornados: ${snap.docs.length}');
+          debugPrint('📦 Docs retornados: ${snap.docs.length}');
+          for (final doc in snap.docs) {
+            debugPrint(
+              '  → ${doc.id} | status=${doc.data()['status']} | delivery_status=${doc.data()['delivery_status']}',
+            );
+          }
           final futures = snap.docs.map(_buildOrder);
           final results = await Future.wait(futures);
           return results.whereType<DeliveryOrder>().toList();

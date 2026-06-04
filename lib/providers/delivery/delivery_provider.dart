@@ -37,10 +37,15 @@ class DeliveryProvider extends ChangeNotifier {
   double get averageRating => 4.8;
   String get vehicle => _vehicleInfo['type'] ?? 'Moto';
 
+  bool _isReloading = false;
+  bool get isReloading => _isReloading;
+
   void startListeningOrders(String uid) {
     _deliveryPersonUid = uid;
     _ordersSubscription?.cancel();
-    _ordersSubscription = _orderService.watchAvailableOrders().listen((orders) {
+    _ordersSubscription = _orderService.watchAvailableOrders(uid).listen((
+      orders,
+    ) {
       _pendingOrders
         ..clear()
         ..addAll(orders);
@@ -218,6 +223,25 @@ class DeliveryProvider extends ChangeNotifier {
     } finally {
       _isLoadingHistory = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> reloadOrders() async {
+    if (_deliveryPersonUid == null) return false;
+    _isReloading = true;
+    notifyListeners();
+
+    try {
+      stopListeningOrders();
+      startListeningOrders(_deliveryPersonUid!);
+      await Future.delayed(const Duration(milliseconds: 800));
+      _isReloading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isReloading = false;
+      notifyListeners();
+      return false;
     }
   }
 }

@@ -42,7 +42,7 @@ class DeliveriesTab extends StatelessWidget {
                     const AppHeader(),
                     Expanded(
                       child: provider.pendingOrders.isEmpty
-                          ? _buildEmpty()
+                          ? _buildEmpty(provider)
                           : _buildOrderList(context, provider),
                     ),
                   ],
@@ -55,22 +55,34 @@ class DeliveriesTab extends StatelessWidget {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(DeliveryProvider provider) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.delivery_dining_outlined, color: Colors.white12, size: 64),
-          SizedBox(height: 16),
-          Text(
+        children: [
+          const Icon(
+            Icons.delivery_dining_outlined,
+            color: Color.fromARGB(174, 255, 255, 255),
+            size: 64,
+          ),
+          const SizedBox(height: 16),
+          const Text(
             'Nenhum pedido disponível',
-            style: TextStyle(color: Colors.white38, fontSize: 16),
+            style: TextStyle(
+              color: Color.fromARGB(255, 255, 255, 255),
+              fontSize: 16,
+            ),
           ),
-          SizedBox(height: 6),
-          Text(
-            'Fique online para receber pedidos.',
-            style: TextStyle(color: Colors.white24, fontSize: 13),
+          const SizedBox(height: 6),
+          const Text(
+            'Aguarde e Confie',
+            style: TextStyle(
+              color: Color.fromARGB(181, 255, 255, 255),
+              fontSize: 13,
+            ),
           ),
+          const SizedBox(height: 24),
+          ReloadButton(provider: provider),
         ],
       ),
     );
@@ -80,16 +92,21 @@ class DeliveriesTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
-          child: Text(
-            'PEDIDOS DISPONÍVEIS',
-            style: TextStyle(
-              color: Color.fromARGB(255, 255, 255, 255),
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.1,
-            ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'PEDIDOS DISPONÍVEIS',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -115,6 +132,113 @@ class DeliveriesTab extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class ReloadButton extends StatelessWidget {
+  final DeliveryProvider provider;
+  final bool compact;
+
+  const ReloadButton({super.key, required this.provider, this.compact = false});
+
+  Future<void> _reload(BuildContext context) async {
+    final success = await provider.reloadOrders();
+    if (!context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success ? 'Lista atualizada!' : 'Erro ao atualizar.',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: success
+            ? const Color(0xFF27AE60)
+            : const Color(0xFFC0392B),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (provider.isReloading) {
+      return compact
+          ? const SizedBox(
+              width: 34,
+              height: 34,
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white54,
+                ),
+              ),
+            )
+          : const SizedBox(
+              height: 40,
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white38,
+                  ),
+                ),
+              ),
+            );
+    }
+
+    if (compact) {
+      return SizedBox(
+        width: 44,
+        height: 44,
+        child: ElevatedButton(
+          onPressed: () => _reload(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFC0392B),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: const Icon(Icons.refresh_rounded, size: 20),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () => _reload(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFC0392B),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF8B1A1A), width: 1.5),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.refresh_rounded, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text(
+              'Atualizar',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
