@@ -4,8 +4,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [2.5.0] — 02 de Junho de 2026
-### 💬 Chat em tempo real
+## [2.5.0] — 03 de Junho de 2026
+### 💬 Chat em tempo real, Endereço do Açougue e Melhorias de Carregamento
 
 ### ✨ Novidades
 - As conversas agora são salvas e sincronizadas em tempo real — suas mensagens aparecem instantaneamente para o outro lado.
@@ -14,6 +14,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - A tela rola automaticamente para a mensagem mais recente ao abrir uma conversa.
 - O entregador agora pode iniciar conversa tanto com o açougue quanto com o cliente diretamente pela tela de entrega ativa.
 - **Horários de Funcionamento do Açougue:** As informações de horário de funcionamento das unidades agora estão disponíveis no aplicativo.
+- **Endereço Completo do Açougue:** A tela do açougue e os cards de pedido do entregador agora exibem o endereço completo da unidade — rua, número, bairro, cidade e estado.
 
 ### 🛵 Pedidos disponíveis em tempo real para o entregador
 - A aba de entregas agora exibe os pedidos reais feitos pelos clientes, sem dados de exemplo.
@@ -21,11 +22,19 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - Cada card de pedido mostra o nome do cliente, nome do açougue, endereços de retirada e entrega, lista de itens e valor total — tudo buscado diretamente do banco de dados.
 - Ao aceitar um pedido, o status é atualizado imediatamente para todos os envolvidos.
 - Se o app for fechado durante uma entrega em andamento, o pedido ativo é restaurado automaticamente ao reabrir.
+- Novo botão de atualização na aba de entregas — tanto na lista de pedidos quanto na tela vazia — com indicador de carregamento e confirmação de sucesso ou erro.
+
+### 📈 Melhorias
+- **Carregamento Antecipado das Telas:** A tela inicial, a tela do açougue e a tela do produto agora aguardam o carregamento completo dos dados antes de exibir o conteúdo, eliminando o flash de tela vazia.
+- **Notas de Versão Mais Informativas:** O título de cada versão agora é exibido no dialog de novidades, lido diretamente do arquivo de releases sem nenhum dado fixo no código.
+- **Dialog de Novidades Responsivo:** O dialog de notas de versão agora se adapta corretamente a qualquer tamanho de tela, sem quebrar o layout em celulares menores.
 
 ### 🐞 Correções
 - Corrigido um problema no carregamento de promoções que podia causar erros ao exibir os dados.
 - Corrigido a exibição do nome do estabelecimento na tela do carrinho.
 - Corrigido um problema no chat que impedia a persistência correta das conversas ao reabrir o app.
+- Corrigido erro de asserção `!_dirty` causado por `notifyListeners` chamado durante a construção da árvore de widgets na tela do açougue.
+- Corrigido `LateInitializationError` no carregamento da tela inicial ao restaurar sessão.
 
 ---
 

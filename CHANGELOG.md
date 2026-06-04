@@ -50,6 +50,18 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
   - Todos os métodos de ação (`acceptOrder`, `rejectOrder`, `confirmPickup`, `confirmDelivery`) passaram a chamar o `DeliveryOrderService` em vez de simular delay.
   - `logout` e `switchToClientMode` chamam `stopListeningOrders` antes de navegar.
 - `DeliveryShell`: `startListeningOrders` chamado no `initState` via `addPostFrameCallback` com o UID do `AuthProvider`; `stopListeningOrders` chamado no `dispose`.
+- `ReleaseNotesDialog`: título da versão agora é lido diretamente do `RELEASES.md` e exibido no topo do conteúdo, sem hardcode. Seção duplicada filtrada para não repetir o título como categoria.
+- `ReleaseNote`: adicionado campo `title` ao modelo, populado pelo parser a partir da primeira linha `###` do bloco de versão.
+- `ButcherDetailScreen`: tela agora aguarda o carregamento completo de produtos e promoções antes de renderizar o conteúdo, exibindo o loader padrão durante a busca.
+- `ProductDetailScreen`: tela agora aguarda o `postFrameCallback` antes de renderizar, evitando flash de conteúdo incompleto.
+- `HomeBody`: tela inicial agora aguarda o carregamento de unidades e promoções em paralelo antes de renderizar, exibindo o loader padrão durante a busca.
+- `DeliveriesTab`: botão de atualização adicionado tanto na lista de pedidos quanto no estado vazio, com indicador de carregamento e snackbar de feedback de sucesso ou erro.
+- `DeliveryProvider`: método `reloadOrders` refatorado para retornar `bool` indicando sucesso, com estado `isReloading` separado do `isLoading`.
+- `watchAvailableOrders` no `DeliveryOrderService`: passa a receber o `deliveryPersonUid` como parâmetro e filtra pedidos criados pelo próprio entregador.
+- `UnitModel`: adicionados campos de endereço completo (`street`, `number`, `complement`, `neighborhood`) com getter `formattedAddress` para exibição formatada.
+- `ButcherDetailScreen`: endereço completo da unidade agora exibido via `unit.formattedAddress` em vez de apenas cidade e estado.
+- Seed do Firestore e `_seedUnits`: campos de endereço completo adicionados ao documento da unidade.
+- Regras de segurança do Firestore: usuários autenticados agora podem ler documentos de qualquer usuário e seus endereços, necessário para que entregadores resolvam nome e endereço de entrega dos clientes.
 
 ### Fixed
 - `PromotionService`: removido cast desnecessário de dados do Firestore na busca de promoções.
