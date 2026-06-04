@@ -44,14 +44,18 @@ class _HomeBodyState extends State<HomeBody> {
   );
   Timer? _autoScrollTimer;
 
+  late Future<void> _loader;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startAutoScroll();
-      context.read<UnitProvider>().loadUnits();
-      context.read<PromotionProvider>().loadPromotions();
+    _loader = Future.microtask(() async {
+      await Future.wait([
+        context.read<UnitProvider>().loadUnits(),
+        context.read<PromotionProvider>().loadPromotions(),
+      ]);
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoScroll());
   }
 
   @override
@@ -75,81 +79,95 @@ class _HomeBodyState extends State<HomeBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: SizedBox(
-            height: 130,
-            child: Image.asset(
-              'assets/images/background.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        SafeArea(
-          child: Column(
-            children: [
-              const AppHeader(),
-              GestureDetector(
-                onTap: () => Navigator.pushNamed(context, AppRoutes.search),
-                child: AbsorbPointer(
-                  child: SearchWidget(
-                    controller: _searchController,
-                    hintText: 'Procure por produto ou estabelecimento',
-                  ),
+    return FutureBuilder(
+      future: _loader,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            backgroundColor: Color(0xFF3A3A3A),
+            body: Center(child: MeatShopLoader()),
+          );
+        }
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                height: 130,
+                child: Image.asset(
+                  'assets/images/background.png',
+                  fit: BoxFit.cover,
                 ),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      _sectionTitle('CORTES'),
-                      const SizedBox(height: 12),
-                      _buildCortes(),
-                      const SizedBox(height: 24),
-                      _sectionTitle('PROMOÇÕES'),
-                      const SizedBox(height: 12),
-                      _buildPromocoes(),
-                      const SizedBox(height: 24),
-                      _sectionTitle('AÇOUGUES'),
-                      const SizedBox(height: 12),
-                      _buildAcougues(),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 16, bottom: 8),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: GestureDetector(
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.acougues,
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  const AppHeader(),
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, AppRoutes.search),
+                    child: AbsorbPointer(
+                      child: SearchWidget(
+                        controller: _searchController,
+                        hintText: 'Procure por produto ou estabelecimento',
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+                          _sectionTitle('CORTES'),
+                          const SizedBox(height: 12),
+                          _buildCortes(),
+                          const SizedBox(height: 24),
+                          _sectionTitle('PROMOÇÕES'),
+                          const SizedBox(height: 12),
+                          _buildPromocoes(),
+                          const SizedBox(height: 24),
+                          _sectionTitle('AÇOUGUES'),
+                          const SizedBox(height: 12),
+                          _buildAcougues(),
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              right: 16,
+                              bottom: 8,
                             ),
-                            child: const Text(
-                              'Ver mais...',
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: GestureDetector(
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.acougues,
+                                ),
+                                child: const Text(
+                                  'Ver mais...',
+                                  style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 12),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 

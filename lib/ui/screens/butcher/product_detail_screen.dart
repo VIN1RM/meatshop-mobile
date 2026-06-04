@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
+import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
@@ -27,11 +28,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   static const List<double> _chipsKg = [0.5, 1.0, 1.5, 2.0, 3.0];
 
   bool _isEditingCart = false;
+  bool _loaded = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map<String, dynamic>) {
         final item = args['cartItem'] as CartItemModel?;
@@ -46,6 +48,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           });
         }
       }
+      setState(() => _loaded = true);
     });
   }
 
@@ -110,6 +113,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     if (product == null) {
+      if (!_loaded) {
+        return const Scaffold(
+          backgroundColor: Color(0xFFEFEFEF),
+          body: Center(child: MeatShopLoader()),
+        );
+      }
       return Scaffold(
         backgroundColor: _pageBg,
         appBar: AppBar(backgroundColor: _red),

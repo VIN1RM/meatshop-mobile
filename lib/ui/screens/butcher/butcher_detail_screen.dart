@@ -3,6 +3,7 @@ import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
 import 'package:meatshop_mobile/providers/unit/butcher_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/widgets/business_hours_banner.dart';
 
@@ -25,8 +26,8 @@ class ButcherDetailScreen extends StatelessWidget {
     }
 
     return ChangeNotifierProvider(
-      create: (_) => ButcherProvider(unitId: unit.id)..loadProducts(),
-      child: _ButcherDetailView(unit: unit),
+      create: (_) => ButcherProvider(unitId: unit.id),
+      child: _ButcherDetailLoader(unit: unit),
     );
   }
 }
@@ -447,6 +448,42 @@ class _ButcherDetailView extends StatelessWidget {
         color: Color(0xFF9E9E9E),
         size: 28,
       ),
+    );
+  }
+}
+
+class _ButcherDetailLoader extends StatefulWidget {
+  final UnitModel unit;
+  const _ButcherDetailLoader({required this.unit});
+
+  @override
+  State<_ButcherDetailLoader> createState() => _ButcherDetailLoaderState();
+}
+
+class _ButcherDetailLoaderState extends State<_ButcherDetailLoader> {
+  late Future<void> _loader;
+
+  @override
+  void initState() {
+    super.initState();
+    _loader = Future.microtask(
+      () => context.read<ButcherProvider>().loadProducts(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _loader,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            backgroundColor: Color(0xFFEFEFEF),
+            body: Center(child: MeatShopLoader()),
+          );
+        }
+        return _ButcherDetailView(unit: widget.unit);
+      },
     );
   }
 }
