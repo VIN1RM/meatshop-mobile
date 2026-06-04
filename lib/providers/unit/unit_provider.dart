@@ -27,21 +27,4 @@ class UnitProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-  Future<String?> createUnit(UnitModel unit) async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final id = await _service.createUnit(unit);
-      await loadUnits();
-      return id;
-    } catch (e) {
-      _error = e.toString();
-      _loading = false;
-      notifyListeners();
-      return null;
-    }
-  }
 }

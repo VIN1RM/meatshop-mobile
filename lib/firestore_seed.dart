@@ -106,11 +106,18 @@ Future<void> _seedUnits() async {
 
   await ref.set({
     'name': '',
+    'cnpj': '',
+    // Endereço embutido
+    'street': '',
+    'number': '',
+    'complement': '',
+    'neighborhood': '',
     'city': '',
-    'zip_code': '',
     'state': '',
-    'admin_id': '', // ref para users/{id}
-    'admin_ref': null, // DocumentReference
+    'zip_code': '',
+    'image_url': '',
+    'admin_id': '',
+    'admin_ref': null,
     'created_at': FieldValue.serverTimestamp(),
   });
 

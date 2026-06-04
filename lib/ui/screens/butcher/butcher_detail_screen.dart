@@ -154,7 +154,7 @@ class _ButcherDetailView extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '${unit.city}, ${unit.state}',
+                  unit.formattedAddress,
                   style: const TextStyle(
                     fontSize: 12,
                     color: _textGray,

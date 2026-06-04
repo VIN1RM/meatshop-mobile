@@ -1,10 +1,14 @@
 class UnitModel {
   final String id;
   final String name;
-  final String cnpj; 
+  final String cnpj;
+  final String street;
+  final String number;
+  final String complement;
+  final String neighborhood;
   final String city;
-  final String zipCode;
   final String state;
+  final String zipCode;
   final String adminId;
   final String imageUrl;
   final DateTime createdAt;
@@ -13,21 +17,32 @@ class UnitModel {
     required this.id,
     required this.name,
     required this.cnpj,
+    required this.street,
+    required this.number,
+    this.complement = '',
+    required this.neighborhood,
     required this.city,
-    required this.zipCode,
     required this.state,
+    required this.zipCode,
     required this.adminId,
     required this.imageUrl,
     required this.createdAt,
   });
 
+  String get formattedAddress =>
+      '$street, $number${complement.isNotEmpty ? ' - $complement' : ''}, $neighborhood, $city - $state';
+
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'cnpj': cnpj,
+      'street': street,
+      'number': number,
+      'complement': complement,
+      'neighborhood': neighborhood,
       'city': city,
-      'zip_code': zipCode,
       'state': state,
+      'zip_code': zipCode,
       'admin_id': adminId,
       'admin_ref': null,
       'image_url': imageUrl,
@@ -40,9 +55,13 @@ class UnitModel {
       id: id,
       name: map['name'] ?? '',
       cnpj: map['cnpj'] ?? '',
+      street: map['street'] ?? '',
+      number: map['number'] ?? '',
+      complement: map['complement'] ?? '',
+      neighborhood: map['neighborhood'] ?? '',
       city: map['city'] ?? '',
-      zipCode: map['zip_code'] ?? '',
       state: map['state'] ?? '',
+      zipCode: map['zip_code'] ?? '',
       adminId: map['admin_id'] ?? '',
       imageUrl: map['image_url'] ?? '',
       createdAt: (map['created_at'] as dynamic)?.toDate() ?? DateTime.now(),
