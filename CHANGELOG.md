@@ -24,11 +24,18 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Implementada marcação de todas as notificações como lidas.
 - Adicionado salvamento automático do token FCM no login do usuário.
 - Adicionado suporte à atualização automática do token FCM quando ele for renovado.
+- Criado `UserPreferences`: model central de preferências locais do usuário.
+- Criado `UserPreferencesService`: serviço genérico de persistência via SharedPreferences, extensível para qualquer preferência futura.
+- Criado `UserPreferencesProvider`: provider que expõe e persiste as preferências do usuário para a UI.
+- Implementado controle de preferências de notificação por tipo (Pedidos, Entrega, Promoções, Sistema) na tela de Configurações.
 
 ### Changed
 - Ajustado fluxo de notificações em primeiro plano para exibir banner customizado em vez da notificação padrão do sistema.
 - Melhorada a navegação ao tocar em notificações de pedido, entrega e promoção.
 - Padronizado o canal Android de notificações do MeatShop.
+- `NotificationService`: handler de foreground agora respeita as preferências de notificação do usuário antes de exibir o banner.
+- `OrderStatusNotificationWatcher`: exibição de notificações de mudança de status agora respeita a preferência `notifOrders` do usuário.
+- `SettingsScreen`: toggles de notificação agora persistem estado real via `UserPreferencesProvider`, substituindo estado local volátil.
 
 ---
 
