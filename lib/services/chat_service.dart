@@ -58,6 +58,10 @@ class ChatService {
     String userId,
     ChatParticipantType activeType,
   ) {
+    final cutoff = Timestamp.fromDate(
+      DateTime.now().subtract(const Duration(days: 30)),
+    );
+
     return _db
         .collection(_kConversations)
         .where('participant_ids', arrayContains: userId)
@@ -65,6 +69,7 @@ class ChatService {
           'participant_types.$userId',
           isEqualTo: activeType.name.toUpperCase(),
         )
+        .where('last_message_at', isGreaterThan: cutoff)
         .orderBy('last_message_at', descending: true)
         .snapshots()
         .map((snap) => snap.docs.map(ChatConversation.fromDoc).toList());
