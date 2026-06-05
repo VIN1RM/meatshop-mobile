@@ -55,8 +55,10 @@ Future<void> _seedUsers() async {
     'phone': '',
     'photo_url': '',
     'password_hash': '',
-    'global_role': 'USER', // SUPER_ADMIN | USER
-    'app_profile': 'CLIENT', // CLIENT | DELIVERY | BOTH
+    'global_role': 'USER',
+    'app_profile': 'CLIENT',
+    'fcm_token': null,
+    'fcm_token_updated_at': null,
     'created_at': FieldValue.serverTimestamp(),
   });
 

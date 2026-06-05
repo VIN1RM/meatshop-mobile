@@ -6,9 +6,11 @@ import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/services/notification_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/services/order_status_notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -51,6 +53,11 @@ class AuthProvider extends ChangeNotifier {
       if (context.mounted) {
         context.read<PaymentProvider>().init();
       }
+
+      OrderStatusNotificationWatcher.instance.start(
+        userId: AuthService.instance.currentUser!.uid,
+        navigatorKey: NotificationService.instance.navigatorKey!,
+      );
 
       if (!context.mounted) return;
       _redirectAfterLogin(context);
@@ -280,6 +287,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout(BuildContext context) async {
+    OrderStatusNotificationWatcher.instance.stop();
+
+    final uid = AuthService.instance.currentUser?.uid;
+    if (uid != null) {
+      await NotificationService.instance.clearTokenForUser(uid);
+    }
+
     await AuthService.instance.logout();
 
     _isAuthenticated = false;
@@ -316,6 +330,13 @@ class AuthProvider extends ChangeNotifier {
       if (context.mounted) {
         context.read<PaymentProvider>().init();
       }
+
+      await NotificationService.instance.saveTokenForUser(firebaseUser.uid);
+
+      OrderStatusNotificationWatcher.instance.start(
+        userId: firebaseUser.uid,
+        navigatorKey: NotificationService.instance.navigatorKey!,
+      );
 
       if (!context.mounted) return;
       _redirectAfterLogin(context);
