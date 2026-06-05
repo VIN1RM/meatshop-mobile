@@ -145,12 +145,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             _divider(),
                             _buildNavItem(
-                              icon: Icons.privacy_tip_outlined,
-                              label: 'Política de privacidade',
-                              onTap: () {},
-                            ),
-                            _divider(),
-                            _buildNavItem(
                               icon: Icons.info_outline,
                               label: 'Versão do app',
                               trailing: Text(
