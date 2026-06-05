@@ -36,6 +36,13 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `NotificationService`: handler de foreground agora respeita as preferências de notificação do usuário antes de exibir o banner.
 - `OrderStatusNotificationWatcher`: exibição de notificações de mudança de status agora respeita a preferência `notifOrders` do usuário.
 - `SettingsScreen`: toggles de notificação agora persistem estado real via `UserPreferencesProvider`, substituindo estado local volátil.
+- `DeliveryEarningsService`: ganhos agora são registrados automaticamente no Firestore ao concluir uma entrega via `confirmDelivery()`, eliminando dados mockados.
+- `DeliveryEarningsProvider`: streams de ganhos e metas migrados para Firestore em tempo real via `DeliveryEarningsService`, substituindo valores fixos.
+- `ReportExportService`: campo `time` substituído por `createdAt` formatado do `DeliveryEarningModel`; import não utilizado de `earning_entry.dart` removido.
+- `MiniBarChart`: corrigido crash de `NaN` nas alturas das barras quando todos os valores são zero, substituindo `maxVal=0` por fallback `maxVal=1`.
+- `EarningsTab`: conversão de `List<double>` para `List<BarData>` antes de passar ao `MiniBarChart`, alinhando ao novo contrato da API do widget.
+- Regras de segurança do Firestore: adicionadas regras para as coleções `delivery_goals` e `delivery_earnings`.
+- `firestore_seed.dart`: adicionadas funções de seed para `delivery_earnings` e `delivery_goals`.
 
 ---
 

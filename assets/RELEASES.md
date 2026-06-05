@@ -5,7 +5,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.6.0] — 05 de Junho de 2026
-### 🔔 Notificações no Aplicativo, Configurações Reais e Atualizações de Pedido em Tempo Real
+### 🔔 Notificações, Ganhos em Tempo Real e Metas Conectadas ao Banco de Dados
 
 ### ✨ Novidades
 - **Central de Notificações:** O aplicativo agora conta com uma estrutura própria para exibir e armazenar notificações do usuário.
@@ -24,6 +24,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Navegação por Notificação:** Ao tocar em uma notificação de pedido, o app direciona o usuário para a área relacionada.
 - **Canal Android Padronizado:** O canal de notificações do Android foi configurado para pedidos, entregas e promoções do MeatShop.
 - **Tempo de Exibição Ajustado:** O banner de notificação em primeiro plano agora permanece visível por mais tempo, facilitando a leitura.
+- **Ganhos Registrados Automaticamente:** Ao finalizar uma entrega, o valor é salvo automaticamente no histórico de ganhos do entregador, sem necessidade de nenhuma ação manual.
+- **Metas e Ganhos em Tempo Real:** As informações da tela de Gestão, ganhos do dia, progresso das metas e gráfico semanal agora refletem dados reais do banco de dados, atualizados instantaneamente.
 
 ---
 
