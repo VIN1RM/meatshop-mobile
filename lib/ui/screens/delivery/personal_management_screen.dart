@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/models/bar_data.dart';
-import 'package:meatshop_mobile/models/earning_entry.dart';
-import 'package:meatshop_mobile/models/goal_model.dart';
+import 'package:meatshop_mobile/models/delivery_goal_model.dart';
+import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/ui/components/tabs/earnings_tab.dart';
 import 'package:meatshop_mobile/ui/components/tabs/reports_tab.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:provider/provider.dart';
 
 class PersonalManagementScreen extends StatefulWidget {
   const PersonalManagementScreen({super.key});
@@ -20,39 +20,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
   static const Color _white = Colors.white;
 
   late TabController _tabController;
-
-  final List<GoalModel> _goals = [
-    GoalModel(label: 'Meta diária', target: 150.0, current: 87.50),
-    GoalModel(label: 'Meta semanal', target: 800.0, current: 423.75),
-    GoalModel(label: 'Meta mensal', target: 3000.0, current: 1640.00),
-  ];
-
   String _reportPeriod = 'Semanal';
-
-  final List<EarningEntry> _recentEarnings = [
-    EarningEntry(
-      label: 'Pedido #4821',
-      amount: 18.50,
-      time: '14:32',
-      isNew: true,
-    ),
-    EarningEntry(label: 'Pedido #4818', amount: 22.00, time: '13:10'),
-    EarningEntry(label: 'Pedido #4815', amount: 15.75, time: '11:47'),
-    EarningEntry(label: 'Pedido #4810', amount: 31.00, time: '10:05'),
-    EarningEntry(label: 'Pedido #4802', amount: 12.25, time: 'Ontem'),
-    EarningEntry(label: 'Pedido #4799', amount: 19.00, time: 'Ontem'),
-    EarningEntry(label: 'Pedido #4795', amount: 27.50, time: 'Ontem'),
-  ];
-
-  final List<BarData> _weekBars = [
-    BarData(day: 'S', value: 45),
-    BarData(day: 'T', value: 90),
-    BarData(day: 'Q', value: 72),
-    BarData(day: 'Q', value: 110),
-    BarData(day: 'S', value: 63),
-    BarData(day: 'S', value: 88),
-    BarData(day: 'D', value: 42),
-  ];
 
   @override
   void initState() {
@@ -66,7 +34,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
     super.dispose();
   }
 
-  void _openGoalEditor(GoalModel goal) {
+  void _openGoalEditor(DeliveryGoalModel goal, DeliveryEarningsProvider ep) {
     final controller = TextEditingController(
       text: goal.target.toStringAsFixed(0),
     );
@@ -142,7 +110,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                       controller.text.replaceAll(',', '.'),
                     );
                     if (val != null && val > 0) {
-                      setState(() => goal.target = val);
+                      ep.updateGoalTarget(goal, val);
                     }
                     Navigator.pop(context);
                   },
@@ -166,13 +134,6 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
       ),
     );
   }
-
-  double get _todayTotal => _recentEarnings
-      .where((e) => e.time != 'Ontem')
-      .fold(0.0, (sum, e) => sum + e.amount);
-
-  int get _todayDeliveries =>
-      _recentEarnings.where((e) => e.time != 'Ontem').length;
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +164,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                   child: TabBar(
                     controller: _tabController,
                     labelColor: _red,
-                    unselectedLabelColor: const Color.fromARGB(255, 255, 255, 255),
+                    unselectedLabelColor: Colors.white,
                     indicatorColor: _red,
                     indicatorWeight: 3,
                     labelStyle: const TextStyle(
@@ -217,24 +178,34 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                   ),
                 ),
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      EarningsTab(
-                        goals: _goals,
-                        recentEarnings: _recentEarnings,
-                        weekBars: _weekBars,
-                        onEditGoal: _openGoalEditor,
-                        todayTotal: _todayTotal,
-                        todayDeliveries: _todayDeliveries,
-                      ),
-                      ReportsTab(
-                        period: _reportPeriod,
-                        onPeriodChanged: (v) =>
-                            setState(() => _reportPeriod = v),
-                        recentEarnings: _recentEarnings,
-                      ),
-                    ],
+                  child: Consumer<DeliveryEarningsProvider>(
+                    builder: (context, ep, _) {
+                      if (ep.loading) {
+                        return const Center(
+                          child: CircularProgressIndicator(color: _red),
+                        );
+                      }
+                      return TabBarView(
+                        controller: _tabController,
+                        children: [
+                          EarningsTab(
+                            goals: ep.goals,
+                            earnings: ep.earnings,
+                            weekBarValues: ep.weeklyBarValues,
+                            earningsProvider: ep,
+                            onEditGoal: (goal) => _openGoalEditor(goal, ep),
+                            todayTotal: ep.todayTotal,
+                            todayDeliveries: ep.todayDeliveries,
+                          ),
+                          ReportsTab(
+                            period: _reportPeriod,
+                            onPeriodChanged: (v) =>
+                                setState(() => _reportPeriod = v),
+                            earningsProvider: ep,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

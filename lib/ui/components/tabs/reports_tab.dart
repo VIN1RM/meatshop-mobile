@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/models/earning_entry.dart';
+import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/services/report_export_service.dart';
 import 'package:meatshop_mobile/ui/widgets/earning_row.dart';
 import 'package:meatshop_mobile/ui/widgets/summary_grid.dart';
@@ -9,32 +9,33 @@ class ReportsTab extends StatelessWidget {
     super.key,
     required this.period,
     required this.onPeriodChanged,
-    required this.recentEarnings,
+    required this.earningsProvider,
   });
 
   final String period;
   final void Function(String) onPeriodChanged;
-  final List<EarningEntry> recentEarnings;
+  final DeliveryEarningsProvider earningsProvider;
 
   static const Color _red = Color(0xFFC0392B);
 
-  static const Map<String, Map<String, String>> _summaryData = {
-    'Semanal': {
-      'total': 'R\$ 423,75',
-      'entregas': '19',
-      'media': 'R\$ 22,30',
-      'melhorDia': 'Quinta-feira',
-    },
-    'Mensal': {
-      'total': 'R\$ 1.640,00',
-      'entregas': '74',
-      'media': 'R\$ 22,16',
-      'melhorDia': 'Semana 3',
-    },
-  };
+  Map<String, String> _buildSummary() {
+    final total = earningsProvider.totalForPeriod(period);
+    final deliveries = earningsProvider.deliveriesForPeriod(period);
+    final avg = earningsProvider.avgTicketForPeriod(period);
+
+    String fmt(double v) => 'R\$ ${v.toStringAsFixed(2).replaceAll('.', ',')}';
+
+    return {
+      'total': fmt(total),
+      'entregas': '$deliveries',
+      'media': fmt(avg),
+      'melhorDia': period == 'Mensal' ? '—' : '—',
+    };
+  }
 
   void _showExportSheet(BuildContext context) {
-    final summary = _summaryData[period] ?? _summaryData['Semanal']!;
+    final summary = _buildSummary();
+    final earnings = earningsProvider.earningsForPeriod(period);
 
     showModalBottomSheet(
       context: context,
@@ -81,13 +82,13 @@ class ReportsTab extends StatelessWidget {
                 Navigator.pop(context);
                 ReportExportService.exportPdf(
                   period: period,
-                  earnings: recentEarnings,
+                  earnings: earnings,
                   summary: summary,
                 ).catchError((e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Erro ao gerar PDF: $e'),
-                      backgroundColor: const Color(0xFFC0392B),
+                      backgroundColor: _red,
                     ),
                   );
                 });
@@ -101,7 +102,7 @@ class ReportsTab extends StatelessWidget {
                 Navigator.pop(context);
                 ReportExportService.exportCsv(
                   period: period,
-                  earnings: recentEarnings,
+                  earnings: earnings,
                   summary: summary,
                 );
               },
@@ -114,7 +115,8 @@ class ReportsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = _summaryData[period] ?? _summaryData['Semanal']!;
+    final summary = _buildSummary();
+    final earnings = earningsProvider.earningsForPeriod(period);
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -152,7 +154,7 @@ class ReportsTab extends StatelessWidget {
             }).toList(),
           ),
           const SizedBox(height: 20),
-          SummaryGrid(data: data),
+          SummaryGrid(data: summary),
           const SizedBox(height: 20),
           GestureDetector(
             onTap: () => _showExportSheet(context),
@@ -195,28 +197,39 @@ class ReportsTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(16),
+          if (earnings.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  'Nenhuma entrega no período.',
+                  style: TextStyle(color: Color(0xFF999999), fontSize: 13),
+                ),
+              ),
+            )
+          else
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: List.generate(earnings.length, (i) {
+                  return Column(
+                    children: [
+                      EarningRow(entry: earnings[i]),
+                      if (i < earnings.length - 1)
+                        const Divider(
+                          height: 1,
+                          indent: 16,
+                          endIndent: 16,
+                          color: Color(0xFFE8E8E8),
+                        ),
+                    ],
+                  );
+                }),
+              ),
             ),
-            child: Column(
-              children: List.generate(recentEarnings.length, (i) {
-                return Column(
-                  children: [
-                    EarningRow(entry: recentEarnings[i]),
-                    if (i < recentEarnings.length - 1)
-                      const Divider(
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: Color(0xFFE8E8E8),
-                      ),
-                  ],
-                );
-              }),
-            ),
-          ),
           const SizedBox(height: 24),
         ],
       ),

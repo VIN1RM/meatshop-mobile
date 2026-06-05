@@ -11,7 +11,8 @@ class MiniBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final maxVal = bars.map((b) => b.value).reduce(max).toDouble();
+    final rawMax = bars.map((b) => b.value).reduce(max);
+    final maxVal = rawMax == 0.0 ? 1.0 : rawMax;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),

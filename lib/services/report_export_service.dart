@@ -1,18 +1,17 @@
 import 'dart:io';
 import 'package:csv/csv.dart';
+import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
-
-import 'package:meatshop_mobile/models/earning_entry.dart';
 
 class ReportExportService {
   ReportExportService._();
 
   static Future<void> exportPdf({
     required String period,
-    required List<EarningEntry> earnings,
+    required List<DeliveryEarningModel> earnings,
     required Map<String, String> summary,
   }) async {
     final pdf = pw.Document();
@@ -115,7 +114,9 @@ class ReportExportService {
                     _tableCell(
                       'R\$ ${e.amount.toStringAsFixed(2).replaceAll('.', ',')}',
                     ),
-                    _tableCell(e.time),
+                    _tableCell(
+                      '${e.createdAt.hour.toString().padLeft(2, '0')}:${e.createdAt.minute.toString().padLeft(2, '0')}',
+                    ),
                   ],
                 ),
               ),
@@ -144,9 +145,9 @@ class ReportExportService {
     ], subject: 'Relatório MeatShop — $period');
   }
 
-  static Future<void> exportCsv({
+  static void exportCsv({
     required String period,
-    required List<EarningEntry> earnings,
+    required List<DeliveryEarningModel> earnings,
     required Map<String, String> summary,
   }) async {
     final rows = <List<dynamic>>[
@@ -165,7 +166,7 @@ class ReportExportService {
         (e) => [
           e.label,
           e.amount.toStringAsFixed(2).replaceAll('.', ','),
-          e.time,
+          '${e.createdAt.hour.toString().padLeft(2, '0')}:${e.createdAt.minute.toString().padLeft(2, '0')}',
         ],
       ),
     ];

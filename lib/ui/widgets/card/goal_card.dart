@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/models/goal_model.dart';
+import 'package:meatshop_mobile/models/delivery_goal_model.dart';
 
 class GoalCard extends StatelessWidget {
-  const GoalCard({super.key, required this.goal, required this.onEdit});
+  const GoalCard({
+    super.key,
+    required this.goal,
+    required this.current,
+    required this.onEdit,
+  });
 
-  final GoalModel goal;
+  final DeliveryGoalModel goal;
+  final double current;
   final VoidCallback onEdit;
 
   static const Color _red = Color(0xFFC0392B);
 
   @override
   Widget build(BuildContext context) {
-    final progress = (goal.current / goal.target).clamp(0.0, 1.0);
+    final progress = (current / goal.target).clamp(0.0, 1.0);
     final percent = (progress * 100).toStringAsFixed(0);
     final isComplete = progress >= 1.0;
 
@@ -67,7 +73,7 @@ class GoalCard extends StatelessWidget {
                   children: [
                     TextSpan(
                       text:
-                          'R\$ ${goal.current.toStringAsFixed(2).replaceAll('.', ',')}',
+                          'R\$ ${current.toStringAsFixed(2).replaceAll('.', ',')}',
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     TextSpan(

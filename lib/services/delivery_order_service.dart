@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
+import 'package:meatshop_mobile/services/delivery_earnings_service.dart';
 
 class DeliveryOrderService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -187,11 +188,25 @@ class DeliveryOrderService {
   }
 
   Future<void> confirmDelivery(String firestoreId) async {
+    final orderDoc = await _db.collection('orders').doc(firestoreId).get();
+    final data = orderDoc.data();
+    final total = (data?['total_amount'] as num?)?.toDouble() ?? 0.0;
+    final deliveryPersonId = data?['delivery_person_id'] as String? ?? '';
+
     await _db.collection('orders').doc(firestoreId).update({
       'delivery_step': 'DELIVERING',
       'delivery_status': 'DELIVERED',
       'status': 'DELIVERED',
     });
+
+    if (deliveryPersonId.isNotEmpty) {
+      await DeliveryEarningsService.instance.addEarning(
+        deliveryPersonId: deliveryPersonId,
+        orderId: firestoreId,
+        label: 'Pedido #${firestoreId.substring(0, 6).toUpperCase()}',
+        amount: total,
+      );
+    }
   }
 
   Future<DeliveryOrder?> fetchActiveOrder(String deliveryPersonId) async {

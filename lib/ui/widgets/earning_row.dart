@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/models/earning_entry.dart';
+import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 
 class EarningRow extends StatelessWidget {
   const EarningRow({super.key, required this.entry});
 
-  final EarningEntry entry;
+  final DeliveryEarningModel entry;
 
   static const Color _red = Color(0xFFC0392B);
+
+  String get _timeLabel {
+    final now = DateTime.now();
+    final diff = now.difference(entry.createdAt);
+
+    if (diff.inMinutes < 1) return 'Agora';
+    if (diff.inHours < 1) return '${diff.inMinutes} min atrás';
+    if (entry.isToday) {
+      final h = entry.createdAt.hour.toString().padLeft(2, '0');
+      final m = entry.createdAt.minute.toString().padLeft(2, '0');
+      return '$h:$m';
+    }
+    return 'Ontem';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +56,10 @@ class EarningRow extends StatelessWidget {
                         color: Color(0xFF1A1A1A),
                       ),
                     ),
-                    if (entry.isNew) ...[
+                    if (entry.isToday &&
+                        entry.createdAt.isAfter(
+                          DateTime.now().subtract(const Duration(minutes: 30)),
+                        )) ...[
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -67,7 +84,7 @@ class EarningRow extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  entry.time,
+                  _timeLabel,
                   style: const TextStyle(
                     color: Color(0xFF999999),
                     fontSize: 11,

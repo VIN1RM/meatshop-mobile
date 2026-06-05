@@ -34,6 +34,8 @@ Future<void> seedFirestore() async {
     _seedSupportTickets(),
     _seedAuditLogs(),
     _seedUniqueIndexes(),
+    _seedDeliveryEarnings(),
+    _seedDeliveryGoals(),
   ]);
 
   // ignore: avoid_print
@@ -447,4 +449,31 @@ Future<void> _seedAuditLogs() async {
 Future<void> _seedUniqueIndexes() async {
   await _db.collection('unique_cpfs').doc('template').set({'user_id': ''});
   await _db.collection('unique_phones').doc('template').set({'user_id': ''});
+}
+
+Future<void> _seedDeliveryEarnings() async {
+  await _db.collection('delivery_earnings').doc('template_earning').set({
+    'delivery_person_id': '',
+    'order_id': '',
+    'label': 'Entrega',
+    'amount': 0.0,
+    'created_at': FieldValue.serverTimestamp(),
+  });
+}
+
+Future<void> _seedDeliveryGoals() async {
+  const dpId = 'template_delivery_person';
+  final ref = _db.collection('delivery_goals').doc(dpId).collection('goals');
+
+  for (final entry in [
+    {'period': 'daily', 'target': 150.0},
+    {'period': 'weekly', 'target': 800.0},
+    {'period': 'monthly', 'target': 3000.0},
+  ]) {
+    await ref.doc(entry['period'] as String).set({
+      'delivery_person_id': dpId,
+      'period': entry['period'],
+      'target': entry['target'],
+    });
+  }
 }
