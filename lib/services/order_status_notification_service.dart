@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
 import 'package:meatshop_mobile/ui/widgets/in_app_notification_banner.dart';
+import 'package:meatshop_mobile/services/user_preferences_service.dart';
 
 class OrderStatusNotificationWatcher with WidgetsBindingObserver {
   OrderStatusNotificationWatcher._();
@@ -117,6 +118,9 @@ class OrderStatusNotificationWatcher with WidgetsBindingObserver {
     required String status,
     required String deliveryStatus,
   }) async {
+    final prefs = await UserPreferencesService.instance.load();
+    if (!prefs.notifOrders) return;
+
     final data = {
       'type': 'ORDER',
       'order_id': orderId,

@@ -9,6 +9,7 @@ import 'package:meatshop_mobile/models/notification_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/ui/widgets/in_app_notification_banner.dart';
+import 'package:meatshop_mobile/services/user_preferences_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -82,10 +83,12 @@ class NotificationService {
   }
 
   void _setupForegroundHandler() {
-    FirebaseMessaging.onMessage.listen((message) {
+    FirebaseMessaging.onMessage.listen((message) async {
       final context = navigatorKey?.currentContext;
-
       if (context == null) return;
+
+      final type = (message.data['type'] as String? ?? 'SYSTEM').toUpperCase();
+      if (!await _isTypeAllowed(type)) return;
 
       final notification = message.notification;
       final data = message.data;
@@ -99,11 +102,20 @@ class NotificationService {
             data['body'] as String? ??
             'Você recebeu uma nova notificação',
         type: data['type'] as String? ?? 'SYSTEM',
-        onTap: () {
-          _handleNavigation(message);
-        },
+        onTap: () => _handleNavigation(message),
       );
     });
+  }
+
+  Future<bool> _isTypeAllowed(String type) async {
+    final prefs = await UserPreferencesService.instance.load();
+    return switch (type) {
+      'ORDER' => prefs.notifOrders,
+      'DELIVERY' => prefs.notifDelivery,
+      'PROMOTION' => prefs.notifPromotions,
+      'SYSTEM' => prefs.notifSystem,
+      _ => true,
+    };
   }
 
   void _setupMessageOpenedHandler() {

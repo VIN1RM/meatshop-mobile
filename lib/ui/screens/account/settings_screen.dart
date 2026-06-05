@@ -7,6 +7,7 @@ import 'package:meatshop_mobile/ui/dialogs/release_notes_dialog.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/dialogs/terms_of_use_dialog.dart';
+import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,10 +19,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   static const Color _red = Color(0xFFC0392B);
 
-  bool _notifOrders = false;
-  bool _notifDelivery = false;
-  bool _notifPromotions = false;
-  bool _notifSystem = false;
   String _appVersion = '...';
 
   @override
@@ -68,44 +65,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 20),
                         _sectionLabel('NOTIFICAÇÕES'),
                         const SizedBox(height: 10),
-                        _buildCard(
-                          children: [
-                            _buildToggle(
-                              icon: Icons.receipt_long_outlined,
-                              label: 'Pedidos',
-                              subtitle: 'Atualizações sobre seus pedidos',
-                              value: _notifOrders,
-                              onChanged: (v) =>
-                                  setState(() => _notifOrders = v),
-                            ),
-                            _divider(),
-                            _buildToggle(
-                              icon: Icons.delivery_dining_outlined,
-                              label: 'Entrega',
-                              subtitle: 'Status do entregador em tempo real',
-                              value: _notifDelivery,
-                              onChanged: (v) =>
-                                  setState(() => _notifDelivery = v),
-                            ),
-                            _divider(),
-                            _buildToggle(
-                              icon: Icons.local_offer_outlined,
-                              label: 'Promoções',
-                              subtitle: 'Ofertas e descontos exclusivos',
-                              value: _notifPromotions,
-                              onChanged: (v) =>
-                                  setState(() => _notifPromotions = v),
-                            ),
-                            _divider(),
-                            _buildToggle(
-                              icon: Icons.info_outline,
-                              label: 'Sistema',
-                              subtitle: 'Avisos importantes do aplicativo',
-                              value: _notifSystem,
-                              onChanged: (v) =>
-                                  setState(() => _notifSystem = v),
-                            ),
-                          ],
+                        Consumer<UserPreferencesProvider>(
+                          builder: (context, prefs, _) {
+                            if (prefs.loading) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                child: LinearProgressIndicator(),
+                              );
+                            }
+                            return _buildCard(
+                              children: [
+                                _buildToggle(
+                                  icon: Icons.receipt_long_outlined,
+                                  label: 'Pedidos',
+                                  subtitle: 'Atualizações sobre seus pedidos',
+                                  value: prefs.notifOrders,
+                                  onChanged: prefs.setNotifOrders,
+                                ),
+                                _divider(),
+                                _buildToggle(
+                                  icon: Icons.delivery_dining_outlined,
+                                  label: 'Entrega',
+                                  subtitle:
+                                      'Status do entregador em tempo real',
+                                  value: prefs.notifDelivery,
+                                  onChanged: prefs.setNotifDelivery,
+                                ),
+                                _divider(),
+                                _buildToggle(
+                                  icon: Icons.local_offer_outlined,
+                                  label: 'Promoções',
+                                  subtitle: 'Ofertas e descontos exclusivos',
+                                  value: prefs.notifPromotions,
+                                  onChanged: prefs.setNotifPromotions,
+                                ),
+                                _divider(),
+                                _buildToggle(
+                                  icon: Icons.info_outline,
+                                  label: 'Sistema',
+                                  subtitle: 'Avisos importantes do aplicativo',
+                                  value: prefs.notifSystem,
+                                  onChanged: prefs.setNotifSystem,
+                                ),
+                              ],
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 20),
