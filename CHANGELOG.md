@@ -11,6 +11,27 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.6.0] - 2026-06-05
+
+### Added
+- Implementado módulo de notificações no aplicativo.
+- Adicionado suporte ao recebimento de notificações via Firebase Cloud Messaging.
+- Criado banner customizado de notificação em primeiro plano.
+- Adicionado overlay estilizado para notificações dentro do app.
+- Implementado histórico de notificações com leitura via Firestore.
+- Adicionado contador de notificações não lidas.
+- Implementada marcação individual de notificação como lida.
+- Implementada marcação de todas as notificações como lidas.
+- Adicionado salvamento automático do token FCM no login do usuário.
+- Adicionado suporte à atualização automática do token FCM quando ele for renovado.
+
+### Changed
+- Ajustado fluxo de notificações em primeiro plano para exibir banner customizado em vez da notificação padrão do sistema.
+- Melhorada a navegação ao tocar em notificações de pedido, entrega e promoção.
+- Padronizado o canal Android de notificações do MeatShop.
+
+---
+
 ## [2.5.0] - 2026-06-02
 ### Chat em Tempo Real com Firestore e Integração de Pedidos Disponíveis em Tempo Real para o Entregador
 

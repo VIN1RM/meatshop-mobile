@@ -4,6 +4,27 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.6.0] — 05 de Junho de 2026
+### 🔔 Notificações no Aplicativo e Atualizações de Pedido em Tempo Real
+
+### ✨ Novidades
+- **Central de Notificações:** O aplicativo agora conta com uma estrutura própria para exibir e armazenar notificações do usuário.
+- **Notificações de Pedido:** Agora o app identifica mudanças no status dos pedidos e exibe avisos para o usuário acompanhar melhor cada etapa.
+- **Banner de Notificação em Primeiro Plano:** Quando o aplicativo está aberto, as notificações aparecem em um banner personalizado dentro do app, seguindo a identidade visual do MeatShop.
+- **Histórico de Notificações:** As notificações recebidas são salvas no banco de dados e podem ser exibidas posteriormente na área de notificações.
+- **Contador de Não Lidas:** O app agora consegue identificar e exibir a quantidade de notificações ainda não lidas.
+- **Marcar como Lida:** O usuário pode marcar notificações individualmente como lidas.
+- **Marcar Todas como Lidas:** Também foi adicionada a opção de marcar todas as notificações como lidas de uma só vez.
+- **Token de Notificação:** O app agora salva automaticamente o token FCM do usuário no login, permitindo preparar o envio de notificações push.
+
+### 📈 Melhorias
+- **Experiência em Primeiro Plano:** As notificações recebidas com o app aberto agora usam um visual próprio, mais bonito e integrado ao aplicativo.
+- **Navegação por Notificação:** Ao tocar em uma notificação de pedido, o app direciona o usuário para a área relacionada.
+- **Canal Android Padronizado:** O canal de notificações do Android foi configurado para pedidos, entregas e promoções do MeatShop.
+- **Tempo de Exibição Ajustado:** O banner de notificação em primeiro plano agora permanece visível por mais tempo, facilitando a leitura.
+
+---
+
 ## [2.5.0] — 03 de Junho de 2026
 ### 💬 Chat em tempo real, Endereço do Açougue e Melhorias de Carregamento
 
