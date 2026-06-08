@@ -11,6 +11,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.7.0] - 2026-06-XX
+
+---
+
 ## [2.6.0] - 2026-06-05
 
 ### Added
