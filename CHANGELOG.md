@@ -33,6 +33,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Todos os bottom sheets: `maxHeight` agora desconta `viewInsets.bottom` para evitar corte de conteúdo com teclado aberto.
 - Todos os bottom sheets estáticos: envolvidos em `ConstrainedBox` + `SingleChildScrollView` para suporte a telas pequenas.
 - Padronização global de snackbars: substituídas todas as chamadas nativas de `ScaffoldMessenger`/`SnackBar` pelo utilitário `CustomSnackBar` em arquivos.
+- `AppShell` (`_BottomNav`): ícone do carrinho agora exibe badge dinâmico com a contagem de itens via `CartProvider`; badge oculto quando o carrinho está vazio e exibe "9+" quando a contagem excede 9.
 
 ---
 

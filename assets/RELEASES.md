@@ -19,6 +19,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Menus Adaptados ao Teclado:** Ao abrir o teclado em qualquer um desses menus, o conteúdo se ajusta automaticamente para não ficar escondido atrás do teclado.
 - **Suporte a Telas Menores:** Todos os menus agora scrollam corretamente em celulares com telas pequenas, sem cortar informações.
 - **Notificações Padronizadas em Todo o App:** Todas as mensagens de feedback (sucesso, erro, aviso e informação) agora seguem o mesmo estilo visual em todas as telas do aplicativo.
+- **Contador de Itens no Carrinho:** O ícone do carrinho na barra de navegação agora exibe um balãozinho vermelho com a quantidade de itens adicionados, facilitando saber o que está na sacola sem precisar abrir o carrinho.
 
 ### ✨ Novidades
 - **Salvar Só Quando Mudar Algo:** Na tela de edição do veículo, o botão "Salvar alterações" só fica disponível quando você realmente fez alguma modificação — tipo, modelo, cor, ano, placa ou fotos.
