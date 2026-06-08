@@ -96,6 +96,7 @@ class OrderStatusNotificationWatcher with WidgetsBindingObserver {
               orderId: orderId,
               status: currentStatus,
               deliveryStatus: currentDeliveryStatus,
+              userId: userId,
             );
 
             _saveNotificationHistory(
@@ -117,8 +118,9 @@ class OrderStatusNotificationWatcher with WidgetsBindingObserver {
     required String orderId,
     required String status,
     required String deliveryStatus,
+    required String userId,
   }) async {
-    final prefs = await UserPreferencesService.instance.load();
+    final prefs = await UserPreferencesService.instance.load(userId);
     if (!prefs.notifOrders) return;
 
     final data = {

@@ -11,6 +11,7 @@ import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/services/order_status_notification_service.dart';
+import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -46,6 +47,12 @@ class AuthProvider extends ChangeNotifier {
 
       if (context.mounted) {
         await context.read<UserProvider>().loadUser(
+          AuthService.instance.currentUser!.uid,
+        );
+      }
+
+      if (context.mounted) {
+        await context.read<UserPreferencesProvider>().loadForUser(
           AuthService.instance.currentUser!.uid,
         );
       }
@@ -304,6 +311,7 @@ class AuthProvider extends ChangeNotifier {
 
     if (context.mounted) {
       context.read<UserProvider>().clear();
+      context.read<UserPreferencesProvider>().clear();
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
@@ -325,6 +333,12 @@ class AuthProvider extends ChangeNotifier {
 
       if (context.mounted) {
         await context.read<UserProvider>().loadUser(firebaseUser.uid);
+      }
+
+      if (context.mounted) {
+        await context.read<UserPreferencesProvider>().loadForUser(
+          firebaseUser.uid,
+        );
       }
 
       if (context.mounted) {

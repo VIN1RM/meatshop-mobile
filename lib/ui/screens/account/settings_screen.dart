@@ -76,6 +76,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 child: LinearProgressIndicator(),
                               );
                             }
+                            final uid = context
+                                .read<AuthProvider>()
+                                .currentUser!
+                                .uid;
                             return _buildCard(
                               children: [
                                 _buildToggle(
@@ -83,7 +87,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Pedidos',
                                   subtitle: 'Atualizações sobre seus pedidos',
                                   value: prefs.notifOrders,
-                                  onChanged: prefs.setNotifOrders,
+                                  onChanged: (v) =>
+                                      prefs.setNotifOrders(uid, v),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -92,7 +97,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   subtitle:
                                       'Status do entregador em tempo real',
                                   value: prefs.notifDelivery,
-                                  onChanged: prefs.setNotifDelivery,
+                                  onChanged: (v) =>
+                                      prefs.setNotifDelivery(uid, v),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -100,7 +106,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Promoções',
                                   subtitle: 'Ofertas e descontos exclusivos',
                                   value: prefs.notifPromotions,
-                                  onChanged: prefs.setNotifPromotions,
+                                  onChanged: (v) =>
+                                      prefs.setNotifPromotions(uid, v),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -108,7 +115,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Sistema',
                                   subtitle: 'Avisos importantes do aplicativo',
                                   value: prefs.notifSystem,
-                                  onChanged: prefs.setNotifSystem,
+                                  onChanged: (v) =>
+                                      prefs.setNotifSystem(uid, v),
                                 ),
                               ],
                             );
@@ -273,7 +281,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
-          Switch(value: value, onChanged: onChanged, activeColor: _red),
+          Switch(value: value, onChanged: onChanged, activeThumbColor: _red),
         ],
       ),
     );

@@ -5,48 +5,25 @@ class UserPreferencesService {
   UserPreferencesService._();
   static final UserPreferencesService instance = UserPreferencesService._();
 
-  static const _kNotifOrders = 'notif_orders';
-  static const _kNotifDelivery = 'notif_delivery';
-  static const _kNotifPromotions = 'notif_promotions';
-  static const _kNotifSystem = 'notif_system';
+  String _key(String uid, String field) => 'user_prefs_${uid}_$field';
 
-  Future<UserPreferences> load() async {
+  Future<UserPreferences> load(String uid) async {
     final p = await SharedPreferences.getInstance();
     return UserPreferences(
-      notifOrders: p.getBool(_kNotifOrders) ?? true,
-      notifDelivery: p.getBool(_kNotifDelivery) ?? true,
-      notifPromotions: p.getBool(_kNotifPromotions) ?? true,
-      notifSystem: p.getBool(_kNotifSystem) ?? true,
+      notifOrders: p.getBool(_key(uid, 'notif_orders')) ?? true,
+      notifDelivery: p.getBool(_key(uid, 'notif_delivery')) ?? true,
+      notifPromotions: p.getBool(_key(uid, 'notif_promotions')) ?? true,
+      notifSystem: p.getBool(_key(uid, 'notif_system')) ?? true,
     );
   }
 
-  Future<void> save(UserPreferences prefs) async {
+  Future<void> save(String uid, UserPreferences prefs) async {
     final p = await SharedPreferences.getInstance();
     await Future.wait([
-      p.setBool(_kNotifOrders, prefs.notifOrders),
-      p.setBool(_kNotifDelivery, prefs.notifDelivery),
-      p.setBool(_kNotifPromotions, prefs.notifPromotions),
-      p.setBool(_kNotifSystem, prefs.notifSystem),
+      p.setBool(_key(uid, 'notif_orders'), prefs.notifOrders),
+      p.setBool(_key(uid, 'notif_delivery'), prefs.notifDelivery),
+      p.setBool(_key(uid, 'notif_promotions'), prefs.notifPromotions),
+      p.setBool(_key(uid, 'notif_system'), prefs.notifSystem),
     ]);
-  }
-
-  Future<void> setNotifOrders(bool value) async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_kNotifOrders, value);
-  }
-
-  Future<void> setNotifDelivery(bool value) async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_kNotifDelivery, value);
-  }
-
-  Future<void> setNotifPromotions(bool value) async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_kNotifPromotions, value);
-  }
-
-  Future<void> setNotifSystem(bool value) async {
-    final p = await SharedPreferences.getInstance();
-    await p.setBool(_kNotifSystem, value);
   }
 }

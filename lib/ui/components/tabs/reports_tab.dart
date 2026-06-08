@@ -190,7 +190,7 @@ class ReportsTab extends StatelessWidget {
           const Text(
             'ENTREGAS DO PERÍODO',
             style: TextStyle(
-              color: _red,
+              color: Color.fromARGB(255, 255, 255, 255),
               fontSize: 13,
               fontWeight: FontWeight.w900,
               letterSpacing: 1.0,

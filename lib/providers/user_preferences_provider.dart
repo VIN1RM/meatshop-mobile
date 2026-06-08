@@ -4,7 +4,7 @@ import 'package:meatshop_mobile/services/user_preferences_service.dart';
 
 class UserPreferencesProvider extends ChangeNotifier {
   UserPreferences _prefs = const UserPreferences();
-  bool _loading = true;
+  bool _loading = false;
 
   UserPreferences get prefs => _prefs;
   bool get loading => _loading;
@@ -14,28 +14,33 @@ class UserPreferencesProvider extends ChangeNotifier {
   bool get notifPromotions => _prefs.notifPromotions;
   bool get notifSystem => _prefs.notifSystem;
 
-  UserPreferencesProvider() {
-    _load();
-  }
+  Future<void> loadForUser(String uid) async {
+    _loading = true;
+    notifyListeners();
 
-  Future<void> _load() async {
-    _prefs = await UserPreferencesService.instance.load();
+    _prefs = await UserPreferencesService.instance.load(uid);
+
     _loading = false;
     notifyListeners();
   }
 
-  Future<void> setNotifOrders(bool v) =>
-      _update(_prefs.copyWith(notifOrders: v));
-  Future<void> setNotifDelivery(bool v) =>
-      _update(_prefs.copyWith(notifDelivery: v));
-  Future<void> setNotifPromotions(bool v) =>
-      _update(_prefs.copyWith(notifPromotions: v));
-  Future<void> setNotifSystem(bool v) =>
-      _update(_prefs.copyWith(notifSystem: v));
+  void clear() {
+    _prefs = const UserPreferences();
+    notifyListeners();
+  }
 
-  Future<void> _update(UserPreferences updated) async {
+  Future<void> setNotifOrders(String uid, bool v) =>
+      _update(uid, _prefs.copyWith(notifOrders: v));
+  Future<void> setNotifDelivery(String uid, bool v) =>
+      _update(uid, _prefs.copyWith(notifDelivery: v));
+  Future<void> setNotifPromotions(String uid, bool v) =>
+      _update(uid, _prefs.copyWith(notifPromotions: v));
+  Future<void> setNotifSystem(String uid, bool v) =>
+      _update(uid, _prefs.copyWith(notifSystem: v));
+
+  Future<void> _update(String uid, UserPreferences updated) async {
     _prefs = updated;
     notifyListeners();
-    await UserPreferencesService.instance.save(updated);
+    await UserPreferencesService.instance.save(uid, updated);
   }
 }

@@ -108,7 +108,9 @@ class NotificationService {
   }
 
   Future<bool> _isTypeAllowed(String type) async {
-    final prefs = await UserPreferencesService.instance.load();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return true;
+    final prefs = await UserPreferencesService.instance.load(uid);
     return switch (type) {
       'ORDER' => prefs.notifOrders,
       'DELIVERY' => prefs.notifDelivery,
