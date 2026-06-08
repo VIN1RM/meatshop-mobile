@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
-import 'package:meatshop_mobile/ui/widgets/butcher_filter_sheet.dart';
+import 'package:meatshop_mobile/ui/components/sheets/butcher_filter_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:provider/provider.dart';
