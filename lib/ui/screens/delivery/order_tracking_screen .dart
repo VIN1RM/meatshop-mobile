@@ -5,7 +5,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/select_unit_chat_dialog.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
-import 'package:meatshop_mobile/ui/dialogs/cancel_order_dialog.dart';
+import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
 
 class DeliveriesScreen extends StatefulWidget {
   const DeliveriesScreen({super.key});

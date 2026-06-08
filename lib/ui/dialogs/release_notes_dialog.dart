@@ -32,7 +32,8 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: const Color(0xFF2E2E2E),
+      backgroundColor: const Color(0xFFF5F5F5),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.75,
@@ -54,7 +55,7 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFF3A3A3A))),
+        border: Border(bottom: BorderSide(color: Color(0xFFDDDDDD))),
       ),
       child: Row(
         children: [
@@ -66,7 +67,7 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
             ),
             child: const Icon(
               Icons.new_releases_outlined,
-              color: Color.fromARGB(255, 255, 255, 255),
+              color: _red,
               size: 22,
             ),
           ),
@@ -77,14 +78,14 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
               const Text(
                 'Novidades',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF1A1A1A),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 'v${widget.version}',
-                style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 13),
+                style: const TextStyle(color: Color(0xFF555555), fontSize: 13),
               ),
             ],
           ),
@@ -109,7 +110,8 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
             padding: EdgeInsets.all(24),
             child: Text(
               'Notas de versão não encontradas.',
-              style: TextStyle(color: Color(0xFF9E9E9E)),
+              style: TextStyle(color: Color(0xFF555555)),
+
               textAlign: TextAlign.center,
             ),
           );
@@ -126,7 +128,8 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
                 Text(
                   note.title,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF1A1A1A),
+
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                   ),
@@ -135,7 +138,7 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
               ],
               Text(
                 note.date,
-                style: const TextStyle(color: Color(0xFF9E9E9E), fontSize: 12),
+                style: const TextStyle(color: Color(0xFF555555), fontSize: 12),
               ),
               const SizedBox(height: 16),
               ...note.sections.entries
@@ -193,14 +196,14 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
         children: [
           const Padding(
             padding: EdgeInsets.only(top: 5),
-            child: CircleAvatar(radius: 3, backgroundColor: Color(0xFF9E9E9E)),
+            child: CircleAvatar(radius: 3, backgroundColor: Color(0xFF555555)),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
               style: const TextStyle(
-                color: Color(0xFFE0E0E0),
+                color: Color(0xFF1A1A1A),
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -215,7 +218,7 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
       decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFF3A3A3A))),
+        border: Border(top: BorderSide(color: Color(0xFFDDDDDD))),
       ),
       child: SizedBox(
         width: double.infinity,
@@ -251,6 +254,6 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
     if (section.contains('🐛') || section.contains('🔧')) {
       return (Icons.bug_report_outlined, const Color(0xFFFF9800));
     }
-    return (Icons.info_outline, const Color(0xFF9E9E9E));
+    return (Icons.info_outline, const Color(0xFF555555));
   }
 }

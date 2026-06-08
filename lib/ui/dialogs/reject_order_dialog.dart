@@ -21,12 +21,12 @@ class _RejectOrderDialogState extends State<RejectOrderDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Text(
         'Por que está recusando?',
         style: TextStyle(
-          color: Colors.white,
+          color: Color(0xFF1A1A1A),
           fontWeight: FontWeight.bold,
           fontSize: 16,
         ),
@@ -38,7 +38,7 @@ class _RejectOrderDialogState extends State<RejectOrderDialog> {
           children: [
             const Text(
               'Selecione um ou mais motivos. Isso nos ajuda a melhorar.',
-              style: TextStyle(color: Colors.white54, fontSize: 13),
+              style: TextStyle(color: Color(0xFF555555), fontSize: 13),
             ),
             const SizedBox(height: 16),
             ...OrderRejectionReason.values.map(
@@ -62,7 +62,7 @@ class _RejectOrderDialogState extends State<RejectOrderDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text(
             'Cancelar',
-            style: TextStyle(color: Colors.white38),
+            style: TextStyle(color: Color(0xFF555555)),
           ),
         ),
         ElevatedButton(
@@ -114,12 +114,12 @@ class _ReasonTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFFC0392B).withValues(alpha: 0.15)
-              : Colors.white.withValues(alpha: 0.04),
+              : const Color(0xFF1A1A1A).withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFFC0392B).withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.08),
+                : const Color(0xFF1A1A1A).withValues(alpha: 0.12),
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -131,7 +131,9 @@ class _ReasonTile extends StatelessWidget {
               child: Text(
                 reason.label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white70,
+                  color: isSelected
+                      ? const Color(0xFF1A1A1A)
+                      : const Color(0xFF555555),
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
@@ -146,7 +148,9 @@ class _ReasonTile extends StatelessWidget {
                     ? const Color(0xFFC0392B)
                     : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? const Color(0xFFC0392B) : Colors.white24,
+                  color: isSelected
+                      ? const Color(0xFFC0392B)
+                      : const Color(0xFFDDDDDD),
                   width: 1.5,
                 ),
                 borderRadius: BorderRadius.circular(4),

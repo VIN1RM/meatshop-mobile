@@ -9,8 +9,9 @@ class ImageSourceDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
         child: Column(
@@ -25,7 +26,7 @@ class ImageSourceDialog extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.add_a_photo_outlined,
-                color: Color.fromARGB(255, 255, 255, 255),
+                color: _red,
                 size: 26,
               ),
             ),
@@ -33,7 +34,7 @@ class ImageSourceDialog extends StatelessWidget {
             const Text(
               'Adicionar foto',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xFF1A1A1A),
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -42,7 +43,7 @@ class ImageSourceDialog extends StatelessWidget {
             const Text(
               'Escolha como deseja adicionar a foto do veículo.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white54, fontSize: 13),
+              style: TextStyle(color: Color(0xFF555555), fontSize: 13),
             ),
             const SizedBox(height: 24),
 
@@ -74,8 +75,8 @@ class ImageSourceDialog extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.pop(context, ImageSource.gallery),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white24),
+                  foregroundColor: const Color(0xFF1A1A1A),
+                  side: const BorderSide(color: Color(0xFFDDDDDD)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -93,7 +94,7 @@ class ImageSourceDialog extends StatelessWidget {
               onPressed: () => Navigator.pop(context, null),
               child: const Text(
                 'Cancelar',
-                style: TextStyle(color: Colors.white38, fontSize: 13),
+                style: TextStyle(color: Color(0xFF555555), fontSize: 13),
               ),
             ),
           ],

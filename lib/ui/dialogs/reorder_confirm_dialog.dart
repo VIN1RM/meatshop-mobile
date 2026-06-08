@@ -41,8 +41,9 @@ class ReorderConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
         child: Column(
@@ -75,7 +76,7 @@ class ReorderConfirmDialog extends StatelessWidget {
         color: _red.withValues(alpha: 0.15),
         shape: BoxShape.circle,
       ),
-      child: const Icon(Icons.replay_rounded, color: Colors.white, size: 26),
+      child: const Icon(Icons.replay_rounded, color: _red, size: 26),
     );
   }
 
@@ -85,7 +86,7 @@ class ReorderConfirmDialog extends StatelessWidget {
         const Text(
           'Pedir novamente',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF1A1A1A),
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -93,7 +94,7 @@ class ReorderConfirmDialog extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           acougueNome,
-          style: const TextStyle(color: Colors.white54, fontSize: 13),
+          style: const TextStyle(color: Color(0xFF555555), fontSize: 13),
         ),
       ],
     );
@@ -104,7 +105,7 @@ class ReorderConfirmDialog extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF3A3A3A),
+        color: const Color(0xFFEAEAEA),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -118,13 +119,19 @@ class ReorderConfirmDialog extends StatelessWidget {
                   width: 52,
                   child: Text(
                     item.quantidade,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    style: const TextStyle(
+                      color: Color(0xFF555555),
+                      fontSize: 12,
+                    ),
                   ),
                 ),
                 Expanded(
                   child: Text(
                     item.nome,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(
+                      color: Color(0xFF1A1A1A),
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
@@ -141,7 +148,7 @@ class ReorderConfirmDialog extends StatelessWidget {
       children: [
         const Text(
           'Total do pedido',
-          style: TextStyle(color: Colors.white54, fontSize: 13),
+          style: TextStyle(color: Color(0xFF555555), fontSize: 13),
         ),
         Text(
           total,
@@ -158,12 +165,12 @@ class ReorderConfirmDialog extends StatelessWidget {
   Widget _buildPriceWarning() {
     return const Row(
       children: [
-        Icon(Icons.info_outline_rounded, color: Colors.white38, size: 13),
+        Icon(Icons.info_outline_rounded, color: Color(0xFF999999), size: 13),
         SizedBox(width: 5),
         Expanded(
           child: Text(
             'Os preços podem ter mudado desde o último pedido.',
-            style: TextStyle(color: Colors.white38, fontSize: 11),
+            style: TextStyle(color: Color(0xFF999999), fontSize: 11),
           ),
         ),
       ],
@@ -205,7 +212,7 @@ class ReorderConfirmDialog extends StatelessWidget {
       onPressed: () => Navigator.pop(context, false),
       child: const Text(
         'Cancelar',
-        style: TextStyle(color: Colors.white38, fontSize: 13),
+        style: TextStyle(color: Color(0xFF555555), fontSize: 13),
       ),
     );
   }

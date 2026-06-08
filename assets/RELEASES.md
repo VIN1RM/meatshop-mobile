@@ -5,7 +5,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.6.0] — 05 de Junho de 2026
-### 🔔 Notificações, Ganhos em Tempo Real e Metas Conectadas ao Banco de Dados
+### 🔔 Notificações, Ganhos em Tempo Real e Metas Conectadas ao Banco de Dados
 
 ### ✨ Novidades
 - **Central de Notificações:** O aplicativo agora conta com uma estrutura própria para exibir e armazenar notificações do usuário.
