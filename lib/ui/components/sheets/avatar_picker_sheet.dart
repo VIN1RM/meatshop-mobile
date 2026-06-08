@@ -52,7 +52,7 @@ class AvatarPickerSheet extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
       decoration: BoxDecoration(
-        color: const Color(0xFF525252),
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -63,7 +63,7 @@ class AvatarPickerSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: const Color(0xFF777777),
+              color: const Color(0xFFDDDDDD),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -73,13 +73,13 @@ class AvatarPickerSheet extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: const Color(0xFF1A1A1A),
             ),
           ),
           const SizedBox(height: 6),
           const Text(
             'Escolha como deseja adicionar sua foto',
-            style: TextStyle(fontSize: 13, color: Colors.white54),
+            style: TextStyle(fontSize: 13, color: const Color(0xFF888888)),
           ),
           const SizedBox(height: 24),
 
@@ -160,9 +160,9 @@ class _OptionButton extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: const Color(0xFF424242),
+              color: const Color(0xFFEAEAEA),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF666666)),
+              border: Border.all(color: const Color(0xFFCCCCCC)),
             ),
             child: Icon(icon, color: color, size: 28),
           ),
@@ -172,7 +172,7 @@ class _OptionButton extends StatelessWidget {
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Colors.white70,
+              color: const Color(0xFF555555),
             ),
           ),
         ],

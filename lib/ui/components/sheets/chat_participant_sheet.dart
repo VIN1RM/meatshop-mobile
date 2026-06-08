@@ -25,64 +25,72 @@ class _ChatParticipantSheet extends StatelessWidget {
   final String unitName;
   final String clientName;
 
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF2C2C2C),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 36,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white12,
-              borderRadius: BorderRadius.circular(2),
-            ),
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final screenH = MediaQuery.of(context).size.height;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: screenH * 0.92),
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Com quem quer falar?',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          padding: EdgeInsets.fromLTRB(24, 12, 24, 32 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Com quem quer falar?',
+                style: TextStyle(
+                  color: const Color(0xFF1A1A1A),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Escolha o destinatário da conversa',
+                style: TextStyle(color: const Color(0xFF888888), fontSize: 13),
+              ),
+              const SizedBox(height: 20),
+              _ParticipantTile(
+                emoji: ChatParticipantType.unit.icon,
+                label: ChatParticipantType.unit.label,
+                name: unitName,
+                accentColor: const Color(0xFFC0392B),
+                onTap: () => Navigator.pop(context, ChatParticipantType.unit),
+              ),
+              const SizedBox(height: 12),
+              _ParticipantTile(
+                emoji: ChatParticipantType.client.icon,
+                label: ChatParticipantType.client.label,
+                name: clientName,
+                accentColor: const Color(0xFF27AE60),
+                onTap: () => Navigator.pop(context, ChatParticipantType.client),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: const Color(0xFF888888)),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Escolha o destinatário da conversa',
-            style: TextStyle(color: Colors.white38, fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          _ParticipantTile(
-            emoji: ChatParticipantType.unit.icon,
-            label: ChatParticipantType.unit.label,
-            name: unitName,
-            accentColor: const Color(0xFFC0392B),
-            onTap: () => Navigator.pop(context, ChatParticipantType.unit),
-          ),
-          const SizedBox(height: 12),
-          _ParticipantTile(
-            emoji: ChatParticipantType.client.icon,
-            label: ChatParticipantType.client.label,
-            name: clientName,
-            accentColor: const Color(0xFF27AE60),
-            onTap: () => Navigator.pop(context, ChatParticipantType.client),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: Colors.white38),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -137,7 +145,7 @@ class _ParticipantTile extends StatelessWidget {
                   Text(
                     name,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xFF1A1A1A),
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
