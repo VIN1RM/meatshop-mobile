@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/ui/screens/home/home_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cart/cart_screen.dart';
 import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/account_screen.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
+import 'package:provider/provider.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -85,10 +87,48 @@ class _BottomNav extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        isActive ? item.activeIcon : item.icon,
-                        color: isActive ? _red : Colors.white54,
-                        size: 24,
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Icon(
+                            isActive ? item.activeIcon : item.icon,
+                            color: isActive ? _red : Colors.white54,
+                            size: 24,
+                          ),
+                          if (i == 2)
+                            Consumer<CartProvider>(
+                              builder: (_, cart, __) {
+                                if (cart.items.isEmpty)
+                                  return const SizedBox.shrink();
+                                return Positioned(
+                                  top: -6,
+                                  right: -8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(3),
+                                    decoration: const BoxDecoration(
+                                      color: _red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 16,
+                                      minHeight: 16,
+                                    ),
+                                    child: Text(
+                                      cart.items.length > 9
+                                          ? '9+'
+                                          : '${cart.items.length}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
