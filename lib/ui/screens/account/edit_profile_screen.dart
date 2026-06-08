@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/ui/components/sheets/avatar_picker_sheet.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/providers/user/user_provider.dart';
@@ -78,11 +79,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final hasExistingPhoto =
         context.read<UserProvider>().user?.photoUrl.isNotEmpty ?? false;
     if (_avatarFile == null && !hasExistingPhoto) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Adicione uma foto de perfil para continuar.'),
-          backgroundColor: Colors.orange,
-        ),
+      CustomSnackBar.warning(
+        'Adicione uma foto de perfil para continuar.',
+        context: context,
       );
       return;
     }
@@ -102,20 +101,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         await context.read<UserProvider>().updateAvatar(uid, _avatarFile!);
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dados atualizados com sucesso!'),
-          backgroundColor: Color(0xFF22C55E),
-        ),
+      CustomSnackBar.success(
+        'Dados atualizados com sucesso!',
+        context: context,
       );
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro ao salvar. Tente novamente.'),
-          backgroundColor: Colors.redAccent,
-        ),
+      CustomSnackBar.error(
+        'Erro ao salvar. Tente novamente.',
+        context: context,
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);

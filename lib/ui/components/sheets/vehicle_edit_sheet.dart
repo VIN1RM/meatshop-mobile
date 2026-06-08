@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/ui/dialogs/image_source_dialog.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -145,13 +146,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   Future<void> _pickImage() async {
     final totalFotos = _existingUrls.length + _newImages.length;
     if (totalFotos >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Máximo de 3 fotos permitidas.'),
-          backgroundColor: _red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      CustomSnackBar.warning('Máximo de 3 fotos permitidas.', context: context);
       return;
     }
 
@@ -182,13 +177,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
 
   Future<void> _save() async {
     if (_selectedVehicleType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecione o tipo de veículo.'),
-          backgroundColor: _red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      CustomSnackBar.warning('Selecione o tipo de veículo.', context: context);
       return;
     }
 
@@ -198,12 +187,9 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
 
     final totalFotos = _existingUrls.length + _newImages.length;
     if (totalFotos < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Adicione ao menos 3 fotos do veículo.'),
-          backgroundColor: _red,
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.warning(
+        'Adicione ao menos 3 fotos do veículo.',
+        context: context,
       );
       return;
     }
@@ -228,12 +214,9 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         );
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erro ao salvar veículo. Tente novamente.'),
-              backgroundColor: _red,
-              behavior: SnackBarBehavior.floating,
-            ),
+          CustomSnackBar.error(
+            'Erro ao salvar veículo. Tente novamente.',
+            context: context,
           );
         }
         setState(() => _isSaving = false);
@@ -284,8 +267,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           minHeight: screenH * 0.80,
-          maxHeight:
-              screenH * 0.92 - bottom,
+          maxHeight: screenH * 0.92 - bottom,
         ),
         child: Container(
           decoration: const BoxDecoration(

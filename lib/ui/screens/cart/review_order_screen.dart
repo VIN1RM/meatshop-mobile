@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
@@ -424,14 +425,9 @@ class ReviewOrderScreen extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  orderProvider.error ?? 'Erro ao confirmar pedido',
-                ),
-                backgroundColor: Colors.redAccent,
-                behavior: SnackBarBehavior.floating,
-              ),
+            CustomSnackBar.error(
+              orderProvider.error ?? 'Erro ao confirmar pedido',
+              context: context,
             );
           }
         },

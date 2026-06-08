@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
@@ -155,12 +156,9 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     if (!isClient && _vehicleData == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Preencha os dados do veículo para continuar.'),
-          backgroundColor: Color(0xFFC0392B),
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.warning(
+        'Preencha os dados do veículo para continuar.',
+        context: context,
       );
       return;
     }

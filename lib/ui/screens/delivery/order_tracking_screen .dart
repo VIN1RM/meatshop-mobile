@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/active_order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
@@ -40,24 +41,16 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
                 reason: reason.label,
               );
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Pedido cancelado: ${reason.label}'),
-                    backgroundColor: _red,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                CustomSnackBar.info(
+                  'Pedido cancelado: ${reason.label}',
+                  context: context,
                 );
               }
             } catch (e) {
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Erro ao cancelar pedido.'),
-                    backgroundColor: Colors.red,
-                  ),
+                CustomSnackBar.error(
+                  'Erro ao cancelar pedido.',
+                  context: context,
                 );
               }
             }

@@ -5,20 +5,20 @@ enum SnackBarType { success, error, warning, info, neutral }
 
 class CustomSnackBar {
   static Color _colorFor(SnackBarType type) => switch (type) {
-        SnackBarType.success => const Color(0xFF2E7D32),
-        SnackBarType.error => Colors.redAccent,
-        SnackBarType.warning => Colors.orange,
-        SnackBarType.info => const Color(0xFF0072E4),
-        SnackBarType.neutral => Colors.black87,
-      };
+    SnackBarType.success => const Color(0xFF2E7D32),
+    SnackBarType.error => Colors.redAccent,
+    SnackBarType.warning => Colors.orange,
+    SnackBarType.info => const Color(0xFF0072E4),
+    SnackBarType.neutral => Colors.black87,
+  };
 
   static IconData _iconFor(SnackBarType type) => switch (type) {
-        SnackBarType.success => Icons.check_circle_outline,
-        SnackBarType.error => Icons.error_outline,
-        SnackBarType.warning => Icons.warning_amber_rounded,
-        SnackBarType.info => Icons.info_outline,
-        SnackBarType.neutral => Icons.notifications_none,
-      };
+    SnackBarType.success => Icons.check_circle_outline,
+    SnackBarType.error => Icons.error_outline,
+    SnackBarType.warning => Icons.warning_amber_rounded,
+    SnackBarType.info => Icons.info_outline,
+    SnackBarType.neutral => Icons.notifications_none,
+  };
 
   static void show(
     SnackBarType type,
@@ -67,30 +67,70 @@ class CustomSnackBar {
     );
   }
 
-  static void success(String message,
-          {BuildContext? context, Widget? leadingIcon}) =>
-      show(SnackBarType.success, message,
-          context: context, leadingIcon: leadingIcon);
+  static void success(
+    String message, {
+    BuildContext? context,
+    Widget? leadingIcon,
+    Duration duration = const Duration(seconds: 3),
+  }) => show(
+    SnackBarType.success,
+    message,
+    context: context,
+    leadingIcon: leadingIcon,
+    duration: duration,
+  );
 
-  static void warning(String message,
-          {BuildContext? context, Widget? leadingIcon}) =>
-      show(SnackBarType.warning, message,
-          context: context, leadingIcon: leadingIcon);
+  static void warning(
+    String message, {
+    BuildContext? context,
+    Widget? leadingIcon,
+    Duration duration = const Duration(seconds: 3),
+  }) => show(
+    SnackBarType.warning,
+    message,
+    context: context,
+    leadingIcon: leadingIcon,
+    duration: duration,
+  );
 
-  static void info(String message,
-          {BuildContext? context, Widget? leadingIcon}) =>
-      show(SnackBarType.info, message,
-          context: context, leadingIcon: leadingIcon);
+  static void info(
+    String message, {
+    BuildContext? context,
+    Widget? leadingIcon,
+    Duration duration = const Duration(seconds: 3),
+  }) => show(
+    SnackBarType.info,
+    message,
+    context: context,
+    leadingIcon: leadingIcon,
+    duration: duration,
+  );
 
-  static void error(String message,
-          {BuildContext? context, Widget? leadingIcon}) =>
-      show(SnackBarType.error, message,
-          context: context, leadingIcon: leadingIcon);
+  static void error(
+    String message, {
+    BuildContext? context,
+    Widget? leadingIcon,
+    Duration duration = const Duration(seconds: 3),
+  }) => show(
+    SnackBarType.error,
+    message,
+    context: context,
+    leadingIcon: leadingIcon,
+    duration: duration,
+  );
 
-  static void neutral(String message,
-          {BuildContext? context, Widget? leadingIcon}) =>
-      show(SnackBarType.neutral, message,
-          context: context, leadingIcon: leadingIcon);
+  static void neutral(
+    String message, {
+    BuildContext? context,
+    Widget? leadingIcon,
+    Duration duration = const Duration(seconds: 3),
+  }) => show(
+    SnackBarType.neutral,
+    message,
+    context: context,
+    leadingIcon: leadingIcon,
+    duration: duration,
+  );
 
   @Deprecated('Use CustomSnackBar.show() com SnackBarType')
   static void showSnackBar(

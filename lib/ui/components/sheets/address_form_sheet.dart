@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'package:meatshop_mobile/services/cep_service.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
@@ -112,10 +113,9 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
     } catch (_) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Não foi possível salvar o endereço. Tente novamente.'),
-        ),
+      CustomSnackBar.error(
+        'Não foi possível salvar o endereço. Tente novamente.',
+        context: context,
       );
     } finally {
       if (mounted) {

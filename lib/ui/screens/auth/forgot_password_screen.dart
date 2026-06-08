@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
@@ -34,15 +35,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
       Navigator.of(context).pop();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'E-mail de redefinição enviado. Verifique sua caixa de entrada.',
-          ),
-          backgroundColor: Color(0xFF22C55E),
-          duration: Duration(seconds: 10),
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.success(
+        'E-mail de redefinição enviado. Verifique sua caixa de entrada.',
+        context: context,
+        duration: const Duration(seconds: 10),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -52,23 +48,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         'too-many-requests' => 'Muitas tentativas. Tente mais tarde.',
         _ => 'Erro ao enviar e-mail. Tente novamente.',
       };
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: const Color(0xFFC0392B),
-          duration: const Duration(seconds: 6),
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.error(
+        message,
+        context: context,
+        duration: const Duration(seconds: 6),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro inesperado. Tente novamente.'),
-          backgroundColor: Color(0xFFC0392B),
-          duration: Duration(seconds: 6),
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.error(
+        'Erro inesperado. Tente novamente.',
+        context: context,
+        duration: const Duration(seconds: 6),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 
 class AvatarPickerSheet extends StatelessWidget {
   const AvatarPickerSheet({
@@ -37,8 +38,9 @@ class AvatarPickerSheet extends StatelessWidget {
     const allowed = ['jpg', 'jpeg', 'png', 'webp', 'heic'];
     if (!allowed.contains(ext)) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Selecione apenas arquivos de imagem.')),
+        CustomSnackBar.warning(
+          'Selecione apenas arquivos de imagem.',
+          context: context,
         );
       }
       return null;

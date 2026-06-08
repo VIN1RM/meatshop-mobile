@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
@@ -85,17 +86,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isEditingCart
-              ? '${product.name} - Carrinho atualizado'
-              : '${product.name} - Adicionado ao carrinho',
-        ),
-        backgroundColor: const Color(0xFF01AC18),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
+    CustomSnackBar.success(
+      _isEditingCart
+          ? '${product.name} - Carrinho atualizado'
+          : '${product.name} - Adicionado ao carrinho',
+      context: context,
+      duration: const Duration(seconds: 2),
     );
 
     if (_isEditingCart && context.mounted) Navigator.pop(context);
