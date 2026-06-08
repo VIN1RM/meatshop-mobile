@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
-import 'package:meatshop_mobile/ui/widgets/cuts_filter_sheet.dart';
+import 'package:meatshop_mobile/ui/components/sheets/cuts_filter_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/providers/product_provider.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
