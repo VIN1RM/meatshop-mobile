@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
+import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/providers/unit/butcher_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/components/sheets/cart_bag_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/widgets/business_hours_banner.dart';
@@ -46,25 +48,92 @@ class _ButcherDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _pageBg,
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeroBanner(unit),
-                  _buildInfoCard(unit),
-                  const SizedBox(height: 20),
-                  _buildPromocoesSection(context),
-                  _buildSectionTitle('Produtos'),
-                  const SizedBox(height: 12),
-                  _buildProductList(context),
-                  const SizedBox(height: 32),
-                ],
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeroBanner(unit),
+                      _buildInfoCard(unit),
+                      const SizedBox(height: 20),
+                      _buildPromocoesSection(context),
+                      _buildSectionTitle('Produtos'),
+                      const SizedBox(height: 12),
+                      _buildProductList(context),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
+          ),
+          Consumer<CartProvider>(
+            builder: (_, cart, __) {
+              if (cart.items.isEmpty) return const SizedBox.shrink();
+              return Positioned(
+                bottom: 24,
+                left: 16,
+                right: 16,
+                child: GestureDetector(
+                  onTap: () => CartBagSheet.show(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _red,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.shopping_bag_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          '${cart.items.length} ${cart.items.length == 1 ? 'item' : 'itens'} na sacola',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          'R\$${cart.total.toStringAsFixed(2).replaceAll('.', ',')}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.keyboard_arrow_up,
+                          color: Colors.white70,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

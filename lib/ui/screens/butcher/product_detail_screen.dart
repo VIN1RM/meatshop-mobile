@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
+import 'package:meatshop_mobile/ui/components/sheets/cart_bag_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -124,24 +125,76 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
     return Scaffold(
       backgroundColor: _pageBg,
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeroBanner(product),
-                  _buildProductInfo(product),
-                  const SizedBox(height: 8),
-                  _buildQuantitySection(product),
-                  const SizedBox(height: 100),
-                ],
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeroBanner(product),
+                      _buildProductInfo(product),
+                      const SizedBox(height: 8),
+                      _buildQuantitySection(product),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              _buildAddToCartBar(context, product),
+            ],
           ),
-          _buildAddToCartBar(context, product),
+          Consumer<CartProvider>(
+            builder: (_, cart, __) {
+              if (cart.items.isEmpty) return const SizedBox.shrink();
+              return Positioned(
+                top: MediaQuery.of(context).padding.top + 8,
+                right: 12,
+                child: GestureDetector(
+                  onTap: () => CartBagSheet.show(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _red,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.shopping_bag_outlined,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${cart.items.length} ${cart.items.length == 1 ? 'item' : 'itens'}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );

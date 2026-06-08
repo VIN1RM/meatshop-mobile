@@ -40,4 +40,6 @@ class AppRoutes {
   static const String recipeChat = '/recipe-chat';
   static const String forgotPassword = '/auth/forgot_password';
   static const String search = '/search';
+  static const String cart = '/cart';
+
 }
