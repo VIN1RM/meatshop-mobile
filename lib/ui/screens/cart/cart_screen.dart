@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -271,13 +272,10 @@ class _CartScreenState extends State<CartScreen> {
             ).then((confirmed) {
               if (confirmed) {
                 provider.removeItem(item.productId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Produto Removido do Carrinho'),
-                    backgroundColor: const Color(0xFF22C55E),
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 5),
-                  ),
+                CustomSnackBar.success(
+                  'Produto removido do carrinho.',
+                  context: context,
+                  duration: const Duration(seconds: 5),
                 );
               }
               return confirmed;
@@ -381,13 +379,10 @@ class _CartScreenState extends State<CartScreen> {
                               );
                           if (confirmed) {
                             provider.removeItem(item.productId);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Produto Removido do Carrinho'),
-                                backgroundColor: Color(0xFF22C55E),
-                                behavior: SnackBarBehavior.floating,
-                                duration: Duration(seconds: 5),
-                              ),
+                            CustomSnackBar.success(
+                              'Produto removido do carrinho.',
+                              context: context,
+                              duration: const Duration(seconds: 5),
                             );
                           }
                         } else {

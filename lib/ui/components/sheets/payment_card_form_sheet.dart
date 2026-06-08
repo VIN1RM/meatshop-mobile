@@ -29,8 +29,6 @@ class PaymentCardFormSheet extends StatefulWidget {
 }
 
 class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
-  static const Color _white = Colors.white;
-
   final _formKey = GlobalKey<FormState>();
   final _holderCtrl = TextEditingController();
   final _numberCtrl = TextEditingController();
@@ -78,11 +76,11 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
     return Container(
       constraints: BoxConstraints(
         minHeight: screenH * 0.80,
-        maxHeight: screenH * 0.92,
+        maxHeight: screenH * 0.92 - bottomInset,
       ),
 
       decoration: const BoxDecoration(
-        color: Color(0xFF232323),
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + bottomInset),
@@ -103,7 +101,7 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
                     const Text(
                       'Os dados são tokenizados com segurança pelo Mercado Pago.',
                       style: TextStyle(
-                        color: Colors.white38,
+                        color: const Color(0xFF888888),
                         fontSize: 11,
                         height: 1.4,
                       ),
@@ -203,7 +201,7 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
                                 _obscureCvv
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: Colors.white38,
+                                color: const Color(0xFFAAAAAA),
                                 size: 18,
                               ),
                             ),
@@ -241,7 +239,7 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: Colors.white24,
+          color: const Color(0xFFDDDDDD),
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -252,7 +250,7 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
     return const Text(
       'Adicionar cartão',
       style: TextStyle(
-        color: _white,
+        color: const Color(0xFF1A1A1A),
         fontSize: 18,
         fontWeight: FontWeight.w800,
       ),
@@ -312,14 +310,14 @@ class _CardFormField extends StatelessWidget {
       validator: validator,
       obscureText: obscureText,
       textCapitalization: textCapitalization,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
+      style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
-        prefixIcon: Icon(icon, color: Colors.white38, size: 18),
+        labelStyle: const TextStyle(color: Color(0xFF888888), fontSize: 13),
+        prefixIcon: Icon(icon, color: const Color(0xFFAAAAAA), size: 18),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: const Color(0xFF3A3A3A),
+        fillColor: const Color(0xFFEAEAEA),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 14,
@@ -366,7 +364,10 @@ class _DefaultToggle extends StatelessWidget {
             decoration: BoxDecoration(
               color: value ? red : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: value ? red : Colors.white38, width: 2),
+              border: Border.all(
+                color: value ? red : const Color(0xFFAAAAAA),
+                width: 2,
+              ),
             ),
             child: value
                 ? const Icon(Icons.check, color: Colors.white, size: 14)
@@ -376,7 +377,7 @@ class _DefaultToggle extends StatelessWidget {
           const Expanded(
             child: Text(
               'Definir como cartão padrão',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: const Color(0xFF555555), fontSize: 14),
             ),
           ),
         ],

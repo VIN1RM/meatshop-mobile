@@ -17,30 +17,39 @@ class DeliveryDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF2C2C2C),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _SheetHandle(),
-          const SizedBox(height: 20),
-          _SheetHeader(order: order),
-          const SizedBox(height: 24),
-          Divider(color: Colors.white.withOpacity(0.08)),
-          const SizedBox(height: 16),
-          _SheetUnitSection(order: order),
-          const SizedBox(height: 14),
-          Divider(color: Colors.white.withOpacity(0.08)),
-          const SizedBox(height: 14),
-          _SheetDeliverySection(order: order),
-          const SizedBox(height: 28),
-          _SheetCloseButton(onTap: () => Navigator.pop(context)),
-        ],
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final screenH = MediaQuery.of(context).size.height;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: screenH * 0.92),
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.fromLTRB(24, 12, 24, 32 + bottomInset),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _SheetHandle(),
+              const SizedBox(height: 20),
+              _SheetHeader(order: order),
+              const SizedBox(height: 24),
+              const Divider(color: Color(0xFFE0E0E0)),
+              const SizedBox(height: 16),
+              _SheetUnitSection(order: order),
+              const SizedBox(height: 14),
+              const Divider(color: Color(0xFFE0E0E0)),
+              const SizedBox(height: 14),
+              _SheetDeliverySection(order: order),
+              const SizedBox(height: 28),
+              _SheetCloseButton(onTap: () => Navigator.pop(context)),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -56,7 +65,7 @@ class _SheetHandle extends StatelessWidget {
         width: 36,
         height: 4,
         decoration: BoxDecoration(
-          color: Colors.white12,
+          color: const Color(0xFFDDDDDD),
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -93,7 +102,7 @@ class _SheetHeader extends StatelessWidget {
             Text(
               'Pedido #${order.id}',
               style: const TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF1A1A1A),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -190,7 +199,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        color: Colors.white38,
+        color: const Color(0xFF888888),
         fontSize: 10,
         fontWeight: FontWeight.w700,
         letterSpacing: 1.2,
@@ -215,7 +224,7 @@ class _DetailRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.white38, size: 18),
+        Icon(icon, color: const Color(0xFFAAAAAA), size: 18),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -223,12 +232,18 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
+                style: const TextStyle(
+                  color: const Color(0xFF888888),
+                  fontSize: 11,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(
+                  color: const Color(0xFF1A1A1A),
+                  fontSize: 14,
+                ),
               ),
             ],
           ),
@@ -250,8 +265,8 @@ class _SheetCloseButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white54,
-          side: BorderSide(color: Colors.white.withOpacity(0.15)),
+          foregroundColor: const Color(0xFF555555),
+          side: const BorderSide(color: Color(0xFFCCCCCC)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

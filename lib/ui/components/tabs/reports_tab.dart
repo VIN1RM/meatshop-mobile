@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/services/report_export_service.dart';
 import 'package:meatshop_mobile/ui/widgets/earning_row.dart';
@@ -85,11 +86,9 @@ class ReportsTab extends StatelessWidget {
                   earnings: earnings,
                   summary: summary,
                 ).catchError((e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erro ao gerar PDF: $e'),
-                      backgroundColor: _red,
-                    ),
+                  CustomSnackBar.error(
+                    'Erro ao gerar PDF: $e',
+                    context: context,
                   );
                 });
               },

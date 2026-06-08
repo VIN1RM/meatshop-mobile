@@ -26,7 +26,7 @@ class TermsOfUseDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       child: Padding(
@@ -76,9 +76,9 @@ class _DialogTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text(
-      'Termos de uso',
+      'Termos de Uso - Meatshop',
       style: TextStyle(
-        color: Colors.white,
+        color: const Color(0xFF1A1A1A),
         fontSize: 17,
         fontWeight: FontWeight.w700,
       ),
@@ -92,10 +92,10 @@ class _DialogBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text(
-      'Deseja visualizar os Termos de Uso do MeatShop? Você será redirecionado para nossa página de termos.',
+      'Deseja visualizar os Termos de Uso?\nVocê será redirecionado para nossa página de termos.',
       textAlign: TextAlign.center,
       style: TextStyle(
-        color: Colors.white54,
+        color: const Color(0xFF555555),
         fontSize: 13,
         height: 1.5,
       ),
@@ -104,10 +104,7 @@ class _DialogBody extends StatelessWidget {
 }
 
 class _DialogActions extends StatelessWidget {
-  const _DialogActions({
-    required this.onCancel,
-    required this.onConfirm,
-  });
+  const _DialogActions({required this.onCancel, required this.onConfirm});
 
   final VoidCallback onCancel;
   final VoidCallback onConfirm;
@@ -122,8 +119,8 @@ class _DialogActions extends StatelessWidget {
           child: OutlinedButton(
             onPressed: onCancel,
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white24),
+              foregroundColor: const Color(0xFF1A1A1A),
+              side: const BorderSide(color: Color(0xFFDDDDDD)),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

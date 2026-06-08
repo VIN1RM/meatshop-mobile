@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
+import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'package:meatshop_mobile/services/cep_service.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 
@@ -14,8 +16,6 @@ class AddressFormSheet extends StatefulWidget {
 }
 
 class _AddressFormSheetState extends State<AddressFormSheet> {
-  static const Color _white = Colors.white;
-
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _labelCtrl;
   late final TextEditingController _zipCtrl;
@@ -113,10 +113,9 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
     } catch (_) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Não foi possível salvar o endereço. Tente novamente.'),
-        ),
+      CustomSnackBar.error(
+        'Não foi possível salvar o endereço. Tente novamente.',
+        context: context,
       );
     } finally {
       if (mounted) {
@@ -137,7 +136,7 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
         maxHeight: screenH * 0.92,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF232323),
+        color: Color(0xFFF5F5F5),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + bottomInset),
@@ -283,7 +282,7 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: Colors.white24,
+          color: Color(0xFFDDDDDD),
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -294,7 +293,7 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
     return Text(
       isEditing ? 'Editar endereço' : 'Novo endereço',
       style: const TextStyle(
-        color: _white,
+        color: Color(0xFF1A1A1A),
         fontSize: 18,
         fontWeight: FontWeight.w800,
       ),
@@ -323,22 +322,24 @@ class _CepField extends StatelessWidget {
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(8),
+        CepInputFormatter(),
       ],
-      style: const TextStyle(color: Colors.white, fontSize: 14),
+      style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
       onChanged: (v) {
         if (v.length == 8) onCompleted(v);
       },
       validator: (v) {
-        if (v == null || v.length < 8) return 'CEP inválido';
+        if (v == null || v.replaceAll(RegExp(r'\D'), '').length < 8)
+          return 'CEP inválido';
         if (externalError != null) return externalError;
         return null;
       },
       decoration: InputDecoration(
         labelText: 'CEP',
-        labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
+        labelStyle: const TextStyle(color: Color(0xFF888888), fontSize: 13),
         prefixIcon: const Icon(
           Icons.pin_drop_outlined,
-          color: Colors.white38,
+          color: Color(0xFFAAAAAA),
           size: 18,
         ),
         suffixIcon: isLoading
@@ -355,7 +356,7 @@ class _CepField extends StatelessWidget {
               )
             : null,
         filled: true,
-        fillColor: const Color(0xFF3A3A3A),
+        fillColor: const Color(0xFFEAEAEA),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 14,
@@ -404,7 +405,7 @@ class _DefaultToggle extends StatelessWidget {
               color: value ? _red : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: value ? _red : Colors.white38,
+                color: value ? _red : const Color(0xFFAAAAAA),
                 width: 2,
               ),
             ),
@@ -416,7 +417,7 @@ class _DefaultToggle extends StatelessWidget {
           const Expanded(
             child: Text(
               'Definir como endereço padrão',
-              style: TextStyle(color: Colors.white70, fontSize: 14),
+              style: TextStyle(color: Color(0xFF555555), fontSize: 14),
             ),
           ),
         ],
@@ -498,13 +499,13 @@ class _AddressFormField extends StatelessWidget {
 
       inputFormatters: inputFormatters,
       validator: validator,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
+      style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54, fontSize: 13),
-        prefixIcon: Icon(icon, color: Colors.white38, size: 18),
+        labelStyle: const TextStyle(color: Color(0xFF888888), fontSize: 13),
+        prefixIcon: Icon(icon, color: Color(0xFFAAAAAA), size: 18),
         filled: true,
-        fillColor: const Color(0xFF3A3A3A),
+        fillColor: const Color(0xFFEAEAEA),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 14,

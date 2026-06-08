@@ -4,8 +4,30 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.7.0] — 08 de Junho de 2026
+### 🎨 Visual Unificado nos Menus e Melhor Adaptação a Telas Pequenas
+
+### 📈 Melhorias
+- **Visual Consistente em Todo o App:** Todos os menus e painéis que sobem pela parte de baixo da tela agora seguem o mesmo estilo claro e limpo do restante do aplicativo — fundo branco, textos escuros e bordas suaves.
+- **Cancelamento de Pedido Atualizado:** O painel de cancelamento de pedido ganhou o novo visual claro, ficando mais legível e agradável.
+- **Edição de Veículo Atualizada:** O painel de edição do veículo também foi atualizado para o novo padrão visual.
+- **Seleção de Foto de Perfil Atualizada:** O menu de troca de foto de perfil acompanhou a padronização visual.
+- **Filtros de Açougue e Cortes Atualizados:** Os painéis de filtro seguem agora o mesmo padrão dos demais menus do app.
+- **Seleção de Destinatário no Chat Atualizada:** O painel que pergunta com quem você quer falar no chat também foi atualizado.
+- **Detalhes de Entrega Atualizados:** O painel de detalhes de uma entrega concluída agora usa o mesmo estilo claro.
+- **Formulário de Cartão Atualizado:** O painel de cadastro de cartão foi padronizado com o novo visual.
+- **Menus Adaptados ao Teclado:** Ao abrir o teclado em qualquer um desses menus, o conteúdo se ajusta automaticamente para não ficar escondido atrás do teclado.
+- **Suporte a Telas Menores:** Todos os menus agora scrollam corretamente em celulares com telas pequenas, sem cortar informações.
+- **Notificações Padronizadas em Todo o App:** Todas as mensagens de feedback (sucesso, erro, aviso e informação) agora seguem o mesmo estilo visual em todas as telas do aplicativo.
+
+### ✨ Novidades
+- **Salvar Só Quando Mudar Algo:** Na tela de edição do veículo, o botão "Salvar alterações" só fica disponível quando você realmente fez alguma modificação — tipo, modelo, cor, ano, placa ou fotos.
+- **Fechar Sem Salvar é Seguro:** Se você abrir a edição do veículo, fizer alterações e fechar sem salvar, o app descarta tudo automaticamente, sem nenhuma pergunta — como se você nunca tivesse mexido.
+
+---
+
 ## [2.6.0] — 05 de Junho de 2026
-### 🔔 Notificações, Ganhos em Tempo Real e Metas Conectadas ao Banco de Dados
+### 🔔 Notificações, Ganhos em Tempo Real e Metas Conectadas ao Banco de Dados
 
 ### ✨ Novidades
 - **Central de Notificações:** O aplicativo agora conta com uma estrutura própria para exibir e armazenar notificações do usuário.

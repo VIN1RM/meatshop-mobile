@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
@@ -394,13 +395,10 @@ class AuthProvider extends ChangeNotifier {
           context,
         ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Sua conta foi excluída com sucesso.'),
-            backgroundColor: Color(0xFFC0392B),
-            duration: Duration(seconds: 10),
-            behavior: SnackBarBehavior.floating,
-          ),
+        CustomSnackBar.success(
+          'Sua conta foi excluída com sucesso.',
+          context: context,
+          duration: const Duration(seconds: 10),
         );
       }
     } on FirebaseAuthException catch (e) {

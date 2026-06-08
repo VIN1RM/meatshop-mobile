@@ -8,7 +8,7 @@ import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
-import 'package:meatshop_mobile/ui/dialogs/chat_participant_dialog.dart';
+import 'package:meatshop_mobile/ui/components/sheets/chat_participant_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/dialogs/confirm_delivery_dialog.dart';
 

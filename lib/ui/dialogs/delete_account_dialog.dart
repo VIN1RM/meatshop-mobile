@@ -45,7 +45,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color(0xFFF5F5F5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       child: Padding(
@@ -70,7 +70,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
             const Text(
               'Excluir conta',
               style: TextStyle(
-                color: Colors.white,
+                color: const Color(0xFF1A1A1A),
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
               ),
@@ -80,7 +80,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               'Esta ação é permanente e não pode ser desfeita. Digite sua senha para confirmar.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white54,
+                color: const Color(0xFF555555),
                 fontSize: 13,
                 height: 1.5,
               ),
@@ -89,12 +89,12 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
             TextField(
               controller: _passwordController,
               obscureText: _obscure,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Color(0xFF1A1A1A)),
               decoration: InputDecoration(
                 hintText: 'Sua senha',
-                hintStyle: const TextStyle(color: Colors.white38),
+                hintStyle: const TextStyle(color: Color(0xFF999999)),
                 filled: true,
-                fillColor: const Color(0xFF3A3A3A),
+                fillColor: const Color(0xFFEAEAEA),
                 errorText: _errorMessage,
                 errorStyle: const TextStyle(color: _red),
                 border: OutlineInputBorder(
@@ -114,7 +114,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     _obscure
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: Colors.white38,
+                    color: const Color(0xFF999999),
                     size: 20,
                   ),
                   onPressed: () => setState(() => _obscure = !_obscure),
@@ -127,11 +127,12 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed:
-                        _isLoading ? null : () => Navigator.of(context).pop(),
+                    onPressed: _isLoading
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white24),
+                      foregroundColor: const Color(0xFF1A1A1A),
+                      side: const BorderSide(color: Color(0xFFDDDDDD)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

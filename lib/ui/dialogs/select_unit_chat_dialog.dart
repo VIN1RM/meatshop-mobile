@@ -27,7 +27,7 @@ class SelectUnitChatDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF2E2E2E),
+        color: Color(0xFFF5F5F5),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
@@ -38,7 +38,7 @@ class SelectUnitChatDialog extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: Color(0xFFDDDDDD),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -46,7 +46,7 @@ class SelectUnitChatDialog extends StatelessWidget {
           const Text(
             'Com qual açougue deseja falar?',
             style: TextStyle(
-              color: Colors.white,
+              color: Color(0xFF1A1A1A),
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -54,7 +54,7 @@ class SelectUnitChatDialog extends StatelessWidget {
           const SizedBox(height: 6),
           const Text(
             'Você tem itens de mais de um estabelecimento.',
-            style: TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: Color(0xFF555555), fontSize: 13),
           ),
           const SizedBox(height: 20),
           ...units.map(

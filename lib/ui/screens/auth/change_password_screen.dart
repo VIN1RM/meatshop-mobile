@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -76,13 +77,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
       Navigator.of(context).pushReplacementNamed(AppRoutes.login);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Senha alterada com sucesso.'),
-          backgroundColor: Color(0xFF22C55E),
-          duration: Duration(seconds: 10),
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.success(
+        'Senha alterada com sucesso.',
+        context: context,
+        duration: const Duration(seconds: 10),
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -95,23 +93,17 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         'requires-recent-login' => 'Sessão expirada. Faça login novamente.',
         _ => 'Erro ao alterar senha. Tente novamente.',
       };
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: const Color(0xFFC0392B),
-          duration: const Duration(seconds: 6),
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.error(
+        message,
+        context: context,
+        duration: const Duration(seconds: 6),
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erro inesperado. Tente novamente.'),
-          backgroundColor: Color(0xFFC0392B),
-          duration: Duration(seconds: 6),
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.error(
+        'Erro inesperado. Tente novamente.',
+        context: context,
+        duration: const Duration(seconds: 6),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/ui/dialogs/image_source_dialog.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +19,8 @@ class VehicleEditModal extends StatefulWidget {
 class _VehicleEditModalState extends State<VehicleEditModal> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
+  static const Color _surface = Color(0xFFEAEAEA);
+  static const Color _bg = Color(0xFFF5F5F5);
 
   final _formKey = GlobalKey<FormState>();
 
@@ -30,6 +33,26 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   bool _isSaving = false;
   final List<File> _newImages = [];
   List<String> _existingUrls = [];
+  String _originalType = '';
+  String _originalModel = '';
+  String _originalPlate = '';
+  String _originalColor = '';
+  String _originalYear = '';
+  List<String> _originalUrls = [];
+
+  bool get _hasChanges {
+    if (_selectedVehicleType?.label != _originalType) return true;
+    if (_modelController.text.trim() != _originalModel) return true;
+    if (_plateController.text.trim() != _originalPlate) return true;
+    if (_colorController.text.trim() != _originalColor) return true;
+    if (_yearController.text.trim() != _originalYear) return true;
+    if (_newImages.isNotEmpty) return true;
+    if (_existingUrls.length != _originalUrls.length) return true;
+    for (int i = 0; i < _existingUrls.length; i++) {
+      if (_existingUrls[i] != _originalUrls[i]) return true;
+    }
+    return false;
+  }
 
   final List<_VehicleOption> _vehicleTypes = const [
     _VehicleOption(
@@ -95,8 +118,19 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         _yearController.text = info['year'] ?? '';
         setState(() {
           _existingUrls = List<String>.from(info['photo_urls'] ?? []);
+          _originalType = _selectedVehicleType?.label ?? '';
+          _originalModel = info['model'] ?? '';
+          _originalPlate = info['plate'] ?? '';
+          _originalColor = info['color'] ?? '';
+          _originalYear = info['year'] ?? '';
+          _originalUrls = List<String>.from(info['photo_urls'] ?? []);
         });
       }
+
+      _modelController.addListener(() => setState(() {}));
+      _plateController.addListener(() => setState(() {}));
+      _colorController.addListener(() => setState(() {}));
+      _yearController.addListener(() => setState(() {}));
     });
   }
 
@@ -112,13 +146,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   Future<void> _pickImage() async {
     final totalFotos = _existingUrls.length + _newImages.length;
     if (totalFotos >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Máximo de 3 fotos permitidas.'),
-          backgroundColor: _red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      CustomSnackBar.warning('Máximo de 3 fotos permitidas.', context: context);
       return;
     }
 
@@ -149,13 +177,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
 
   Future<void> _save() async {
     if (_selectedVehicleType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Selecione o tipo de veículo.'),
-          backgroundColor: _red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      CustomSnackBar.warning('Selecione o tipo de veículo.', context: context);
       return;
     }
 
@@ -165,12 +187,9 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
 
     final totalFotos = _existingUrls.length + _newImages.length;
     if (totalFotos < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Adicione ao menos 3 fotos do veículo.'),
-          backgroundColor: _red,
-          behavior: SnackBarBehavior.floating,
-        ),
+      CustomSnackBar.warning(
+        'Adicione ao menos 3 fotos do veículo.',
+        context: context,
       );
       return;
     }
@@ -195,12 +214,9 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         );
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erro ao salvar veículo. Tente novamente.'),
-              backgroundColor: _red,
-              behavior: SnackBarBehavior.floating,
-            ),
+          CustomSnackBar.error(
+            'Erro ao salvar veículo. Tente novamente.',
+            context: context,
           );
         }
         setState(() => _isSaving = false);
@@ -242,239 +258,264 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     final screenH = MediaQuery.of(context).size.height;
 
-    return ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: screenH * 0.80,
-        maxHeight: screenH * 0.92,
-      ),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: const Color(0xFF2C2C2C),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        Navigator.of(context).pop();
+      },
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: screenH * 0.80,
+          maxHeight: screenH * 0.92 - bottom,
         ),
-        padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottom),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white12,
-                      borderRadius: BorderRadius.circular(2),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: _bg,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.fromLTRB(20, 12, 20, 20 + bottom),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDDDDDD),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
 
-                const Text(
-                  'EDITAR VEÍCULO',
-                  style: TextStyle(
-                    color: _red,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.1,
+                  const Text(
+                    'EDITAR VEÍCULO',
+                    style: TextStyle(
+                      color: const Color(0xFF1A1A1A),
+
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                const Text(
-                  'Tipo de veículo',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                  const Text(
+                    'Tipo de veículo',
+                    style: TextStyle(
+                      color: const Color(0xFF1A1A1A),
+
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                  childAspectRatio: 2.8,
-                  children: _vehicleTypes.map((option) {
-                    final isSelected =
-                        _selectedVehicleType?.label == option.label;
-                    return GestureDetector(
-                      onTap: () =>
-                          setState(() => _selectedVehicleType = option),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        decoration: BoxDecoration(
-                          color: isSelected ? _red : const Color(0xFF3A3A3A),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isSelected ? _red : Colors.white12,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              option.icon,
-                              size: 16,
-                              color: isSelected ? _white : Colors.white54,
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 2.8,
+                    children: _vehicleTypes.map((option) {
+                      final isSelected =
+                          _selectedVehicleType?.label == option.label;
+                      return GestureDetector(
+                        onTap: () =>
+                            setState(() => _selectedVehicleType = option),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          decoration: BoxDecoration(
+                            color: isSelected ? _red : _surface,
+
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSelected
+                                  ? _red
+                                  : const Color(0xFFCCCCCC),
+
+                              width: 1.5,
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              option.label,
-                              style: TextStyle(
-                                color: isSelected ? _white : Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                option.icon,
+                                size: 16,
+                                color: isSelected
+                                    ? _white
+                                    : const Color(0xFFAAAAAA),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 20),
-                const Divider(height: 1, color: Colors.white12),
-                const SizedBox(height: 20),
-
-                if (_selectedVehicleType != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC0392B).withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFC0392B).withValues(alpha: 0.15),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(_selectedVehicleType!.icon, color: _red, size: 18),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _selectedVehicleType!.description,
-                            style: const TextStyle(
-                              color: Colors.white60,
-                              fontSize: 12,
-                              height: 1.4,
-                            ),
+                              const SizedBox(width: 6),
+                              Text(
+                                option.label,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? _white
+                                      : const Color(0xFF555555),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    }).toList(),
                   ),
 
-                  if (_selectedVehicleType!.fields.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Dados do veículo',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                  const SizedBox(height: 20),
+                  const Divider(height: 1, color: Color(0xFFCCCCCC)),
+                  const SizedBox(height: 20),
+
+                  if (_selectedVehicleType != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC0392B).withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(
+                            0xFFC0392B,
+                          ).withValues(alpha: 0.15),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    if (_selectedVehicleType!.fields.contains('Modelo')) ...[
-                      _buildField(
-                        controller: _modelController,
-                        label: 'Modelo',
-                        hint: _hintForField('Modelo'),
-                        icon: Icons.directions_car_outlined,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (_selectedVehicleType!.fields.contains('Placa')) ...[
-                      _buildField(
-                        controller: _plateController,
-                        label: 'Placa',
-                        hint: 'Ex: ABC-1234',
-                        icon: Icons.pin_outlined,
-                        textCapitalization: TextCapitalization.characters,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    if (_selectedVehicleType!.fields.contains('Cor') ||
-                        _selectedVehicleType!.fields.contains('Ano'))
-                      Row(
+                      child: Row(
                         children: [
-                          if (_selectedVehicleType!.fields.contains('Cor'))
-                            Expanded(
-                              child: _buildField(
-                                controller: _colorController,
-                                label: 'Cor',
-                                hint: 'Ex: Preto',
-                                icon: Icons.color_lens_outlined,
+                          Icon(
+                            _selectedVehicleType!.icon,
+                            color: _red,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _selectedVehicleType!.description,
+                              style: const TextStyle(
+                                color: const Color(0xFF666666),
+
+                                fontSize: 12,
+                                height: 1.4,
                               ),
                             ),
-                          if (_selectedVehicleType!.fields.contains('Cor') &&
-                              _selectedVehicleType!.fields.contains('Ano'))
-                            const SizedBox(width: 12),
-                          if (_selectedVehicleType!.fields.contains('Ano'))
-                            Expanded(
-                              child: _buildField(
-                                controller: _yearController,
-                                label: 'Ano',
-                                hint: 'Ex: 2022',
-                                icon: Icons.calendar_today_outlined,
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
+                          ),
                         ],
                       ),
-
-                    _buildPhotoSection(),
-                  ],
-                ],
-
-                const SizedBox(height: 28),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isSaving ? null : _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _red,
-                      disabledBackgroundColor: const Color(
-                        0xFFC0392B,
-                      ).withValues(alpha: 0.6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
                     ),
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: _white,
-                            ),
-                          )
-                        : const Text(
-                            'Salvar alterações',
-                            style: TextStyle(
-                              color: _white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                  ),
-                ),
 
-                const SizedBox(height: 8),
-              ],
+                    if (_selectedVehicleType!.fields.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Dados do veículo',
+                        style: TextStyle(
+                          color: const Color(0xFF1A1A1A),
+
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      if (_selectedVehicleType!.fields.contains('Modelo')) ...[
+                        _buildField(
+                          controller: _modelController,
+                          label: 'Modelo',
+                          hint: _hintForField('Modelo'),
+                          icon: Icons.directions_car_outlined,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      if (_selectedVehicleType!.fields.contains('Placa')) ...[
+                        _buildField(
+                          controller: _plateController,
+                          label: 'Placa',
+                          hint: 'Ex: ABC-1234',
+                          icon: Icons.pin_outlined,
+                          textCapitalization: TextCapitalization.characters,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      if (_selectedVehicleType!.fields.contains('Cor') ||
+                          _selectedVehicleType!.fields.contains('Ano'))
+                        Row(
+                          children: [
+                            if (_selectedVehicleType!.fields.contains('Cor'))
+                              Expanded(
+                                child: _buildField(
+                                  controller: _colorController,
+                                  label: 'Cor',
+                                  hint: 'Ex: Preto',
+                                  icon: Icons.color_lens_outlined,
+                                ),
+                              ),
+                            if (_selectedVehicleType!.fields.contains('Cor') &&
+                                _selectedVehicleType!.fields.contains('Ano'))
+                              const SizedBox(width: 12),
+                            if (_selectedVehicleType!.fields.contains('Ano'))
+                              Expanded(
+                                child: _buildField(
+                                  controller: _yearController,
+                                  label: 'Ano',
+                                  hint: 'Ex: 2022',
+                                  icon: Icons.calendar_today_outlined,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                          ],
+                        ),
+
+                      _buildPhotoSection(),
+                    ],
+                  ],
+
+                  const SizedBox(height: 28),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: (_isSaving || !_hasChanges) ? null : _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _red,
+                        disabledBackgroundColor: const Color(
+                          0xFFC0392B,
+                        ).withValues(alpha: 0.6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: _white,
+                              ),
+                            )
+                          : const Text(
+                              'Salvar alterações',
+                              style: TextStyle(
+                                color: _white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
           ),
         ),
@@ -492,7 +533,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const Text(
           'Fotos do veículo',
           style: TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF1A1A1A),
+
             fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
@@ -500,7 +542,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const SizedBox(height: 4),
         const Text(
           'Adicione ao menos 3 fotos do seu veículo.',
-          style: TextStyle(color: Colors.white38, fontSize: 11),
+          style: TextStyle(color: const Color(0xFF888888), fontSize: 11),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -528,9 +570,9 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF3A3A3A),
+                    color: _surface,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white12),
+                    border: Border.all(color: const Color(0xFFCCCCCC)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -557,13 +599,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF3A3A3A),
+                    color: _surface,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white12),
+                    border: Border.all(color: const Color(0xFFDDDDDD)),
                   ),
                   child: const Icon(
                     Icons.image_outlined,
-                    color: Colors.white12,
+                    color: const Color(0xFFDDDDDD),
                     size: 32,
                   ),
                 );
@@ -580,7 +622,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               width: 24,
               height: 4,
               decoration: BoxDecoration(
-                color: filled ? _red : Colors.white12,
+                color: filled ? _red : const Color(0xFFDDDDDD),
                 borderRadius: BorderRadius.circular(2),
               ),
             );
@@ -632,7 +674,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         Text(
           label,
           style: const TextStyle(
-            color: Colors.white,
+            color: Color(0xFF1A1A1A),
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
@@ -642,24 +684,24 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
           controller: controller,
           keyboardType: keyboardType,
           textCapitalization: textCapitalization,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-            prefixIcon: Icon(icon, color: Colors.white38, size: 18),
+            hintStyle: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+            prefixIcon: Icon(icon, color: const Color(0xFFAAAAAA), size: 18),
             filled: true,
-            fillColor: const Color(0xFF3A3A3A),
+            fillColor: _surface,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 14,
               vertical: 12,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: Colors.white12),
+              borderSide: BorderSide(color: Colors.transparent),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: Colors.white12),
+              borderSide: BorderSide(color: Colors.transparent),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

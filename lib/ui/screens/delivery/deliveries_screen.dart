@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/active_delivery_screen.dart';
 import 'package:meatshop_mobile/ui/dialogs/reject_order_dialog.dart';
@@ -146,21 +147,17 @@ class ReloadButton extends StatelessWidget {
     final success = await provider.reloadOrders();
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          success ? 'Lista atualizada!' : 'Erro ao atualizar.',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: success
-            ? const Color(0xFF27AE60)
-            : const Color(0xFFC0392B),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+    success
+        ? CustomSnackBar.success(
+            'Lista atualizada!',
+            context: context,
+            duration: const Duration(seconds: 2),
+          )
+        : CustomSnackBar.error(
+            'Erro ao atualizar.',
+            context: context,
+            duration: const Duration(seconds: 2),
+          );
   }
 
   @override

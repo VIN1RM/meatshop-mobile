@@ -45,12 +45,29 @@ class PhoneInputFormatter extends TextInputFormatter {
   }
 }
 
+class CepInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final masked = _maskCep(digits);
+    return TextEditingValue(
+      text: masked,
+      selection: TextSelection.collapsed(offset: masked.length),
+    );
+  }
+}
+
 class InputMasks {
   InputMasks._();
 
   static String cpf(String raw) => _maskCpf(raw.replaceAll(RegExp(r'\D'), ''));
-  static String cnpj(String raw) => _maskCnpj(raw.replaceAll(RegExp(r'\D'), ''));
-  static String phone(String raw) => _maskPhone(raw.replaceAll(RegExp(r'\D'), ''));
+  static String cnpj(String raw) =>
+      _maskCnpj(raw.replaceAll(RegExp(r'\D'), ''));
+  static String phone(String raw) =>
+      _maskPhone(raw.replaceAll(RegExp(r'\D'), ''));
 }
 
 String _maskCpf(String d) {
@@ -87,6 +104,17 @@ String _maskPhone(String d) {
     if (i == 2) b.write(') ');
     final dashPos = n <= 10 ? 6 : 7;
     if (i == dashPos) b.write('-');
+    b.write(d[i]);
+  }
+  return b.toString();
+}
+
+String _maskCep(String d) {
+  final n = d.length;
+  if (n == 0) return '';
+  final b = StringBuffer();
+  for (var i = 0; i < n && i < 8; i++) {
+    if (i == 5) b.write('-');
     b.write(d[i]);
   }
   return b.toString();
