@@ -17,6 +17,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Added
 - `VehicleEditModal`: detecção de alterações via `_hasChanges` — botão "Salvar alterações" permanece desabilitado até que o usuário modifique algum dado (tipo, campos de texto ou fotos).
 - `VehicleEditModal`: `PopScope` adicionado para interceptar gesto de fechar; alterações não salvas são descartadas silenciosamente ao arrastar o sheet para baixo.
+- `CartBagSheet`: bottom sheet de prévia do carrinho com itens agrupados por açougue, controles de quantidade inline, total estimado e botão de atalho para o carrinho completo.
+- `ProductDetailScreen`: botão flutuante de sacola exibido no canto superior direito quando o carrinho possui itens, abrindo o `CartBagSheet` ao tocar.
+- `ButcherDetailScreen`: barra flutuante de sacola exibida na parte inferior da tela quando o carrinho possui itens, com contador de itens e total estimado, abrindo o `CartBagSheet` ao tocar.
+- `AppRoutes.cart`: rota nomeada registrada em `buildRoutes()` para navegação direta à `CartScreen`.
 
 ### Changed
 - `CancelOrderDialog`: migrado para tema claro com fundo `#F5F5F5`, superfícies `#EAEAEA`, textos escuros e bordas neutras, alinhado ao padrão visual da aplicação.

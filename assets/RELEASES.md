@@ -23,6 +23,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### ✨ Novidades
 - **Salvar Só Quando Mudar Algo:** Na tela de edição do veículo, o botão "Salvar alterações" só fica disponível quando você realmente fez alguma modificação — tipo, modelo, cor, ano, placa ou fotos.
 - **Fechar Sem Salvar é Seguro:** Se você abrir a edição do veículo, fizer alterações e fechar sem salvar, o app descarta tudo automaticamente, sem nenhuma pergunta — como se você nunca tivesse mexido.
+- **Sacola Rápida:** Agora, ao navegar pela tela de um produto ou de um açougue, um botão flutuante aparece automaticamente quando você tem itens no carrinho. Ao tocar nele, uma sacola abre mostrando tudo que você já adicionou — com quantidade, preço e total — sem precisar sair da tela onde está.
 
 ---
 
