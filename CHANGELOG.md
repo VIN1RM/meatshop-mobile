@@ -11,11 +11,28 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.7.0] - 2026-06-XX
+## [2.7.0] - 2026-06-08
+### Padronização Visual dos Bottom Sheets e Melhorias de Responsividade
+
+### Changed
+- `CancelOrderDialog`: migrado para tema claro com fundo `#F5F5F5`, superfícies `#EAEAEA`, textos escuros e bordas neutras, alinhado ao padrão visual da aplicação.
+- `VehicleEditModal`: migrado para tema claro, substituindo todas as cores escuras por equivalentes do sistema de design claro.
+- `AvatarPickerSheet`: migrado para tema claro com botões de opção em superfície `#EAEAEA` e textos escuros.
+- `AcougueFilterSheet`: migrado para tema claro com chips de filtro padronizados.
+- `ChatParticipantSheet`: migrado para tema claro com tiles de participante adaptados.
+- `DeliveryDetailsSheet`: migrado para tema claro com seções, dividers e botão de fechar padronizados.
+- `PaymentCardFormSheet`: migrado para tema claro com campos de formulário, toggle de cartão padrão e botão de salvar padronizados.
+- Todos os bottom sheets: `maxHeight` agora desconta `viewInsets.bottom` para evitar corte de conteúdo com teclado aberto.
+- Todos os bottom sheets estáticos: envolvidos em `ConstrainedBox` + `SingleChildScrollView` para suporte a telas pequenas.
+
+### Added
+- `VehicleEditModal`: detecção de alterações via `_hasChanges` — botão "Salvar alterações" permanece desabilitado até que o usuário modifique algum dado (tipo, campos de texto ou fotos).
+- `VehicleEditModal`: `PopScope` adicionado para interceptar gesto de fechar; alterações não salvas são descartadas silenciosamente ao arrastar o sheet para baixo.
 
 ---
 
 ## [2.6.0] - 2026-06-05
+### Notificações Push, Preferências do Usuário e Ganhos em Tempo Real
 
 ### Added
 - Implementado módulo de notificações no aplicativo.
