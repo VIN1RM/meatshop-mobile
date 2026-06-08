@@ -14,6 +14,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ## [2.7.0] - 2026-06-08
 ### Padronização Visual dos Bottom Sheets e Melhorias de Responsividade
 
+### Added
+- `VehicleEditModal`: detecção de alterações via `_hasChanges` — botão "Salvar alterações" permanece desabilitado até que o usuário modifique algum dado (tipo, campos de texto ou fotos).
+- `VehicleEditModal`: `PopScope` adicionado para interceptar gesto de fechar; alterações não salvas são descartadas silenciosamente ao arrastar o sheet para baixo.
+
 ### Changed
 - `CancelOrderDialog`: migrado para tema claro com fundo `#F5F5F5`, superfícies `#EAEAEA`, textos escuros e bordas neutras, alinhado ao padrão visual da aplicação.
 - `VehicleEditModal`: migrado para tema claro, substituindo todas as cores escuras por equivalentes do sistema de design claro.
@@ -24,10 +28,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `PaymentCardFormSheet`: migrado para tema claro com campos de formulário, toggle de cartão padrão e botão de salvar padronizados.
 - Todos os bottom sheets: `maxHeight` agora desconta `viewInsets.bottom` para evitar corte de conteúdo com teclado aberto.
 - Todos os bottom sheets estáticos: envolvidos em `ConstrainedBox` + `SingleChildScrollView` para suporte a telas pequenas.
-
-### Added
-- `VehicleEditModal`: detecção de alterações via `_hasChanges` — botão "Salvar alterações" permanece desabilitado até que o usuário modifique algum dado (tipo, campos de texto ou fotos).
-- `VehicleEditModal`: `PopScope` adicionado para interceptar gesto de fechar; alterações não salvas são descartadas silenciosamente ao arrastar o sheet para baixo.
+- Padronização global de snackbars: substituídas todas as chamadas nativas de `ScaffoldMessenger`/`SnackBar` pelo utilitário `CustomSnackBar` em arquivos.
 
 ---
 
