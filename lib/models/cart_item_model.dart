@@ -57,10 +57,14 @@ class CartItemModel {
     },
   };
 
-  CartItemModel copyWith({double? quantity, String? unitName}) => CartItemModel(
+  CartItemModel copyWith({
+    double? quantity,
+    String? unitName,
+    String? productImageUrl,
+  }) => CartItemModel(
     productId: productId,
     productName: productName,
-    productImageUrl: productImageUrl,
+    productImageUrl: productImageUrl ?? this.productImageUrl,
     unitOfMeasure: unitOfMeasure,
     unitPrice: unitPrice,
     quantity: quantity ?? this.quantity,

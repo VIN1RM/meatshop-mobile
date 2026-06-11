@@ -45,13 +45,31 @@ class CartProvider extends ChangeNotifier {
       final raw = await _service.fetchItems(uid);
       _items = await Future.wait(
         raw.map((item) async {
-          if (item.unitName.isNotEmpty) return item;
-          final name = await _service.fetchUnitName(item.unitId);
+          CartItemModel resolved = item;
 
-          if (name.isNotEmpty) {
-            await _service.patchUnitName(uid, item.productId, name);
+          if (item.unitName.isEmpty) {
+            final name = await _service.fetchUnitName(item.unitId);
+            if (name.isNotEmpty) {
+              await _service.patchUnitName(uid, item.productId, name);
+            }
+            resolved = resolved.copyWith(unitName: name);
           }
-          return item.copyWith(unitName: name);
+
+          if (item.productImageUrl.isEmpty) {
+            final imageUrl = await _service.fetchProductImageUrl(
+              item.productId,
+            );
+            if (imageUrl.isNotEmpty) {
+              await _service.patchProductSnapshot(
+                uid,
+                item.productId,
+                imageUrl,
+              );
+            }
+            resolved = resolved.copyWith(productImageUrl: imageUrl);
+          }
+
+          return resolved;
         }),
       );
     } catch (e) {

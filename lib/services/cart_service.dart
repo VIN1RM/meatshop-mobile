@@ -59,4 +59,25 @@ class CartService {
   Future<void> addItem(String uid, CartItemModel item) async {
     await _itemsRef(uid).doc(item.productId).set(item.toMap());
   }
+
+  Future<String> fetchProductImageUrl(String productId) async {
+    try {
+      final doc = await _db.collection('products').doc(productId).get();
+      return (doc.data()?['image_url'] as String?) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<void> patchProductSnapshot(
+    String uid,
+    String productId,
+    String imageUrl,
+  ) async {
+    try {
+      await _itemsRef(
+        uid,
+      ).doc(productId).update({'product_snapshot.image_url': imageUrl});
+    } catch (_) {}
+  }
 }
