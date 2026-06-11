@@ -5,9 +5,9 @@ import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/providers/unit/butcher_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cart_bag_sheet.dart';
-import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/widgets/business_hours_banner.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ButcherDetailScreen extends StatelessWidget {
   const ButcherDetailScreen({super.key});
@@ -148,20 +148,13 @@ class _ButcherDetailView extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           height: 180,
-          child: Image.asset(
-            'assets/images/background_acougue.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              color: const Color(0xFF2A2A2A),
-              child: const Center(
-                child: Icon(
-                  Icons.storefront_outlined,
-                  color: Colors.white24,
-                  size: 60,
-                ),
-              ),
-            ),
-          ),
+          child: unit.coverUrl.isNotEmpty
+              ? Image.network(
+                  unit.coverUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                )
+              : const SizedBox.shrink(),
         ),
         Positioned(
           bottom: -40,
@@ -548,11 +541,93 @@ class _ButcherDetailLoaderState extends State<_ButcherDetailLoader> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Scaffold(
             backgroundColor: Color(0xFFEFEFEF),
-            body: Center(child: MeatShopLoader()),
+            body: _ButcherDetailShimmer(),
           );
         }
         return _ButcherDetailView(unit: widget.unit);
       },
+    );
+  }
+}
+
+class _ButcherDetailShimmer extends StatelessWidget {
+  const _ButcherDetailShimmer();
+
+  static const Color _base = Color(0xFFE0E0E0);
+  static const Color _highlight = Color(0xFFF5F5F5);
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: _base,
+      highlightColor: _highlight,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // hero banner
+            Container(width: double.infinity, height: 180, color: Colors.white),
+            const SizedBox(height: 52),
+            // info card
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            const SizedBox(height: 28),
+            // section title
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              width: 120,
+              height: 22,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 12),
+            // produto 1
+            _shimmerItem(),
+            _shimmerItem(),
+            _shimmerItem(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _shimmerItem() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 14, width: 140, color: Colors.white),
+                const SizedBox(height: 8),
+                Container(height: 12, width: 80, color: Colors.white),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -11,6 +11,7 @@ class UnitModel {
   final String zipCode;
   final String adminId;
   final String imageUrl;
+  final String coverUrl;
   final DateTime createdAt;
 
   UnitModel({
@@ -26,6 +27,7 @@ class UnitModel {
     required this.zipCode,
     required this.adminId,
     required this.imageUrl,
+    this.coverUrl = '',
     required this.createdAt,
   });
 
@@ -46,6 +48,7 @@ class UnitModel {
       'admin_id': adminId,
       'admin_ref': null,
       'image_url': imageUrl,
+      'cover_url': coverUrl,
       'created_at': createdAt,
     };
   }
@@ -64,6 +67,7 @@ class UnitModel {
       zipCode: map['zip_code'] ?? '',
       adminId: map['admin_id'] ?? '',
       imageUrl: map['image_url'] ?? '',
+      coverUrl: map['cover_url'] ?? '',
       createdAt: (map['created_at'] as dynamic)?.toDate() ?? DateTime.now(),
     );
   }
