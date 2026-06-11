@@ -4,6 +4,17 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.8.0] — 11 de Junho de 2026
+### 🖼️ Foto de Capa dos Açougues e Carregamento Mais Suave
+
+### ✨ Novidades
+- **Foto de Capa do Açougue:** A tela de detalhes do açougue agora exibe uma foto de capa personalizada no topo, quando cadastrada. Açougues sem foto de capa exibem um fundo neutro no lugar.
+
+### 📈 Melhorias
+- **Carregamento Mais Elegante:** A tela do açougue agora exibe um esqueleto animado enquanto carrega os produtos e promoções, em vez de uma tela em branco com loader centralizado.
+
+---
+
 ## [2.7.0] — 08 de Junho de 2026
 ### 🎨 Visual Unificado nos Menus e Melhor Adaptação a Telas Pequenas
 

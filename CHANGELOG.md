@@ -11,6 +11,17 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.8.0] - 2026-06-11
+### Foto de Capa dos Açougues e Skeleton Loading
+
+### Added
+- `UnitModel`: campo `coverUrl` mapeado ao campo `cover_url` do Firestore, representando a foto de capa do açougue.
+- `ButcherDetailScreen`: foto de capa exibida no banner hero quando `cover_url` estiver preenchido no Firestore; sem imagem de fallback — o banner permanece vazio (fundo escuro) quando não há capa cadastrada.
+- `ButcherDetailScreen`: skeleton loading (shimmer) exibido enquanto produtos, promoções e horários de funcionamento carregam, substituindo o loader centralizado anterior.
+- Dependência `shimmer: ^3.0.0` adicionada ao `pubspec.yaml`.
+
+---
+
 ## [2.7.0] - 2026-06-08
 ### Padronização Visual dos Bottom Sheets e Melhorias de Responsividade
 
