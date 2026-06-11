@@ -20,6 +20,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `ButcherDetailScreen`: skeleton loading (shimmer) exibido enquanto produtos, promoções e horários de funcionamento carregam, substituindo o loader centralizado anterior.
 - Dependência `shimmer: ^3.0.0` adicionada ao `pubspec.yaml`.
 
+### Fixed
+- `CartProvider`: imagens de produtos ausentes no carrinho agora são buscadas do Firestore e persistidas no `product_snapshot` ao carregar o carrinho.
+- `CartScreen`: conteúdo do carrinho agora só é renderizado após o carregamento completo, evitando flash de itens sem imagem.
+
 ---
 
 ## [2.7.0] - 2026-06-08

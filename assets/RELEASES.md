@@ -13,6 +13,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### 📈 Melhorias
 - **Carregamento Mais Elegante:** A tela do açougue agora exibe um esqueleto animado enquanto carrega os produtos e promoções, em vez de uma tela em branco com loader centralizado.
 
+### 🐞 Correções
+- **Fotos dos Produtos no Carrinho:** Corrigido um problema em que os produtos no carrinho apareciam sem foto. As imagens agora carregam corretamente para todos os itens.
+
 ---
 
 ## [2.7.0] — 08 de Junho de 2026
