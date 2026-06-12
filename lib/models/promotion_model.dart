@@ -11,7 +11,7 @@ class PromotionModel {
   final DateTime startsAt;
   final DateTime endsAt;
   final bool active;
-
+  final String unitName;
   final String productName;
   final String productImageUrl;
   final String productUnitOfMeasure;
@@ -30,6 +30,7 @@ class PromotionModel {
     this.productName = '',
     this.productImageUrl = '',
     this.productUnitOfMeasure = 'kg',
+    this.unitName = '',
   });
 
   String get precoFormatado =>
@@ -58,6 +59,7 @@ class PromotionModel {
     String? productName,
     String? productImageUrl,
     String? productUnitOfMeasure,
+    String? unitName,
   }) {
     return PromotionModel(
       id: id,
@@ -73,6 +75,7 @@ class PromotionModel {
       productName: productName ?? this.productName,
       productImageUrl: productImageUrl ?? this.productImageUrl,
       productUnitOfMeasure: productUnitOfMeasure ?? this.productUnitOfMeasure,
+      unitName: unitName ?? this.unitName,
     );
   }
 }

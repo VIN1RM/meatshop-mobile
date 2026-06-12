@@ -297,18 +297,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
 
-          if (product.brand.isNotEmpty) ...[
-            const SizedBox(height: 6),
+          if (product.unitName.isNotEmpty) ...[
+            const SizedBox(height: 4),
             Row(
               children: [
                 const Icon(
-                  Icons.storefront_outlined,
+                  Icons.store_outlined,
                   size: 14,
                   color: Color(0xFF888888),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  product.brand,
+                  product.unitName,
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF888888),
@@ -317,7 +317,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ],
             ),
           ],
-
           const SizedBox(height: 12),
 
           Container(

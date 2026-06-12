@@ -288,7 +288,7 @@ class _HomeBodyState extends State<HomeBody> {
                       brand: '',
                       imageUrl: promo.productImageUrl,
                       unitId: promo.unitId,
-                      unitName: '',
+                      unitName: promo.unitName,
                       categoryId: '',
                       stockQuantity: 1,
                     );

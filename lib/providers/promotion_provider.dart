@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import '../models/promotion_model.dart';
 import '../services/promotion_service.dart';
+import '../services/unit_service.dart';
 
 class PromotionProvider extends ChangeNotifier {
   final PromotionService _service;
+  final UnitService _unitService;
 
-  PromotionProvider({PromotionService? service})
-    : _service = service ?? PromotionService();
+  PromotionProvider({PromotionService? service, UnitService? unitService})
+    : _service = service ?? PromotionService(),
+      _unitService = unitService ?? UnitService();
 
   List<PromotionModel> _promotions = [];
   List<PromotionModel> get promotions => _promotions;
@@ -24,7 +27,8 @@ class PromotionProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _promotions = await _service.fetchActivePromotions();
+      final raw = await _service.fetchActivePromotions();
+      _promotions = await _resolveUnitNames(raw);
     } catch (e) {
       _error = 'Não foi possível carregar as promoções.';
       debugPrint('[PromotionProvider] erro: $e');
@@ -32,5 +36,21 @@ class PromotionProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<List<PromotionModel>> _resolveUnitNames(
+    List<PromotionModel> items,
+  ) async {
+    final ids = items.map((p) => p.unitId).where((id) => id.isNotEmpty).toSet();
+    final Map<String, String> cache = {};
+    for (final id in ids) {
+      try {
+        final unit = await _unitService.getUnitById(id);
+        if (unit != null) cache[id] = unit.name;
+      } catch (_) {}
+    }
+    return items
+        .map((p) => p.copyWith(unitName: cache[p.unitId] ?? ''))
+        .toList();
   }
 }
