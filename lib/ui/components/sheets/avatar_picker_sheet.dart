@@ -2,26 +2,34 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
+import 'package:meatshop_mobile/ui/screens/account/profile_photo_viewer_screen.dart';
 
 class AvatarPickerSheet extends StatelessWidget {
   const AvatarPickerSheet({
     super.key,
     required this.hasPhoto,
     required this.onRemove,
+    this.photoUrl,
   });
 
   final bool hasPhoto;
   final VoidCallback onRemove;
+  final String? photoUrl;
 
   static Future<File?> show(
     BuildContext context, {
     required bool hasPhoto,
     required VoidCallback onRemove,
+    String? photoUrl,
   }) {
     return showModalBottomSheet<File?>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => AvatarPickerSheet(hasPhoto: hasPhoto, onRemove: onRemove),
+      builder: (_) => AvatarPickerSheet(
+        hasPhoto: hasPhoto,
+        onRemove: onRemove,
+        photoUrl: photoUrl,
+      ),
     );
   }
 
@@ -104,6 +112,21 @@ class AvatarPickerSheet extends StatelessWidget {
                   if (context.mounted) Navigator.pop(context, file);
                 },
               ),
+              if (hasPhoto && photoUrl != null)
+                _OptionButton(
+                  icon: Icons.visibility_outlined,
+                  label: 'Visualizar',
+                  onTap: () {
+                    Navigator.pop(context, null);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ProfilePhotoViewerScreen(photoUrl: photoUrl!),
+                      ),
+                    );
+                  },
+                ),
               if (hasPhoto)
                 _OptionButton(
                   icon: Icons.delete_outline,

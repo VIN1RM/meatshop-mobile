@@ -57,11 +57,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickAvatar() async {
+    final userPhotoUrl = context.read<UserProvider>().user?.photoUrl;
+    final hasPhoto = _avatarFile != null || (userPhotoUrl?.isNotEmpty ?? false);
+    final String? currentPhotoUrl = _avatarFile != null ? null : userPhotoUrl;
+
     final file = await AvatarPickerSheet.show(
       context,
-      hasPhoto:
-          _avatarFile != null ||
-          (context.read<UserProvider>().user?.photoUrl.isNotEmpty ?? false),
+      hasPhoto: hasPhoto,
+      photoUrl: currentPhotoUrl,
       onRemove: () async {
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
