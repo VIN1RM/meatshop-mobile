@@ -11,6 +11,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/swipe_to_delete.dart';
 import 'package:meatshop_mobile/ui/widgets/swipe_tooltip.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
+import 'package:meatshop_mobile/models/unit_model.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -164,48 +165,68 @@ class _CartScreenState extends State<CartScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFE0E0E0),
-                    border: Border.all(color: _red, width: 1.5),
-                  ),
-                  child: ClipOval(
-                    child: itens.first.unitImageUrl.isNotEmpty
-                        ? Image.network(
-                            itens.first.unitImageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.butcherDetail,
+              arguments: UnitModel(
+                id: unitId,
+                name: unitName,
+                cnpj: '',
+                street: '',
+                number: '',
+                neighborhood: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                adminId: '',
+                imageUrl: itens.first.unitImageUrl,
+                createdAt: DateTime.now(),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFE0E0E0),
+                      border: Border.all(color: _red, width: 1.5),
+                    ),
+                    child: ClipOval(
+                      child: itens.first.unitImageUrl.isNotEmpty
+                          ? Image.network(
+                              itens.first.unitImageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.storefront_outlined,
+                                color: Color(0xFF888888),
+                                size: 22,
+                              ),
+                            )
+                          : const Icon(
                               Icons.storefront_outlined,
                               color: Color(0xFF888888),
                               size: 22,
                             ),
-                          )
-                        : const Icon(
-                            Icons.storefront_outlined,
-                            color: Color(0xFF888888),
-                            size: 22,
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    unitName,
-                    style: const TextStyle(
-                      color: Color(0xFF1A1A1A),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      unitName,
+                      style: const TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           if (!provider.isUnitOpen(unitId))

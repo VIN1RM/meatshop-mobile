@@ -51,7 +51,7 @@ class OrderService {
 
     return base.copyWith(
       unitName: unitData['name'] as String? ?? '',
-      unitLogoUrl: unitData['logo_url'] as String? ?? '',
+      unitLogoUrl: unitData['image_url'] as String? ?? '',
       items: items,
     );
   }
@@ -177,7 +177,7 @@ class OrderService {
             return ActiveOrderModel.fromFirestore(
               doc,
               unitName: unitData['name'] as String? ?? '',
-              unitLogoUrl: unitData['logo_url'] as String? ?? '',
+              unitLogoUrl: unitData['image_url'] as String? ?? '',
             );
           });
           return Future.wait(futures);
