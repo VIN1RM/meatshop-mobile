@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meatshop_mobile/models/product_model.dart';
 
 class RecipeDetailsScreen extends StatelessWidget {
   const RecipeDetailsScreen({super.key, required this.recipe});
@@ -242,6 +245,23 @@ class _FeaturedProductBanner extends StatelessWidget {
 
   final RecipeFeaturedProduct product;
 
+  Future<void> _navigateToProduct(BuildContext context) async {
+    if (product.productId.isEmpty) return;
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(product.productId)
+          .get();
+      if (!doc.exists || !context.mounted) return;
+      final productModel = ProductModel.fromFirestore(doc);
+      Navigator.pushNamed(
+        context,
+        AppRoutes.productDetail,
+        arguments: {'product': productModel},
+      );
+    } catch (_) {}
+  }
+
   static const Color _red = Color(0xFFC0392B);
 
   @override
@@ -312,12 +332,15 @@ class _FeaturedProductBanner extends StatelessWidget {
               color: _red,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text(
-              'Ver produto',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
+            child: GestureDetector(
+              onTap: () => _navigateToProduct(context),
+              child: const Text(
+                'Ver produto',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
