@@ -69,6 +69,27 @@ class CartService {
     }
   }
 
+  Future<String> fetchUnitImageUrl(String unitId) async {
+    try {
+      final doc = await _db.collection('units').doc(unitId).get();
+      return (doc.data()?['image_url'] as String?) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<void> patchUnitImageUrl(
+    String uid,
+    String productId,
+    String unitImageUrl,
+  ) async {
+    try {
+      await _itemsRef(
+        uid,
+      ).doc(productId).update({'unit_image_url': unitImageUrl});
+    } catch (_) {}
+  }
+
   Future<void> patchProductSnapshot(
     String uid,
     String productId,

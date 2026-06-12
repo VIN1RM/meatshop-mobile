@@ -55,6 +55,18 @@ class CartProvider extends ChangeNotifier {
             resolved = resolved.copyWith(unitName: name);
           }
 
+          if (item.unitImageUrl.isEmpty) {
+            final unitImageUrl = await _service.fetchUnitImageUrl(item.unitId);
+            if (unitImageUrl.isNotEmpty) {
+              await _service.patchUnitImageUrl(
+                uid,
+                item.productId,
+                unitImageUrl,
+              );
+            }
+            resolved = resolved.copyWith(unitImageUrl: unitImageUrl);
+          }
+
           if (item.productImageUrl.isEmpty) {
             final imageUrl = await _service.fetchProductImageUrl(
               item.productId,

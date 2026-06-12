@@ -9,6 +9,7 @@ class CartItemModel {
   final double quantity;
   final String unitId;
   final String unitName;
+  final String unitImageUrl;
 
   const CartItemModel({
     required this.productId,
@@ -19,6 +20,7 @@ class CartItemModel {
     required this.quantity,
     required this.unitId,
     required this.unitName,
+    this.unitImageUrl = '',
   });
 
   double get subtotal => unitPrice * quantity;
@@ -41,6 +43,7 @@ class CartItemModel {
       quantity: (map['quantity'] as num?)?.toDouble() ?? 1.0,
       unitId: (map['unit_id'] as String?) ?? '',
       unitName: (map['unit_name'] as String?) ?? '',
+      unitImageUrl: (map['unit_image_url'] as String?) ?? '',
     );
   }
 
@@ -48,6 +51,7 @@ class CartItemModel {
     'product_id': productId,
     'unit_id': unitId,
     'unit_name': unitName,
+    'unit_image_url': unitImageUrl,
     'unit_price': unitPrice,
     'quantity': quantity,
     'product_snapshot': {
@@ -60,6 +64,7 @@ class CartItemModel {
   CartItemModel copyWith({
     double? quantity,
     String? unitName,
+    String? unitImageUrl,
     String? productImageUrl,
   }) => CartItemModel(
     productId: productId,
@@ -70,5 +75,6 @@ class CartItemModel {
     quantity: quantity ?? this.quantity,
     unitId: unitId,
     unitName: unitName ?? this.unitName,
+    unitImageUrl: unitImageUrl ?? this.unitImageUrl,
   );
 }

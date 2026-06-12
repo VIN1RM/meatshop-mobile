@@ -176,10 +176,22 @@ class _CartScreenState extends State<CartScreen> {
                     color: const Color(0xFFE0E0E0),
                     border: Border.all(color: _red, width: 1.5),
                   ),
-                  child: const Icon(
-                    Icons.storefront_outlined,
-                    color: Color(0xFF888888),
-                    size: 22,
+                  child: ClipOval(
+                    child: itens.first.unitImageUrl.isNotEmpty
+                        ? Image.network(
+                            itens.first.unitImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.storefront_outlined,
+                              color: Color(0xFF888888),
+                              size: 22,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.storefront_outlined,
+                            color: Color(0xFF888888),
+                            size: 22,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 10),
