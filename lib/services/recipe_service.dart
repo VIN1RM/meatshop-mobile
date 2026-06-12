@@ -21,7 +21,7 @@ class RecipeService {
         return 'Erro: ${response.statusCode}';
       }
     } catch (e) {
-      return 'Servidor iniciando... tente novamente ⏳';
+      return 'Servidor iniciando... tente novamente';
     }
   }
 

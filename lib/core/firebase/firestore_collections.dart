@@ -25,4 +25,5 @@ abstract class FirestoreCollections {
   static const String businessHours = 'business_hours';
   static const String fcmTokens = 'fcm_tokens';
   static const String savedPaymentMethods = 'saved_payment_methods';
+  static const String recipes = 'recipes';
 }

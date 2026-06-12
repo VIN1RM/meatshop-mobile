@@ -14,6 +14,7 @@ import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
+import 'package:meatshop_mobile/providers/recipe_provider.dart';
 
 class ProvidersConfig {
   static List<SingleChildWidget> providers = [
@@ -28,6 +29,7 @@ class ProvidersConfig {
     ChangeNotifierProvider(create: (_) => PaymentProvider()),
     ChangeNotifierProvider(create: (_) => OrderProvider()),
     ChangeNotifierProvider(create: (_) => UserPreferencesProvider()),
+    ChangeNotifierProvider(create: (_) => RecipeProvider()),
     ChangeNotifierProvider(
       create: (_) => DeliveryEarningsProvider(
         deliveryPersonId: AuthService.instance.currentUser?.uid ?? '',

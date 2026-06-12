@@ -1,101 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
+import 'package:meatshop_mobile/providers/recipe_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_details_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:provider/provider.dart';
 
-class _Tip {
-  final String title;
-  final String subtitle;
-  final String tag;
-  final IconData icon;
-  final List<String> steps;
-  const _Tip({
-    required this.title,
-    required this.subtitle,
-    required this.tag,
-    required this.icon,
-    required this.steps,
-  });
-}
-
-class RecipeTipsScreen extends StatelessWidget {
+class RecipeTipsScreen extends StatefulWidget {
   const RecipeTipsScreen({super.key});
 
+  @override
+  State<RecipeTipsScreen> createState() => _RecipeTipsScreenState();
+}
+
+class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
   static const Color _surface = Color(0xFF3A3A3A);
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
-  static const List<_Tip> _tips = [
-    _Tip(
-      title: 'Picanha na brasa',
-      subtitle: 'O segredo do churrasco perfeito',
-      tag: 'Bovino',
-      icon: Icons.local_fire_department_rounded,
-      steps: [
-        'Deixe a carne em temperatura ambiente por 30 min antes de grelhar.',
-        'Tempere apenas com sal grosso — não exagere.',
-        'Grelhe com a gordura para baixo primeiro por 5 min.',
-        'Vire e finalize por mais 4 min para ponto mal passado.',
-        'Deixe descansar 3 min antes de fatiar.',
-      ],
-    ),
-    _Tip(
-      title: 'Frango suculento',
-      subtitle: 'Como não ressecar o peito de frango',
-      tag: 'Frango',
-      icon: Icons.water_drop_rounded,
-      steps: [
-        'Faça uma salmoura: água + sal + açúcar por 30 min.',
-        'Seque bem antes de temperar.',
-        'Use fogo médio, nunca alto.',
-        'Cubra a frigideira nos últimos 2 min.',
-        'Corte sempre contra a fibra.',
-      ],
-    ),
-    _Tip(
-      title: 'Costela no forno',
-      subtitle: 'Macia e soltando do osso',
-      tag: 'Bovino',
-      icon: Icons.timer_rounded,
-      steps: [
-        'Tempere na véspera com alho, sal e pimenta.',
-        'Embrulhe em papel alumínio bem vedado.',
-        'Asse a 160°C por 4 horas.',
-        'Retire o papel e aumente para 220°C por 20 min.',
-        'Sirva com farofa e vinagrete.',
-      ],
-    ),
-    _Tip(
-      title: 'Lombo suíno',
-      subtitle: 'Macio por dentro, dourado por fora',
-      tag: 'Suíno',
-      icon: Icons.star_rounded,
-      steps: [
-        'Marine com laranja, alho e azeite por 2h.',
-        'Sele em fogo alto por todos os lados.',
-        'Finalize no forno a 180°C por 25 min.',
-        'Use o caldo da marinada para regar.',
-        'Deixe descansar 5 min antes de fatiar.',
-      ],
-    ),
-    _Tip(
-      title: 'Salmão grelhado',
-      subtitle: 'Rápido, saudável e saboroso',
-      tag: 'Peixe',
-      icon: Icons.set_meal_rounded,
-      steps: [
-        'Seque o filé com papel toalha.',
-        'Tempere com limão, sal e endro.',
-        'Grelhe com a pele para baixo por 4 min.',
-        'Vire apenas uma vez e cozinhe por 2 min.',
-        'Sirva imediatamente com legumes.',
-      ],
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<RecipeProvider>();
+      if (provider.state == RecipeLoadState.idle) {
+        provider.loadAllRecipes();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<RecipeProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFF2E2E2E),
       body: Stack(
@@ -117,11 +54,10 @@ class RecipeTipsScreen extends StatelessWidget {
               children: [
                 const AppHeader(),
                 _buildSubtitle(),
-                Expanded(child: _buildList(context)),
+                Expanded(child: _buildBody(context, provider)),
               ],
             ),
           ),
-
           Positioned(
             bottom: 24,
             right: 20,
@@ -154,6 +90,33 @@ class RecipeTipsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildBody(BuildContext context, RecipeProvider provider) {
+    switch (provider.state) {
+      case RecipeLoadState.loading:
+      case RecipeLoadState.idle:
+        return const Center(
+          child: CircularProgressIndicator(color: Color(0xFFC0392B)),
+        );
+      case RecipeLoadState.error:
+        return Center(
+          child: Text(
+            provider.errorMessage ?? 'Erro ao carregar receitas.',
+            style: const TextStyle(color: Colors.white70),
+          ),
+        );
+      case RecipeLoadState.loaded:
+        if (provider.recipes.isEmpty) {
+          return const Center(
+            child: Text(
+              'Nenhuma receita disponível.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          );
+        }
+        return _buildList(context, provider.recipes);
+    }
+  }
+
   Widget _buildSubtitle() {
     return Container(
       width: double.infinity,
@@ -177,17 +140,20 @@ class RecipeTipsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildList(BuildContext context) {
+  Widget _buildList(BuildContext context, List<RecipeModel> recipes) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-      itemCount: _tips.length,
-      itemBuilder: (_, i) => _buildCard(context, _tips[i]),
+      itemCount: recipes.length,
+      itemBuilder: (_, i) => _buildCard(context, recipes[i]),
     );
   }
 
-  Widget _buildCard(BuildContext context, _Tip tip) {
+  Widget _buildCard(BuildContext context, RecipeModel recipe) {
     return GestureDetector(
-      onTap: () => _showDetail(context, tip),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => RecipeDetailsScreen(recipe: recipe)),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
@@ -198,14 +164,17 @@ class RecipeTipsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: _red.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(tip.icon, color: _red, size: 28),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: recipe.imageUrl.isNotEmpty
+                    ? Image.network(
+                        recipe.imageUrl,
+                        width: 52,
+                        height: 52,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _buildImageFallback(),
+                      )
+                    : _buildImageFallback(),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -213,18 +182,18 @@ class RecipeTipsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      tip.title,
+                      recipe.title,
                       style: const TextStyle(
-                        color: const Color(0xFF1A1A1A),
+                        color: Color(0xFF1A1A1A),
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      tip.subtitle,
+                      recipe.description,
                       style: const TextStyle(
-                        color: Color.fromARGB(255, 85, 85, 85),
+                        color: Color(0xFF555555),
                         fontSize: 12,
                       ),
                     ),
@@ -239,7 +208,7 @@ class RecipeTipsScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        tip.tag,
+                        recipe.tag,
                         style: const TextStyle(
                           color: _red,
                           fontSize: 11,
@@ -252,8 +221,7 @@ class RecipeTipsScreen extends StatelessWidget {
               ),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: const Color(0xFFBDBDBD),
-
+                color: Color(0xFFBDBDBD),
                 size: 22,
               ),
             ],
@@ -262,33 +230,16 @@ class RecipeTipsScreen extends StatelessWidget {
       ),
     );
   }
-  
-  void _showDetail(BuildContext context, _Tip tip) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RecipeDetailsScreen(recipe: _tipToModel(tip)),
-      ),
-    );
-  }
 
-  RecipeModel _tipToModel(_Tip tip) {
-    return RecipeModel(
-      id: tip.title.toLowerCase().replaceAll(' ', '_'),
-      unitId: '',
-      title: tip.title,
-      description: tip.subtitle,
-      tag: tip.tag,
-      imageUrl: '',
-      videoUrl: '',
-      steps: tip.steps
-          .asMap()
-          .entries
-          .map(
-            (e) => RecipeStepModel(stepNumber: e.key + 1, description: e.value),
-          )
-          .toList(),
-      ingredients: [],
+  Widget _buildImageFallback() {
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: _red.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Icon(Icons.menu_book_rounded, color: _red, size: 28),
     );
   }
 }
