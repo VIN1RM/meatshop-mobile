@@ -4,17 +4,27 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [2.8.0] — 11 de Junho de 2026
-### 🖼️ Foto de Capa dos Açougues e Carregamento Mais Suave
+## [2.8.0] — 12 de Junho de 2026
+### 🍽️ Receitas, Carrinho Melhorado e Mais Segurança no Login
 
 ### ✨ Novidades
-- **Foto de Capa do Açougue:** A tela de detalhes do açougue agora exibe uma foto de capa personalizada no topo, quando cadastrada. Açougues sem foto de capa exibem um fundo neutro no lugar.
+* **Nova área de receitas:** O aplicativo agora conta com uma área dedicada a dicas de receitas, carregadas diretamente do banco de dados.
+* **Receitas em tempo real:** As dicas de receitas agora são sincronizadas com o Firestore, permitindo atualizar o conteúdo sem depender de dados fixos no app.
+* **Tela de detalhes da receita:** Adicionamos uma tela dedicada para visualizar melhor as informações de cada receita.
+* **Imagem do açougue no carrinho:** O carrinho agora exibe a imagem da unidade/açougue responsável pelos produtos.
+* **Acesso ao produto pelo carrinho:** Agora é possível navegar para os detalhes do produto diretamente a partir do carrinho.
+* **Bloqueio temporário de login:** Após múltiplas tentativas incorretas de login, o aplicativo bloqueia temporariamente novas tentativas para aumentar a segurança da conta.
 
 ### 📈 Melhorias
-- **Carregamento Mais Elegante:** A tela do açougue agora exibe um esqueleto animado enquanto carrega os produtos e promoções, em vez de uma tela em branco com loader centralizado.
+* **Visual das receitas aprimorado:** A tela de detalhes das receitas recebeu ajustes visuais para deixar a leitura mais agradável e organizada.
+* **Perfil com foto atualizada:** A edição de perfil agora envia corretamente a foto atual do usuário para o seletor de avatar.
+* **Tela de produto mais limpa:** A informação de marca foi removida da seção de detalhes do produto, deixando a interface mais objetiva.
+* **Textos ajustados:** Alguns textos da interface foram revisados para melhorar a clareza.
 
 ### 🐞 Correções
-- **Fotos dos Produtos no Carrinho:** Corrigido um problema em que os produtos no carrinho apareciam sem foto. As imagens agora carregam corretamente para todos os itens.
+* Corrigida a navegação para a tela de produto.
+* Corrigida a exibição da imagem da unidade/açougue no carrinho.
+* Ajustado o comportamento do login após tentativas falhas.
 
 ---
 

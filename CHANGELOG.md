@@ -11,18 +11,28 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.8.0] - 2026-06-11
-### Foto de Capa dos Açougues e Skeleton Loading
+## [2.8.0] - 2026-06-12
+### Receitas, Melhorias no Carrinho, Perfil e Segurança de Login
 
 ### Added
-- `UnitModel`: campo `coverUrl` mapeado ao campo `cover_url` do Firestore, representando a foto de capa do açougue.
-- `ButcherDetailScreen`: foto de capa exibida no banner hero quando `cover_url` estiver preenchido no Firestore; sem imagem de fallback — o banner permanece vazio (fundo escuro) quando não há capa cadastrada.
-- `ButcherDetailScreen`: skeleton loading (shimmer) exibido enquanto produtos, promoções e horários de funcionamento carregam, substituindo o loader centralizado anterior.
-- Dependência `shimmer: ^3.0.0` adicionada ao `pubspec.yaml`.
+* Adicionado novo domínio de receitas com integração ao Firestore.
+* Criadas telas de receitas para exibição de dicas e detalhes com dados reais do banco.
+* `RecipeTipsScreen`: integrada com dados em tempo real do Firestore.
+* `RecipeDetailsScreen`: adicionados ajustes visuais para melhorar a apresentação das informações da receita.
+* `CartScreen`: adicionada exibição da imagem da unidade/açougue no carrinho.
+* Adicionada navegação para a tela de detalhes do produto a partir do carrinho.
+* `EditProfileScreen`: adicionada passagem de `photoUrl` para o `AvatarPickerSheet`, garantindo exibição correta da foto atual do usuário.
+* Adicionado fluxo temporário de bloqueio de login após tentativas falhas.
+
+### Changed
+* Melhorada a navegação para a tela de produto.
+* Ajustados textos da interface para melhorar clareza e consistência.
+* `ProductDetailScreen`: removida a exibição da marca na seção de informações do produto.
 
 ### Fixed
-- `CartProvider`: imagens de produtos ausentes no carrinho agora são buscadas do Firestore e persistidas no `product_snapshot` ao carregar o carrinho.
-- `CartScreen`: conteúdo do carrinho agora só é renderizado após o carregamento completo, evitando flash de itens sem imagem.
+* Corrigida a navegação para a tela de produto.
+* Corrigida a exibição da imagem da unidade/açougue no carrinho.
+* Ajustado o fluxo de autenticação para bloquear temporariamente novas tentativas de login após múltiplas falhas.
 
 ---
 
