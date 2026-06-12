@@ -200,7 +200,7 @@ class ReorderConfirmDialog extends StatelessWidget {
         ),
         icon: const Icon(Icons.add_shopping_cart_rounded, size: 20),
         label: const Text(
-          'Adicionar ao carrinho',
+          'Realizar Pedido Novamente',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
