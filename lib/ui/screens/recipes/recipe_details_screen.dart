@@ -87,13 +87,28 @@ class _RecipeAppBar extends StatelessWidget {
         ),
       ),
       flexibleSpace: FlexibleSpaceBar(
-        background: recipe.imageUrl.isNotEmpty
-            ? Image.network(
-                recipe.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _ImageFallback(),
-              )
-            : _ImageFallback(),
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            recipe.imageUrl.isNotEmpty
+                ? Image.network(
+                    recipe.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _ImageFallback(),
+                  )
+                : _ImageFallback(),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.5, 1.0],
+                  colors: [Colors.transparent, const Color(0xFF2E2E2E)],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -213,7 +228,7 @@ class _VideoButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ver vídeo da receita',
+                    'Dicas e Indicações',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,
@@ -373,6 +388,15 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        Container(
+          width: 3,
+          height: 18,
+          decoration: BoxDecoration(
+            color: _red,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 10),
         Icon(icon, color: _red, size: 20),
         const SizedBox(width: 8),
         Text(
@@ -425,13 +449,10 @@ class _IngredientTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  color: _red,
-                  shape: BoxShape.circle,
-                ),
+              const Icon(
+                Icons.check_circle_outline_rounded,
+                color: _red,
+                size: 16,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -444,36 +465,23 @@ class _IngredientTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Text(
-                ingredient.quantity,
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2E2E2E),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  ingredient.quantity,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
-          if (ingredient.tip != null) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const SizedBox(width: 16),
-                const Icon(
-                  Icons.lightbulb_outline,
-                  color: Color(0xFFF39C12),
-                  size: 13,
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    ingredient.tip!,
-                    style: const TextStyle(
-                      color: Color(0xFFF39C12),
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );
@@ -487,14 +495,20 @@ class _StepsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: steps.map((s) => _StepTile(step: s)).toList());
+    return Column(
+      children: List.generate(
+        steps.length,
+        (i) => _StepTile(step: steps[i], isLast: i == steps.length - 1),
+      ),
+    );
   }
 }
 
 class _StepTile extends StatelessWidget {
-  const _StepTile({required this.step});
+  const _StepTile({required this.step, required this.isLast});
 
   final RecipeStepModel step;
+  final bool isLast;
 
   static const Color _red = Color(0xFFC0392B);
 
@@ -510,25 +524,39 @@ class _StepTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            margin: const EdgeInsets.only(right: 12, top: 1),
-            decoration: const BoxDecoration(
-              color: _red,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '${step.stepNumber}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
+          Column(
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: const BoxDecoration(
+                  color: _red,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '${step.stepNumber}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            ),
+              if (!isLast)
+                Container(
+                  width: 2,
+                  height: 40,
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _red.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+            ],
           ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,7 +577,7 @@ class _StepTile extends StatelessWidget {
                       vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2E2E2E),
+                      color: const Color(0xFF932215),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -557,7 +585,7 @@ class _StepTile extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.spa_outlined,
-                          color: Color(0xFF27AE60),
+                          color: Color.fromARGB(255, 255, 255, 255),
                           size: 14,
                         ),
                         const SizedBox(width: 6),
@@ -565,7 +593,7 @@ class _StepTile extends StatelessWidget {
                           child: Text(
                             step.spiceTip!,
                             style: const TextStyle(
-                              color: Color(0xFF27AE60),
+                              color: Color.fromARGB(255, 255, 255, 255),
                               fontSize: 12,
                               fontStyle: FontStyle.italic,
                             ),
