@@ -566,10 +566,9 @@ class _ButcherDetailShimmer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // hero banner
             Container(width: double.infinity, height: 180, color: Colors.white),
             const SizedBox(height: 52),
-            // info card
+
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               height: 100,
@@ -579,7 +578,7 @@ class _ButcherDetailShimmer extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 28),
-            // section title
+
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               width: 120,
@@ -587,7 +586,7 @@ class _ButcherDetailShimmer extends StatelessWidget {
               color: Colors.white,
             ),
             const SizedBox(height: 12),
-            // produto 1
+
             _shimmerItem(),
             _shimmerItem(),
             _shimmerItem(),

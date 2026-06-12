@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
+import 'package:meatshop_mobile/services/login_attempts_service.dart';
 import 'dart:io';
 import 'dart:convert';
 
@@ -18,17 +19,34 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final credential = await _auth.signInWithEmailAndPassword(
-      email: email.trim(),
-      password: password,
-    );
+    await LoginAttemptsService.instance.guardLogin(email);
 
-    final doc = await _db
-        .collection(FirestoreCollections.users)
-        .doc(credential.user!.uid)
-        .get();
+    try {
+      final credential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
 
-    return doc.data()?['app_profile'] as String? ?? 'CLIENT';
+      await LoginAttemptsService.instance.clearAttempts(email);
+
+      final doc = await _db
+          .collection(FirestoreCollections.users)
+          .doc(credential.user!.uid)
+          .get();
+
+      return doc.data()?['app_profile'] as String? ?? 'CLIENT';
+    } on FirebaseAuthException catch (e) {
+      if (_isInvalidCredentialError(e.code)) {
+        await LoginAttemptsService.instance.registerFailedAttempt(email);
+      }
+      rethrow;
+    }
+  }
+
+  bool _isInvalidCredentialError(String code) {
+    return code == 'wrong-password' ||
+        code == 'user-not-found' ||
+        code == 'invalid-credential';
   }
 
   Future<String> registerClient({
@@ -223,15 +241,21 @@ class AuthService {
     await user.updatePassword(newPassword);
   }
 
-Future<void> _checkUniqueFields({
+  Future<void> _checkUniqueFields({
     required String cpf,
     required String phone,
   }) async {
     final cpfDoc = await _db.collection('unique_cpfs').doc(cpf).get();
-    if (cpfDoc.exists) throw ApiException('Este CPF já está sendo utilizado por outra conta.');
+    if (cpfDoc.exists) {
+      throw ApiException('Este CPF já está sendo utilizado por outra conta.');
+    }
 
     final phoneDoc = await _db.collection('unique_phones').doc(phone).get();
-    if (phoneDoc.exists) throw ApiException('Este número de celular já está sendo utilizado por outra conta.');
+    if (phoneDoc.exists) {
+      throw ApiException(
+        'Este número de celular já está sendo utilizado por outra conta.',
+      );
+    }
   }
 
   Future<void> _registerUniqueFields({

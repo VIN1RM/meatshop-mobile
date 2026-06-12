@@ -53,7 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _maskCpf(String cpf) {
     final digits = cpf.replaceAll(RegExp(r'\D'), '');
     if (digits.length != 11) return cpf;
-    return '${digits.substring(0, 3)}.${digits.substring(3, 6)}.${digits.substring(6, 9)}-${digits.substring(9)}';
+    return '${digits.substring(0, 3)}.***.***-${digits.substring(9)}';
   }
 
   Future<void> _pickAvatar() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/screens/account/account_blocked_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/edit_profile_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_addresses_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/saved_payments_screen.dart';
@@ -68,6 +69,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.deliveryShell: (_) => const DeliveryShell(),
     AppRoutes.vehicleSettings: (_) => const VehicleSettingsScreen(),
     AppRoutes.modeSwitch: (_) => const ModeSwitchScreen(),
+    AppRoutes.accountBlocked: (_) => const AccountBlockedPage(),
     AppRoutes.paymentOrder: (_) => const Scaffold(
       backgroundColor: Color(0xFF2E2E2E),
       body: Center(

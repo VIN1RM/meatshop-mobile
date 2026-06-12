@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum GoalPeriod { daily, weekly, monthly }
 
-/// Meta de ganho do entregador persistida no Firestore.
 class DeliveryGoalModel {
   final String id;
   final String deliveryPersonId;

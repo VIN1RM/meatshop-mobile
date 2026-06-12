@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
+import 'package:meatshop_mobile/core/exceptions/login_blocked_exception.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -69,6 +70,12 @@ class AuthProvider extends ChangeNotifier {
 
       if (!context.mounted) return;
       _redirectAfterLogin(context);
+    } on LoginBlockedException catch (e) {
+      if (context.mounted) {
+        Navigator.of(
+          context,
+        ).pushNamed(AppRoutes.accountBlocked, arguments: e.blockedUntil);
+      }
     } on FirebaseAuthException catch (e) {
       _errorMessage = _mapAuthError(e.code);
       notifyListeners();

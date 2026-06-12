@@ -1,5 +1,3 @@
-/// Preferências locais do usuário, persistidas via SharedPreferences.
-
 class UserPreferences {
   final bool notifOrders;
   final bool notifDelivery;

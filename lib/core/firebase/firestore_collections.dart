@@ -14,6 +14,7 @@ abstract class FirestoreCollections {
   static const String deliveryPersons = 'delivery_persons';
   static const String supportTickets = 'support_tickets';
   static const String auditLogs = 'audit_logs';
+  static const String loginAttempts = 'login_attempts';
 
   // Subcoleções
   static const String addresses = 'addresses';
