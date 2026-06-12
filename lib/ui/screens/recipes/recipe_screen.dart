@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/models/recipe_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/ui/screens/recipes/recipe_details_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 
 class _Tip {
@@ -260,132 +262,33 @@ class RecipeTipsScreen extends StatelessWidget {
       ),
     );
   }
-
+  
   void _showDetail(BuildContext context, _Tip tip) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _TipDetailSheet(tip: tip),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RecipeDetailsScreen(recipe: _tipToModel(tip)),
+      ),
     );
   }
-}
 
-class _TipDetailSheet extends StatelessWidget {
-  final _Tip tip;
-  const _TipDetailSheet({required this.tip});
-
-  static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 60),
-      decoration: const BoxDecoration(
-        color: Color(0xFF3A3A3A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _red.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(tip.icon, color: _red, size: 26),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        tip.title,
-                        style: const TextStyle(
-                          color: _white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        tip.subtitle,
-                        style: const TextStyle(
-                          color: Colors.white54,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Divider(color: Colors.white12),
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-              itemCount: tip.steps.length,
-              itemBuilder: (_, i) => Padding(
-                padding: const EdgeInsets.only(bottom: 14),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 26,
-                      height: 26,
-                      margin: const EdgeInsets.only(right: 12, top: 1),
-                      decoration: const BoxDecoration(
-                        color: _red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${i + 1}',
-                          style: const TextStyle(
-                            color: _white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        tip.steps[i],
-                        style: const TextStyle(
-                          color: _white,
-                          fontSize: 14,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+  RecipeModel _tipToModel(_Tip tip) {
+    return RecipeModel(
+      id: tip.title.toLowerCase().replaceAll(' ', '_'),
+      unitId: '',
+      title: tip.title,
+      description: tip.subtitle,
+      tag: tip.tag,
+      imageUrl: '',
+      videoUrl: '',
+      steps: tip.steps
+          .asMap()
+          .entries
+          .map(
+            (e) => RecipeStepModel(stepNumber: e.key + 1, description: e.value),
+          )
+          .toList(),
+      ingredients: [],
     );
   }
 }
