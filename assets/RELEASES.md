@@ -4,6 +4,12 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.9.0] —  de Junho de 2026
+###
+
+
+---
+
 ## [2.8.0] — 12 de Junho de 2026
 ### 🍽️ Receitas, Carrinho Melhorado e Mais Segurança no Login
 

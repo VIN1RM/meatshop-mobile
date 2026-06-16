@@ -11,6 +11,12 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.9.0] - 2026-06-
+### 
+
+
+---
+
 ## [2.8.0] - 2026-06-12
 ### Receitas, Melhorias no Carrinho, Perfil e Segurança de Login
 
