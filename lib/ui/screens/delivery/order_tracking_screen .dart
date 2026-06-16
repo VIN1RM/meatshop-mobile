@@ -258,6 +258,16 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 3),
+                    Text(
+                      order.orderDate != null
+                          ? 'Pedido em ${_formatDate(order.orderDate!)}'
+                          : '#${order.id.substring(0, 6).toUpperCase()}',
+                      style: const TextStyle(
+                        color: Color(0xFF888888),
+                        fontSize: 11,
+                      ),
+                    ),
                   ],
                 ),
                 const Spacer(),
@@ -366,4 +376,13 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
       ),
     );
   }
+}
+
+String _formatDate(DateTime date) {
+  final d = date.toLocal();
+  final day = d.day.toString().padLeft(2, '0');
+  final month = d.month.toString().padLeft(2, '0');
+  final hour = d.hour.toString().padLeft(2, '0');
+  final min = d.minute.toString().padLeft(2, '0');
+  return '$day/$month às $hour:$min';
 }
