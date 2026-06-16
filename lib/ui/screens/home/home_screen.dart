@@ -9,6 +9,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
+import 'package:meatshop_mobile/providers/user/user_provider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -106,6 +107,25 @@ class _HomeBodyState extends State<HomeBody> {
               child: Column(
                 children: [
                   const AppHeader(),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Consumer<UserProvider>(
+                      builder: (context, userProvider, _) {
+                        final name =
+                            userProvider.user?.name.split(' ').first ?? '';
+                        return Text(
+                          name.isNotEmpty
+                              ? '${_greeting()}, $name 👋'
+                              : '${_greeting()}! 👋',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                   GestureDetector(
                     onTap: () => Navigator.pushNamed(context, AppRoutes.search),
                     child: AbsorbPointer(
@@ -536,4 +556,11 @@ class _HomeBodyState extends State<HomeBody> {
       ),
     );
   }
+}
+
+String _greeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
 }

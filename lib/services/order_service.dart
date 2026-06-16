@@ -61,7 +61,16 @@ class OrderService {
     return _db
         .collection('orders')
         .where('client_id', isEqualTo: uid)
-        .where('status', whereIn: ['PENDING', 'IN_PROGRESS'])
+        .where(
+          'status',
+          whereIn: [
+            'PENDING',
+            'CONFIRMED',
+            'PREPARING',
+            'READY',
+            'OUT_FOR_DELIVERY',
+          ],
+        )
         .orderBy('order_date', descending: true)
         .snapshots()
         .asyncMap((snap) => Future.wait(snap.docs.map(_toModelWithItems)));
@@ -84,6 +93,7 @@ class OrderService {
     required CheckoutSummaryModel summary,
     required List<CartItemModel> items,
     required double total,
+    Map<String, double> feeByUnit = const {},
   }) async {
     final uid = _uid;
 
@@ -98,6 +108,7 @@ class OrderService {
       final unitId = entry.key;
       final unitItems = entry.value;
       final subtotal = unitItems.fold<double>(0, (s, i) => s + i.subtotal);
+      final fee = feeByUnit[unitId] ?? 0.0;
 
       final order = OrderModel(
         id: '',
@@ -110,9 +121,9 @@ class OrderService {
         paymentStatus: 'PENDING',
         paymentMethod: summary.paymentMethod,
         subtotal: subtotal,
-        deliveryFee: 0,
+        deliveryFee: fee,
         discountAmount: 0,
-        totalAmount: subtotal,
+        totalAmount: subtotal + fee,
         isScheduled: summary.isScheduled,
         scheduledDeliveryDate: summary.scheduledDate,
         scheduledTime: summary.scheduledTime,

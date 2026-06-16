@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/services/delivery_earnings_service.dart';
+import 'package:meatshop_mobile/services/delivery_fee_service.dart';
 
 class DeliveryOrderService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -34,12 +35,18 @@ class DeliveryOrderService {
         unitName = unitData['name'] as String? ?? 'Açougue';
         unitLat = (unitData['lat'] as num?)?.toDouble();
         unitLng = (unitData['lng'] as num?)?.toDouble();
-        final unitAddrData = unitData['address'];
-        if (unitAddrData != null) {
-          unitAddress = AddressModel.fromMap(
-            Map<String, dynamic>.from(unitAddrData as Map),
-          );
-        }
+        unitAddress = AddressModel(
+          id: '',
+          label: '',
+          street: unitData['street'] as String? ?? '',
+          number: unitData['number'] as String? ?? '',
+          complement: unitData['complement'] as String? ?? '',
+          neighborhood: unitData['neighborhood'] as String? ?? '',
+          city: unitData['city'] as String? ?? '',
+          state: unitData['state'] as String? ?? '',
+          zipCode: unitData['zip_code'] as String? ?? '',
+          isDefault: false,
+        );
       }
 
       AddressModel deliveryAddress = _emptyAddress();
@@ -69,8 +76,10 @@ class DeliveryOrderService {
         unitLng: unitLng,
         destLat: (data['dest_lat'] as num?)?.toDouble(),
         destLng: (data['dest_lng'] as num?)?.toDouble(),
+
         items: itemsLabel,
         total: (data['total_amount'] as num?)?.toDouble() ?? 0.0,
+        deliveryFee: (data['delivery_fee'] as num?)?.toDouble() ?? 0.0,
         address: deliveryAddress,
         unitAddress: unitAddress,
       );
@@ -190,8 +199,26 @@ class DeliveryOrderService {
   Future<void> confirmDelivery(String firestoreId) async {
     final orderDoc = await _db.collection('orders').doc(firestoreId).get();
     final data = orderDoc.data();
-    final total = (data?['total_amount'] as num?)?.toDouble() ?? 0.0;
     final deliveryPersonId = data?['delivery_person_id'] as String? ?? '';
+
+    final unitLat = (data?['unit_lat'] as num?)?.toDouble();
+    final unitLng = (data?['unit_lng'] as num?)?.toDouble();
+    final destLat = (data?['dest_lat'] as num?)?.toDouble();
+    final destLng = (data?['dest_lng'] as num?)?.toDouble();
+
+    double deliveryFee = (data?['delivery_fee'] as num?)?.toDouble() ?? 0.0;
+    if (unitLat != null &&
+        unitLng != null &&
+        destLat != null &&
+        destLng != null) {
+      deliveryFee = await DeliveryFeeService.instance.applyToOrder(
+        firestoreId: firestoreId,
+        unitLat: unitLat,
+        unitLng: unitLng,
+        destLat: destLat,
+        destLng: destLng,
+      );
+    }
 
     await _db.collection('orders').doc(firestoreId).update({
       'delivery_step': 'DELIVERING',
@@ -204,7 +231,7 @@ class DeliveryOrderService {
         deliveryPersonId: deliveryPersonId,
         orderId: firestoreId,
         label: 'Pedido #${firestoreId.substring(0, 6).toUpperCase()}',
-        amount: total,
+        amount: deliveryFee,
       );
     }
   }

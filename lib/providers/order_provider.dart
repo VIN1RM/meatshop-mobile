@@ -26,6 +26,7 @@ class OrderProvider extends ChangeNotifier {
     required List<CartItemModel> items,
     required double total,
     required CartProvider cartProvider,
+    Map<String, double> feeByUnit = const {},
   }) async {
     _isLoading = true;
     _error = null;
@@ -36,6 +37,7 @@ class OrderProvider extends ChangeNotifier {
         summary: summary,
         items: items,
         total: total,
+        feeByUnit: feeByUnit,
       );
 
       await _cartService.clearCart(cartProvider.uid);
