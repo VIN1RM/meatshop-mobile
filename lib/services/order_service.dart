@@ -61,7 +61,16 @@ class OrderService {
     return _db
         .collection('orders')
         .where('client_id', isEqualTo: uid)
-        .where('status', whereIn: ['PENDING', 'IN_PROGRESS'])
+        .where(
+          'status',
+          whereIn: [
+            'PENDING',
+            'CONFIRMED',
+            'PREPARING',
+            'READY',
+            'OUT_FOR_DELIVERY',
+          ],
+        )
         .orderBy('order_date', descending: true)
         .snapshots()
         .asyncMap((snap) => Future.wait(snap.docs.map(_toModelWithItems)));
