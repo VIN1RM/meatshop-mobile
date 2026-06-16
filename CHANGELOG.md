@@ -11,9 +11,28 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.9.0] - 2026-06-
-### 
+## [2.9.0] - 2026-06-16
+### Checkout, Taxa de Entrega, Acompanhamento de Pedidos e Melhorias no Fluxo de Entrega
 
+### Added
+- Criados utilitários para centralizar e facilitar futuras funções reutilizáveis do aplicativo.
+- `CheckoutReviewScreen`: adicionada lógica para calcular a taxa de entrega por unidade/açougue durante a revisão do pedido.
+- `ConfirmOrderButton`: adicionado estado de carregamento ao confirmar pedido, evitando múltiplos cliques durante o processamento.
+- `OrderTrackingScreen`: adicionada exibição de data no acompanhamento dos pedidos.
+- Adicionada mensagem do usuário no fluxo de pedidos/entrega.
+- `activeOrderStream`: adicionados novos status para ampliar o acompanhamento de pedidos ativos.
+
+### Changed
+- Melhorado o fluxo de criação de pedidos para incluir corretamente a taxa de entrega.
+- Ajustada a navegação a partir do carrinho para buscar os dados completos de produto e unidade.
+- Melhorada a estrutura interna com utils preparados para futuras funcionalidades.
+
+### Fixed
+- Corrigida a definição da taxa de entrega durante a criação do pedido.
+- Corrigido o cálculo da taxa de entrega por unidade na tela de revisão.
+- Corrigido problema ao rejeitar pedidos no fluxo de entrega.
+- Corrigido o carregamento completo de produto e unidade ao navegar a partir do carrinho.
+- Corrigidos problemas no preenchimento automático por CEP e na definição de endereço padrão.
 
 ---
 
@@ -21,24 +40,24 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Receitas, Melhorias no Carrinho, Perfil e Segurança de Login
 
 ### Added
-* Adicionado novo domínio de receitas com integração ao Firestore.
-* Criadas telas de receitas para exibição de dicas e detalhes com dados reais do banco.
-* `RecipeTipsScreen`: integrada com dados em tempo real do Firestore.
-* `RecipeDetailsScreen`: adicionados ajustes visuais para melhorar a apresentação das informações da receita.
-* `CartScreen`: adicionada exibição da imagem da unidade/açougue no carrinho.
-* Adicionada navegação para a tela de detalhes do produto a partir do carrinho.
-* `EditProfileScreen`: adicionada passagem de `photoUrl` para o `AvatarPickerSheet`, garantindo exibição correta da foto atual do usuário.
-* Adicionado fluxo temporário de bloqueio de login após tentativas falhas.
+- Adicionado novo domínio de receitas com integração ao Firestore.
+- Criadas telas de receitas para exibição de dicas e detalhes com dados reais do banco.
+- `RecipeTipsScreen`: integrada com dados em tempo real do Firestore.
+- `RecipeDetailsScreen`: adicionados ajustes visuais para melhorar a apresentação das informações da receita.
+- `CartScreen`: adicionada exibição da imagem da unidade/açougue no carrinho.
+- Adicionada navegação para a tela de detalhes do produto a partir do carrinho.
+- `EditProfileScreen`: adicionada passagem de `photoUrl` para o `AvatarPickerSheet`, garantindo exibição correta da foto atual do usuário.
+- Adicionado fluxo temporário de bloqueio de login após tentativas falhas.
 
 ### Changed
-* Melhorada a navegação para a tela de produto.
-* Ajustados textos da interface para melhorar clareza e consistência.
-* `ProductDetailScreen`: removida a exibição da marca na seção de informações do produto.
+- Melhorada a navegação para a tela de produto.
+- Ajustados textos da interface para melhorar clareza e consistência.
+- `ProductDetailScreen`: removida a exibição da marca na seção de informações do produto.
 
 ### Fixed
-* Corrigida a navegação para a tela de produto.
-* Corrigida a exibição da imagem da unidade/açougue no carrinho.
-* Ajustado o fluxo de autenticação para bloquear temporariamente novas tentativas de login após múltiplas falhas.
+- Corrigida a navegação para a tela de produto.
+- Corrigida a exibição da imagem da unidade/açougue no carrinho.
+- Ajustado o fluxo de autenticação para bloquear temporariamente novas tentativas de login após múltiplas falhas.
 
 ---
 

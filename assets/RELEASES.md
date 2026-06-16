@@ -4,9 +4,28 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [2.9.0] —  de Junho de 2026
-###
+## [2.9.0] — 16 de Junho de 2026
+### 🛒 Checkout Melhorado, Taxa de Entrega Correta e Acompanhamento de Pedidos
 
+### ✨ Novidades
+* **Taxa de entrega por açougue:** A tela de revisão do pedido agora calcula a taxa de entrega considerando a unidade/açougue responsável pelos produtos.
+* **Botão de confirmação com carregamento:** Ao confirmar um pedido, o botão agora exibe estado de carregamento, evitando cliques repetidos enquanto a compra está sendo processada.
+* **Data no acompanhamento do pedido:** A tela de acompanhamento agora exibe a data relacionada ao pedido, deixando o histórico mais claro para o usuário.
+* **Mais status para pedido ativo:** O acompanhamento de pedidos ativos agora considera novos status, permitindo uma visualização mais completa do andamento da entrega.
+* **Mensagem do usuário:** O fluxo de pedidos agora conta com suporte à mensagem enviada pelo usuário.
+* **Base preparada para novas funções:** Foram criados utilitários internos para facilitar futuras funcionalidades e manter o código mais organizado.
+
+### 📈 Melhorias
+* **Criação de pedido mais precisa:** A taxa de entrega agora é definida corretamente no momento em que o pedido é criado.
+* **Carrinho com dados completos:** Ao navegar a partir do carrinho, o aplicativo agora busca corretamente todas as informações do produto e da unidade/açougue.
+* **Checkout mais confiável:** O fluxo de revisão e confirmação do pedido ficou mais consistente, principalmente em pedidos com taxa de entrega.
+
+### 🐞 Correções
+* Corrigido um problema em que a taxa de entrega não era aplicada corretamente na criação do pedido.
+* Corrigido o cálculo da taxa de entrega na tela de revisão do checkout.
+* Corrigido problema no fluxo de rejeição de pedidos.
+* Corrigido o carregamento completo dos dados de produto e unidade ao abrir detalhes pelo carrinho.
+* Corrigidos problemas no preenchimento automático por CEP e na seleção de endereço padrão.
 
 ---
 
