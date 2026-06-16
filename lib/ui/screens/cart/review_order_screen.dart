@@ -25,7 +25,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
-  // unitId → taxa calculada
   Map<String, double> _feeByUnit = {};
   bool _calculatingFees = false;
 
@@ -51,7 +50,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
 
       if (address == null) return;
 
-      // Garante coords do endereço de destino
       double? destLat = address.lat;
       double? destLng = address.lng;
 
@@ -72,7 +70,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       final fees = <String, double>{};
 
       for (final unitId in cart.itemsByUnit.keys) {
-        // Busca coords do açougue no Firestore
         final unitDoc = await FirebaseFirestore.instance
             .collection('units')
             .doc(unitId)
@@ -85,7 +82,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         final unitLng = (data['lng'] as num?)?.toDouble();
 
         if (unitLat == null || unitLng == null) {
-          // Geocodifica o açougue se não tiver coords salvas
           final coords = await GeocodingService.instance.geocode(
             street: data['street'] as String? ?? '',
             number: data['number'] as String? ?? '',
@@ -605,9 +601,9 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   }
 
   Widget _buildConfirmarButton(BuildContext context, double grandTotal) {
-    final orderProvider = context.read<OrderProvider>();
+    final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
-    final canConfirm = !_calculatingFees;
+    final canConfirm = !_calculatingFees && !orderProvider.isLoading;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -649,20 +645,19 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           ),
           elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Confirmar pedido',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '· ${_fmt(grandTotal)}',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
+        child: orderProvider.isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: _white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : const Text(
+                'Confirmar pedido',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
       ),
     );
   }
