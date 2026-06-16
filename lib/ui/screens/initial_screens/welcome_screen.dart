@@ -40,7 +40,7 @@ class _WelcomePageState extends State<WelcomePage> {
     ),
     _CarouselItem(
       path: 'assets/images/person6.png',
-      alignment: Alignment.topCenter,
+  alignment: Alignment(1.0, 0.0),
     ),
     _CarouselItem(
       path: 'assets/images/person7.png',
