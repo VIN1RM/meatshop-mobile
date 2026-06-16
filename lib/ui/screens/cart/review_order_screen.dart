@@ -216,10 +216,26 @@ class ReviewOrderScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
             child: Row(
               children: [
-                const Icon(
-                  Icons.storefront_outlined,
-                  color: Color(0xFF888888),
-                  size: 20,
+                ClipOval(
+                  child: SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: items.first.unitImageUrl.isNotEmpty
+                        ? Image.network(
+                            items.first.unitImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.storefront_outlined,
+                              color: Color(0xFF888888),
+                              size: 20,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.storefront_outlined,
+                            color: Color(0xFF888888),
+                            size: 20,
+                          ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(

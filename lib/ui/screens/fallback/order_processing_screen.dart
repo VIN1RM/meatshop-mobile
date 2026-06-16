@@ -52,7 +52,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
 
     _progressController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 5000),
+      duration: const Duration(milliseconds: 10000),
     );
     _progressAnim = CurvedAnimation(
       parent: _progressController,

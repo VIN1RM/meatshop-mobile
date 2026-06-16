@@ -112,8 +112,8 @@ class DeliveryProvider extends ChangeNotifier {
         firestoreId: order.firestoreId,
         reasons: reasons.map((r) => r.label).toList(),
       );
+      _pendingOrders.removeWhere((o) => o.id == orderId);
     } catch (e) {
-      debugPrint('Erro ao recusar pedido: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
