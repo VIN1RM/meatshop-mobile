@@ -112,7 +112,7 @@ class OrderService {
         paymentStatus: 'PENDING',
         paymentMethod: summary.paymentMethod,
         subtotal: subtotal,
-        deliveryFee: 0,
+        deliveryFee: fee,
         discountAmount: 0,
         totalAmount: subtotal + fee,
         isScheduled: summary.isScheduled,
