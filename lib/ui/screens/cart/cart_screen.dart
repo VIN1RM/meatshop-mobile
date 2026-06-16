@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
+import 'package:meatshop_mobile/services/unit_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import 'package:meatshop_mobile/ui/widgets/swipe_to_delete.dart';
 import 'package:meatshop_mobile/ui/widgets/swipe_tooltip.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -166,24 +168,30 @@ class _CartScreenState extends State<CartScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () => Navigator.pushNamed(
-              context,
-              AppRoutes.butcherDetail,
-              arguments: UnitModel(
-                id: unitId,
-                name: unitName,
-                cnpj: '',
-                street: '',
-                number: '',
-                neighborhood: '',
-                city: '',
-                state: '',
-                zipCode: '',
-                adminId: '',
-                imageUrl: itens.first.unitImageUrl,
-                createdAt: DateTime.now(),
-              ),
-            ),
+            onTap: () async {
+              final unit = await UnitService().getUnitById(unitId);
+              if (!context.mounted) return;
+              Navigator.pushNamed(
+                context,
+                AppRoutes.butcherDetail,
+                arguments:
+                    unit ??
+                    UnitModel(
+                      id: unitId,
+                      name: unitName,
+                      cnpj: '',
+                      street: '',
+                      number: '',
+                      neighborhood: '',
+                      city: '',
+                      state: '',
+                      zipCode: '',
+                      adminId: '',
+                      imageUrl: itens.first.unitImageUrl,
+                      createdAt: DateTime.now(),
+                    ),
+              );
+            },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
               child: Row(
@@ -314,27 +322,45 @@ class _CartScreenState extends State<CartScreen> {
               return confirmed;
             }),
         child: GestureDetector(
-          onTap: () => Navigator.pushNamed(
-            context,
-            AppRoutes.productDetail,
-            arguments: {
-              'product': ProductModel(
-                id: item.productId,
-                name: item.productName,
-                description: '',
-                price: item.unitPrice,
-                unitOfMeasure: item.unitOfMeasure,
-                active: true,
-                brand: '',
-                imageUrl: item.productImageUrl,
-                unitId: item.unitId,
-                unitName: item.unitName,
-                categoryId: '',
-                stockQuantity: 999,
-              ),
-              'cartItem': item,
-            },
-          ),
+          onTap: () async {
+            final doc = await FirebaseFirestore.instance
+                .collection('products')
+                .doc(item.productId)
+                .get();
+
+            final unitDoc = await FirebaseFirestore.instance
+                .collection('units')
+                .doc(item.unitId)
+                .get();
+
+            if (!context.mounted) return;
+
+            final product = doc.exists
+                ? ProductModel.fromFirestore(doc).copyWith(
+                    unitName:
+                        unitDoc.data()?['name'] as String? ?? item.unitName,
+                  )
+                : ProductModel(
+                    id: item.productId,
+                    name: item.productName,
+                    description: '',
+                    price: item.unitPrice,
+                    unitOfMeasure: item.unitOfMeasure,
+                    active: true,
+                    brand: '',
+                    imageUrl: item.productImageUrl,
+                    unitId: item.unitId,
+                    unitName: item.unitName,
+                    categoryId: '',
+                    stockQuantity: 999,
+                  );
+
+            Navigator.pushNamed(
+              context,
+              AppRoutes.productDetail,
+              arguments: {'product': product, 'cartItem': item},
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
             child: Column(

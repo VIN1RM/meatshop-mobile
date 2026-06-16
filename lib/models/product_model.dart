@@ -61,15 +61,20 @@ class ProductModel {
   factory ProductModel.fromFirestore(DocumentSnapshot doc) =>
       ProductModel.fromMap(doc.data() as Map<String, dynamic>? ?? {}, doc.id);
 
-  ProductModel copyWith({String? unitName}) => ProductModel(
+  ProductModel copyWith({
+    String? unitName,
+    String? brand,
+    String? imageUrl,
+    String? description,
+  }) => ProductModel(
     id: id,
     name: name,
-    description: description,
+    description: description ?? this.description,
     price: price,
     unitOfMeasure: unitOfMeasure,
     active: active,
-    brand: brand,
-    imageUrl: imageUrl,
+    brand: brand ?? this.brand,
+    imageUrl: imageUrl ?? this.imageUrl,
     unitId: unitId,
     unitName: unitName ?? this.unitName,
     categoryId: categoryId,

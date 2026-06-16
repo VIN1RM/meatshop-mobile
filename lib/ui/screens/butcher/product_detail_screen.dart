@@ -308,7 +308,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  product.unitName,
+                  'Unidade: ${product.unitName}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF888888),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (product.brand.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                const Icon(
+                  Icons.sell_outlined,
+                  size: 14,
+                  color: Color(0xFF888888),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Marca: ${product.brand}',
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF888888),
