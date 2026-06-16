@@ -16,6 +16,7 @@ class DeliveryOrder {
   final double? destLng;
   final double? unitLat;
   final double? unitLng;
+  final double deliveryFee;
   DeliveryOrderStatus status;
   DeliveryStep step;
 
@@ -34,6 +35,7 @@ class DeliveryOrder {
     this.destLng,
     this.unitLat,
     this.unitLng,
+    this.deliveryFee = 0.0,
     this.status = DeliveryOrderStatus.waiting,
     this.step = DeliveryStep.pickup,
   });
@@ -52,6 +54,7 @@ class DeliveryOrder {
       destLng: (data['dest_lng'] as num?)?.toDouble(),
       items: data['items'] as String? ?? '',
       total: (data['total_amount'] as num?)?.toDouble() ?? 0.0,
+      deliveryFee: (data['delivery_fee'] as num?)?.toDouble() ?? 0.0,
       status: DeliveryOrderStatus.waiting,
       unitAddress: AddressModel.fromMap(
         Map<String, dynamic>.from(data['unit_address'] as Map? ?? {}),

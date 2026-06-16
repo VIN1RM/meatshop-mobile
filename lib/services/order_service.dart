@@ -84,6 +84,7 @@ class OrderService {
     required CheckoutSummaryModel summary,
     required List<CartItemModel> items,
     required double total,
+    Map<String, double> feeByUnit = const {},
   }) async {
     final uid = _uid;
 
@@ -98,6 +99,7 @@ class OrderService {
       final unitId = entry.key;
       final unitItems = entry.value;
       final subtotal = unitItems.fold<double>(0, (s, i) => s + i.subtotal);
+      final fee = feeByUnit[unitId] ?? 0.0;
 
       final order = OrderModel(
         id: '',
@@ -112,7 +114,7 @@ class OrderService {
         subtotal: subtotal,
         deliveryFee: 0,
         discountAmount: 0,
-        totalAmount: subtotal,
+        totalAmount: subtotal + fee,
         isScheduled: summary.isScheduled,
         scheduledDeliveryDate: summary.scheduledDate,
         scheduledTime: summary.scheduledTime,

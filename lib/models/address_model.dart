@@ -9,6 +9,8 @@ class AddressModel {
   final String state;
   final String zipCode;
   final bool isDefault;
+  final double? lat;
+  final double? lng;
 
   const AddressModel({
     required this.id,
@@ -21,6 +23,8 @@ class AddressModel {
     required this.state,
     required this.zipCode,
     required this.isDefault,
+    this.lat,
+    this.lng,
   });
 
   AddressModel copyWith({
@@ -34,6 +38,8 @@ class AddressModel {
     String? state,
     String? zipCode,
     bool? isDefault,
+    double? lat,
+    double? lng,
   }) {
     return AddressModel(
       id: id ?? this.id,
@@ -46,6 +52,8 @@ class AddressModel {
       state: state ?? this.state,
       zipCode: zipCode ?? this.zipCode,
       isDefault: isDefault ?? this.isDefault,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
     );
   }
 
@@ -68,6 +76,8 @@ class AddressModel {
       state: data['state'] as String? ?? '',
       zipCode: data['zip_code'] as String? ?? '',
       isDefault: data['is_default'] as bool? ?? false,
+      lat: (data['lat'] as num?)?.toDouble(),
+      lng: (data['lng'] as num?)?.toDouble(),
     );
   }
 
@@ -83,6 +93,8 @@ class AddressModel {
       state: map['state'] as String? ?? '',
       zipCode: map['zip_code'] as String? ?? '',
       isDefault: map['is_default'] as bool? ?? false,
+      lat: (map['lat'] as num?)?.toDouble(), 
+      lng: (map['lng'] as num?)?.toDouble(), 
     );
   }
 
@@ -96,5 +108,7 @@ class AddressModel {
     'state': state,
     'zip_code': zipCode,
     'is_default': isDefault,
+    if (lat != null) 'lat': lat, 
+    if (lng != null) 'lng': lng, 
   };
 }

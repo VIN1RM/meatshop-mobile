@@ -69,13 +69,22 @@ class OrderCardWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                Text(
-                  'R\$ ${order.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: Color(0xFF2ECC71),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '+ R\$ ${order.deliveryFee.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: Color(0xFF2ECC71),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Text(
+                      'sua taxa',
+                      style: TextStyle(color: Color(0xFF888888), fontSize: 11),
+                    ),
+                  ],
                 ),
               ],
             ),
