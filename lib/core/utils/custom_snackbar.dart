@@ -5,7 +5,7 @@ enum SnackBarType { success, error, warning, info, neutral }
 
 class CustomSnackBar {
   static Color _colorFor(SnackBarType type) => switch (type) {
-    SnackBarType.success => const Color(0xFF2E7D32),
+    SnackBarType.success => const Color(0xFF388E3C),
     SnackBarType.error => Colors.redAccent,
     SnackBarType.warning => Colors.orange,
     SnackBarType.info => const Color(0xFF0072E4),

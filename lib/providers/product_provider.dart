@@ -89,7 +89,7 @@ class ProductsProvider extends ChangeNotifier {
     _hasMore = true;
     _error = null;
     _isLoading = true;
-    notifyListeners();
+    _safeNotify();
 
     try {
       _categoryIds = await _categoryService.fetchCategoryIdsByName(
@@ -99,23 +99,35 @@ class ProductsProvider extends ChangeNotifier {
       _error = 'Não foi possível carregar as categorias. Tente novamente.';
       debugPrint('[ProductsProvider] erro ao buscar categorias: $e');
       _isLoading = false;
-      notifyListeners();
+      _safeNotify();
       return;
     }
 
     await _fetchNextPage();
 
     _isLoading = false;
-    notifyListeners();
+    _safeNotify();
+  }
+
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> loadMore() async {
     if (_isLoadingMore || !_hasMore) return;
     _isLoadingMore = true;
-    notifyListeners();
+    _safeNotify();
     await _fetchNextPage();
     _isLoadingMore = false;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> _fetchNextPage() async {
@@ -144,12 +156,12 @@ class ProductsProvider extends ChangeNotifier {
 
   void updateSort(ProductSortOrder order) {
     _sortOrder = order;
-    notifyListeners();
+    _safeNotify();
   }
 
   void updatePriceRange(ProductPriceRange range) {
     _priceRange = range;
-    notifyListeners();
+    _safeNotify();
   }
 
   void updateFilters({
@@ -158,7 +170,7 @@ class ProductsProvider extends ChangeNotifier {
   }) {
     _sortOrder = order;
     _priceRange = range;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<List<ProductModel>> _resolveUnitNames(List<ProductModel> items) async {

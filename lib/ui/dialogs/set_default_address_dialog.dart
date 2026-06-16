@@ -88,7 +88,7 @@ class SetDefaultAddressDialog extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(true);
                       onConfirm();
                     },
                     style: ElevatedButton.styleFrom(

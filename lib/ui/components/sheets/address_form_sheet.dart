@@ -326,7 +326,8 @@ class _CepField extends StatelessWidget {
       ],
       style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
       onChanged: (v) {
-        if (v.length == 8) onCompleted(v);
+        final digits = v.replaceAll(RegExp(r'\D'), '');
+        if (digits.length == 8) onCompleted(v);
       },
       validator: (v) {
         if (v == null || v.replaceAll(RegExp(r'\D'), '').length < 8)
