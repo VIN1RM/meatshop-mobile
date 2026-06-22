@@ -42,4 +42,5 @@ class AppRoutes {
   static const String search = '/search';
   static const String cart = '/cart';
   static const String accountBlocked = '/account-blocked';
+  static const String review = '/orders/review';
 }

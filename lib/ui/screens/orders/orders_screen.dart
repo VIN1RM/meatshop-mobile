@@ -4,6 +4,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/dialogs/reorder_confirm_dialog.dart';
+import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -44,7 +45,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             child: Image.asset(
               'assets/images/background.png',
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
+              errorBuilder: (_, _, _) =>
                   Container(color: const Color(0xFF1A1A1A)),
             ),
           ),
@@ -441,37 +442,86 @@ class _OrderCard extends StatelessWidget {
                 const SizedBox.shrink(),
 
               if (!isActive)
-                GestureDetector(
-                  onTap: () => onReorder(context, order),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: red,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.replay_rounded,
-                          color: Colors.white,
-                          size: 13,
-                        ),
-                        SizedBox(width: 5),
-                        Text(
-                          'Pedir novamente',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!order.isCancelled && !order.reviewed)
+                      GestureDetector(
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.review,
+                          arguments: ReviewArgs(
+                            order: order,
+
+                            deliveryPersonId: order.deliveryPersonId ?? '',
                           ),
                         ),
-                      ],
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF8E1),
+                            border: Border.all(color: const Color(0xFFFFB800)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.star_rounded,
+                                color: Color(0xFFFFB800),
+                                size: 13,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                'Avaliar',
+                                style: TextStyle(
+                                  color: Color(0xFFFFB800),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    GestureDetector(
+                      onTap: () => onReorder(context, order),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.replay_rounded,
+                              color: Colors.white,
+                              size: 13,
+                            ),
+                            SizedBox(width: 5),
+                            Text(
+                              'Pedir novamente',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
             ],
           ),
@@ -508,7 +558,7 @@ class _UnitAvatar extends StatelessWidget {
             ? Image.network(
                 logoUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _placeholder(),
+                errorBuilder: (_, _, _) => _placeholder(),
               )
             : _placeholder(),
       ),

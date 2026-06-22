@@ -29,6 +29,7 @@ import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen%20.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
+import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   return {
@@ -70,6 +71,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.vehicleSettings: (_) => const VehicleSettingsScreen(),
     AppRoutes.modeSwitch: (_) => const ModeSwitchScreen(),
     AppRoutes.accountBlocked: (_) => const AccountBlockedPage(),
+    AppRoutes.review: (_) => const ReviewScreen(),
     AppRoutes.paymentOrder: (_) => const Scaffold(
       backgroundColor: Color(0xFF2E2E2E),
       body: Center(

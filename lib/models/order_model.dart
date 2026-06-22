@@ -33,6 +33,7 @@ class OrderModel {
   final String addressId;
   final String status;
   final String deliveryStatus;
+  final String? deliveryPersonId;
   final String deliveryType;
   final String paymentStatus;
   final String paymentMethod;
@@ -46,6 +47,7 @@ class OrderModel {
   final DateTime? orderDate;
   final String? cancellationReason;
   final List<OrderItemModel> items;
+  final bool reviewed;
 
   const OrderModel({
     required this.id,
@@ -56,6 +58,7 @@ class OrderModel {
     required this.addressId,
     required this.status,
     required this.deliveryStatus,
+    this.deliveryPersonId,
     required this.deliveryType,
     required this.paymentStatus,
     required this.paymentMethod,
@@ -69,6 +72,7 @@ class OrderModel {
     this.orderDate,
     this.cancellationReason,
     this.items = const [],
+    this.reviewed = false,
   });
 
   bool get isCancelled => status == 'CANCELLED';
@@ -80,6 +84,8 @@ class OrderModel {
     String? unitName,
     String? unitLogoUrl,
     List<OrderItemModel>? items,
+    bool? reviewed,
+    String? deliveryPersonId,
   }) => OrderModel(
     id: id,
     clientId: clientId,
@@ -89,6 +95,7 @@ class OrderModel {
     addressId: addressId,
     status: status,
     deliveryStatus: deliveryStatus,
+    deliveryPersonId: deliveryPersonId ?? this.deliveryPersonId,
     deliveryType: deliveryType,
     paymentStatus: paymentStatus,
     paymentMethod: paymentMethod,
@@ -102,6 +109,7 @@ class OrderModel {
     orderDate: orderDate,
     cancellationReason: cancellationReason,
     items: items ?? this.items,
+    reviewed: reviewed ?? this.reviewed,
   );
 
   Map<String, dynamic> toFirestore() => {
@@ -146,6 +154,7 @@ class OrderModel {
       status: d['status'] as String? ?? 'PENDING',
       deliveryStatus:
           d['delivery_status'] as String? ?? 'WAITING_DELIVERY_PERSON',
+      deliveryPersonId: d['delivery_person_id'] as String?,
       deliveryType: d['delivery_type'] as String? ?? 'DELIVERY',
       paymentStatus: d['payment_status'] as String? ?? 'PENDING',
       paymentMethod: d['payment_method'] as String? ?? '',
@@ -159,6 +168,7 @@ class OrderModel {
       scheduledTime: d['scheduled_time'] as String?,
       orderDate: (d['order_date'] as Timestamp?)?.toDate(),
       cancellationReason: d['cancellation_reason'] as String?,
+      reviewed: d['reviewed'] as bool? ?? false,
     );
   }
 }
