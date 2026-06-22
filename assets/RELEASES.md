@@ -4,6 +4,20 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.10.0] — 22 de Junho de 2026
+### ⭐ Avalie o Açougue e o Entregador Após Cada Pedido
+
+### ✨ Novidades
+- **Avalie Sua Experiência:** Após a entrega do pedido, um botão "Avaliar" aparece no histórico. Ao tocar, você abre um fluxo dedicado para dar uma nota de 1 a 5 estrelas e deixar um comentário sobre o açougue e o entregador.
+- **Dois em Um:** Quando há entregador no pedido, o fluxo passa por duas etapas — primeiro você avalia o açougue, depois o entregador. Um indicador de progresso mostra em qual etapa você está.
+- **Foto Real de Quem Você Está Avaliando:** O cabeçalho de cada etapa exibe a foto real do açougue ou do entregador, deixando claro quem você está avaliando.
+- **Avalie Só Uma Vez:** Cada pedido entregue pode ser avaliado apenas uma vez. Após o envio, o botão "Avaliar" desaparece automaticamente.
+
+### 📈 Melhorias
+- **Média de Estrelas Atualizada em Tempo Real:** As notas dadas pelos clientes são calculadas automaticamente e atualizam a avaliação média do açougue e do entregador logo após o envio.
+
+---
+
 ## [2.9.0] — 16 de Junho de 2026
 ### 🛒 Checkout Melhorado, Taxa de Entrega Correta e Acompanhamento de Pedidos
 

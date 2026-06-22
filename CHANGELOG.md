@@ -11,6 +11,29 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.10.0] - 2026-06-22
+### Sistema de Avaliações de Açougues e Entregadores
+
+### Added
+- `ReviewModel` e `DeliveryReviewModel`: modelos de dados para avaliações de açougue e entregador com serialização completa para o Firestore.
+- `ReviewService`: serviço com persistência no Firestore via batch atômico, prevenção de avaliação duplicada via flag `reviewed` no pedido e recálculo automático de `average_rating` nas coleções `units` e `delivery_persons` após cada avaliação.
+- `ReviewProvider`: provider com gerenciamento de estado de carregamento, erro e controle de submissão.
+- `ReviewScreen`: tela de avaliação em duas etapas — açougue primeiro, entregador em seguida — com seletor de estrelas interativo, campo de comentário opcional (máx. 200 caracteres), indicador de progresso entre etapas, tela de sucesso animada e navegação via `ReviewArgs`.
+- `ReviewArgs`: classe de argumentos de navegação contendo `OrderModel`, `deliveryPersonId`, `unitImageUrl` e `deliveryPersonPhotoUrl`.
+- `_AvatarWidget`: widget reutilizável que exibe foto real do açougue ou do entregador no cabeçalho do card de avaliação, com fallback para ícone genérico em caso de erro ou URL vazia.
+- `_StepIndicator`: widget de indicador de etapas com círculos numerados e linha conectora, exibido apenas quando há entregador para avaliar.
+- `_StarSelector`: widget de seleção de estrelas de 1 a 5 com feedback visual imediato.
+- Botão "Avaliar" adicionado aos cards de pedidos finalizados na `OrdersScreen`, visível apenas para pedidos com status `DELIVERED` e `reviewed: false`.
+- Campo `reviewed` adicionado ao `OrderModel` com suporte a `fromFirestore` e `copyWith`.
+- Campo `deliveryPersonId` adicionado ao `OrderModel` com suporte a `fromFirestore` e `copyWith`.
+- Rota `AppRoutes.review` registrada em `buildRoutes()`.
+- `ReviewProvider` registrado no `MultiProvider`.
+
+### Changed
+- `OrdersScreen`: botão de ação dos pedidos finalizados expandido para exibir "Avaliar" (amarelo) ao lado de "Pedir novamente", com lógica condicional baseada em `isCancelled` e `reviewed`.
+
+---
+
 ## [2.9.0] - 2026-06-16
 ### Checkout, Taxa de Entrega, Acompanhamento de Pedidos e Melhorias no Fluxo de Entrega
 

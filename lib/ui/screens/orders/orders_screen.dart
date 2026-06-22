@@ -452,8 +452,9 @@ class _OrderCard extends StatelessWidget {
                           AppRoutes.review,
                           arguments: ReviewArgs(
                             order: order,
-
                             deliveryPersonId: order.deliveryPersonId ?? '',
+                            unitImageUrl: order.unitLogoUrl,
+                            deliveryPersonPhotoUrl: '',
                           ),
                         ),
                         child: Container(

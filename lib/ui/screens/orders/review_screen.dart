@@ -7,10 +7,16 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 
 class ReviewArgs {
   final OrderModel order;
-
   final String deliveryPersonId;
+  final String unitImageUrl;
+  final String deliveryPersonPhotoUrl;
 
-  const ReviewArgs({required this.order, this.deliveryPersonId = ''});
+  const ReviewArgs({
+    required this.order,
+    this.deliveryPersonId = '',
+    this.unitImageUrl = '',
+    this.deliveryPersonPhotoUrl = '',
+  });
 }
 
 class ReviewScreen extends StatefulWidget {
@@ -21,7 +27,9 @@ class ReviewScreen extends StatefulWidget {
 }
 
 class _ReviewScreenState extends State<ReviewScreen> {
-  static const Color _red = Color(0xFFC0392B);
+  static const Color _red = Color(0xFFBE2C1B);
+  static const Color _surface = Color(0xFF2A2A2A);
+  static const Color _bg = Color.fromARGB(255, 58, 58, 58);
 
   late ReviewArgs _args;
 
@@ -79,7 +87,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
           SnackBarType.error,
           'Selecione uma nota para o entregador.',
         );
-
         return;
       }
       _submit();
@@ -113,16 +120,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
   @override
   Widget build(BuildContext context) {
     if (!_argsLoaded) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF1A1A1A),
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFC0392B)),
+      return Scaffold(
+        backgroundColor: _bg,
+        body: const Center(
+          child: CircularProgressIndicator(color: Color(0xFFBE2C1B)),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: _bg,
       body: Stack(
         children: [
           Positioned(
@@ -134,8 +141,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    Container(color: const Color(0xFF1A1A1A)),
+                errorBuilder: (_, _, _) => Container(color: _bg),
               ),
             ),
           ),
@@ -159,6 +165,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                               setState(() => _deliveryRating = v),
                           onNext: _nextStep,
                           red: _red,
+                          surface: _surface,
+                          unitImageUrl: _args.unitImageUrl,
+                          deliveryPersonPhotoUrl: _args.deliveryPersonPhotoUrl,
                         ),
                 ),
               ],
@@ -183,6 +192,9 @@ class _FormView extends StatelessWidget {
     required this.onDeliveryRating,
     required this.onNext,
     required this.red,
+    required this.surface,
+    required this.unitImageUrl,
+    required this.deliveryPersonPhotoUrl,
   });
 
   final int step;
@@ -196,6 +208,9 @@ class _FormView extends StatelessWidget {
   final ValueChanged<int> onDeliveryRating;
   final VoidCallback onNext;
   final Color red;
+  final Color surface;
+  final String unitImageUrl;
+  final String deliveryPersonPhotoUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -225,11 +240,11 @@ class _FormView extends StatelessWidget {
 
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: surface,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
+                  color: Colors.black.withValues(alpha: 0.25),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -241,20 +256,14 @@ class _FormView extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEAEAEA),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isDeliveryStep
-                            ? Icons.delivery_dining_rounded
-                            : Icons.storefront_rounded,
-                        color: red,
-                        size: 22,
-                      ),
+                    _AvatarWidget(
+                      imageUrl: isDeliveryStep
+                          ? deliveryPersonPhotoUrl
+                          : unitImageUrl,
+                      fallbackIcon: isDeliveryStep
+                          ? Icons.delivery_dining_rounded
+                          : Icons.storefront_rounded,
+                      red: red,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -268,7 +277,7 @@ class _FormView extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
+                              color: Colors.white,
                             ),
                           ),
                           Text(
@@ -277,7 +286,7 @@ class _FormView extends StatelessWidget {
                                 : order.unitName,
                             style: const TextStyle(
                               fontSize: 13,
-                              color: Color(0xFF888888),
+                              color: Color(0xFFB8B8B8),
                             ),
                           ),
                         ],
@@ -317,18 +326,16 @@ class _FormView extends StatelessWidget {
                       : unitCommentCtrl,
                   maxLines: 3,
                   maxLength: 200,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF1A1A1A),
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Deixe um comentário (opcional)...',
                     hintStyle: const TextStyle(
-                      color: Color(0xFFBBBBBB),
+                      color: Color(0xFF7A7A7A),
                       fontSize: 14,
                     ),
+                    counterStyle: const TextStyle(color: Color(0xFF7A7A7A)),
                     filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
+                    fillColor: const Color(0xFF3A3A3A),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -343,7 +350,7 @@ class _FormView extends StatelessWidget {
           const SizedBox(height: 24),
 
           Consumer<ReviewProvider>(
-            builder: (_, provider, __) {
+            builder: (_, provider, _) {
               final isLast = !hasDelivery || step == 1;
               return SizedBox(
                 width: double.infinity,
@@ -352,7 +359,7 @@ class _FormView extends StatelessWidget {
                   onPressed: provider.isLoading ? null : onNext,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: red,
-                    disabledBackgroundColor: red.withOpacity(0.5),
+                    disabledBackgroundColor: red.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -393,9 +400,10 @@ class _FormView extends StatelessWidget {
                 child: const Text(
                   'Avaliar apenas o açougue',
                   style: TextStyle(
-                    color: Color(0xFF888888),
+                    color: Color(0xFF7A7A7A),
                     fontSize: 13,
                     decoration: TextDecoration.underline,
+                    decorationColor: Color(0xFF7A7A7A),
                   ),
                 ),
               ),
@@ -440,7 +448,7 @@ class _SuccessView extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: const Color(0xFF27AE60).withOpacity(0.1),
+                color: const Color(0xFF27AE60).withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -453,7 +461,7 @@ class _SuccessView extends StatelessWidget {
             const Text(
               'Avaliação enviada!',
               style: TextStyle(
-                color: Color(0xFF1A1A1A),
+                color: Colors.white,
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
               ),
@@ -462,7 +470,7 @@ class _SuccessView extends StatelessWidget {
             const Text(
               'Obrigado pelo feedback.\nEle ajuda outros clientes e melhora o serviço.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFF888888), fontSize: 14),
+              style: TextStyle(color: Color(0xFFB8B8B8), fontSize: 14),
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -471,7 +479,7 @@ class _SuccessView extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onDone,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC0392B),
+                  backgroundColor: const Color(0xFFBE2C1B),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -516,7 +524,7 @@ class _StarSelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Icon(
               filled ? Icons.star_rounded : Icons.star_border_rounded,
-              color: filled ? const Color(0xFFFFB800) : const Color(0xFFDDDDDD),
+              color: filled ? const Color(0xFFFFB800) : const Color(0xFF525252),
               size: size,
             ),
           ),
@@ -545,7 +553,7 @@ class _StepIndicator extends StatelessWidget {
           return Expanded(
             child: Container(
               height: 2,
-              color: i ~/ 2 < current ? red : const Color(0xFF444444),
+              color: i ~/ 2 < current ? red : const Color(0xFF3A3A3A),
             ),
           );
         }
@@ -557,7 +565,7 @@ class _StepIndicator extends StatelessWidget {
           height: 28,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: done || active ? red : const Color(0xFF444444),
+            color: done || active ? red : const Color(0xFF3A3A3A),
           ),
           child: Center(
             child: done
@@ -573,6 +581,40 @@ class _StepIndicator extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+}
+
+class _AvatarWidget extends StatelessWidget {
+  const _AvatarWidget({
+    required this.imageUrl,
+    required this.fallbackIcon,
+    required this.red,
+  });
+
+  final String imageUrl;
+  final IconData fallbackIcon;
+  final Color red;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: const BoxDecoration(
+        color: Color(0xFF3A3A3A),
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(
+        child: imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) =>
+                    Icon(fallbackIcon, color: red, size: 22),
+              )
+            : Icon(fallbackIcon, color: red, size: 22),
+      ),
     );
   }
 }
