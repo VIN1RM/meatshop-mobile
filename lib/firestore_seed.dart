@@ -123,6 +123,8 @@ Future<void> _seedUnits() async {
     'admin_id': '',
     'admin_ref': null,
     'created_at': FieldValue.serverTimestamp(),
+    'average_rating': 0.0,
+    'review_count': 0,
   });
 
   // Subcoleção: categories

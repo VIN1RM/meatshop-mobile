@@ -13,6 +13,7 @@ class UnitModel {
   final String imageUrl;
   final String coverUrl;
   final DateTime createdAt;
+  final double averageRating;
 
   UnitModel({
     required this.id,
@@ -29,6 +30,7 @@ class UnitModel {
     required this.imageUrl,
     this.coverUrl = '',
     required this.createdAt,
+    this.averageRating = 0.0,
   });
 
   String get formattedAddress =>
@@ -50,6 +52,7 @@ class UnitModel {
       'image_url': imageUrl,
       'cover_url': coverUrl,
       'created_at': createdAt,
+      'average_rating': averageRating,
     };
   }
 
@@ -69,6 +72,7 @@ class UnitModel {
       imageUrl: map['image_url'] ?? '',
       coverUrl: map['cover_url'] ?? '',
       createdAt: (map['created_at'] as dynamic)?.toDate() ?? DateTime.now(),
+      averageRating: (map['average_rating'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

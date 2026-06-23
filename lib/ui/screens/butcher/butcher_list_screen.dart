@@ -57,8 +57,13 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
         resultado.sort((a, b) => a.name.compareTo(b.name));
       case AcougueOrdem.nomeZA:
         resultado.sort((a, b) => b.name.compareTo(a.name));
-      default:
-        break;
+      case AcougueOrdem.avaliacaoMaior:
+        resultado.sort((a, b) => b.averageRating.compareTo(a.averageRating));
+      case AcougueOrdem.avaliacaoMenor:
+        resultado.sort((a, b) => a.averageRating.compareTo(b.averageRating));
+      case AcougueOrdem.precoMaior:
+      case AcougueOrdem.precoMenor:
+        break; // sem campo de preço em UnitModel por ora
     }
 
     return resultado;

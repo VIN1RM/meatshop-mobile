@@ -511,7 +511,27 @@ class _HomeBodyState extends State<HomeBody> {
               ),
             ),
 
-            const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 18),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.star_rounded,
+                  color: Color(0xFFFFB800),
+                  size: 16,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  u.averageRating > 0
+                      ? u.averageRating.toStringAsFixed(1)
+                      : '–',
+                  style: const TextStyle(
+                    color: Color(0xFFFFB800),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

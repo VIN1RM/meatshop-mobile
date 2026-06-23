@@ -13,7 +13,9 @@ class UnitService {
   }
 
   Future<List<UnitModel>> getAllUnits() async {
-    final snapshot = await _unitsRef.get();
+    final snapshot = await _unitsRef
+        .orderBy('average_rating', descending: true)
+        .get();
     return snapshot.docs
         .map(
           (doc) =>
