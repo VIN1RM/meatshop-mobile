@@ -21,7 +21,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
   static const Color _bg = Color(0xFF2E2E2E);
   static const Color _white = Colors.white;
 
-  AcougueOrdem _ordemAtual = AcougueOrdem.avaliacaoMaior;
+  AcougueFilter _filtro = const AcougueFilter();
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -38,40 +38,59 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
     super.dispose();
   }
 
-  List<UnitModel> _ordenar(List<UnitModel> lista) {
-    final copia = List<UnitModel>.from(lista);
-    switch (_ordemAtual) {
+  List<UnitModel> _aplicarFiltro(List<UnitModel> lista, UnitProvider provider) {
+    var resultado = List<UnitModel>.from(lista);
+
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isNotEmpty) {
+      resultado = resultado
+          .where((u) => u.name.toLowerCase().contains(query))
+          .toList();
+    }
+
+    if (_filtro.apenasAbertos) {
+      resultado = resultado.where((u) => provider.isOpenNow(u.id)).toList();
+    }
+
+    switch (_filtro.ordem) {
       case AcougueOrdem.nomeAZ:
-        copia.sort((a, b) => a.name.compareTo(b.name));
+        resultado.sort((a, b) => a.name.compareTo(b.name));
       case AcougueOrdem.nomeZA:
-        copia.sort((a, b) => b.name.compareTo(a.name));
+        resultado.sort((a, b) => b.name.compareTo(a.name));
       default:
         break;
     }
-    return copia;
+
+    return resultado;
   }
 
-  String get _ordemLabel {
-    switch (_ordemAtual) {
+  String get _filtroLabel {
+    final parts = <String>[];
+    if (_filtro.apenasAbertos) parts.add('Abertos agora');
+    switch (_filtro.ordem) {
       case AcougueOrdem.nomeAZ:
-        return 'A → Z';
+        parts.add('A → Z');
       case AcougueOrdem.nomeZA:
-        return 'Z → A';
+        parts.add('Z → A');
       case AcougueOrdem.avaliacaoMaior:
-        return 'Maior avaliação';
+        parts.add('Maior avaliação');
       case AcougueOrdem.avaliacaoMenor:
-        return 'Menor avaliação';
+        parts.add('Menor avaliação');
       case AcougueOrdem.precoMaior:
-        return 'Maior preço';
+        parts.add('Maior preço');
       case AcougueOrdem.precoMenor:
-        return 'Menor preço';
+        parts.add('Menor preço');
     }
+    return parts.join(' · ');
   }
+
+  bool get _filtroAtivo =>
+      _filtro.apenasAbertos || _filtro.ordem != AcougueOrdem.avaliacaoMaior;
 
   Future<void> _abrirFiltro() async {
-    final resultado = await AcougueFilterSheet.show(context, _ordemAtual);
-    if (resultado != null && resultado != _ordemAtual) {
-      setState(() => _ordemAtual = resultado);
+    final resultado = await AcougueFilterSheet.show(context, _filtro);
+    if (resultado != null && resultado != _filtro) {
+      setState(() => _filtro = resultado);
     }
   }
 
@@ -115,6 +134,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                   controller: _searchController,
                   hintText: 'Procure por um estabelecimento',
                   showBackButton: true,
+                  onChanged: (_) => setState(() {}),
                 ),
                 Expanded(
                   child: Column(
@@ -138,13 +158,31 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: _surface,
+                                  color: _filtroAtivo ? _red : _surface,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(
-                                  Icons.filter_list_rounded,
-                                  color: _white,
-                                  size: 22,
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    const Icon(
+                                      Icons.filter_list_rounded,
+                                      color: _white,
+                                      size: 22,
+                                    ),
+                                    if (_filtroAtivo)
+                                      Positioned(
+                                        top: -4,
+                                        right: -4,
+                                        child: Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: Color(0xFFFFB800),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -161,15 +199,15 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: _red.withOpacity(0.15),
+                              color: _red.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: _red.withOpacity(0.4),
+                                color: _red.withValues(alpha: 0.4),
                                 width: 1,
                               ),
                             ),
                             child: Text(
-                              _ordemLabel,
+                              _filtroLabel,
                               style: const TextStyle(
                                 color: _red,
                                 fontSize: 12,
@@ -196,13 +234,59 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                                 ),
                               );
                             }
-                            final lista = _ordenar(provider.units);
+                            final lista = _aplicarFiltro(
+                              provider.units,
+                              provider,
+                            );
+                            if (lista.isEmpty) {
+                              return Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.search_off_rounded,
+                                      color: Colors.white24,
+                                      size: 48,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      _filtro.apenasAbertos
+                                          ? 'Nenhum açougue aberto agora.'
+                                          : 'Nenhum resultado encontrado.',
+                                      style: const TextStyle(
+                                        color: Colors.white38,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    if (_filtroAtivo) ...[
+                                      const SizedBox(height: 8),
+                                      GestureDetector(
+                                        onTap: () => setState(
+                                          () => _filtro = const AcougueFilter(),
+                                        ),
+                                        child: const Text(
+                                          'Limpar filtros',
+                                          style: TextStyle(
+                                            color: Color(0xFFC0392B),
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor: Color(0xFFC0392B),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              );
+                            }
                             return ListView.builder(
                               physics: const BouncingScrollPhysics(),
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                               itemCount: lista.length,
                               itemBuilder: (_, i) =>
-                                  _buildAcougueItem(lista[i]),
+                                  _buildAcougueItem(lista[i], provider),
                             );
                           },
                         ),
@@ -218,44 +302,86 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
     );
   }
 
-  Widget _buildAcougueItem(UnitModel u) {
+  Widget _buildAcougueItem(UnitModel u, UnitProvider provider) {
+    final hours = provider.hoursFor(u.id);
+    final isOpen = provider.isOpenNow(u.id);
+    final hasHours = hours != null;
+
     return GestureDetector(
       onTap: () =>
           Navigator.pushNamed(context, AppRoutes.butcherDetail, arguments: u),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 5),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: _surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
+          border: hasHours
+              ? Border(
+                  left: BorderSide(
+                    color: isOpen
+                        ? const Color(0xFF27AE60)
+                        : const Color(0xFFC0392B),
+                    width: 3,
+                  ),
+                )
+              : null,
         ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: u.imageUrl.isNotEmpty
-                  ? Image.network(
-                      u.imageUrl,
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _logoFallback(),
-                    )
-                  : _logoFallback(),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                u.name,
-                style: const TextStyle(
-                  color: _white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: u.imageUrl.isNotEmpty
+                    ? Image.network(
+                        u.imageUrl,
+                        width: 52,
+                        height: 52,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _logoFallback(),
+                      )
+                    : _logoFallback(),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      u.name,
+                      style: const TextStyle(
+                        color: _white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    if (u.city.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        u.city,
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                    if (hasHours) ...[
+                      const SizedBox(height: 5),
+                      _OpenStatusBadge(isOpen: isOpen, hours: hours),
+                    ],
+                  ],
                 ),
               ),
-            ),
-            const Icon(Icons.star_rounded, color: Color(0xFFFFB800), size: 18),
-          ],
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white38,
+                size: 20,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -263,8 +389,8 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
 
   Widget _logoFallback() {
     return Container(
-      width: 48,
-      height: 48,
+      width: 52,
+      height: 52,
       decoration: BoxDecoration(
         color: const Color(0xFF555555),
         borderRadius: BorderRadius.circular(10),
@@ -274,6 +400,46 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
         color: Colors.white38,
         size: 22,
       ),
+    );
+  }
+}
+
+class _OpenStatusBadge extends StatelessWidget {
+  const _OpenStatusBadge({required this.isOpen, required this.hours});
+
+  final bool isOpen;
+  final dynamic hours;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isOpen ? const Color(0xFF27AE60) : const Color(0xFFC0392B);
+    final label = isOpen ? 'Aberto agora' : 'Fechado';
+    final sub = isOpen
+        ? 'Fecha às ${hours.closingTime}'
+        : hours.isOpen
+        ? 'Abre às ${hours.openingTime}'
+        : 'Fechado hoje';
+
+    return Row(
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            '$label · $sub',
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

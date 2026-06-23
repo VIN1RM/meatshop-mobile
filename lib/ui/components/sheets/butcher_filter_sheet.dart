@@ -9,27 +9,53 @@ enum AcougueOrdem {
   precoMenor,
 }
 
+class AcougueFilter {
+  final AcougueOrdem ordem;
+  final bool apenasAbertos;
+
+  const AcougueFilter({
+    this.ordem = AcougueOrdem.avaliacaoMaior,
+    this.apenasAbertos = false,
+  });
+
+  AcougueFilter copyWith({AcougueOrdem? ordem, bool? apenasAbertos}) {
+    return AcougueFilter(
+      ordem: ordem ?? this.ordem,
+      apenasAbertos: apenasAbertos ?? this.apenasAbertos,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is AcougueFilter &&
+      other.ordem == ordem &&
+      other.apenasAbertos == apenasAbertos;
+
+  @override
+  int get hashCode => Object.hash(ordem, apenasAbertos);
+}
+
 class AcougueFilterSheet extends StatefulWidget {
-  final AcougueOrdem ordemAtual;
-  final ValueChanged<AcougueOrdem> onAplicar;
+  final AcougueFilter filtroAtual;
+  final ValueChanged<AcougueFilter> onAplicar;
 
   const AcougueFilterSheet({
     super.key,
-    required this.ordemAtual,
+    required this.filtroAtual,
     required this.onAplicar,
   });
 
-  static Future<AcougueOrdem?> show(
+  static Future<AcougueFilter?> show(
     BuildContext context,
-    AcougueOrdem ordemAtual,
+    AcougueFilter filtroAtual,
   ) {
-    return showModalBottomSheet<AcougueOrdem>(
+    return showModalBottomSheet<AcougueFilter>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (_) => AcougueFilterSheet(
-        ordemAtual: ordemAtual,
-        onAplicar: (ordem) => Navigator.pop(context, ordem),
+        filtroAtual: filtroAtual,
+        onAplicar: (f) => Navigator.pop(context, f),
       ),
     );
   }
@@ -44,12 +70,12 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
   static const Color _surface = Color(0xFFEAEAEA);
   static const Color _white = Colors.white;
 
-  late AcougueOrdem _selecionado;
+  late AcougueFilter _filtro;
 
   @override
   void initState() {
     super.initState();
-    _selecionado = widget.ordemAtual;
+    _filtro = widget.filtroAtual;
   }
 
   @override
@@ -82,7 +108,6 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                 ),
               ),
               const SizedBox(height: 20),
-
               Row(
                 children: [
                   const Icon(Icons.filter_list_rounded, color: _red, size: 22),
@@ -90,7 +115,7 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                   const Text(
                     'Filtrar Açougues',
                     style: TextStyle(
-                      color: const Color(0xFF1A1A1A),
+                      color: Color(0xFF1A1A1A),
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.4,
@@ -101,16 +126,91 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                     onTap: () => Navigator.pop(context),
                     child: const Icon(
                       Icons.close,
-                      color: const Color(0xFFAAAAAA),
+                      color: Color(0xFFAAAAAA),
                       size: 22,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
+              _sectionLabel('Disponibilidade'),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () => setState(
+                  () => _filtro = _filtro.copyWith(
+                    apenasAbertos: !_filtro.apenasAbertos,
+                  ),
+                ),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _filtro.apenasAbertos
+                        ? const Color(0xFF27AE60).withValues(alpha: 0.1)
+                        : _surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _filtro.apenasAbertos
+                          ? const Color(0xFF27AE60)
+                          : const Color(0xFFCCCCCC),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: _filtro.apenasAbertos
+                              ? const Color(0xFF27AE60)
+                              : const Color(0xFFAAAAAA),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Apenas abertos agora',
+                          style: TextStyle(
+                            color: _filtro.apenasAbertos
+                                ? const Color(0xFF1E7E46)
+                                : const Color(0xFF555555),
+                            fontSize: 14,
+                            fontWeight: _filtro.apenasAbertos
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 180),
+                        child: _filtro.apenasAbertos
+                            ? const Icon(
+                                Icons.check_circle_rounded,
+                                color: Color(0xFF27AE60),
+                                size: 20,
+                                key: ValueKey('checked'),
+                              )
+                            : const Icon(
+                                Icons.radio_button_unchecked_rounded,
+                                color: Color(0xFFCCCCCC),
+                                size: 20,
+                                key: ValueKey('unchecked'),
+                              ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
               _sectionLabel('Ordem Alfabética'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   _optionChip(
@@ -127,10 +227,10 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
 
+              const SizedBox(height: 20),
               _sectionLabel('Avaliação'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   _optionChip(
@@ -146,10 +246,10 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
 
+              const SizedBox(height: 20),
               _sectionLabel('Preço'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   _optionChip(
@@ -165,30 +265,63 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
 
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => widget.onAplicar(_selecionado),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _red,
-                    foregroundColor: _white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _filtro = const AcougueFilter();
+                        });
+                      },
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: _surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFCCCCCC)),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Limpar',
+                            style: TextStyle(
+                              color: Color(0xFF555555),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                    elevation: 0,
                   ),
-                  child: const Text(
-                    'Aplicar Filtro',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.3,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => widget.onAplicar(_filtro),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _red,
+                          foregroundColor: _white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Aplicar Filtro',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -201,7 +334,7 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
     return Text(
       label,
       style: const TextStyle(
-        color: const Color(0xFF888888),
+        color: Color(0xFF888888),
         fontSize: 12,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.8,
@@ -215,10 +348,10 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
     required AcougueOrdem valor,
     bool iconFlipped = false,
   }) {
-    final selected = _selecionado == valor;
+    final selected = _filtro.ordem == valor;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _selecionado = valor),
+        onTap: () => setState(() => _filtro = _filtro.copyWith(ordem: valor)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -242,12 +375,15 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                 ),
               ),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected ? _white : const Color(0xFF555555),
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? _white : const Color(0xFF555555),
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

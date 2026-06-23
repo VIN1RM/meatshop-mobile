@@ -5,7 +5,7 @@ class BusinessHoursService {
   final FirebaseFirestore _db;
 
   BusinessHoursService({FirebaseFirestore? db})
-      : _db = db ?? FirebaseFirestore.instance;
+    : _db = db ?? FirebaseFirestore.instance;
 
   Future<BusinessHoursModel?> fetchToday(String unitId) async {
     final weekday = BusinessHoursModel.todayWeekday();
@@ -18,5 +18,12 @@ class BusinessHoursService {
 
     if (!doc.exists || doc.data() == null) return null;
     return BusinessHoursModel.fromMap(doc.data()!);
+  }
+
+  Future<Map<String, BusinessHoursModel?>> fetchAllToday(
+    List<String> unitIds,
+  ) async {
+    final results = await Future.wait(unitIds.map((id) => fetchToday(id)));
+    return {for (var i = 0; i < unitIds.length; i++) unitIds[i]: results[i]};
   }
 }
