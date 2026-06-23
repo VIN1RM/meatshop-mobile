@@ -1,255 +1,118 @@
 import 'package:flutter/material.dart';
 
-enum CortesOrdem { nomeAZ, nomeZA, precoMaior, precoMenor }
+enum CutsOrder { nameAZ, nameZA, priceHigh, priceLow }
 
-enum CortesFaixaPreco { todas, ate20, de20a50, acima50 }
+enum CutsPriceRange { all, upTo20, from20to50, above50 }
 
-class CortesFilter {
-  final CortesOrdem ordem;
-  final CortesFaixaPreco faixaPreco;
+class CutsFilter {
+  final CutsOrder order;
+  final CutsPriceRange priceRange;
 
-  const CortesFilter({
-    this.ordem = CortesOrdem.nomeAZ,
-    this.faixaPreco = CortesFaixaPreco.todas,
+  const CutsFilter({
+    this.order = CutsOrder.nameAZ,
+    this.priceRange = CutsPriceRange.all,
   });
 
-  CortesFilter copyWith({CortesOrdem? ordem, CortesFaixaPreco? faixaPreco}) {
-    return CortesFilter(
-      ordem: ordem ?? this.ordem,
-      faixaPreco: faixaPreco ?? this.faixaPreco,
+  CutsFilter copyWith({CutsOrder? order, CutsPriceRange? priceRange}) {
+    return CutsFilter(
+      order: order ?? this.order,
+      priceRange: priceRange ?? this.priceRange,
     );
   }
 
-  bool get temFiltroAtivo => faixaPreco != CortesFaixaPreco.todas;
+  bool get hasActiveFilter => priceRange != CutsPriceRange.all;
 
-  bool aplicarFaixa(double preco) {
-    switch (faixaPreco) {
-      case CortesFaixaPreco.todas:
-        return true;
-      case CortesFaixaPreco.ate20:
-        return preco <= 20;
-      case CortesFaixaPreco.de20a50:
-        return preco > 20 && preco <= 50;
-      case CortesFaixaPreco.acima50:
-        return preco > 50;
-    }
-  }
+  bool matchesPriceRange(double price) => switch (priceRange) {
+    CutsPriceRange.all => true,
+    CutsPriceRange.upTo20 => price <= 20,
+    CutsPriceRange.from20to50 => price > 20 && price <= 50,
+    CutsPriceRange.above50 => price > 50,
+  };
 }
 
-class CortesFilterSheet extends StatefulWidget {
-  final CortesFilter filtroAtual;
-  final ValueChanged<CortesFilter> onAplicar;
+class CutsFilterSheet extends StatefulWidget {
+  final CutsFilter currentFilter;
+  final ValueChanged<CutsFilter> onApply;
 
-  const CortesFilterSheet({
+  const CutsFilterSheet({
     super.key,
-    required this.filtroAtual,
-    required this.onAplicar,
+    required this.currentFilter,
+    required this.onApply,
   });
 
-  static Future<CortesFilter?> show(
+  static Future<CutsFilter?> show(
     BuildContext context,
-    CortesFilter filtroAtual,
+    CutsFilter currentFilter,
   ) {
-    return showModalBottomSheet<CortesFilter>(
+    return showModalBottomSheet<CutsFilter>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => CortesFilterSheet(
-        filtroAtual: filtroAtual,
-        onAplicar: (filtro) => Navigator.pop(context, filtro),
+      builder: (_) => CutsFilterSheet(
+        currentFilter: currentFilter,
+        onApply: (filter) => Navigator.pop(context, filter),
       ),
     );
   }
 
   @override
-  State<CortesFilterSheet> createState() => _CortesFilterSheetState();
+  State<CutsFilterSheet> createState() => _CutsFilterSheetState();
 }
 
-class _CortesFilterSheetState extends State<CortesFilterSheet> {
+class _CutsFilterSheetState extends State<CutsFilterSheet> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _bg = Color(0xFFF5F5F5);
   static const Color _surface = Color(0xFFEAEAEA);
   static const Color _dark = Color(0xFF1A1A1A);
   static const Color _grey = Color(0xFF555555);
+  static const Color _white = Colors.white;
 
-  late CortesFilter _filtro;
+  late CutsFilter _filter;
 
   @override
   void initState() {
     super.initState();
-    _filtro = widget.filtroAtual;
+    _filter = widget.currentFilter;
   }
 
-  void _limpar() {
-    setState(() => _filtro = const CortesFilter());
-  }
+  void _clearFilter() => setState(() => _filter = const CutsFilter());
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: _bg,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: EdgeInsets.fromLTRB(
-          20,
-          16,
-          20,
-          MediaQuery.of(context).padding.bottom + 16,
-        ),
-        child: SingleChildScrollView(
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.92),
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: _bg,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 32 + bottomInset),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Color(0xFFDDDDDD),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              _buildHandle(),
               const SizedBox(height: 20),
-
-              Row(
-                children: [
-                  const Icon(Icons.filter_list_rounded, color: _red, size: 22),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Filtrar Cortes',
-                    style: TextStyle(
-                      color: _dark,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (_filtro.temFiltroAtivo)
-                    GestureDetector(
-                      onTap: _limpar,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _red.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: _red.withValues(alpha: 0.4),
-                            width: 1,
-                          ),
-                        ),
-                        child: const Text(
-                          'Limpar',
-                          style: TextStyle(
-                            color: _red,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.close,
-                      color: Color(0xFF999999),
-                      size: 22,
-                    ),
-                  ),
-                ],
-              ),
+              _buildHeader(),
               const SizedBox(height: 24),
-
-              _sectionLabel('ORDEM ALFABÉTICA'),
+              _buildSectionLabel('ORDEM ALFABÉTICA'),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  _ordemChip(
-                    label: 'A → Z',
-                    icon: Icons.sort_by_alpha_rounded,
-                    valor: CortesOrdem.nomeAZ,
-                  ),
-                  const SizedBox(width: 10),
-                  _ordemChip(
-                    label: 'Z → A',
-                    icon: Icons.sort_by_alpha_rounded,
-                    valor: CortesOrdem.nomeZA,
-                    iconFlipped: true,
-                  ),
-                ],
-              ),
+              _buildAlphaOrderRow(),
               const SizedBox(height: 18),
-
-              _sectionLabel('ORDENAR POR PREÇO'),
+              _buildSectionLabel('ORDENAR POR PREÇO'),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  _ordemChip(
-                    label: 'Maior preço',
-                    icon: Icons.arrow_upward_rounded,
-                    valor: CortesOrdem.precoMaior,
-                  ),
-                  const SizedBox(width: 10),
-                  _ordemChip(
-                    label: 'Menor preço',
-                    icon: Icons.arrow_downward_rounded,
-                    valor: CortesOrdem.precoMenor,
-                  ),
-                ],
-              ),
+              _buildPriceOrderRow(),
               const SizedBox(height: 18),
-
-              _sectionLabel('FAIXA DE PREÇO'),
+              _buildSectionLabel('FAIXA DE PREÇO'),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _faixaChip(label: 'Até R\$20', valor: CortesFaixaPreco.ate20),
-                  _faixaChip(
-                    label: 'R\$20–R\$50',
-                    valor: CortesFaixaPreco.de20a50,
-                  ),
-                  _faixaChip(
-                    label: 'Acima R\$50',
-                    valor: CortesFaixaPreco.acima50,
-                  ),
-                ],
-              ),
+              _buildPriceRangeChips(),
               const SizedBox(height: 28),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => widget.onAplicar(_filtro),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _red,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Aplicar Filtro',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
-              ),
+              _buildActionButtons(),
             ],
           ),
         ),
@@ -257,7 +120,154 @@ class _CortesFilterSheetState extends State<CortesFilterSheet> {
     );
   }
 
-  Widget _sectionLabel(String label) {
+  Widget _buildHandle() {
+    return Center(
+      child: Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: const Color(0xFFDDDDDD),
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        const Icon(Icons.filter_list_rounded, color: _red, size: 22),
+        const SizedBox(width: 8),
+        const Text(
+          'Filtrar Cortes',
+          style: TextStyle(
+            color: _dark,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.4,
+          ),
+        ),
+        const Spacer(),
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: const Icon(Icons.close, color: Color(0xFF999999), size: 22),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAlphaOrderRow() {
+    return Row(
+      children: [
+        _buildOrderChip(
+          label: 'A → Z',
+          icon: Icons.sort_by_alpha_rounded,
+          value: CutsOrder.nameAZ,
+        ),
+        const SizedBox(width: 10),
+        _buildOrderChip(
+          label: 'Z → A',
+          icon: Icons.sort_by_alpha_rounded,
+          value: CutsOrder.nameZA,
+          flipIcon: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceOrderRow() {
+    return Row(
+      children: [
+        _buildOrderChip(
+          label: 'Maior preço',
+          icon: Icons.arrow_upward_rounded,
+          value: CutsOrder.priceHigh,
+        ),
+        const SizedBox(width: 10),
+        _buildOrderChip(
+          label: 'Menor preço',
+          icon: Icons.arrow_downward_rounded,
+          value: CutsOrder.priceLow,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRangeChips() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _buildPriceRangeChip(label: 'Até R\$20', value: CutsPriceRange.upTo20),
+        _buildPriceRangeChip(
+          label: 'R\$20–R\$50',
+          value: CutsPriceRange.from20to50,
+        ),
+        _buildPriceRangeChip(
+          label: 'Acima R\$50',
+          value: CutsPriceRange.above50,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: _clearFilter,
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: _surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFDDDDDD)),
+              ),
+              child: const Center(
+                child: Text(
+                  'Limpar',
+                  style: TextStyle(
+                    color: Color(0xFF555555),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: SizedBox(
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () => widget.onApply(_filter),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _red,
+                foregroundColor: _white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Aplicar Filtro',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionLabel(String label) {
     return Text(
       label,
       style: const TextStyle(
@@ -269,25 +279,25 @@ class _CortesFilterSheetState extends State<CortesFilterSheet> {
     );
   }
 
-  Widget _ordemChip({
+  Widget _buildOrderChip({
     required String label,
     required IconData icon,
-    required CortesOrdem valor,
-    bool iconFlipped = false,
+    required CutsOrder value,
+    bool flipIcon = false,
   }) {
-    final selected = _filtro.ordem == valor;
+    final isSelected = _filter.order == value;
+
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _filtro = _filtro.copyWith(ordem: valor)),
+        onTap: () => setState(() => _filter = _filter.copyWith(order: value)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
-            color: selected ? _red : _surface,
+            color: isSelected ? _red : _surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selected ? _red : const Color(0xFFDDDDDD),
-
+              color: isSelected ? _red : const Color(0xFFDDDDDD),
               width: 1.5,
             ),
           ),
@@ -295,21 +305,16 @@ class _CortesFilterSheetState extends State<CortesFilterSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Transform.scale(
-                scaleX: iconFlipped ? -1 : 1,
-                child: Icon(
-                  icon,
-                  color: selected ? Colors.white : _grey,
-                  size: 18,
-                ),
+                scaleX: flipIcon ? -1 : 1,
+                child: Icon(icon, color: isSelected ? _white : _grey, size: 18),
               ),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
-                  color: selected ? Colors.white : _dark,
-
+                  color: isSelected ? _white : _dark,
                   fontSize: 13,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ],
@@ -319,26 +324,27 @@ class _CortesFilterSheetState extends State<CortesFilterSheet> {
     );
   }
 
-  Widget _faixaChip({required String label, required CortesFaixaPreco valor}) {
-    final selected = _filtro.faixaPreco == valor;
+  Widget _buildPriceRangeChip({
+    required String label,
+    required CutsPriceRange value,
+  }) {
+    final isSelected = _filter.priceRange == value;
+
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 90),
       child: GestureDetector(
         onTap: () => setState(() {
-          final nova = _filtro.faixaPreco == valor
-              ? CortesFaixaPreco.todas
-              : valor;
-          _filtro = _filtro.copyWith(faixaPreco: nova);
+          final next = _filter.priceRange == value ? CutsPriceRange.all : value;
+          _filter = _filter.copyWith(priceRange: next);
         }),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? _red : _surface,
+            color: isSelected ? _red : _surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selected ? _red : const Color(0xFFDDDDDD),
-
+              color: isSelected ? _red : const Color(0xFFDDDDDD),
               width: 1.5,
             ),
           ),
@@ -346,10 +352,9 @@ class _CortesFilterSheetState extends State<CortesFilterSheet> {
             child: Text(
               label,
               style: TextStyle(
-                color: selected ? Colors.white : _dark,
-
+                color: isSelected ? _white : _dark,
                 fontSize: 12,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ),

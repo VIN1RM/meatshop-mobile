@@ -29,6 +29,7 @@ class CutsScreen extends StatelessWidget {
 
 class _CutsView extends StatefulWidget {
   final String title;
+
   const _CutsView({required this.title});
 
   @override
@@ -64,49 +65,53 @@ class _CutsViewState extends State<_CutsView> {
     }
   }
 
-  Future<void> _abrirFiltro() async {
+  Future<void> _openFilter() async {
     final provider = context.read<ProductsProvider>();
 
-    final filtroAtual = CortesFilter(
-      ordem: _toSheetOrder(provider.sortOrder),
-      faixaPreco: _toSheetRange(provider.priceRange),
+    final currentFilter = CutsFilter(
+      order: _toSheetOrder(provider.sortOrder),
+      priceRange: _toSheetRange(provider.priceRange),
     );
 
-    final resultado = await CortesFilterSheet.show(context, filtroAtual);
-    if (resultado != null) {
+    final result = await CutsFilterSheet.show(context, currentFilter);
+    if (result != null) {
       provider.updateFilters(
-        order: _fromSheetOrder(resultado.ordem),
-        range: _fromSheetRange(resultado.faixaPreco),
+        order: _fromSheetOrder(result.order),
+        range: _fromSheetRange(result.priceRange),
       );
     }
   }
 
-  String _ordemLabel(ProductsProvider p) {
-    final labels = <String>[];
+  bool _isFilterActive(ProductsProvider provider) =>
+      provider.priceRange != ProductPriceRange.all ||
+      provider.sortOrder != ProductSortOrder.nameAZ;
 
-    switch (p.sortOrder) {
+  String _buildFilterLabel(ProductsProvider provider) {
+    final parts = <String>[];
+
+    switch (provider.sortOrder) {
       case ProductSortOrder.nameAZ:
-        labels.add('A → Z');
+        parts.add('A → Z');
       case ProductSortOrder.nameZA:
-        labels.add('Z → A');
+        parts.add('Z → A');
       case ProductSortOrder.priceAsc:
-        labels.add('Menor preço');
+        parts.add('Menor preço');
       case ProductSortOrder.priceDesc:
-        labels.add('Maior preço');
+        parts.add('Maior preço');
     }
 
-    switch (p.priceRange) {
+    switch (provider.priceRange) {
       case ProductPriceRange.upTo20:
-        labels.add('Até R\$20');
+        parts.add('Até R\$20');
       case ProductPriceRange.from20to50:
-        labels.add('R\$20–R\$50');
+        parts.add('R\$20–R\$50');
       case ProductPriceRange.above50:
-        labels.add('Acima R\$50');
+        parts.add('Acima R\$50');
       case ProductPriceRange.all:
         break;
     }
 
-    return labels.join(' · ');
+    return parts.join(' · ');
   }
 
   @override
@@ -138,12 +143,14 @@ class _CutsViewState extends State<_CutsView> {
                     controller: _searchController,
                     hintText: 'Procure por um corte específico',
                     showBackButton: true,
-                    onChanged: (v) => provider.updateSearch(v),
+                    onChanged: (value) => provider.updateSearch(value),
                   ),
                 ),
                 Expanded(
                   child: Consumer<ProductsProvider>(
                     builder: (_, provider, __) {
+                      final filterActive = _isFilterActive(provider);
+
                       return Column(
                         children: [
                           Padding(
@@ -161,17 +168,35 @@ class _CutsViewState extends State<_CutsView> {
                                 ),
                                 const Spacer(),
                                 GestureDetector(
-                                  onTap: _abrirFiltro,
+                                  onTap: _openFilter,
                                   child: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: _surface,
+                                      color: filterActive ? _red : _surface,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const Icon(
-                                      Icons.filter_list_rounded,
-                                      color: _white,
-                                      size: 22,
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        const Icon(
+                                          Icons.filter_list_rounded,
+                                          color: _white,
+                                          size: 22,
+                                        ),
+                                        if (filterActive)
+                                          Positioned(
+                                            top: -4,
+                                            right: -4,
+                                            child: Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFFFB800),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -196,7 +221,7 @@ class _CutsViewState extends State<_CutsView> {
                                   ),
                                 ),
                                 child: Text(
-                                  _ordemLabel(provider),
+                                  _buildFilterLabel(provider),
                                   style: const TextStyle(
                                     color: _red,
                                     fontSize: 12,
@@ -206,7 +231,7 @@ class _CutsViewState extends State<_CutsView> {
                               ),
                             ),
                           ),
-                          Expanded(child: _buildBody(provider)),
+                          Expanded(child: _buildBody(provider, filterActive)),
                         ],
                       );
                     },
@@ -220,7 +245,7 @@ class _CutsViewState extends State<_CutsView> {
     );
   }
 
-  Widget _buildBody(ProductsProvider provider) {
+  Widget _buildBody(ProductsProvider provider, bool filterActive) {
     if (provider.isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFFC0392B)),
@@ -228,53 +253,84 @@ class _CutsViewState extends State<_CutsView> {
     }
 
     if (provider.error != null && provider.items.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.wifi_off_rounded,
-                color: Colors.white38,
-                size: 48,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                provider.error!,
-                style: const TextStyle(color: Colors.white54, fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: provider.loadFirstPage,
-                child: const Text(
-                  'Tentar novamente',
-                  style: TextStyle(color: Color(0xFFC0392B)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return _buildErrorState(provider);
     }
 
     if (provider.items.isEmpty) {
-      return const Center(
+      return _buildEmptyState(provider, filterActive);
+    }
+
+    return _buildList(provider);
+  }
+
+  Widget _buildErrorState(ProductsProvider provider) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off_rounded, color: Colors.white24, size: 48),
-            SizedBox(height: 12),
+            const Icon(Icons.wifi_off_rounded, color: Colors.white38, size: 48),
+            const SizedBox(height: 12),
             Text(
-              'Nenhum corte encontrado',
-              style: TextStyle(color: Colors.white38, fontSize: 14),
+              provider.error!,
+              style: const TextStyle(color: Colors.white54, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: provider.loadFirstPage,
+              child: const Text(
+                'Tentar novamente',
+                style: TextStyle(color: Color(0xFFC0392B)),
+              ),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
+  Widget _buildEmptyState(ProductsProvider provider, bool filterActive) {
+    final isPriceFiltered = provider.priceRange != ProductPriceRange.all;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.search_off_rounded, color: Colors.white24, size: 48),
+          const SizedBox(height: 12),
+          Text(
+            isPriceFiltered
+                ? 'Nenhum corte nessa faixa de preço.'
+                : 'Nenhum corte encontrado.',
+            style: const TextStyle(color: Colors.white38, fontSize: 14),
+          ),
+          if (filterActive) ...[
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => provider.updateFilters(
+                order: ProductSortOrder.nameAZ,
+                range: ProductPriceRange.all,
+              ),
+              child: const Text(
+                'Limpar filtros',
+                style: TextStyle(
+                  color: Color(0xFFC0392B),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                  decorationColor: Color(0xFFC0392B),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildList(ProductsProvider provider) {
     return RefreshIndicator(
       color: const Color(0xFFC0392B),
       backgroundColor: const Color(0xFF3A3A3A),
@@ -286,8 +342,8 @@ class _CutsViewState extends State<_CutsView> {
         ),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         itemCount: provider.items.length + (provider.isLoadingMore ? 1 : 0),
-        itemBuilder: (_, i) {
-          if (i == provider.items.length) {
+        itemBuilder: (_, index) {
+          if (index == provider.items.length) {
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
@@ -302,7 +358,7 @@ class _CutsViewState extends State<_CutsView> {
               ),
             );
           }
-          return _buildProductItem(provider.items[i]);
+          return _buildProductItem(provider.items[index]);
         },
       ),
     );
@@ -363,7 +419,7 @@ class _CutsViewState extends State<_CutsView> {
                     TextSpan(
                       text: product.precoFormatado,
                       style: const TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
+                        color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -394,21 +450,7 @@ class _CutsViewState extends State<_CutsView> {
         fit: BoxFit.cover,
         loadingBuilder: (_, child, progress) {
           if (progress == null) return child;
-          return Container(
-            width: 72,
-            height: 72,
-            color: const Color(0xFF555555),
-            child: const Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFFC0392B),
-                ),
-              ),
-            ),
-          );
+          return _imagePlaceholder(showLoader: true);
         },
         errorBuilder: (_, __, ___) => _imagePlaceholder(),
       );
@@ -416,40 +458,51 @@ class _CutsViewState extends State<_CutsView> {
     return _imagePlaceholder();
   }
 
-  Widget _imagePlaceholder() {
+  Widget _imagePlaceholder({bool showLoader = false}) {
     return Container(
       width: 72,
       height: 72,
       color: const Color(0xFF555555),
-      child: const Icon(Icons.image_outlined, color: Colors.white24, size: 28),
+      child: Center(
+        child: showLoader
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFFC0392B),
+                ),
+              )
+            : const Icon(Icons.image_outlined, color: Colors.white24, size: 28),
+      ),
     );
   }
 
-  CortesOrdem _toSheetOrder(ProductSortOrder o) => switch (o) {
-    ProductSortOrder.nameAZ => CortesOrdem.nomeAZ,
-    ProductSortOrder.nameZA => CortesOrdem.nomeZA,
-    ProductSortOrder.priceDesc => CortesOrdem.precoMaior,
-    ProductSortOrder.priceAsc => CortesOrdem.precoMenor,
+  CutsOrder _toSheetOrder(ProductSortOrder order) => switch (order) {
+    ProductSortOrder.nameAZ => CutsOrder.nameAZ,
+    ProductSortOrder.nameZA => CutsOrder.nameZA,
+    ProductSortOrder.priceDesc => CutsOrder.priceHigh,
+    ProductSortOrder.priceAsc => CutsOrder.priceLow,
   };
 
-  CortesFaixaPreco _toSheetRange(ProductPriceRange r) => switch (r) {
-    ProductPriceRange.all => CortesFaixaPreco.todas,
-    ProductPriceRange.upTo20 => CortesFaixaPreco.ate20,
-    ProductPriceRange.from20to50 => CortesFaixaPreco.de20a50,
-    ProductPriceRange.above50 => CortesFaixaPreco.acima50,
+  CutsPriceRange _toSheetRange(ProductPriceRange range) => switch (range) {
+    ProductPriceRange.all => CutsPriceRange.all,
+    ProductPriceRange.upTo20 => CutsPriceRange.upTo20,
+    ProductPriceRange.from20to50 => CutsPriceRange.from20to50,
+    ProductPriceRange.above50 => CutsPriceRange.above50,
   };
 
-  ProductSortOrder _fromSheetOrder(CortesOrdem o) => switch (o) {
-    CortesOrdem.nomeAZ => ProductSortOrder.nameAZ,
-    CortesOrdem.nomeZA => ProductSortOrder.nameZA,
-    CortesOrdem.precoMaior => ProductSortOrder.priceDesc,
-    CortesOrdem.precoMenor => ProductSortOrder.priceAsc,
+  ProductSortOrder _fromSheetOrder(CutsOrder order) => switch (order) {
+    CutsOrder.nameAZ => ProductSortOrder.nameAZ,
+    CutsOrder.nameZA => ProductSortOrder.nameZA,
+    CutsOrder.priceHigh => ProductSortOrder.priceDesc,
+    CutsOrder.priceLow => ProductSortOrder.priceAsc,
   };
 
-  ProductPriceRange _fromSheetRange(CortesFaixaPreco f) => switch (f) {
-    CortesFaixaPreco.todas => ProductPriceRange.all,
-    CortesFaixaPreco.ate20 => ProductPriceRange.upTo20,
-    CortesFaixaPreco.de20a50 => ProductPriceRange.from20to50,
-    CortesFaixaPreco.acima50 => ProductPriceRange.above50,
+  ProductPriceRange _fromSheetRange(CutsPriceRange range) => switch (range) {
+    CutsPriceRange.all => ProductPriceRange.all,
+    CutsPriceRange.upTo20 => ProductPriceRange.upTo20,
+    CutsPriceRange.from20to50 => ProductPriceRange.from20to50,
+    CutsPriceRange.above50 => ProductPriceRange.above50,
   };
 }
