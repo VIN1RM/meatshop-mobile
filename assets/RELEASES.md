@@ -5,7 +5,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.10.0] — 22 de Junho de 2026
-### ⭐ Avalie o Açougue e o Entregador Após Cada Pedido
+### ⭐ Avalie o Açougue, Veja as Estrelas e Encontre os Melhores Cortes
 
 ### ✨ Novidades
 - **Avalie Sua Experiência:** Após a entrega do pedido, um botão "Avaliar" aparece no histórico. Ao tocar, você abre um fluxo dedicado para dar uma nota de 1 a 5 estrelas e deixar um comentário sobre o açougue e o entregador.
@@ -15,6 +15,11 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ### 📈 Melhorias
 - **Média de Estrelas Atualizada em Tempo Real:** As notas dadas pelos clientes são calculadas automaticamente e atualizam a avaliação média do açougue e do entregador logo após o envio.
+- **Açougues Ordenados por Avaliação:** A lista de açougues agora exibe primeiro os estabelecimentos com maior nota média, tanto na tela inicial quanto na listagem completa.
+- **Nota Exibida nos Cards:** Cada card de açougue agora mostra a nota real com uma estrela ao lado — ou um traço quando o açougue ainda não tem avaliações.
+- **Filtro de Cortes Mais Intuitivo:** O ícone de filtro na tela de cortes agora muda de cor e exibe um ponto amarelo quando há algum filtro ativo, deixando mais fácil perceber que a lista está sendo filtrada.
+- **Filtro de Cortes com Botão Limpar:** O painel de filtros de cortes ganhou um botão "Limpar" no rodapé, igual ao painel de açougues, facilitando remover os filtros de uma vez.
+- **Mensagem de Lista Vazia Mais Clara:** Quando nenhum corte é encontrado com o filtro de preço aplicado, o app agora mostra uma mensagem específica com a opção de limpar os filtros diretamente na tela.
 
 ---
 

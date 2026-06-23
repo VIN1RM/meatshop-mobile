@@ -12,7 +12,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [2.10.0] - 2026-06-22
-### Sistema de Avaliações de Açougues e Entregadores
+### Avaliações, Ordenação por Estrelas e Melhorias nos Filtros de Cortes
 
 ### Added
 - `ReviewModel` e `DeliveryReviewModel`: modelos de dados para avaliações de açougue e entregador com serialização completa para o Firestore.
@@ -28,6 +28,16 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Campo `deliveryPersonId` adicionado ao `OrderModel` com suporte a `fromFirestore` e `copyWith`.
 - Rota `AppRoutes.review` registrada em `buildRoutes()`.
 - `ReviewProvider` registrado no `MultiProvider`.
+- `averageRating`: campo adicionado ao `UnitModel` com leitura do Firestore e exibição da nota real nos cards de açougue na home e na listagem.
+- `review_count`: campo adicionado ao `UnitModel` para exibição da quantidade de avaliações.
+- `UnitService.getAllUnits()`: consulta agora ordena os açougues por `average_rating` de forma decrescente diretamente no Firestore.
+- `AcouguesScreen._aplicarFiltro()`: ordenação por "Maior ★" e "Menor ★" agora funciona de fato, utilizando o campo `averageRating` do modelo.
+- `_buildAcougueItemFromUnit` na `HomePage`: nota real do açougue agora é exibida ao lado da estrela no card, com fallback `–` quando não há avaliações.
+- Telas de listagem de cortes (`CutsScreen`) e filtro (`CutsFilterSheet`) migradas para inglês e alinhadas ao padrão visual e de UX da tela de açougues.
+- Botão de filtro na `CutsScreen`: fica vermelho e exibe badge amarelo quando há filtro ativo, igual ao comportamento da `AcouguesScreen`.
+- Label do filtro na `CutsScreen`: exibe sempre pelo menos a ordenação atual, nunca fica em branco.
+- Empty state de cortes: diferencia "nenhum corte nessa faixa de preço" de "nenhum corte encontrado", com link "Limpar filtros" quando aplicável.
+- `CutsFilterSheet`: rodapé agora exibe par de botões "Limpar / Aplicar Filtro", padrão do `AcougueFilterSheet`.
 
 ### Changed
 - `OrdersScreen`: botão de ação dos pedidos finalizados expandido para exibir "Avaliar" (amarelo) ao lado de "Pedir novamente", com lógica condicional baseada em `isCancelled` e `reviewed`.
