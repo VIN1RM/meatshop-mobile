@@ -24,6 +24,7 @@ import 'package:meatshop_mobile/ui/screens/auth/register_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/change_password_screen.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/screens/search_screen.dart';
+import 'package:meatshop_mobile/ui/screens/unit_reviews_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/client_shell.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_assistant_screen.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
@@ -74,6 +75,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.accountBlocked: (_) => const AccountBlockedPage(),
     AppRoutes.review: (_) => const ReviewScreen(),
     AppRoutes.writeProductReview: (_) => const WriteProductReviewScreen(),
+    AppRoutes.unitReviews: (_) => const UnitReviewsScreen(),
     AppRoutes.paymentOrder: (_) => const Scaffold(
       backgroundColor: Color(0xFF2E2E2E),
       body: Center(

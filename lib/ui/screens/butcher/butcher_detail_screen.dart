@@ -5,6 +5,7 @@ import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/providers/unit/butcher_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cart_bag_sheet.dart';
+import 'package:meatshop_mobile/ui/widgets/review_card.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/widgets/business_hours_banner.dart';
 import 'package:shimmer/shimmer.dart';
@@ -66,6 +67,7 @@ class _ButcherDetailView extends StatelessWidget {
                       const SizedBox(height: 12),
                       _buildProductList(context),
                       const SizedBox(height: 32),
+                      _buildReviewsSection(context),
                     ],
                   ),
                 ),
@@ -428,6 +430,74 @@ class _ButcherDetailView extends StatelessWidget {
           children: provider.items
               .map((p) => _buildProductItem(context, p))
               .toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildReviewsSection(BuildContext context) {
+    return Consumer<ButcherProvider>(
+      builder: (_, provider, __) {
+        if (provider.reviews.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle('Avaliações dos Clientes'),
+            const SizedBox(height: 16),
+
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: provider.reviews.length,
+              itemBuilder: (context, index) {
+                return ReviewCard(review: provider.reviews[index]);
+              },
+            ),
+
+            if (provider.reviews.length >= 3)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Center(
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        AppRoutes.unitReviews,
+                        arguments: unit.id,
+                      );
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'Ver todas as avaliações',
+                          style: TextStyle(
+                            color: Color(0xFFBE2C1B),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Color(0xFFBE2C1B),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 40),
+          ],
         );
       },
     );
