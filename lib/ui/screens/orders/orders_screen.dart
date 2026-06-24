@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
+import 'package:meatshop_mobile/ui/screens/cart/write_product_review_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/dialogs/reorder_confirm_dialog.dart';
 import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';
@@ -751,79 +752,123 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
               ),
 
               const SizedBox(height: 8),
-              Row(
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [
                   if (!isCancelled && !order.reviewed)
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.review,
-                          arguments: ReviewArgs(
-                            order: order,
-                            deliveryPersonId: order.deliveryPersonId ?? '',
-                            unitImageUrl: order.unitLogoUrl,
-                            deliveryPersonPhotoUrl: '',
-                          ),
-                        ),
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(vertical: 9),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF8E1),
-                            border: Border.all(color: const Color(0xFFFFB800)),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.star_rounded,
-                                color: Color(0xFFFFB800),
-                                size: 14,
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                'Avaliar',
-                                style: TextStyle(
-                                  color: Color(0xFFE6A000),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.review,
+                        arguments: ReviewArgs(
+                          order: order,
+                          deliveryPersonId: order.deliveryPersonId ?? '',
+                          unitImageUrl: order.unitLogoUrl,
+                          deliveryPersonPhotoUrl: '',
                         ),
                       ),
-                    ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => widget.onReorder(context, order),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
                         decoration: BoxDecoration(
-                          color: red,
+                          color: const Color(0xFFFFF8E1),
+                          border: Border.all(color: const Color(0xFFFFB800)),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.replay_rounded,
-                              color: Colors.white,
-                              size: 14,
+                              Icons.star_rounded,
+                              color: Color(0xFFFFB800),
+                              size: 13,
                             ),
-                            SizedBox(width: 5),
+                            SizedBox(width: 4),
                             Text(
-                              'Pedir novamente',
+                              'Açougue',
                               style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
+                                color: Color(0xFFE6A000),
+                                fontSize: 11,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  if (!isCancelled)
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.writeProductReview,
+                        arguments: WriteProductReviewScreenArgs(
+                          order: order,
+                          items: order.items,
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: red.withValues(alpha: 0.15),
+                          border: Border.all(color: red),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.local_offer_outlined,
+                              color: red,
+                              size: 13,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Produtos',
+                              style: TextStyle(
+                                color: red,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  GestureDetector(
+                    onTap: () => widget.onReorder(context, order),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.replay_rounded,
+                            color: Colors.white,
+                            size: 13,
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Pedir novamente',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
