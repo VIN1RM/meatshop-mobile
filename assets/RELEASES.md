@@ -4,6 +4,22 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.11.0] — 24 de Junho de 2026
+### ⭐ Avaliações dos Clientes agora visíveis no Açougue
+
+### ✨ Novidades
+- **Avaliações na tela do açougue:** Agora ao abrir um açougue você vê as últimas avaliações dos clientes diretamente na página, com nome, nota em estrelas, comentário e data.
+- **Mostra até 3 avaliações:** As 3 avaliações mais recentes aparecem automaticamente. Se houver mais, um botão “Ver todas as avaliações” leva para a tela completa.
+- **Tela completa de avaliações:** Nova tela dedicada onde o cliente pode ver todas as avaliações do açougue de forma organizada.
+- **Design consistente:** As avaliações seguem o padrão visual claro do aplicativo, combinando perfeitamente com o resto da tela do açougue.
+
+### 📈 Melhorias
+- Carregamento otimizado das avaliações junto com produtos e promoções.
+- Navegação fluida entre a tela do açougue e a tela completa de reviews.
+- Código mais robusto e correção de problemas de navegação e Provider.
+
+---
+
 ## [2.10.0] — 22 de Junho de 2026
 ### ⭐ Avalie o Açougue, Veja as Estrelas e Encontre os Melhores Cortes
 

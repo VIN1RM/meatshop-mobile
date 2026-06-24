@@ -11,6 +11,28 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.11.0] - 2026-06-24
+### Avaliações de Clientes no Detalhe do Açougue
+
+### Added
+- `ReviewCard`: widget reutilizável para exibir nome do cliente, estrelas, comentário e data da avaliação.
+- Seção `_buildReviewsSection()` na `ButcherDetailScreen`: exibe até 3 avaliações mais recentes com botão “Ver todas as avaliações”.
+- Integração completa do `ButcherProvider` com `ReviewService` (carregamento paralelo via `Future.wait`).
+- `UnitReviewsScreen`: nova tela completa de avaliações, carregando todas as reviews diretamente via `ReviewService`.
+- Rota `AppRoutes.unitReviews` registrada e configurada.
+- Tratamento correto de `ModalRoute` usando `didChangeDependencies` e verificação `mounted`.
+
+### Changed
+- `ButcherProvider`: corrigido índice do `Future.wait` para incluir corretamente as reviews (`results[3]`).
+- Adicionado `debugPrint` para facilitar depuração do carregamento de reviews.
+
+### Fixed
+- `ProviderNotFoundException` na `UnitReviewsScreen` (removida dependência desnecessária do `ButcherProvider`).
+- Erro de `ModalRoute.of(context)` chamado antes do `initState` completar.
+- Melhoria na estabilidade e ciclo de vida dos widgets.
+
+---
+
 ## [2.10.0] - 2026-06-22
 ### Avaliações, Ordenação por Estrelas e Melhorias nos Filtros de Cortes
 
