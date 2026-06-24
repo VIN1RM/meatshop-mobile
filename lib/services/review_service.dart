@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/models/review_model.dart';
 
 class ReviewService {
   ReviewService({FirebaseFirestore? firestore, FirebaseAuth? auth})
@@ -25,6 +26,19 @@ class ReviewService {
     return snap.docs.isNotEmpty;
   }
 
+  Stream<List<ReviewModel>> watchUnitReviews(String unitId, {int? limit}) {
+    Query<Map<String, dynamic>> query = _db
+        .collection('reviews')
+        .where('unit_id', isEqualTo: unitId)
+        .orderBy('created_at', descending: true);
+
+    if (limit != null) query = query.limit(limit);
+
+    return query.snapshots().map(
+      (s) => s.docs.map(ReviewModel.fromFirestore).toList(),
+    );
+  }
+
   Future<void> submitReviews({
     required String orderId,
     required String unitId,
@@ -35,12 +49,25 @@ class ReviewService {
     String? deliveryComment,
   }) async {
     final uid = _uid;
+    String clientName = 'Cliente';
+    try {
+      final userDoc = await _db.collection('users').doc(uid).get();
+      clientName =
+          (userDoc.data()?['name'] as String?)?.trim().isNotEmpty == true
+          ? userDoc.data()!['name'] as String
+          : 'Cliente';
+
+      final parts = clientName.split(' ');
+      clientName = parts.first;
+    } catch (_) {}
+
     final batch = _db.batch();
 
     final reviewRef = _db.collection('reviews').doc();
     batch.set(reviewRef, {
       'order_id': orderId,
       'client_id': uid,
+      'client_name': clientName,
       'unit_id': unitId,
       'product_id': null,
       'rating': unitRating,
