@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_person_info_model.dart';
 import 'package:meatshop_mobile/services/delivery_person_info_service.dart';
 import 'dart:convert';
+import 'package:meatshop_mobile/ui/screens/account/profile_photo_viewer_screen.dart';
 
 class DeliveryPersonCard extends StatefulWidget {
   const DeliveryPersonCard({super.key, required this.deliveryPersonId});
@@ -41,6 +42,18 @@ class _DeliveryPersonCardState extends State<DeliveryPersonCard> {
     );
   }
 
+  String _capitalize(String value) {
+    if (value.isEmpty) return value;
+    return value
+        .split(' ')
+        .map(
+          (w) => w.isEmpty
+              ? w
+              : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}',
+        )
+        .join(' ');
+  }
+
   Widget _buildCard(DeliveryPersonInfoModel info) {
     return Container(
       margin: const EdgeInsets.only(top: 12),
@@ -70,64 +83,77 @@ class _DeliveryPersonCardState extends State<DeliveryPersonCard> {
           ),
           const SizedBox(height: 12),
 
-          Row(
-            children: [
-              _Avatar(photoUrl: info.photoUrl, name: info.name),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      info.name,
-                      style: const TextStyle(
-                        color: _dark,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+          GestureDetector(
+            onTap: info.photoUrl.isNotEmpty
+                ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ProfilePhotoViewerScreen(photoUrl: info.photoUrl),
                     ),
-                    if (info.vehicleModel.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                  )
+                : null,
+            child: Row(
+              children: [
+                _Avatar(photoUrl: info.photoUrl, name: info.name),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        '${_vehicleTypeLabel(info.vehicleType)} · ${info.vehicleModel}',
+                        _capitalize(info.name),
                         style: const TextStyle(
-                          color: Color(0xFF666666),
-                          fontSize: 12,
+                          color: _dark,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
+                      if (info.vehicleModel.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_vehicleTypeLabel(info.vehicleType)} · ${info.vehicleModel}',
+                          style: const TextStyle(
+                            color: Color(0xFF666666),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              if (info.vehiclePlate.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _dark,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    info.vehiclePlate.toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.5,
+                if (info.vehiclePlate.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _dark,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      info.vehiclePlate.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-
           if (info.vehiclePhotoUrls.isNotEmpty) ...[
             const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: _VehiclePhoto(url: info.vehiclePhotoUrls.first),
+            SizedBox(
+              width: double.infinity,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: _VehiclePhoto(url: info.vehiclePhotoUrls.first),
+              ),
             ),
           ],
 
@@ -199,13 +225,25 @@ class _Avatar extends StatelessWidget {
       decoration: const BoxDecoration(shape: BoxShape.circle),
       child: ClipOval(
         child: photoUrl.isNotEmpty
-            ? Image.network(
-                photoUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _fallback(initials, red),
-              )
+            ? _buildPhoto(initials, red)
             : _fallback(initials, red),
       ),
+    );
+  }
+
+  Widget _buildPhoto(String initials, Color red) {
+    if (photoUrl.startsWith('data:image')) {
+      try {
+        final bytes = base64Decode(photoUrl.split(',').last);
+        return Image.memory(bytes, fit: BoxFit.cover);
+      } catch (_) {
+        return _fallback(initials, red);
+      }
+    }
+    return Image.network(
+      photoUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _fallback(initials, red),
     );
   }
 
@@ -234,23 +272,28 @@ class _VehiclePhoto extends StatelessWidget {
       final base64Str = url.split(',').last;
       try {
         final bytes = base64Decode(base64Str);
-        return Image.memory(bytes, width: 130, height: 90, fit: BoxFit.cover);
+        return Image.memory(
+          bytes,
+          width: double.infinity,
+          height: 160,
+          fit: BoxFit.cover,
+        );
       } catch (_) {
         return _placeholder();
       }
     }
     return Image.network(
       url,
-      width: 130,
-      height: 90,
+      width: double.infinity,
+      height: 160,
       fit: BoxFit.cover,
       errorBuilder: (_, __, ___) => _placeholder(),
     );
   }
 
   Widget _placeholder() => Container(
-    width: 130,
-    height: 90,
+    width: double.infinity,
+    height: 160,
     color: const Color(0xFFDDDDDD),
     child: const Icon(Icons.directions_car_outlined, color: Color(0xFFAAAAAA)),
   );
