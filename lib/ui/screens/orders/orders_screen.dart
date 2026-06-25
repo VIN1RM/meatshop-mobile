@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
@@ -393,44 +394,8 @@ class _ActiveOrderCard extends StatelessWidget {
         icon: Icons.delivery_dining_rounded,
       );
     }
-    switch (status) {
-      case 'PENDING':
-        return _StatusInfo(
-          label: 'Aguardando confirmação',
-          color: const Color(0xFFE67E00),
-          icon: Icons.hourglass_empty_rounded,
-        );
-      case 'CONFIRMED':
-        return _StatusInfo(
-          label: 'Confirmado',
-          color: const Color(0xFF1565C0),
-          icon: Icons.check_circle_outline_rounded,
-        );
-      case 'PREPARING':
-        return _StatusInfo(
-          label: 'Em preparo',
-          color: const Color(0xFF7B1FA2),
-          icon: Icons.restaurant_rounded,
-        );
-      case 'READY':
-        return _StatusInfo(
-          label: 'Pronto para retirada',
-          color: const Color(0xFF2E7D32),
-          icon: Icons.done_all_rounded,
-        );
-      case 'OUT_FOR_DELIVERY':
-        return _StatusInfo(
-          label: 'Saiu para entrega',
-          color: const Color(0xFF1565C0),
-          icon: Icons.delivery_dining_rounded,
-        );
-      default:
-        return _StatusInfo(
-          label: status,
-          color: const Color(0xFF888888),
-          icon: Icons.info_outline,
-        );
-    }
+    final s = OrderStatusX.fromString(status);
+    return _StatusInfo(label: s.label, color: s.color, icon: s.icon);
   }
 }
 

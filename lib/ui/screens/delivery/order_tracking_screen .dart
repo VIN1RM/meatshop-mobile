@@ -469,50 +469,8 @@ class _OrderCard extends StatelessWidget {
   }
 
   _StatusData _statusInfo(String status) {
-    switch (OrderStatusX.fromString(status)) {
-      case OrderStatus.pending:
-        return _StatusData(
-          'Aguardando confirmação',
-          const Color(0xFFE67E00),
-          Icons.hourglass_empty_rounded,
-        );
-      case OrderStatus.confirmed:
-        return _StatusData(
-          'Confirmado',
-          const Color(0xFF1565C0),
-          Icons.check_circle_outline_rounded,
-        );
-      case OrderStatus.preparing:
-        return _StatusData(
-          'Em preparo',
-          const Color(0xFF7B1FA2),
-          Icons.restaurant_rounded,
-        );
-      case OrderStatus.ready:
-        return _StatusData(
-          'Pronto para entrega',
-          const Color(0xFF2E7D32),
-          Icons.done_all_rounded,
-        );
-      case OrderStatus.outForDelivery:
-        return _StatusData(
-          'Em rota de entrega',
-          const Color(0xFFBE2C1B),
-          Icons.delivery_dining_rounded,
-        );
-      case OrderStatus.delivered:
-        return _StatusData(
-          'Entregue',
-          const Color(0xFF2E7D32),
-          Icons.check_circle_rounded,
-        );
-      case OrderStatus.cancelled:
-        return _StatusData(
-          'Cancelado',
-          const Color(0xFF888888),
-          Icons.cancel_outlined,
-        );
-    }
+    final s = OrderStatusX.fromString(status);
+    return _StatusData(s.label, s.color, s.icon);
   }
 }
 
