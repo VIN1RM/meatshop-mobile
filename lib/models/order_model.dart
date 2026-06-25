@@ -50,6 +50,7 @@ class OrderModel {
   final String? cancellationReason;
   final List<OrderItemModel> items;
   final bool reviewed;
+  final bool productsReviewed;
 
   const OrderModel({
     required this.id,
@@ -75,6 +76,7 @@ class OrderModel {
     this.cancellationReason,
     this.items = const [],
     this.reviewed = false,
+    this.productsReviewed = false,
   });
 
   bool get isCancelled => status == 'CANCELLED';
@@ -88,6 +90,7 @@ class OrderModel {
     List<OrderItemModel>? items,
     bool? reviewed,
     String? deliveryPersonId,
+    bool? productsReviewed,
   }) => OrderModel(
     id: id,
     clientId: clientId,
@@ -112,6 +115,7 @@ class OrderModel {
     cancellationReason: cancellationReason,
     items: items ?? this.items,
     reviewed: reviewed ?? this.reviewed,
+    productsReviewed: productsReviewed ?? this.productsReviewed,
   );
 
   Map<String, dynamic> toFirestore() => {
@@ -144,6 +148,7 @@ class OrderModel {
     'cancellation_reason': null,
     'cancelled_at': null,
     'cancelled_by': null,
+    'products_reviewed': productsReviewed,
   };
 
   factory OrderModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -171,6 +176,7 @@ class OrderModel {
       orderDate: (d['order_date'] as Timestamp?)?.toDate(),
       cancellationReason: d['cancellation_reason'] as String?,
       reviewed: d['reviewed'] as bool? ?? false,
+      productsReviewed: d['products_reviewed'] as bool? ?? false,
     );
   }
 }

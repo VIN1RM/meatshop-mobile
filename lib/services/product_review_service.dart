@@ -71,6 +71,8 @@ class ProductReviewService {
       final ref = _db.collection('reviews').doc();
       batch.set(ref, {...review.toFirestore(), 'client_name': clientName});
     }
+    final orderRef = _db.collection('orders').doc(reviews.first.orderId);
+    batch.update(orderRef, {'products_reviewed': true});
     await batch.commit();
 
     final productIds = reviews.map((r) => r.productId).toSet();
@@ -114,5 +116,10 @@ class ProductReviewService {
         .map((d) => (d['rating'] as num).toDouble())
         .toList();
     final avg = ratings.reduce((a, b) => a + b) / ratings.length;
+
+    await _db.collection('products').doc(productId).update({
+      'average_rating': double.parse(avg.toStringAsFixed(1)),
+      'review_count': snap.docs.length,
+    });
   }
 }

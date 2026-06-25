@@ -799,7 +799,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                         ),
                       ),
                     ),
-                  if (!isCancelled)
+                  if (!isCancelled && !order.productsReviewed)
                     GestureDetector(
                       onTap: () => Navigator.pushNamed(
                         context,
