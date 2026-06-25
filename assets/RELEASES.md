@@ -5,13 +5,15 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.11.0] — 25 de Junho de 2026
-### ⭐ Avaliações nos Açougues e nos Produtos
+### 🛵 Conheça Seu Entregador e Avalie os Produtos
 
 ### ✨ Novidades
 - **Avaliações do Açougue com Três Estados:** A seção de avaliações do açougue agora responde ao número de reviews disponíveis. Se não houver nenhuma, aparece um card com a mensagem "Seja o primeiro a avaliar". Se houver uma ou duas, os cards são exibidos com um banner incentivando mais avaliações. Com três ou mais, um botão "Ver todas" aparece ao lado do título e leva para a tela completa.
 - **Avaliações do Produto:** A tela de detalhes do produto agora também exibe avaliações, com o mesmo comportamento de três estados da seção do açougue.
 - **Tela Completa de Avaliações do Produto:** Nova tela dedicada para ver todas as avaliações de um produto, com cabeçalho e seta de voltar no padrão visual do aplicativo.
 - **Visual Renovado dos Cards de Avaliação:** Os cards agora exibem avatar com as iniciais do cliente, estrelas maiores e mais elegantes, data ao lado do nome e visual limpo em fundo branco.
+- **Veja Quem Vai Entregar o Seu Pedido:** Quando o seu pedido sair para entrega, um card aparece automaticamente com o nome e a foto do entregador, o tipo e modelo do veículo, a placa e uma foto do veículo. Toque na foto do entregador ou na foto do veículo para visualizá-las em tela cheia.
+- **Avalie os Produtos Só Uma Vez:** O botão "Produtos" nos pedidos finalizados agora desaparece após o envio das avaliações, evitando avaliações duplicadas.
 
 ### 📈 Melhorias
 - Botão "Ver todas" posicionado ao lado do título da seção, responsivo para qualquer tamanho de tela.

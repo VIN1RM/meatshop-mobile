@@ -12,7 +12,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [2.11.0] - 2026-06-25
-### Avaliações de Clientes no Detalhe do Açougue e do Produto
+### Entregador Identificado, Avaliações de Produtos e Padronização de Status
 
 ### Added
 - `ReviewCard`: redesign completo com avatar de iniciais, estrelas arredondadas, data inline no header e suporte a `darkMode` (fundo escuro) e modo claro (fundo branco).
@@ -26,6 +26,13 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `ProductReviewsScreen`: nova tela com `AppHeader(showBack: true)` e `background.png`, padrão visual idêntico à `UnitReviewsScreen`.
 - `AppRoutes.productReviews` registrado em `buildRoutes()`.
 - `productId` adicionado como parâmetro opcional ao `submitReviews` no `ReviewService` (substituindo `null` fixo).
+- `DeliveryPersonInfoModel`: modelo com nome, foto, tipo/modelo/placa/cor do veículo e lista de URLs de fotos.
+- `DeliveryPersonInfoService`: serviço que busca dados do entregador em `delivery_persons/{id}`, veículo ativo em `vehicles/` e nome/foto em `users/{userId}`.
+- `DeliveryPersonCard`: widget exibido na `DeliveriesScreen` quando o pedido está em rota (`OUT_FOR_DELIVERY`), mostrando avatar do entregador (com suporte a base64), nome, tipo e modelo do veículo, badge de placa e foto do veículo em largura total. Foto do entregador e foto do veículo abrem em tela cheia via `ProfilePhotoViewerScreen` ao toque.
+- Campo `productsReviewed` adicionado ao `OrderModel` (construtor, `copyWith`, `toFirestore`, `fromFirestore`).
+- `submitMultipleProductReviews` no `ProductReviewService`: seta `products_reviewed: true` no documento do pedido via batch atômico junto com os reviews.
+- `_recalcProductRating` no `ProductReviewService`: persiste `average_rating` e `review_count` na coleção `products` após cada avaliação.
+- `color` e `icon` adicionados como getters à extension `OrderStatusX`, centralizando cor e ícone de cada status em `order_status_enum.dart`.
 
 ### Changed
 - Botão "Ver todas" movido para inline com o título da seção via `Row + Expanded`, responsivo para qualquer largura de tela.
@@ -34,10 +41,16 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Padding inferior da seção de reviews aumentado para 100px, evitando sobreposição com a sacola flutuante.
 - `withOpacity` substituído por `withValues(alpha:)` nos widgets de reviews.
 - Callbacks `errorBuilder` corrigidos de `(_, __, ___)` para `(_, __, _)`.
+- `_statusInfo` na `DeliveriesScreen` e `_activeStatusInfo` na `OrdersScreen` refatorados para consumir `OrderStatusX.color` e `OrderStatusX.icon` diretamente, eliminando duplicação de mapeamento.
+- Botão "Produtos" nos cards de pedidos finalizados na `OrdersScreen` agora é ocultado quando `order.productsReviewed == true`, impedindo avaliação duplicada.
+- Nome do entregador no `DeliveryPersonCard` exibido com inicial maiúscula via `_capitalize`.
+- Foto do veículo no `DeliveryPersonCard` expandida para largura total (`double.infinity`, altura `160`).
 
 ### Fixed
 - `_reviews` e `_reviewService` não declarados no `State` da `ProductDetailScreen`.
 - Card de empty state não centralizado horizontalmente (ausência de `width: double.infinity`).
+- `_recalcProductRating` no `ProductReviewService` não persistia o resultado calculado; corrigido com `update` na coleção `products`.
+- Avatar do entregador no `DeliveryPersonCard` não renderizava fotos em base64; corrigido com suporte a `Image.memory` além de `Image.network`.
 
 ---
 

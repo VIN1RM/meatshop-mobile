@@ -65,11 +65,11 @@ extension OrderStatusX on OrderStatus {
       case OrderStatus.ready:
         return const Color(0xFF2E7D32);
       case OrderStatus.outForDelivery:
-        return const Color(0xFFBE2C1B);
+        return const Color.fromARGB(255, 103, 121, 5);
       case OrderStatus.delivered:
         return const Color(0xFF2E7D32);
       case OrderStatus.cancelled:
-        return const Color(0xFF888888);
+        return const Color.fromARGB(255, 255, 0, 0);
     }
   }
 
