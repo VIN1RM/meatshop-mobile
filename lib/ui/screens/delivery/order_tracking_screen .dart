@@ -6,6 +6,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/ui/widgets/delivery_person_card.dart';
 
 class DeliveriesScreen extends StatefulWidget {
   const DeliveriesScreen({super.key});
@@ -304,6 +305,15 @@ class _OrderCard extends StatelessWidget {
                   activeColor: statusInfo.color,
                 ),
               ),
+              if (order.status == 'OUT_FOR_DELIVERY' &&
+                  order.deliveryPersonId != null &&
+                  order.deliveryPersonId!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+                  child: DeliveryPersonCard(
+                    deliveryPersonId: order.deliveryPersonId!,
+                  ),
+                ),
             ],
 
             if (isCancelled) ...[
