@@ -438,64 +438,81 @@ class _ButcherDetailView extends StatelessWidget {
   Widget _buildReviewsSection(BuildContext context) {
     return Consumer<ButcherProvider>(
       builder: (_, provider, __) {
-        if (provider.reviews.isEmpty) {
-          return const SizedBox.shrink();
-        }
+        if (provider.reviews.isEmpty) return const SizedBox.shrink();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle('Avaliações dos Clientes'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Avaliações dos Clientes',
+                      style: TextStyle(
+                        color: _red,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  if (provider.reviews.length >= 3)
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.unitReviews,
+                        arguments: unit.id,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _red.withOpacity(0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Text(
+                              'Ver todas',
+                              style: TextStyle(
+                                color: _red,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 11,
+                              color: _red,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
-
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: provider.reviews.length,
-              itemBuilder: (context, index) {
-                return ReviewCard(review: provider.reviews[index]);
-              },
+              itemCount: provider.reviews.length > 3
+                  ? 3
+                  : provider.reviews.length,
+              itemBuilder: (_, i) => ReviewCard(review: provider.reviews[i]),
             ),
-
-            if (provider.reviews.length >= 3)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Center(
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.unitReviews,
-                        arguments: unit.id,
-                      );
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Text(
-                          'Ver todas as avaliações',
-                          style: TextStyle(
-                            color: Color(0xFFBE2C1B),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        ),
-                        SizedBox(width: 6),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Color(0xFFBE2C1B),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
             const SizedBox(height: 40),
           ],
         );
