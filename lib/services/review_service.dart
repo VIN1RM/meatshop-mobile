@@ -39,11 +39,28 @@ class ReviewService {
     );
   }
 
+  Stream<List<ReviewModel>> watchProductReviews(
+    String productId, {
+    int? limit,
+  }) {
+    Query<Map<String, dynamic>> query = _db
+        .collection('reviews')
+        .where('product_id', isEqualTo: productId)
+        .orderBy('created_at', descending: true);
+
+    if (limit != null) query = query.limit(limit);
+
+    return query.snapshots().map(
+      (s) => s.docs.map(ReviewModel.fromFirestore).toList(),
+    );
+  }
+
   Future<void> submitReviews({
     required String orderId,
     required String unitId,
     required int unitRating,
     required String unitComment,
+    String? productId,
     String? deliveryPersonId,
     int? deliveryRating,
     String? deliveryComment,
@@ -69,7 +86,7 @@ class ReviewService {
       'client_id': uid,
       'client_name': clientName,
       'unit_id': unitId,
-      'product_id': null,
+      'product_id': productId,
       'rating': unitRating,
       'comment': unitComment.trim(),
       'created_at': FieldValue.serverTimestamp(),

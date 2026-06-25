@@ -8,6 +8,10 @@ import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
+import 'package:meatshop_mobile/models/review_model.dart';
+import 'package:meatshop_mobile/services/review_service.dart';
+import 'package:meatshop_mobile/ui/widgets/review_card.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -31,6 +35,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   bool _isEditingCart = false;
   bool _loaded = false;
+  final ReviewService _reviewService = ReviewService();
+  List<ReviewModel> _reviews = [];
 
   @override
   void initState() {
@@ -51,6 +57,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         }
       }
       setState(() => _loaded = true);
+      final productArgs = ModalRoute.of(context)?.settings.arguments;
+      final ProductModel? prod;
+      if (productArgs is Map<String, dynamic>) {
+        prod = productArgs['product'] as ProductModel?;
+      } else {
+        prod = productArgs as ProductModel?;
+      }
+      if (prod != null) {
+        final reviews = await _reviewService
+            .watchProductReviews(prod.id, limit: 3)
+            .first;
+        if (mounted) setState(() => _reviews = reviews);
+      }
     });
   }
 
@@ -139,6 +158,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       _buildProductInfo(product),
                       const SizedBox(height: 8),
                       _buildQuantitySection(product),
+                      _buildReviewsSection(context, product),
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -210,7 +230,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ? Image.network(
                   product.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _heroBannerFallback(),
+                  errorBuilder: (_, __, _) => _heroBannerFallback(),
                 )
               : _heroBannerFallback(),
         ),
@@ -649,6 +669,172 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: _red,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewsSection(BuildContext context, ProductModel product) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Divider(color: Color(0x40BE2C1B), thickness: 0.8, height: 1),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Expanded(
+                child: Text(
+                  'Avaliações do Produto',
+                  style: TextStyle(
+                    color: _red,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              if (_reviews.length >= 3)
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.productReviews,
+                    arguments: product.id,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _red.withOpacity(0.4),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          'Ver todas',
+                          style: TextStyle(
+                            color: _red,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(Icons.arrow_forward_ios, size: 11, color: _red),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_reviews.isEmpty)
+          _buildEmptyProductReviews()
+        else ...[
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _reviews.length > 3 ? 3 : _reviews.length,
+            itemBuilder: (_, i) => ReviewCard(review: _reviews[i]),
+          ),
+          if (_reviews.length < 3) _buildFewReviewsCta(),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildEmptyProductReviews() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _red.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.star_outline_rounded,
+              color: _red,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Nenhuma avaliação ainda',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Seja o primeiro a avaliar este produto\napós seu pedido!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: Color(0xFF888888),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFewReviewsCta() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: _red.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+      ),
+      child: Row(
+        children: const [
+          Icon(Icons.edit_outlined, color: _red, size: 18),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Gostou? Deixe sua avaliação após o pedido!',
+              style: TextStyle(
+                fontSize: 13,
+                color: _red,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
             ),
           ),
         ],
