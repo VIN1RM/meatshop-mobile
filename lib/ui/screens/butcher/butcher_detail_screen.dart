@@ -62,11 +62,18 @@ class _ButcherDetailView extends StatelessWidget {
                       _buildHeroBanner(unit),
                       _buildInfoCard(unit),
                       const SizedBox(height: 20),
+                      _buildDivider(),
+                      const SizedBox(height: 20),
                       _buildPromocoesSection(context),
+                      const SizedBox(height: 20),
+                      _buildDivider(),
+                      const SizedBox(height: 20),
                       _buildSectionTitle('Produtos'),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 20),
                       _buildProductList(context),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
+                      _buildDivider(),
+                      const SizedBox(height: 20),
                       _buildReviewsSection(context),
                     ],
                   ),
@@ -139,6 +146,13 @@ class _ButcherDetailView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Divider(color: _red.withOpacity(0.25), thickness: 0.8, height: 1),
     );
   }
 
@@ -438,8 +452,6 @@ class _ButcherDetailView extends StatelessWidget {
   Widget _buildReviewsSection(BuildContext context) {
     return Consumer<ButcherProvider>(
       builder: (_, provider, __) {
-        if (provider.reviews.isEmpty) return const SizedBox.shrink();
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -504,19 +516,109 @@ class _ButcherDetailView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: provider.reviews.length > 3
-                  ? 3
-                  : provider.reviews.length,
-              itemBuilder: (_, i) => ReviewCard(review: provider.reviews[i]),
-            ),
-            const SizedBox(height: 40),
+            if (provider.reviews.isEmpty)
+              _buildEmptyReviews()
+            else ...[
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: provider.reviews.length > 3
+                    ? 3
+                    : provider.reviews.length,
+                itemBuilder: (_, i) => ReviewCard(review: provider.reviews[i]),
+              ),
+              if (provider.reviews.length < 3) _buildFewReviewsCta(),
+            ],
+            const SizedBox(height: 100),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildEmptyReviews() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _red.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.star_outline_rounded,
+              color: _red,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Nenhuma avaliação ainda',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A),
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Seja o primeiro a avaliar este açougue\napós seu pedido!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: Color(0xFF888888),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFewReviewsCta() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: _red.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+      ),
+      child: Row(
+        children: const [
+          Icon(Icons.edit_outlined, color: _red, size: 18),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Gostou? Deixe sua avaliação após o pedido!',
+              style: TextStyle(
+                fontSize: 13,
+                color: _red,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
