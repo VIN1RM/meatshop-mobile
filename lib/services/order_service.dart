@@ -30,6 +30,7 @@ class OrderService {
       final data = d.data();
       final snapshot = data['product_snapshot'] as Map<String, dynamic>? ?? {};
       return OrderItemModel(
+        productId: data['product_id']?.toString() ?? '',
         productName: snapshot['name'] as String? ?? '',
         unitOfMeasure: snapshot['unit_of_measure'] as String? ?? 'un',
         quantity: (data['quantity'] as num?)?.toDouble() ?? 1,

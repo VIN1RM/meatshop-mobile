@@ -59,19 +59,22 @@ class ProductReviewService {
   Future<void> submitMultipleProductReviews({
     required List<ProductReviewModel> reviews,
   }) async {
-    final batch = _db.batch();
+    String clientName = 'Cliente';
+    try {
+      final userDoc = await _db.collection('users').doc(_uid).get();
+      final name = (userDoc.data()?['name'] as String?)?.trim() ?? '';
+      if (name.isNotEmpty) clientName = name.split(' ').first;
+    } catch (_) {}
 
+    final batch = _db.batch();
     for (final review in reviews) {
       final ref = _db.collection('reviews').doc();
-      batch.set(ref, review.toFirestore());
+      batch.set(ref, {...review.toFirestore(), 'client_name': clientName});
     }
-
     await batch.commit();
 
     final productIds = reviews.map((r) => r.productId).toSet();
-    await Future.wait(
-      productIds.map((id) => _recalcProductRating(id)),
-    );
+    await Future.wait(productIds.map((id) => _recalcProductRating(id)));
   }
 
   Future<List<ProductReviewModel>> getProductReviews(String productId) async {
@@ -92,9 +95,11 @@ class ProductReviewService {
         .orderBy('created_at', descending: true)
         .limit(20)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => ProductReviewModel.fromFirestore(d))
-            .toList());
+        .map(
+          (snap) => snap.docs
+              .map((d) => ProductReviewModel.fromFirestore(d))
+              .toList(),
+        );
   }
 
   Future<void> _recalcProductRating(String productId) async {
@@ -105,8 +110,9 @@ class ProductReviewService {
 
     if (snap.docs.isEmpty) return;
 
-    final ratings =
-        snap.docs.map((d) => (d['rating'] as num).toDouble()).toList();
+    final ratings = snap.docs
+        .map((d) => (d['rating'] as num).toDouble())
+        .toList();
     final avg = ratings.reduce((a, b) => a + b) / ratings.length;
   }
 }

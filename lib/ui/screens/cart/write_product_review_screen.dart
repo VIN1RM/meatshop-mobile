@@ -43,9 +43,8 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
       if (args is WriteProductReviewScreenArgs) {
         _args = args;
         for (final item in args.items) {
-          _ratings[item.productName] = 0;
-          _commentCtrls[item.productName] =
-              TextEditingController();
+          _ratings[item.productId] = 0;
+          _commentCtrls[item.productId] = TextEditingController();
         }
         _argsLoaded = true;
       }
@@ -64,9 +63,8 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
     final provider = context.read<ProductReviewProvider>();
 
     final reviews = <ProductReviewModel>[];
-    for (int i = 0; i < _args.items.length; i++) {
-      final item = _args.items[i];
-      final rating = _ratings[item.productName] ?? 0;
+    for (final item in _args.items) {
+      final rating = _ratings[item.productId] ?? 0;
 
       if (rating == 0) {
         CustomSnackBar.error(
@@ -81,12 +79,12 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
           id: '',
           orderId: _args.order.id,
           clientId: _args.order.clientId,
-          productId: 'product_${item.productName}',
+          productId: item.productId,
           productName: item.productName,
           productImageUrl: item.productImageUrl,
           unitId: _args.order.unitId,
           rating: rating,
-          comment: _commentCtrls[item.productName]?.text ?? '',
+          comment: _commentCtrls[item.productId]?.text ?? '',
           createdAt: DateTime.now(),
         ),
       );
@@ -112,9 +110,7 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
     if (!_argsLoaded) {
       return Scaffold(
         backgroundColor: _bg,
-        body: const Center(
-          child: CircularProgressIndicator(color: _red),
-        ),
+        body: const Center(child: CircularProgressIndicator(color: _red)),
       );
     }
 
@@ -131,14 +127,14 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Container(color: _bg),
+                errorBuilder: (_, __, ___) => Container(color: _bg),
               ),
             ),
           ),
           SafeArea(
             child: Column(
               children: [
-                const AppHeader(),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
@@ -169,31 +165,30 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
                         ..._args.items.map(
                           (item) => _ProductReviewCard(
                             item: item,
-                            rating: _ratings[item.productName] ?? 0,
-                            comment:
-                                _commentCtrls[item.productName]?.text ?? '',
+                            rating: _ratings[item.productId] ?? 0,
+                            comment: _commentCtrls[item.productId]?.text ?? '',
                             onRatingChanged: (rating) => setState(
-                              () =>
-                                  _ratings[item.productName] = rating,
+                              () => _ratings[item.productId] = rating,
                             ),
-                            onCommentChanged: (text) => setState(() =>
-                                _commentCtrls[item.productName]?.text = text),
+                            onCommentChanged: (text) => setState(
+                              () => _commentCtrls[item.productId]?.text = text,
+                            ),
                             red: _red,
                             surface: _surface,
                           ),
                         ),
                         const SizedBox(height: 24),
                         Consumer<ProductReviewProvider>(
-                          builder: (_, provider, _) => SizedBox(
+                          builder: (_, provider, __) => SizedBox(
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed:
-                                  provider.isLoading ? null : _submit,
+                              onPressed: provider.isLoading ? null : _submit,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _red,
-                                disabledBackgroundColor:
-                                    _red.withOpacity(0.5),
+                                disabledBackgroundColor: _red.withValues(
+                                  alpha: 0.5,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
@@ -202,8 +197,7 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
                                   ? const SizedBox(
                                       width: 22,
                                       height: 22,
-                                      child:
-                                          CircularProgressIndicator(
+                                      child: CircularProgressIndicator(
                                         color: Colors.white,
                                         strokeWidth: 2,
                                       ),
@@ -243,7 +237,7 @@ class _ProductReviewCard extends StatelessWidget {
     required this.surface,
   });
 
-  final dynamic item;
+  final OrderItemModel item;
   final int rating;
   final String comment;
   final ValueChanged<int> onRatingChanged;
@@ -259,7 +253,7 @@ class _ProductReviewCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -328,10 +322,7 @@ class _ProductReviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Center(
-            child: _StarSelector(
-              value: rating,
-              onChanged: onRatingChanged,
-            ),
+            child: _StarSelector(value: rating, onChanged: onRatingChanged),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -362,10 +353,7 @@ class _ProductReviewCard extends StatelessWidget {
 }
 
 class _StarSelector extends StatelessWidget {
-  const _StarSelector({
-    required this.value,
-    required this.onChanged,
-  });
+  const _StarSelector({required this.value, required this.onChanged});
 
   final int value;
   final ValueChanged<int> onChanged;
@@ -382,9 +370,7 @@ class _StarSelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Icon(
               filled ? Icons.star_rounded : Icons.star_border_rounded,
-              color: filled
-                  ? const Color(0xFFFFB800)
-                  : const Color(0xFF525252),
+              color: filled ? const Color(0xFFFFB800) : const Color(0xFF525252),
               size: 32,
             ),
           ),

@@ -4,19 +4,20 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [2.11.0] — 24 de Junho de 2026
-### ⭐ Avaliações dos Clientes agora visíveis no Açougue
+## [2.11.0] — 25 de Junho de 2026
+### ⭐ Avaliações nos Açougues e nos Produtos
 
 ### ✨ Novidades
-- **Avaliações na tela do açougue:** Agora ao abrir um açougue você vê as últimas avaliações dos clientes diretamente na página, com nome, nota em estrelas, comentário e data.
-- **Mostra até 3 avaliações:** As 3 avaliações mais recentes aparecem automaticamente. Se houver mais, um botão “Ver todas as avaliações” leva para a tela completa.
-- **Tela completa de avaliações:** Nova tela dedicada onde o cliente pode ver todas as avaliações do açougue de forma organizada.
-- **Design consistente:** As avaliações seguem o padrão visual claro do aplicativo, combinando perfeitamente com o resto da tela do açougue.
+- **Avaliações do Açougue com Três Estados:** A seção de avaliações do açougue agora responde ao número de reviews disponíveis. Se não houver nenhuma, aparece um card com a mensagem "Seja o primeiro a avaliar". Se houver uma ou duas, os cards são exibidos com um banner incentivando mais avaliações. Com três ou mais, um botão "Ver todas" aparece ao lado do título e leva para a tela completa.
+- **Avaliações do Produto:** A tela de detalhes do produto agora também exibe avaliações, com o mesmo comportamento de três estados da seção do açougue.
+- **Tela Completa de Avaliações do Produto:** Nova tela dedicada para ver todas as avaliações de um produto, com cabeçalho e seta de voltar no padrão visual do aplicativo.
+- **Visual Renovado dos Cards de Avaliação:** Os cards agora exibem avatar com as iniciais do cliente, estrelas maiores e mais elegantes, data ao lado do nome e visual limpo em fundo branco.
 
 ### 📈 Melhorias
-- Carregamento otimizado das avaliações junto com produtos e promoções.
-- Navegação fluida entre a tela do açougue e a tela completa de reviews.
-- Código mais robusto e correção de problemas de navegação e Provider.
+- Botão "Ver todas" posicionado ao lado do título da seção, responsivo para qualquer tamanho de tela.
+- A tela completa de avaliações do açougue agora segue o padrão visual da Home, com imagem de fundo e cabeçalho com seta de voltar.
+- O conteúdo da tela do açougue agora rola até mostrar a última avaliação, sem ser coberto pela sacola flutuante.
+- Divisores visuais adicionados entre as seções da tela do açougue para melhor organização.
 
 ---
 

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrderItemModel {
+  final String productId;
   final String productName;
   final String unitOfMeasure;
   final double quantity;
@@ -8,6 +9,7 @@ class OrderItemModel {
   final String productImageUrl;
 
   const OrderItemModel({
+    required this.productId,
     required this.productName,
     required this.unitOfMeasure,
     required this.quantity,

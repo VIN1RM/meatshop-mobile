@@ -11,25 +11,33 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.11.0] - 2026-06-24
-### Avaliações de Clientes no Detalhe do Açougue
+## [2.11.0] - 2026-06-25
+### Avaliações de Clientes no Detalhe do Açougue e do Produto
 
 ### Added
-- `ReviewCard`: widget reutilizável para exibir nome do cliente, estrelas, comentário e data da avaliação.
-- Seção `_buildReviewsSection()` na `ButcherDetailScreen`: exibe até 3 avaliações mais recentes com botão “Ver todas as avaliações”.
-- Integração completa do `ButcherProvider` com `ReviewService` (carregamento paralelo via `Future.wait`).
-- `UnitReviewsScreen`: nova tela completa de avaliações, carregando todas as reviews diretamente via `ReviewService`.
-- Rota `AppRoutes.unitReviews` registrada e configurada.
-- Tratamento correto de `ModalRoute` usando `didChangeDependencies` e verificação `mounted`.
+- `ReviewCard`: redesign completo com avatar de iniciais, estrelas arredondadas, data inline no header e suporte a `darkMode` (fundo escuro) e modo claro (fundo branco).
+- `UnitReviewsScreen`: refatorada para seguir o padrão visual da Home — `background.png` + `AppHeader(showBack: true)` substituindo o `AppBar` nativo.
+- Seção `_buildReviewsSection()` na `ButcherDetailScreen`: três estados visuais — vazio ("Seja o primeiro a avaliar"), poucos reviews (1–2, com banner CTA "Deixe sua avaliação") e completo (3+, com botão "Ver todas" inline ao título).
+- `_buildEmptyReviews()`: card centralizado com ícone de estrela, título e subtítulo incentivando a primeira avaliação (`width: double.infinity`).
+- `_buildFewReviewsCta()`: banner sutil exibido abaixo dos cards quando há 1 ou 2 avaliações.
+- Dividers vermelhos semitransparentes entre seções na `ButcherDetailScreen`.
+- `watchProductReviews(productId, {limit})` adicionado ao `ReviewService`.
+- Seção de avaliações do produto na `ProductDetailScreen`: mesmos três estados visuais da seção de açougue.
+- `ProductReviewsScreen`: nova tela com `AppHeader(showBack: true)` e `background.png`, padrão visual idêntico à `UnitReviewsScreen`.
+- `AppRoutes.productReviews` registrado em `buildRoutes()`.
+- `productId` adicionado como parâmetro opcional ao `submitReviews` no `ReviewService` (substituindo `null` fixo).
 
 ### Changed
-- `ButcherProvider`: corrigido índice do `Future.wait` para incluir corretamente as reviews (`results[3]`).
-- Adicionado `debugPrint` para facilitar depuração do carregamento de reviews.
+- Botão "Ver todas" movido para inline com o título da seção via `Row + Expanded`, responsivo para qualquer largura de tela.
+- Preview de reviews limitado a 3 itens na `ButcherDetailScreen`.
+- `darkMode: false` aplicado aos cards na `UnitReviewsScreen` para manter fundo branco.
+- Padding inferior da seção de reviews aumentado para 100px, evitando sobreposição com a sacola flutuante.
+- `withOpacity` substituído por `withValues(alpha:)` nos widgets de reviews.
+- Callbacks `errorBuilder` corrigidos de `(_, __, ___)` para `(_, __, _)`.
 
 ### Fixed
-- `ProviderNotFoundException` na `UnitReviewsScreen` (removida dependência desnecessária do `ButcherProvider`).
-- Erro de `ModalRoute.of(context)` chamado antes do `initState` completar.
-- Melhoria na estabilidade e ciclo de vida dos widgets.
+- `_reviews` e `_reviewService` não declarados no `State` da `ProductDetailScreen`.
+- Card de empty state não centralizado horizontalmente (ausência de `width: double.infinity`).
 
 ---
 
