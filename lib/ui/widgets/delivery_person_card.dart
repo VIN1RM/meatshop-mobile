@@ -148,11 +148,21 @@ class _DeliveryPersonCardState extends State<DeliveryPersonCard> {
           ),
           if (info.vehiclePhotoUrls.isNotEmpty) ...[
             const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: _VehiclePhoto(url: info.vehiclePhotoUrls.first),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProfilePhotoViewerScreen(
+                    photoUrl: info.vehiclePhotoUrls.first,
+                  ),
+                ),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: _VehiclePhoto(url: info.vehiclePhotoUrls.first),
+                ),
               ),
             ),
           ],
