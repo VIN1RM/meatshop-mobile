@@ -29,7 +29,7 @@ import 'package:meatshop_mobile/ui/screens/unit_reviews_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/client_shell.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_assistant_screen.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
-import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen%20.dart';
+import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';

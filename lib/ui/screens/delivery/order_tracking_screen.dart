@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
+import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/delivery_person_card.dart';
+import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DeliveriesScreen extends StatefulWidget {
   const DeliveriesScreen({super.key});
@@ -20,6 +25,17 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   static const Color _pageBg = Color(0xFF2E2E2E);
 
   final OrderService _service = OrderService();
+
+  late String _currentUserId;
+  late String _currentUserName;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    _currentUserId = auth.currentUser?.uid ?? '';
+    _currentUserName = auth.currentUser?.displayName ?? 'Cliente';
+  }
 
   void _showCancelSheet(OrderModel order) {
     showModalBottomSheet(
@@ -61,7 +77,16 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
     Navigator.pushNamed(
       context,
       AppRoutes.chat,
-      arguments: {'unitId': order.unitId},
+      arguments: ChatArgs(
+        currentUserId: _currentUserId,
+        currentUserName: _currentUserName,
+        currentUserType: ChatParticipantType.client,
+        otherUserId: order.deliveryPersonId ?? '',
+        otherUserName:
+            'Entregador #${order.deliveryPersonId?.substring(0, 8) ?? ''}',
+        otherUserType: ChatParticipantType.delivery,
+        otherUserPhoto: null,
+      ),
     );
   }
 
@@ -77,12 +102,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
               stream: _service.activeOrdersStream(),
               builder: (context, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFFBE2C1B),
-                      strokeWidth: 2.5,
-                    ),
-                  );
+                  return const _DeliveriesShimmer();
                 }
                 if (snap.hasError) {
                   return const Center(
@@ -111,7 +131,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
             child: Image.asset(
               'assets/images/background.png',
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
+              errorBuilder: (_, _, _) =>
                   Container(color: const Color(0xFF1A1A1A)),
             ),
           ),
@@ -750,4 +770,85 @@ String _formatDate(DateTime date) {
   final hour = d.hour.toString().padLeft(2, '0');
   final min = d.minute.toString().padLeft(2, '0');
   return '$day/$month às $hour:$min';
+}
+
+class _DeliveriesShimmer extends StatelessWidget {
+  const _DeliveriesShimmer();
+
+  static const Color _base = Color(0xFFE0E0E0);
+  static const Color _highlight = Color(0xFFF5F5F5);
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: _base,
+      highlightColor: _highlight,
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        children: [
+          Container(width: 140, height: 22, color: Colors.white),
+          const SizedBox(height: 8),
+          Container(width: 100, height: 14, color: Colors.white),
+          const SizedBox(height: 20),
+          _shimmerCard(),
+          _shimmerCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _shimmerCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(height: 14, width: 120, color: Colors.white),
+                    const SizedBox(height: 6),
+                    Container(height: 12, width: 80, color: Colors.white),
+                  ],
+                ),
+              ),
+              Container(width: 60, height: 16, color: Colors.white),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(height: 3, width: double.infinity, color: Colors.white),
+          const SizedBox(height: 14),
+          Container(height: 12, width: double.infinity, color: Colors.white),
+          const SizedBox(height: 6),
+          Container(height: 12, width: 180, color: Colors.white),
+          const SizedBox(height: 14),
+          Container(
+            height: 38,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -3,6 +3,7 @@ import 'package:meatshop_mobile/models/delivery_person_info_model.dart';
 import 'package:meatshop_mobile/services/delivery_person_info_service.dart';
 import 'dart:convert';
 import 'package:meatshop_mobile/ui/screens/account/profile_photo_viewer_screen.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DeliveryPersonCard extends StatefulWidget {
   const DeliveryPersonCard({super.key, required this.deliveryPersonId});
@@ -193,12 +194,47 @@ class _DeliveryPersonCardState extends State<DeliveryPersonCard> {
   }
 
   Widget _skeleton() {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      height: 80,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8E8E8),
-        borderRadius: BorderRadius.circular(14),
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFE0E0E0),
+      highlightColor: const Color(0xFFF5F5F5),
+      child: Container(
+        margin: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(height: 14, width: 120, color: Colors.white),
+                  const SizedBox(height: 6),
+                  Container(height: 12, width: 80, color: Colors.white),
+                ],
+              ),
+            ),
+            Container(
+              width: 70,
+              height: 28,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
