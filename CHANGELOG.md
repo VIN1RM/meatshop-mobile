@@ -11,6 +11,31 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.12.0] - 2026-06-25
+### Chat: Lista de Conversas e Identificação de Participantes
+
+### Added
+- `_DeliveriesShimmer`: shimmer de carregamento na `DeliveriesScreen` substituindo o `CircularProgressIndicator` enquanto o stream de pedidos ativos carrega.
+- `_DeliveryPersonCardShimmer`: shimmer de carregamento no `DeliveryPersonCard` substituindo o skeleton estático enquanto os dados do entregador são buscados.
+- `_OrderCardShimmer`: shimmer de carregamento no `OrderCardWidget` para exibição durante o carregamento dos pedidos disponíveis para o entregador.
+
+### Changed
+- `conversationsStream` no `ChatService`: query simplificada para filtrar conversas pelo ID do documento (`uid1_uid2`) em vez de depender do campo `participant_ids`, tornando a lista compatível com documentos criados sem esse campo.
+- `otherParticipant()` no `ChatConversation`: fallback adicionado para extrair o ID do outro participante a partir do ID do documento quando o campo `participant_ids` está ausente, e criação de `ChatParticipant` mínimo com nome inferido pelo tipo quando o campo `participants` também está ausente.
+- `_inferName()` e `_inferType()` movidos para dentro da classe `ChatConversation` como métodos privados de instância, corrigindo acesso ao campo `participants`.
+- `ChatProvider`: adicionados campos `currentUserName`, `currentUserType`, `receiverName`, `receiverType`, `currentUserPhoto` e `receiverPhoto` ao construtor.
+- `ChatProvider._init()`: passa a chamar `getOrCreateConversation()` antes de iniciar o stream de mensagens, garantindo que o documento da conversa exista no Firestore com os campos `participants` e `participant_ids` preenchidos corretamente.
+- `ChatScreen`: construção do `ChatProvider` atualizada para passar os novos campos de nome, tipo e foto dos participantes.
+- Label "Chats com estabelecimentos" na `AccountScreen` alterado para "Chats".
+- Subtítulo da `ChatListScreen` alterado de "Suas conversas" para "Todas as suas conversas".
+
+### Fixed
+- Lista de chats exibia "Nenhuma conversa ainda" mesmo com conversas existentes no Firestore, causado por query com `where('participant_ids', arrayContains: ...)` em documentos sem esse campo.
+- Nome dos participantes exibido como "Usuário" para todos na lista de chats, causado por `_inferName` e `_inferType` sendo funções soltas fora da classe sem acesso ao mapa `participants`.
+- Conversas não apareciam na lista mesmo após o log confirmar recebimento (`recebeu 3 conversas`), causado por `otherParticipant()` retornando `null` para documentos sem o campo `participants`.
+
+---
+
 ## [2.11.0] - 2026-06-25
 ### Entregador Identificado, Avaliações de Produtos e Padronização de Status
 

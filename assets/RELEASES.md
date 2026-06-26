@@ -4,6 +4,25 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.12.0] — 25 de Junho de 2026
+### 💬 Lista de Conversas Funcionando e Identificação Correta dos Participantes
+
+### ✨ Novidades
+- **Tela de Chat Carregando com Estilo:** Enquanto as conversas e os dados do entregador carregam, o app agora exibe uma animação suave de esqueleto no lugar de um simples círculo giratório, deixando a experiência mais agradável.
+
+### 📈 Melhorias
+- **Lista de Chats Agora Funciona de Verdade:** A tela de conversas passou a exibir corretamente todas as suas conversas, mesmo as iniciadas antes desta atualização.
+- **Nome Certo na Lista de Chats:** O nome do entregador, do açougue ou do cliente agora aparece corretamente em cada conversa — antes aparecia "Usuário" para todo mundo.
+- **Aba de Chats Renomeada:** O item "Chats com estabelecimentos" na tela de conta foi simplificado para "Chats", já que a lista exibe todos os tipos de conversa.
+- **Conversa Criada Automaticamente:** Ao abrir um chat, o aplicativo agora garante que a conversa seja registrada corretamente no banco de dados com os dados dos dois participantes, evitando que ela fique invisível na lista depois.
+
+### 🐞 Correções
+- Corrigido problema em que a lista de chats ficava vazia mesmo com conversas existentes.
+- Corrigido problema em que todos os participantes apareciam como "Usuário" na lista de conversas.
+- Corrigido problema em que a conversa sumia da lista após ser iniciada pelo pedido.
+
+---
+
 ## [2.11.0] — 25 de Junho de 2026
 ### 🛵 Conheça Seu Entregador e Avalie os Produtos
 
