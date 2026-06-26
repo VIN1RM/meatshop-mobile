@@ -52,14 +52,26 @@ class ChatListProvider extends ChangeNotifier {
 class ChatProvider extends ChangeNotifier {
   final ChatService _service;
   final String currentUserId;
+  final String currentUserName;
+  final ChatParticipantType currentUserType;
   final String conversationId;
   final String receiverId;
+  final String receiverName;
+  final ChatParticipantType receiverType;
+  final String? currentUserPhoto;
+  final String? receiverPhoto;
 
   ChatProvider({
     required ChatService service,
     required this.currentUserId,
+    required this.currentUserName,
+    required this.currentUserType,
     required this.conversationId,
     required this.receiverId,
+    required this.receiverName,
+    required this.receiverType,
+    this.currentUserPhoto,
+    this.receiverPhoto,
   }) : _service = service {
     _init();
   }
@@ -73,7 +85,18 @@ class ChatProvider extends ChangeNotifier {
   bool get loading => _loading;
   bool get sending => _sending;
 
-  void _init() {
+  void _init() async {
+    await _service.getOrCreateConversation(
+      currentUserId: currentUserId,
+      currentUserName: currentUserName,
+      currentUserType: currentUserType,
+      otherUserId: receiverId,
+      otherUserName: receiverName,
+      otherUserType: receiverType,
+      currentUserPhoto: currentUserPhoto,
+      otherUserPhoto: receiverPhoto,
+    );
+
     _service.markConversationAsRead(
       conversationId: conversationId,
       userId: currentUserId,

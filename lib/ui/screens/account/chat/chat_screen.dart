@@ -39,8 +39,14 @@ class _ChatScreenState extends State<ChatScreen> {
     _chatProvider = ChatProvider(
       service: ChatService(),
       currentUserId: args.currentUserId,
+      currentUserName: args.currentUserName,
+      currentUserType: args.currentUserType,
       conversationId: args.conversationId,
       receiverId: args.otherUserId,
+      receiverName: args.otherUserName,
+      receiverType: args.otherUserType,
+      currentUserPhoto: args.currentUserPhoto,
+      receiverPhoto: args.otherUserPhoto,
     );
   }
 

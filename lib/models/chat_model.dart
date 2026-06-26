@@ -100,8 +100,8 @@ class ChatConversation {
         (otherId.isNotEmpty
             ? ChatParticipant(
                 userId: otherId,
-                name: 'Usuário',
-                type: ChatParticipantType.client,
+                name: _inferName(otherId),
+                type: _inferType(otherId),
               )
             : null);
   }
@@ -111,6 +111,24 @@ class ChatConversation {
   static String buildId(String userId1, String userId2) {
     final sorted = [userId1, userId2]..sort();
     return '${sorted[0]}_${sorted[1]}';
+  }
+
+  String _inferName(String otherId) {
+    final p = participants[otherId];
+    if (p != null && p.name.isNotEmpty) return p.name;
+    final type = _inferType(otherId);
+    switch (type) {
+      case ChatParticipantType.delivery:
+        return 'Entregador';
+      case ChatParticipantType.unit:
+        return 'Açougue';
+      default:
+        return 'Cliente';
+    }
+  }
+
+  ChatParticipantType _inferType(String otherId) {
+    return ChatParticipantType.client;
   }
 }
 
