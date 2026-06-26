@@ -52,7 +52,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
                       _pageTitle(),
                       const SizedBox(height: 16),
                       _buildProfileCard(provider),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       _buildStatsRow(provider),
                       const SizedBox(height: 20),
                       _buildMenuList(context, provider),
@@ -160,7 +160,10 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
           const SizedBox(height: 14),
           _infoRow('Veículo:', provider.vehicle),
           const SizedBox(height: 6),
-          _infoRow('Avaliação média:', '${provider.averageRating} ★'),
+          _infoRow(
+            'Avaliação média:',
+            '${provider.averageRating} ★ (${provider.reviewCount})',
+          ),
           const SizedBox(height: 6),
           _infoRow('Entregas realizadas:', '${provider.historyOrders.length}'),
 
@@ -202,7 +205,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
           const SizedBox(width: 12),
           _StatCard(
             label: 'Avaliação',
-            value: '${provider.averageRating}',
+            value: provider.averageRating.toStringAsFixed(1),
             icon: Icons.star_outline,
           ),
         ],

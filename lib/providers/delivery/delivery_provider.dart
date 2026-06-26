@@ -5,9 +5,11 @@ import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/delivery_order_service.dart';
+import 'package:meatshop_mobile/services/delivery_rating_service.dart';
 
 class DeliveryProvider extends ChangeNotifier {
   final DeliveryOrderService _orderService = DeliveryOrderService();
+  final DeliveryRatingService _ratingService = DeliveryRatingService.instance;
 
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
   DeliveryOrder? _activeOrder;
@@ -15,11 +17,15 @@ class DeliveryProvider extends ChangeNotifier {
   Map<String, String> _vehicleInfo = {};
   String? _deliveryPersonUid;
   StreamSubscription<List<DeliveryOrder>>? _ordersSubscription;
+  StreamSubscription<double>? _ratingSubscription;
 
   final List<DeliveryOrder> _pendingOrders = [];
   final List<DeliveryOrder> _historyOrders = [];
   bool _isLoadingHistory = false;
   String? _historyError;
+
+  double _averageRating = 0.0;
+  int _reviewCount = 0;
 
   Map<String, String> get vehicleInfo => _vehicleInfo;
   bool get isOnline => isAvailable;
@@ -34,7 +40,8 @@ class DeliveryProvider extends ChangeNotifier {
   String? get historyError => _historyError;
 
   String get deliveryPersonName => _vehicleInfo['name'] ?? 'Entregador';
-  double get averageRating => 4.8;
+  double get averageRating => _averageRating;
+  int get reviewCount => _reviewCount;
   String get vehicle => _vehicleInfo['type'] ?? 'Moto';
 
   bool _isReloading = false;
@@ -53,11 +60,30 @@ class DeliveryProvider extends ChangeNotifier {
     }, onError: (e) => debugPrint('Erro ao ouvir pedidos: $e'));
 
     _restoreActiveOrder(uid);
+
+    _ratingSubscription?.cancel();
+    _ratingSubscription = _ratingService.watchAverageRating(uid).listen((
+      rating,
+    ) {
+      _averageRating = rating;
+      notifyListeners();
+    });
+
+    _loadRatingStats(uid);
+  }
+
+  Future<void> _loadRatingStats(String uid) async {
+    final stats = await _ratingService.calculateAverageRating(uid);
+    _averageRating = stats['rating'] as double;
+    _reviewCount = stats['count'] as int;
+    notifyListeners();
   }
 
   void stopListeningOrders() {
     _ordersSubscription?.cancel();
     _ordersSubscription = null;
+    _ratingSubscription?.cancel();
+    _ratingSubscription = null;
   }
 
   Future<void> _restoreActiveOrder(String uid) async {
@@ -182,6 +208,8 @@ class DeliveryProvider extends ChangeNotifier {
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
     _deliveryPersonUid = null;
+    _averageRating = 0.0;
+    _reviewCount = 0;
     notifyListeners();
 
     Navigator.of(
@@ -194,6 +222,8 @@ class DeliveryProvider extends ChangeNotifier {
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
     _deliveryPersonUid = null;
+    _averageRating = 0.0;
+    _reviewCount = 0;
     notifyListeners();
 
     Navigator.of(context).pushNamedAndRemoveUntil(
@@ -243,5 +273,15 @@ class DeliveryProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  Future<Map<String, dynamic>> getRatingStats() async {
+    if (_deliveryPersonUid == null) return {};
+    return await _ratingService.getDetailedRatingStats(_deliveryPersonUid!);
+  }
+
+  Future<List<DeliveryReview>> getReviews() async {
+    if (_deliveryPersonUid == null) return [];
+    return await _ratingService.getDeliveryReviews(_deliveryPersonUid!);
   }
 }

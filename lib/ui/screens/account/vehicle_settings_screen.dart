@@ -55,34 +55,35 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
               children: [
                 const AppHeader(),
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        _pageTitle(),
-                        const SizedBox(height: 20),
-                        if (provider.isLoading)
-                          const Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFFC0392B),
-                            ),
-                          )
-                        else if (provider.vehicles.isEmpty)
-                          const Text(
-                            'Nenhum veículo cadastrado.',
-                            style: TextStyle(color: Colors.white38),
-                          )
-                        else
-                          ...provider.vehicles
-                              .map((v) => _buildVehicleCard(context, v))
-                              .toList(),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
+                  child: provider.isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFC0392B),
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 8),
+                              _pageTitle(),
+                              const SizedBox(height: 20),
+                              if (provider.vehicles.isEmpty)
+                                const Text(
+                                  'Nenhum veículo cadastrado.',
+                                  style: TextStyle(color: Colors.white38),
+                                )
+                              else
+                                ...provider.vehicles
+                                    .map((v) => _buildVehicleCard(context, v))
+                                    .toList(),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        ),
                 ),
               ],
             ),
