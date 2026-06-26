@@ -82,7 +82,7 @@ class ChatListScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             const Text(
-                              'Suas conversas',
+                              'Todas as suas conversas',
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 13,

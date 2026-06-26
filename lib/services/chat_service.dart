@@ -58,21 +58,25 @@ class ChatService {
     String userId,
     ChatParticipantType activeType,
   ) {
-    final cutoff = Timestamp.fromDate(
-      DateTime.now().subtract(const Duration(days: 30)),
-    );
+    final cutoffDate = DateTime.now().subtract(const Duration(days: 30));
 
     return _db
         .collection(_kConversations)
-        .where('participant_ids', arrayContains: userId)
-        .where(
-          'participant_types.$userId',
-          isEqualTo: activeType.name.toUpperCase(),
-        )
-        .where('last_message_at', isGreaterThan: cutoff)
         .orderBy('last_message_at', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map(ChatConversation.fromDoc).toList());
+        .map((snap) {
+          return snap.docs
+              .where((doc) {
+                final ids = doc.id.split('_');
+                return ids.contains(userId);
+              })
+              .map(ChatConversation.fromDoc)
+              .where((c) {
+                return c.lastMessageAt == null ||
+                    c.lastMessageAt!.isAfter(cutoffDate);
+              })
+              .toList();
+        });
   }
 
   Stream<List<ChatMessage>> messagesStream(String conversationId) {

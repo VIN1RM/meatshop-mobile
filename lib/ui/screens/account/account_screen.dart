@@ -189,7 +189,7 @@ class _AccountScreenState extends State<AccountScreen> {
     final items = [
       _MenuItem(
         Icons.chat_bubble_outline,
-        'Chats com estabelecimentos',
+        'Chats',
         onTap: () => Navigator.pushNamed(context, AppRoutes.chatList),
       ),
       _MenuItem(

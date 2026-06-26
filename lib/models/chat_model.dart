@@ -86,11 +86,24 @@ class ChatConversation {
   }
 
   ChatParticipant? otherParticipant(String currentUserId) {
-    final otherId = participantIds.firstWhere(
+    String otherId = participantIds.firstWhere(
       (id) => id != currentUserId,
       orElse: () => '',
     );
-    return participants[otherId];
+
+    if (otherId.isEmpty) {
+      final parts = id.split('_');
+      otherId = parts.firstWhere((p) => p != currentUserId, orElse: () => '');
+    }
+
+    return participants[otherId] ??
+        (otherId.isNotEmpty
+            ? ChatParticipant(
+                userId: otherId,
+                name: 'Usuário',
+                type: ChatParticipantType.client,
+              )
+            : null);
   }
 
   int unreadFor(String userId) => unreadCount[userId] ?? 0;

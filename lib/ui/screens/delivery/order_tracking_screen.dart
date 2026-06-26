@@ -6,6 +6,7 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/services/chat_service.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -73,7 +74,19 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
     );
   }
 
-  void _onContactTap(OrderModel order) {
+  void _onContactTap(OrderModel order) async {
+    final service = ChatService();
+    await service.getOrCreateConversation(
+      currentUserId: _currentUserId,
+      currentUserName: _currentUserName,
+      currentUserType: ChatParticipantType.client,
+      otherUserId: order.deliveryPersonId ?? '',
+      otherUserName:
+          'Entregador #${order.deliveryPersonId?.substring(0, 8) ?? ''}',
+      otherUserType: ChatParticipantType.delivery,
+    );
+
+    if (!mounted) return;
     Navigator.pushNamed(
       context,
       AppRoutes.chat,

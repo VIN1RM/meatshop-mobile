@@ -29,11 +29,13 @@ class ChatListProvider extends ChangeNotifier {
         .conversationsStream(currentUserId, activeType)
         .listen(
           (list) {
+            print('[ChatList] recebeu ${list.length} conversas');
             _conversations = list;
             _loading = false;
             notifyListeners();
           },
-          onError: (_) {
+          onError: (e) {
+            print('[ChatList] ERRO: $e');
             _loading = false;
             notifyListeners();
           },
