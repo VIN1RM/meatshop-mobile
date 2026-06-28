@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
+import 'package:provider/provider.dart';
 
 enum AcougueOrdem {
   nomeAZ,
@@ -7,6 +9,7 @@ enum AcougueOrdem {
   avaliacaoMenor,
   precoMaior,
   precoMenor,
+  proximidade,
 }
 
 class AcougueFilter {
@@ -53,9 +56,12 @@ class AcougueFilterSheet extends StatefulWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => AcougueFilterSheet(
-        filtroAtual: filtroAtual,
-        onAplicar: (f) => Navigator.pop(context, f),
+      builder: (sheetContext) => ChangeNotifierProvider.value(
+        value: context.read<UnitProvider>(),
+        child: AcougueFilterSheet(
+          filtroAtual: filtroAtual,
+          onAplicar: (f) => Navigator.pop(sheetContext, f),
+        ),
       ),
     );
   }
@@ -209,6 +215,28 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
               ),
 
               const SizedBox(height: 24),
+              _sectionLabel('Localização'),
+              const SizedBox(height: 10),
+              Consumer<UnitProvider>(
+                builder: (context, unitProvider, _) {
+                  if (!unitProvider.hasLocation) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          _optionChip(
+                            label: 'Mais próximos',
+                            icon: Icons.near_me_rounded,
+                            valor: AcougueOrdem.proximidade,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  );
+                },
+              ),
               _sectionLabel('Ordem Alfabética'),
               const SizedBox(height: 10),
               Row(

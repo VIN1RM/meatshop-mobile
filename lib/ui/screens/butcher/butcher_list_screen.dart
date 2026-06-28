@@ -61,9 +61,21 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
         resultado.sort((a, b) => b.averageRating.compareTo(a.averageRating));
       case AcougueOrdem.avaliacaoMenor:
         resultado.sort((a, b) => a.averageRating.compareTo(b.averageRating));
+      case AcougueOrdem.proximidade:
+        final pos = provider.userPosition;
+        if (pos != null) {
+          resultado.sort((a, b) {
+            final da = a.distanceTo(pos.latitude, pos.longitude);
+            final db = b.distanceTo(pos.latitude, pos.longitude);
+            if (da == null && db == null) return 0;
+            if (da == null) return 1;
+            if (db == null) return -1;
+            return da.compareTo(db);
+          });
+        }
       case AcougueOrdem.precoMaior:
       case AcougueOrdem.precoMenor:
-        break; 
+        break;
     }
 
     return resultado;
@@ -81,6 +93,8 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
         parts.add('Maior avaliação');
       case AcougueOrdem.avaliacaoMenor:
         parts.add('Menor avaliação');
+      case AcougueOrdem.proximidade:
+        parts.add('Mais próximos');
       case AcougueOrdem.precoMaior:
         parts.add('Maior preço');
       case AcougueOrdem.precoMenor:
@@ -370,6 +384,38 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                           color: Colors.white38,
                           fontSize: 12,
                         ),
+                      ),
+                    ],
+                    if (provider.hasLocation) ...[
+                      const SizedBox(height: 2),
+                      Builder(
+                        builder: (_) {
+                          final pos = provider.userPosition!;
+                          final dist = u.distanceTo(
+                            pos.latitude,
+                            pos.longitude,
+                          );
+                          if (dist == null) return const SizedBox.shrink();
+                          return Row(
+                            children: [
+                              const Icon(
+                                Icons.near_me_rounded,
+                                size: 11,
+                                color: Colors.white38,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                dist < 1
+                                    ? '${(dist * 1000).round()} m'
+                                    : '${dist.toStringAsFixed(1)} km',
+                                style: const TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ],
                     if (hasHours) ...[
