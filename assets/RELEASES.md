@@ -5,8 +5,15 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.13.0] — 30 de Junho de 2026
-### 
+### 🔑 Entre com Google ou Apple
 
+### ✨ Novidades
+- **Login Mais Rápido:** Agora você pode entrar no MeatShop usando sua conta Google ou Apple.
+- **Complete Seu Cadastro em Segundos:** Se for seu primeiro acesso com Google ou Apple, uma tela simples vai pedir só o essencial: nome, CPF, celular e, dependendo do seu perfil, endereço ou dados do veículo.
+- **Escolha Como Quer Usar o App:** Na primeira vez, você escolhe se quer ser Cliente, Entregador, ou os dois ao mesmo tempo.
+
+### 📈 Melhorias
+- **Acesso Mais Seguro:** O login com Google e Apple usa verificação direta com essas plataformas, mantendo sua conta protegida.
 
 ---
 

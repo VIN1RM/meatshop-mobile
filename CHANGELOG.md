@@ -12,10 +12,21 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [2.13.0] - 2026-06-30
-### 
+### Login Social com Google e Apple
 
-### 
+### Added
+- `loginWithGoogle()` e `loginWithApple()` no `AuthService`: autenticação via `google_sign_in` e `sign_in_with_apple`, com geração de nonce e hash SHA-256 para o fluxo Apple.
+- `_handleSocialUser()` no `AuthService`: cria documento em `users` automaticamente no primeiro login social (`app_profile: CLIENT`, `profile_complete: false`), ou retorna o `app_profile` existente em logins subsequentes.
+- `isSocialProfileComplete(uid)` no `AuthService`: verifica se o usuário social já completou CPF/perfil.
+- `completeSocialProfile()` e `completeSocialProfileWithVehicle()` no `AuthService`: completam dados obrigatórios (nome, CPF, celular) e, quando aplicável, cadastro de veículo do entregador, com checagem de unicidade de CPF/telefone.
+- `CompleteProfileScreen`: nova tela para usuários vindos de login social, com seleção de tipo de perfil (Cliente, Entregador, Cliente & Entregador), formulário de dados pessoais com máscaras de CPF/celular, seleção de veículo (entregador) e endereço (cliente).
+- `loginWithGoogle(context)` e `loginWithApple(context)` no `AuthProvider`: orquestram login social, carregamento de `UserProvider`/`UserPreferencesProvider`/`PaymentProvider` e redirecionamento condicional para `CompleteProfileScreen` quando o perfil está incompleto.
+- `completeProfileWithType()` no `AuthProvider`: persiste perfil escolhido, dados de veículo ou endereço padrão conforme o tipo selecionado.
+- Botões "Continuar com Google" e "Continuar com Apple" na `LoginPage`, com estados de carregamento independentes (`_isGoogleLoading`, `_isAppleLoading`).
+- `AppRoutes.completeProfile` registrada em `buildRoutes()`.
 
+### Changed
+- `AuthProvider._redirectAfterLogin()`: reaproveitado também no fluxo de login social após a conclusão do perfil.
 
 ---
 
