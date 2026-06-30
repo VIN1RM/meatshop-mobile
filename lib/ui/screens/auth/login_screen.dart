@@ -4,6 +4,7 @@ import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_version_widget.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,6 +20,9 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _obscurePassword = true;
   bool _isLoading = false;
+
+  bool _isGoogleLoading = false;
+  bool _isAppleLoading = false;
 
   @override
   void dispose() {
@@ -39,6 +43,18 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _onGoogleLogin() async {
+    setState(() => _isGoogleLoading = true);
+    await context.read<AuthProvider>().loginWithGoogle(context);
+    if (mounted) setState(() => _isGoogleLoading = false);
+  }
+
+  void _onAppleLogin() async {
+    setState(() => _isAppleLoading = true);
+    await context.read<AuthProvider>().loginWithApple(context);
+    if (mounted) setState(() => _isAppleLoading = false);
   }
 
   @override
@@ -157,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
 
-                          SizedBox(height: sh * 0.04),
+                          SizedBox(height: sh * 0.02),
 
                           PrimaryButton(
                             label: 'ENTRAR',
@@ -166,6 +182,40 @@ class _LoginPageState extends State<LoginPage> {
                           ),
 
                           SizedBox(height: sh * 0.03),
+
+                          Row(
+                            children: const [
+                              Expanded(child: Divider(color: Colors.white24)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'ou',
+                                  style: TextStyle(color: Colors.white54),
+                                ),
+                              ),
+                              Expanded(child: Divider(color: Colors.white24)),
+                            ],
+                          ),
+
+                          SizedBox(height: sh * 0.025),
+
+                          _SocialButton(
+                            label: 'Continuar com Google',
+                            icon: Icons.g_mobiledata,
+                            isLoading: _isGoogleLoading,
+                            onPressed: _isGoogleLoading ? null : _onGoogleLogin,
+                          ),
+
+                          SizedBox(height: sh * 0.015),
+
+                          _SocialButton(
+                            label: 'Continuar com Apple',
+                            icon: Icons.apple,
+                            isLoading: _isAppleLoading,
+                            onPressed: _isAppleLoading ? null : _onAppleLogin,
+                          ),
+
+                          SizedBox(height: sh * 0.02),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -200,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                             ],
                           ),
 
-                          SizedBox(height: sh * 0.20),
+                          SizedBox(height: sh * 0.02),
 
                           const Center(child: AppVersionText()),
 
@@ -280,6 +330,52 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SocialButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  const _SocialButton({
+    required this.label,
+    required this.icon,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          side: const BorderSide(color: Color(0xFFDDDDDD)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        icon: isLoading
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(icon, color: Colors.black87),
+        label: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }

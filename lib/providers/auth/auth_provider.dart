@@ -30,6 +30,9 @@ class AuthProvider extends ChangeNotifier {
   bool get isDelivery => _activeProfile == AppProfile.delivery;
   User? get currentUser => AuthService.instance.currentUser;
 
+  bool _needsProfileCompletion = false;
+  bool get needsProfileCompletion => _needsProfileCompletion;
+
   Future<void> login({
     required BuildContext context,
     required String email,
@@ -96,6 +99,128 @@ class AuthProvider extends ChangeNotifier {
           context: context,
           title: 'Erro ao entrar',
           message: _errorMessage!,
+        );
+      }
+    }
+  }
+
+  Future<void> loginWithGoogle(BuildContext context) async {
+    _errorMessage = null;
+    try {
+      final profile = await AuthService.instance.loginWithGoogle();
+      await _afterSocialLogin(context, profile);
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: e.message,
+        );
+      }
+    } catch (e) {
+      debugPrint('GOOGLE LOGIN ERROR: $e');
+      _errorMessage = 'Erro inesperado. Tente novamente.';
+      notifyListeners();
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: _errorMessage!,
+        );
+      }
+    }
+  }
+
+  Future<void> loginWithApple(BuildContext context) async {
+    _errorMessage = null;
+    try {
+      final profile = await AuthService.instance.loginWithApple();
+      await _afterSocialLogin(context, profile);
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: e.message,
+        );
+      }
+    } catch (e) {
+      _errorMessage = 'Erro inesperado. Tente novamente.';
+      notifyListeners();
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: _errorMessage!,
+        );
+      }
+    }
+  }
+
+  Future<void> _afterSocialLogin(BuildContext context, String profile) async {
+    final uid = AuthService.instance.currentUser!.uid;
+
+    _isAuthenticated = true;
+    _appProfile = AppProfile.fromString(profile);
+    notifyListeners();
+
+    final isComplete = await AuthService.instance.isSocialProfileComplete(uid);
+    _needsProfileCompletion = !isComplete;
+
+    if (context.mounted) {
+      await context.read<UserProvider>().loadUser(uid);
+    }
+    if (context.mounted) {
+      await context.read<UserPreferencesProvider>().loadForUser(uid);
+    }
+    if (context.mounted) {
+      context.read<PaymentProvider>().init();
+    }
+
+    OrderStatusNotificationWatcher.instance.start(
+      userId: uid,
+      navigatorKey: NotificationService.instance.navigatorKey!,
+    );
+
+    if (!context.mounted) return;
+
+    if (_needsProfileCompletion) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);
+    } else {
+      _redirectAfterLogin(context);
+    }
+  }
+
+  Future<void> completeSocialProfile({
+    required BuildContext context,
+    required String cpf,
+    required String phone,
+  }) async {
+    try {
+      final uid = AuthService.instance.currentUser!.uid;
+      await AuthService.instance.completeSocialProfile(
+        uid: uid,
+        cpf: cpf,
+        phone: phone,
+      );
+      _needsProfileCompletion = false;
+      notifyListeners();
+
+      if (context.mounted) {
+        _redirectAfterLogin(context);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao salvar dados',
+          message: e is ApiException
+              ? e.message
+              : 'Não foi possível salvar seus dados. Tente novamente.',
         );
       }
     }

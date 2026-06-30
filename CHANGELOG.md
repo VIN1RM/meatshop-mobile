@@ -11,7 +11,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.12.0] - 2026-06-25
+## [2.12.0] - 2026-06-27
 ### Chat: Lista de Conversas e Identificação de Participantes
 
 ### Added

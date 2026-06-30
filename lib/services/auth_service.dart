@@ -5,6 +5,10 @@ import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'package:meatshop_mobile/services/login_attempts_service.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthService {
   AuthService._();
@@ -41,6 +45,114 @@ class AuthService {
       }
       rethrow;
     }
+  }
+
+  Future<String> loginWithGoogle() async {
+    final googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
+      throw ApiException('Login com Google cancelado.');
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final userCredential = await _auth.signInWithCredential(credential);
+    return _handleSocialUser(
+      userCredential.user!,
+      fallbackName: googleUser.displayName,
+    );
+  }
+
+  Future<String> loginWithApple() async {
+    final rawNonce = _generateNonce();
+    final nonce = _sha256ofString(rawNonce);
+
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: nonce,
+    );
+
+    final oauthCredential = OAuthProvider(
+      'apple.com',
+    ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
+
+    final userCredential = await _auth.signInWithCredential(oauthCredential);
+
+    final fallbackName = [
+      appleCredential.givenName,
+      appleCredential.familyName,
+    ].where((s) => s != null && s.isNotEmpty).join(' ');
+
+    return _handleSocialUser(
+      userCredential.user!,
+      fallbackName: fallbackName.isEmpty ? null : fallbackName,
+    );
+  }
+
+  Future<String> _handleSocialUser(User user, {String? fallbackName}) async {
+    final docRef = _db.collection(FirestoreCollections.users).doc(user.uid);
+    final doc = await docRef.get();
+
+    if (!doc.exists) {
+      await docRef.set({
+        'name': fallbackName ?? user.displayName ?? '',
+        'email': user.email ?? '',
+        'cpf': '',
+        'phone': user.phoneNumber ?? '',
+        'global_role': 'USER',
+        'app_profile': 'CLIENT',
+        'profile_complete': false,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+      return 'CLIENT';
+    }
+
+    return doc.data()?['app_profile'] as String? ?? 'CLIENT';
+  }
+
+  Future<bool> isSocialProfileComplete(String uid) async {
+    final doc = await _db.collection(FirestoreCollections.users).doc(uid).get();
+    final data = doc.data();
+    if (data == null) return false;
+    return data['profile_complete'] == true ||
+        (data['cpf'] as String?)?.isNotEmpty == true;
+  }
+
+  Future<void> completeSocialProfile({
+    required String uid,
+    required String cpf,
+    required String phone,
+  }) async {
+    await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
+
+    await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'cpf': cpf.trim(),
+      'phone': phone.trim(),
+      'profile_complete': true,
+    });
+
+    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+  }
+
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    return sha256.convert(bytes).toString();
   }
 
   bool _isInvalidCredentialError(String code) {
