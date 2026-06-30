@@ -161,6 +161,60 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> completeProfileWithType({
+    required BuildContext context,
+    required String cpf,
+    required String phone,
+    required AppProfile profile,
+    String? vehicleType,
+    Map<String, dynamic>? vehicleData,
+  }) async {
+    try {
+      final uid = AuthService.instance.currentUser!.uid;
+
+      if (profile == AppProfile.delivery || profile == AppProfile.both) {
+        await AuthService.instance.completeSocialProfileWithVehicle(
+          uid: uid,
+          cpf: cpf,
+          phone: phone,
+          appProfile: profile,
+          vehicleType: vehicleType!,
+          vehicleData: vehicleData!,
+        );
+      } else {
+        await AuthService.instance.completeSocialProfile(
+          uid: uid,
+          cpf: cpf,
+          phone: phone,
+        );
+
+        if (profile == AppProfile.client) {
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'app_profile': 'CLIENT',
+          });
+        }
+      }
+
+      _needsProfileCompletion = false;
+      _appProfile = profile;
+      notifyListeners();
+
+      if (context.mounted) {
+        _redirectAfterLogin(context);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao salvar dados',
+          message: e is ApiException
+              ? e.message
+              : 'Não foi possível salvar seus dados. Tente novamente.',
+        );
+      }
+    }
+  }
+
   Future<void> _afterSocialLogin(BuildContext context, String profile) async {
     final uid = AuthService.instance.currentUser!.uid;
 

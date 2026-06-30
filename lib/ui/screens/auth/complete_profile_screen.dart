@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
@@ -15,7 +18,26 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _cpfController = TextEditingController();
   final _phoneController = TextEditingController();
+
+  AppProfile? _selectedProfile;
+  Map<String, dynamic>? _vehicleData;
+  String? _selectedVehicle;
+
   bool _isLoading = false;
+
+  final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'ON_FOOT'];
+  final Map<String, String> _vehicleLabels = {
+    'MOTORCYCLE': 'Moto',
+    'BIKE': 'Bicicleta',
+    'CAR': 'Carro',
+    'ON_FOOT': 'A pé',
+  };
+  final Map<String, IconData> _vehicleIcons = {
+    'MOTORCYCLE': Icons.two_wheeler,
+    'BIKE': Icons.directions_bike,
+    'CAR': Icons.directions_car,
+    'ON_FOOT': Icons.directions_walk,
+  };
 
   @override
   void dispose() {
@@ -26,17 +48,43 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   Future<void> _onSubmit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedProfile == null) {
+      CustomSnackBar.warning(
+        'Selecione um tipo de perfil para continuar.',
+        context: context,
+      );
+      return;
+    }
+
+    if (_selectedProfile != AppProfile.client && _vehicleData == null) {
+      CustomSnackBar.warning(
+        'Preencha os dados do veículo para continuar.',
+        context: context,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    await context.read<AuthProvider>().completeSocialProfile(
-      context: context,
-      cpf: _cpfController.text,
-      phone: _phoneController.text,
-    );
-    if (mounted) setState(() => _isLoading = false);
+
+    try {
+      await context.read<AuthProvider>().completeProfileWithType(
+        context: context,
+        cpf: _cpfController.text,
+        phone: _phoneController.text,
+        profile: _selectedProfile!,
+        vehicleType: _selectedVehicle,
+        vehicleData: _vehicleData,
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final sh = size.height;
+
     return Scaffold(
       backgroundColor: const Color(0xFF424242),
       body: SafeArea(
@@ -46,9 +94,16 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [_buildHero(), _buildCard()],
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHero(),
+                      SizedBox(height: sh * 0.03),
+                      _buildCard(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -95,7 +150,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   Widget _buildHero() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 24, 4, 16),
+      padding: const EdgeInsets.fromLTRB(4, 24, 4, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -141,55 +196,63 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildInfoBanner(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoBanner(),
+          const SizedBox(height: 20),
+          _buildSectionTitle('Dados Pessoais'),
+          const SizedBox(height: 14),
+          _buildField(
+            label: 'CPF',
+            controller: _cpfController,
+            hint: '000.000.000-00',
+            icon: Icons.badge_outlined,
+            keyboardType: TextInputType.number,
+            formatters: [CpfInputFormatter()],
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Informe o CPF';
+              if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
+                return 'CPF inválido';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          _buildField(
+            label: 'Celular',
+            controller: _phoneController,
+            hint: '(00) 0 0000-0000',
+            icon: Icons.phone_outlined,
+            keyboardType: TextInputType.phone,
+            formatters: [PhoneInputFormatter()],
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Informe o celular';
+              if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
+                return 'Celular inválido';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 20),
+          _buildSectionTitle('Tipo de Perfil'),
+          const SizedBox(height: 14),
+          _buildProfileSelection(),
+          if (_selectedProfile != AppProfile.client) ...[
+            const SizedBox(height: 20),
+            _buildSectionTitle('Tipo de Veículo'),
             const SizedBox(height: 14),
-            _buildField(
-              label: 'CPF',
-              controller: _cpfController,
-              hint: '000.000.000-00',
-              icon: Icons.badge_outlined,
-              keyboardType: TextInputType.number,
-              formatters: [CpfInputFormatter()],
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Informe o CPF';
-                if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                  return 'CPF inválido';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            _buildField(
-              label: 'Celular',
-              controller: _phoneController,
-              hint: '(00) 0 0000-0000',
-              icon: Icons.phone_outlined,
-              keyboardType: TextInputType.phone,
-              formatters: [PhoneInputFormatter()],
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Informe o celular';
-                if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                  return 'Celular inválido';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 4),
-            const Divider(color: Colors.white10, height: 28),
-            PrimaryButton(
-              label: 'CONTINUAR',
-              isLoading: _isLoading,
-              onPressed: _isLoading ? null : _onSubmit,
-            ),
-            const SizedBox(height: 12),
-            _buildStepDots(),
+            _buildVehicleSelection(),
           ],
-        ),
+          const SizedBox(height: 24),
+          const Divider(color: Colors.white10, height: 1),
+          const SizedBox(height: 20),
+          PrimaryButton(
+            label: 'CONTINUAR',
+            isLoading: _isLoading,
+            onPressed: _isLoading ? null : _onSubmit,
+          ),
+        ],
       ),
     );
   }
@@ -221,6 +284,208 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 16,
+          decoration: BoxDecoration(
+            color: const Color(0xFFC0392B),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileSelection() {
+    return Column(
+      children: [
+        _buildProfileCard(
+          AppProfile.client,
+          'Cliente',
+          'Compre cortes frescos dos melhores açougues.',
+          Icons.shopping_bag_outlined,
+        ),
+        const SizedBox(height: 10),
+        _buildProfileCard(
+          AppProfile.delivery,
+          'Entregador',
+          'Faça entregas e ganhe dinheiro no seu horário.',
+          Icons.delivery_dining_outlined,
+        ),
+        const SizedBox(height: 10),
+        _buildProfileCard(
+          AppProfile.both,
+          'Cliente & Entregador',
+          'Peça e entregue com o mesmo perfil.',
+          Icons.people_outline,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileCard(
+    AppProfile profile,
+    String title,
+    String desc,
+    IconData icon,
+  ) {
+    final selected = _selectedProfile == profile;
+    return GestureDetector(
+      onTap: () => setState(() {
+        _selectedProfile = profile;
+        if (profile == AppProfile.client) {
+          _selectedVehicle = null;
+          _vehicleData = null;
+        }
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xFFC0392B).withOpacity(0.15)
+              : const Color(0xFF525252),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? const Color(0xFFC0392B) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: selected
+                    ? const Color(0xFFC0392B).withOpacity(0.2)
+                    : const Color(0xFF3A3A3A),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: selected ? const Color(0xFFC0392B) : Colors.white38,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: selected ? const Color(0xFFC0392B) : Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    desc,
+                    style: const TextStyle(color: Colors.white54, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected ? const Color(0xFFC0392B) : Colors.transparent,
+                border: Border.all(
+                  color: selected ? const Color(0xFFC0392B) : Colors.white30,
+                  width: 2,
+                ),
+              ),
+              child: selected
+                  ? const Icon(Icons.check, color: Colors.white, size: 12)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVehicleSelection() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: 2,
+      children: _vehicles.map((v) {
+        final selected = _selectedVehicle == v;
+        return GestureDetector(
+          onTap: () async {
+            final result = await showModalBottomSheet<Map<String, dynamic>>(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => VehicleEditModal(vehicleType: v),
+            );
+            if (result != null) {
+              setState(() {
+                _selectedVehicle = v;
+                _vehicleData = result;
+              });
+            }
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xFFC0392B).withOpacity(0.15)
+                  : const Color(0xFF525252),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected ? const Color(0xFFC0392B) : Colors.transparent,
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _vehicleIcons[v],
+                  color: selected ? const Color(0xFFC0392B) : Colors.white60,
+                  size: 20,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _vehicleLabels[v]!,
+                  style: TextStyle(
+                    color: selected ? const Color(0xFFC0392B) : Colors.white60,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -290,33 +555,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildStepDots() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _dot(false),
-        const SizedBox(width: 6),
-        _dot(true),
-        const SizedBox(width: 6),
-        _dot(false),
-      ],
-    );
-  }
-
-  Widget _dot(bool active) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: active ? 18 : 6,
-      height: 6,
-      decoration: BoxDecoration(
-        color: active
-            ? const Color(0xFFC0392B)
-            : Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(3),
-      ),
     );
   }
 }

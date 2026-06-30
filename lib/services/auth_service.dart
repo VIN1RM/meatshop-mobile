@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'package:meatshop_mobile/services/login_attempts_service.dart';
@@ -195,6 +196,53 @@ class AuthService {
     );
 
     return 'CLIENT';
+  }
+
+  Future<void> completeSocialProfileWithVehicle({
+    required String uid,
+    required String cpf,
+    required String phone,
+    required AppProfile appProfile,
+    required String vehicleType,
+    required Map<String, dynamic> vehicleData,
+  }) async {
+    await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
+
+    await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'cpf': cpf.trim(),
+      'phone': phone.trim(),
+      'profile_complete': true,
+      'app_profile': appProfile == AppProfile.both ? 'BOTH' : 'DELIVERY',
+    });
+
+    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+
+    await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
+      'user_id': uid,
+      'status': 'PENDING',
+      'average_rating': 0.0,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
+    final photoUrls = await _uploadVehicleImages(
+      uid,
+      List<File>.from(vehicleData['newImages'] ?? []),
+    );
+
+    await _db
+        .collection(FirestoreCollections.deliveryPersons)
+        .doc(uid)
+        .collection(FirestoreCollections.vehicles)
+        .add({
+          'type': vehicleType,
+          'model': vehicleData['model'] ?? '',
+          'plate': vehicleData['plate'] ?? '',
+          'color': vehicleData['color'] ?? '',
+          'year': vehicleData['year'] ?? '',
+          'photo_urls': photoUrls,
+          'is_active': true,
+          'created_at': FieldValue.serverTimestamp(),
+        });
   }
 
   Future<String> registerDelivery({
