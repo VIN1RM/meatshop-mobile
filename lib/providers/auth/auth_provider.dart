@@ -163,6 +163,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> completeProfileWithType({
     required BuildContext context,
+    required String name,
     required String cpf,
     required String phone,
     required AppProfile profile,
@@ -175,6 +176,7 @@ class AuthProvider extends ChangeNotifier {
       if (profile == AppProfile.delivery || profile == AppProfile.both) {
         await AuthService.instance.completeSocialProfileWithVehicle(
           uid: uid,
+          name: name,
           cpf: cpf,
           phone: phone,
           appProfile: profile,
@@ -184,6 +186,7 @@ class AuthProvider extends ChangeNotifier {
       } else {
         await AuthService.instance.completeSocialProfile(
           uid: uid,
+          name: name,
           cpf: cpf,
           phone: phone,
         );
@@ -251,6 +254,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> completeSocialProfile({
     required BuildContext context,
+    required String name,
     required String cpf,
     required String phone,
   }) async {
@@ -258,6 +262,7 @@ class AuthProvider extends ChangeNotifier {
       final uid = AuthService.instance.currentUser!.uid;
       await AuthService.instance.completeSocialProfile(
         uid: uid,
+        name: name,
         cpf: cpf,
         phone: phone,
       );

@@ -16,6 +16,7 @@ class CompleteProfileScreen extends StatefulWidget {
 
 class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _cpfController = TextEditingController();
   final _phoneController = TextEditingController();
 
@@ -41,6 +42,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _cpfController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -69,6 +71,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     try {
       await context.read<AuthProvider>().completeProfileWithType(
         context: context,
+        name: _nameController.text.trim(),
         cpf: _cpfController.text,
         phone: _phoneController.text,
         profile: _selectedProfile!,
@@ -201,49 +204,73 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         children: [
           _buildInfoBanner(),
           const SizedBox(height: 20),
-          _buildSectionTitle('Dados Pessoais'),
-          const SizedBox(height: 14),
-          _buildField(
-            label: 'CPF',
-            controller: _cpfController,
-            hint: '000.000.000-00',
-            icon: Icons.badge_outlined,
-            keyboardType: TextInputType.number,
-            formatters: [CpfInputFormatter()],
-            validator: (v) {
-              if (v == null || v.isEmpty) return 'Informe o CPF';
-              if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                return 'CPF inválido';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 12),
-          _buildField(
-            label: 'Celular',
-            controller: _phoneController,
-            hint: '(00) 0 0000-0000',
-            icon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
-            formatters: [PhoneInputFormatter()],
-            validator: (v) {
-              if (v == null || v.isEmpty) return 'Informe o celular';
-              if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                return 'Celular inválido';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 20),
+
           _buildSectionTitle('Tipo de Perfil'),
           const SizedBox(height: 14),
           _buildProfileSelection(),
-          if (_selectedProfile != AppProfile.client) ...[
+
+          if (_selectedProfile != null) ...[
+            const SizedBox(height: 20),
+            _buildSectionTitle('Dados Pessoais'),
+            const SizedBox(height: 14),
+            _buildField(
+              label: 'Nome completo',
+              controller: _nameController,
+              hint: 'Seu nome',
+              icon: Icons.person_outline,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Informe o nome';
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildField(
+              label: 'CPF',
+              controller: _cpfController,
+              hint: '000.000.000-00',
+              icon: Icons.badge_outlined,
+              keyboardType: TextInputType.number,
+              formatters: [CpfInputFormatter()],
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Informe o CPF';
+                if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
+                  return 'CPF inválido';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            _buildField(
+              label: 'Celular',
+              controller: _phoneController,
+              hint: '(00) 0 0000-0000',
+              icon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              formatters: [PhoneInputFormatter()],
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Informe o celular';
+                if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
+                  return 'Celular inválido';
+                }
+                return null;
+              },
+            ),
+          ],
+
+          if (_selectedProfile == AppProfile.client) ...[
+            const SizedBox(height: 20),
+            _buildSectionTitle('Endereço'),
+            const SizedBox(height: 14),
+          ],
+
+          if (_selectedProfile == AppProfile.delivery ||
+              _selectedProfile == AppProfile.both) ...[
             const SizedBox(height: 20),
             _buildSectionTitle('Tipo de Veículo'),
             const SizedBox(height: 14),
             _buildVehicleSelection(),
           ],
+
           const SizedBox(height: 24),
           const Divider(color: Colors.white10, height: 1),
           const SizedBox(height: 20),

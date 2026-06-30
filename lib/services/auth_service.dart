@@ -127,12 +127,14 @@ class AuthService {
 
   Future<void> completeSocialProfile({
     required String uid,
+    required String name,
     required String cpf,
     required String phone,
   }) async {
     await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
 
     await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'name': name.trim(),
       'cpf': cpf.trim(),
       'phone': phone.trim(),
       'profile_complete': true,
@@ -200,6 +202,7 @@ class AuthService {
 
   Future<void> completeSocialProfileWithVehicle({
     required String uid,
+    required String name,
     required String cpf,
     required String phone,
     required AppProfile appProfile,
@@ -209,6 +212,7 @@ class AuthService {
     await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
 
     await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'name': name.trim(),
       'cpf': cpf.trim(),
       'phone': phone.trim(),
       'profile_complete': true,
