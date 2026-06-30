@@ -5,6 +5,7 @@ import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/login_blocked_exception.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
+import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
@@ -14,6 +15,7 @@ import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/services/order_status_notification_service.dart';
 import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -169,6 +171,7 @@ class AuthProvider extends ChangeNotifier {
     required AppProfile profile,
     String? vehicleType,
     Map<String, dynamic>? vehicleData,
+    AddressModel? addressData,
   }) async {
     try {
       final uid = AuthService.instance.currentUser!.uid;
@@ -195,6 +198,13 @@ class AuthProvider extends ChangeNotifier {
           await FirebaseFirestore.instance.collection('users').doc(uid).update({
             'app_profile': 'CLIENT',
           });
+
+          if (addressData != null && context.mounted) {
+            await context.read<AddressProvider>().add(
+              uid,
+              addressData.copyWith(isDefault: true),
+            );
+          }
         }
       }
 

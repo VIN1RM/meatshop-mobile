@@ -6,6 +6,8 @@ import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/models/address_model.dart';
+import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   const CompleteProfileScreen({super.key});
@@ -23,6 +25,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   AppProfile? _selectedProfile;
   Map<String, dynamic>? _vehicleData;
   String? _selectedVehicle;
+  AddressModel? _addressData;
 
   bool _isLoading = false;
 
@@ -66,6 +69,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       return;
     }
 
+    if (_selectedProfile == AppProfile.client && _addressData == null) {
+      CustomSnackBar.warning(
+        'Preencha seu endereço para continuar.',
+        context: context,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -77,6 +88,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         profile: _selectedProfile!,
         vehicleType: _selectedVehicle,
         vehicleData: _vehicleData,
+        addressData: _addressData,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -261,6 +273,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             const SizedBox(height: 20),
             _buildSectionTitle('Endereço'),
             const SizedBox(height: 14),
+            _buildAddressCard(),
           ],
 
           if (_selectedProfile == AppProfile.delivery ||
@@ -513,6 +526,65 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildAddressCard() {
+    final hasAddress = _addressData != null;
+    return GestureDetector(
+      onTap: () async {
+        await showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => AddressFormSheet(
+            address: _addressData,
+            onSave: (address) async {
+              setState(() => _addressData = address);
+            },
+          ),
+        );
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: hasAddress
+              ? const Color(0xFFC0392B).withValues(alpha: 0.15)
+              : const Color(0xFF525252),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: hasAddress ? const Color(0xFFC0392B) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.location_on_outlined,
+              color: hasAddress ? const Color(0xFFC0392B) : Colors.white38,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                hasAddress
+                    ? _addressData!.fullAddress
+                    : 'Toque para adicionar seu endereço',
+                style: TextStyle(
+                  color: hasAddress ? Colors.white : Colors.white54,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            Icon(
+              hasAddress ? Icons.edit_outlined : Icons.add,
+              color: Colors.white38,
+              size: 18,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
