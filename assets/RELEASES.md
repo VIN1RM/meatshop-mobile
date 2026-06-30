@@ -4,7 +4,13 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [2.12.0] — 25 de Junho de 2026
+## [2.13.0] — 30 de Junho de 2026
+### 
+
+
+---
+
+## [2.12.0] — 27 de Junho de 2026
 ### 💬 Lista de Conversas Funcionando e Identificação Correta dos Participantes
 
 ### ✨ Novidades
