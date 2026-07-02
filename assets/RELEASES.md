@@ -4,7 +4,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [2.13.0] — 30 de Junho de 2026
+## [2.13.0] — 02 de Julho de 2026
 ### 🔑 Entre com Google ou Apple
 
 ### ✨ Novidades

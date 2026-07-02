@@ -11,7 +11,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.13.0] - 2026-06-30
+## [2.13.0] - 2026-07-02
 ### Login Social com Google e Apple
 
 ### Added
