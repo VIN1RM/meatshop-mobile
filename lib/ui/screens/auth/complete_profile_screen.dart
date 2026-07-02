@@ -8,6 +8,7 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
+import 'package:meatshop_mobile/services/auth_service.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   const CompleteProfileScreen({super.key});
@@ -76,8 +77,31 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       );
       return;
     }
-
     setState(() => _isLoading = true);
+
+    final cpfOk = await AuthService.instance.isCpfAvailable(
+      _cpfController.text,
+    );
+    if (!cpfOk) {
+      setState(() => _isLoading = false);
+      CustomSnackBar.warning(
+        'Este CPF já está sendo utilizado por outra conta.',
+        context: context,
+      );
+      return;
+    }
+
+    final phoneOk = await AuthService.instance.isPhoneAvailable(
+      _phoneController.text,
+    );
+    if (!phoneOk) {
+      setState(() => _isLoading = false);
+      CustomSnackBar.warning(
+        'Este celular já está sendo utilizado por outra conta.',
+        context: context,
+      );
+      return;
+    }
 
     try {
       await context.read<AuthProvider>().completeProfileWithType(
@@ -196,7 +220,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Precisamos de mais alguns dados\npara continuar.',
+            'Precisamos de mais alguns dados para continuar',
             style: TextStyle(color: Colors.white, fontSize: 12, height: 1.5),
           ),
         ],
@@ -316,7 +340,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             child: Text(
               'Seus dados são usados apenas para identificação e nunca compartilhados.',
               style: TextStyle(
-                color: Colors.white38,
+                color: Color.fromARGB(255, 255, 255, 255),
                 fontSize: 11,
                 height: 1.5,
               ),

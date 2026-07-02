@@ -445,4 +445,14 @@ class AuthService {
     }
     return urls;
   }
+
+  Future<bool> isCpfAvailable(String cpf) async {
+    final doc = await _db.collection('unique_cpfs').doc(cpf.trim()).get();
+    return !doc.exists;
+  }
+
+  Future<bool> isPhoneAvailable(String phone) async {
+    final doc = await _db.collection('unique_phones').doc(phone.trim()).get();
+    return !doc.exists;
+  }
 }
