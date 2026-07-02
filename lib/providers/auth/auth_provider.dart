@@ -302,6 +302,7 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String cpf,
     required String phone,
+    VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
@@ -325,6 +326,10 @@ class AuthProvider extends ChangeNotifier {
       }
       return true;
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        onEmailExists?.call();
+        return false;
+      }
       _errorMessage = _mapAuthError(e.code);
       notifyListeners();
 
@@ -362,6 +367,7 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
+    VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
@@ -387,6 +393,10 @@ class AuthProvider extends ChangeNotifier {
       }
       return true;
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        onEmailExists?.call();
+        return false;
+      }
       _errorMessage = _mapAuthError(e.code);
       notifyListeners();
 
@@ -424,6 +434,7 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
+    VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
@@ -449,6 +460,10 @@ class AuthProvider extends ChangeNotifier {
       }
       return true;
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        onEmailExists?.call();
+        return false;
+      }
       _errorMessage = _mapAuthError(e.code);
       notifyListeners();
 

@@ -24,6 +24,21 @@ class _LoginPageState extends State<LoginPage> {
   bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
 
+  bool _emailPrefilled = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_emailPrefilled) {
+      final prefilledEmail =
+          ModalRoute.of(context)?.settings.arguments as String?;
+      if (prefilledEmail != null && prefilledEmail.isNotEmpty) {
+        _emailController.text = prefilledEmail;
+      }
+      _emailPrefilled = true;
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();

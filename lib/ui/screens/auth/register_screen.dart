@@ -8,6 +8,8 @@ import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/services/cep_service.dart';
+import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/ui/dialogs/user_exists_dialog.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -153,18 +155,39 @@ class _RegisterPageState extends State<RegisterPage> {
       setState(() {});
       return;
     }
+
     setState(() => _isLoading = true);
+
+    final duplicateField = await AuthService.instance.findDuplicateField(
+      cpf: _cpfController.text,
+      email: _emailController.text,
+      phone: _phoneController.text,
+    );
+
+    if (duplicateField != null) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => UserExistsDialog(
+            field: duplicateField,
+            email: _emailController.text.trim(),
+          ),
+        );
+      }
+      return;
+    }
 
     if (!isClient && _vehicleData == null) {
       CustomSnackBar.warning(
         'Preencha os dados do veículo para continuar.',
         context: context,
       );
+      setState(() => _isLoading = false);
       return;
     }
 
     final authProvider = context.read<AuthProvider>();
-
     if (isClient) {
       await authProvider.registerClient(
         context: context,
@@ -173,6 +196,13 @@ class _RegisterPageState extends State<RegisterPage> {
         password: _passwordController.text,
         cpf: _cpfController.text,
         phone: _phoneController.text,
+        onEmailExists: () => showDialog(
+          context: context,
+          builder: (_) => UserExistsDialog(
+            field: 'email',
+            email: _emailController.text.trim(),
+          ),
+        ),
       );
     } else if (isBoth) {
       await authProvider.registerBoth(
@@ -184,6 +214,13 @@ class _RegisterPageState extends State<RegisterPage> {
         phone: _phoneController.text,
         vehicleType: _selectedVehicle!,
         vehicleData: _vehicleData!,
+        onEmailExists: () => showDialog(
+          context: context,
+          builder: (_) => UserExistsDialog(
+            field: 'email',
+            email: _emailController.text.trim(),
+          ),
+        ),
       );
     } else {
       await authProvider.registerDelivery(
@@ -195,6 +232,13 @@ class _RegisterPageState extends State<RegisterPage> {
         phone: _phoneController.text,
         vehicleType: _selectedVehicle!,
         vehicleData: _vehicleData!,
+        onEmailExists: () => showDialog(
+          context: context,
+          builder: (_) => UserExistsDialog(
+            field: 'email',
+            email: _emailController.text.trim(),
+          ),
+        ),
       );
     }
 

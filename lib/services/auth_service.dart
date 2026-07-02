@@ -140,7 +140,12 @@ class AuthService {
       'profile_complete': true,
     });
 
-    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: _auth.currentUser?.email ?? '',
+    );
   }
 
   String _generateNonce([int length = 32]) {
@@ -195,6 +200,7 @@ class AuthService {
       uid: credential.user!.uid,
       cpf: cpf.trim(),
       phone: phone.trim(),
+      email: email.trim(),
     );
 
     return 'CLIENT';
@@ -219,7 +225,12 @@ class AuthService {
       'app_profile': appProfile == AppProfile.both ? 'BOTH' : 'DELIVERY',
     });
 
-    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: _auth.currentUser?.email ?? '',
+    );
 
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
@@ -277,7 +288,12 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
-    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: _auth.currentUser?.email ?? '',
+    );
 
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
@@ -345,7 +361,12 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
-    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+    );
 
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
@@ -426,10 +447,12 @@ class AuthService {
     required String uid,
     required String cpf,
     required String phone,
+    required String email,
   }) async {
     final batch = _db.batch();
     batch.set(_db.collection('unique_cpfs').doc(cpf), {'user_id': uid});
     batch.set(_db.collection('unique_phones').doc(phone), {'user_id': uid});
+    batch.set(_db.collection('unique_emails').doc(email), {'user_id': uid});
     await batch.commit();
   }
 
@@ -454,5 +477,21 @@ class AuthService {
   Future<bool> isPhoneAvailable(String phone) async {
     final doc = await _db.collection('unique_phones').doc(phone.trim()).get();
     return !doc.exists;
+  }
+
+  Future<bool> isEmailAvailable(String email) async {
+    final doc = await _db.collection('unique_emails').doc(email.trim()).get();
+    return !doc.exists;
+  }
+
+  Future<String?> findDuplicateField({
+    required String cpf,
+    required String email,
+    required String phone,
+  }) async {
+    if (!await isCpfAvailable(cpf)) return 'cpf';
+    if (!await isEmailAvailable(email)) return 'email';
+    if (!await isPhoneAvailable(phone)) return 'phone';
+    return null;
   }
 }
