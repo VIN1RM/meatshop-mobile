@@ -11,7 +11,33 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.12.0] - 2026-06-25
+## [2.13.0] - 2026-07-02
+### Login Social com Google e Apple
+
+### Added
+- `loginWithGoogle()` e `loginWithApple()` no `AuthService`: autenticação via `google_sign_in` e `sign_in_with_apple`, com geração de nonce e hash SHA-256 para o fluxo Apple.
+- `_handleSocialUser()` no `AuthService`: cria documento em `users` automaticamente no primeiro login social (`app_profile: CLIENT`, `profile_complete: false`), ou retorna o `app_profile` existente em logins subsequentes.
+- `isSocialProfileComplete(uid)` no `AuthService`: verifica se o usuário social já completou CPF/perfil.
+- `completeSocialProfile()` e `completeSocialProfileWithVehicle()` no `AuthService`: completam dados obrigatórios (nome, CPF, celular) e, quando aplicável, cadastro de veículo do entregador, com checagem de unicidade de CPF/telefone.
+- `CompleteProfileScreen`: nova tela para usuários vindos de login social, com seleção de tipo de perfil (Cliente, Entregador, Cliente & Entregador), formulário de dados pessoais com máscaras de CPF/celular, seleção de veículo (entregador) e endereço (cliente).
+- `loginWithGoogle(context)` e `loginWithApple(context)` no `AuthProvider`: orquestram login social, carregamento de `UserProvider`/`UserPreferencesProvider`/`PaymentProvider` e redirecionamento condicional para `CompleteProfileScreen` quando o perfil está incompleto.
+- `completeProfileWithType()` no `AuthProvider`: persiste perfil escolhido, dados de veículo ou endereço padrão conforme o tipo selecionado.
+- Botões "Continuar com Google" e "Continuar com Apple" na `LoginPage`, com estados de carregamento independentes (`_isGoogleLoading`, `_isAppleLoading`).
+- `AppRoutes.completeProfile` registrada em `buildRoutes()`.
+- `isEmailAvailable(email)`, `isCpfAvailable(cpf)`, `isPhoneAvailable(phone)` e `findDuplicateField()` no `AuthService`: verificação de duplicidade de CPF, e-mail e celular antes da criação de conta, utilizando coleções públicas de índice (`unique_cpfs`, `unique_phones`, `unique_emails`).
+- Coleção `unique_emails` registrada em `_registerUniqueFields()` no `AuthService`, junto a `unique_cpfs` e `unique_phones`, garantindo unicidade também para e-mail.
+- Regra de segurança do Firestore para a coleção `unique_emails` (leitura pública, escrita autenticada).
+- `UserExistsDialog`: novo dialog exibido quando o CPF, e-mail ou celular informado no cadastro já pertence a outra conta, com redirecionamento automático para o login (e-mail pré-preenchido) quando o campo duplicado é o e-mail.
+- Parâmetro `onEmailExists` adicionado a `registerClient()`, `registerDelivery()` e `registerBoth()` no `AuthProvider`, capturando o código `email-already-in-use` do Firebase Auth como rede de segurança e exibindo o `UserExistsDialog` em vez do dialog genérico de erro.
+- `RegisterPage`: checagem de duplicidade (`findDuplicateField`) executada antes do envio do formulário de cadastro, bloqueando a criação da conta e exibindo o `UserExistsDialog` quando necessário.
+- `LoginPage`: campo de e-mail agora é pré-preenchido automaticamente via argumento de rota quando o usuário é redirecionado a partir do `UserExistsDialog`.
+
+### Changed
+- `AuthProvider._redirectAfterLogin()`: reaproveitado também no fluxo de login social após a conclusão do perfil.
+
+---
+
+## [2.12.0] - 2026-06-27
 ### Chat: Lista de Conversas e Identificação de Participantes
 
 ### Added

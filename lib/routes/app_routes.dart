@@ -46,4 +46,5 @@ class AppRoutes {
   static const String writeProductReview = '/orders/product_review';
   static const String unitReviews = '/acougues/reviews';
   static const String productReviews = '/product-reviews';
+  static const String completeProfile = '/complete-profile';
 }

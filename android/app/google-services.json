@@ -12,7 +12,20 @@
           "package_name": "com.example.meatshop_mobile"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "650016222985-kqqnh75jgla8bemgp5et5pj04qfcbtlc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.meatshop_mobile",
+            "certificate_hash": "19a322e2420a6453b8fad27397d5dbba3b0bc726"
+          }
+        },
+        {
+          "client_id": "650016222985-d3g004ee195ust89fconbs2cigr96sqt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDzNpWnPO-Vxotx6IrS7959TbVwfRc2Otc"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "650016222985-d3g004ee195ust89fconbs2cigr96sqt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

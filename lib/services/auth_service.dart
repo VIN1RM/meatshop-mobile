@@ -1,10 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'package:meatshop_mobile/services/login_attempts_service.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthService {
   AuthService._();
@@ -41,6 +46,121 @@ class AuthService {
       }
       rethrow;
     }
+  }
+
+  Future<String> loginWithGoogle() async {
+    final googleUser = await GoogleSignIn().signIn();
+    if (googleUser == null) {
+      throw ApiException('Login com Google cancelado.');
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final userCredential = await _auth.signInWithCredential(credential);
+    return _handleSocialUser(
+      userCredential.user!,
+      fallbackName: googleUser.displayName,
+    );
+  }
+
+  Future<String> loginWithApple() async {
+    final rawNonce = _generateNonce();
+    final nonce = _sha256ofString(rawNonce);
+
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: nonce,
+    );
+
+    final oauthCredential = OAuthProvider(
+      'apple.com',
+    ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
+
+    final userCredential = await _auth.signInWithCredential(oauthCredential);
+
+    final fallbackName = [
+      appleCredential.givenName,
+      appleCredential.familyName,
+    ].where((s) => s != null && s.isNotEmpty).join(' ');
+
+    return _handleSocialUser(
+      userCredential.user!,
+      fallbackName: fallbackName.isEmpty ? null : fallbackName,
+    );
+  }
+
+  Future<String> _handleSocialUser(User user, {String? fallbackName}) async {
+    final docRef = _db.collection(FirestoreCollections.users).doc(user.uid);
+    final doc = await docRef.get();
+
+    if (!doc.exists) {
+      await docRef.set({
+        'name': fallbackName ?? user.displayName ?? '',
+        'email': user.email ?? '',
+        'cpf': '',
+        'phone': user.phoneNumber ?? '',
+        'global_role': 'USER',
+        'app_profile': 'CLIENT',
+        'profile_complete': false,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+      return 'CLIENT';
+    }
+
+    return doc.data()?['app_profile'] as String? ?? 'CLIENT';
+  }
+
+  Future<bool> isSocialProfileComplete(String uid) async {
+    final doc = await _db.collection(FirestoreCollections.users).doc(uid).get();
+    final data = doc.data();
+    if (data == null) return false;
+    return data['profile_complete'] == true ||
+        (data['cpf'] as String?)?.isNotEmpty == true;
+  }
+
+  Future<void> completeSocialProfile({
+    required String uid,
+    required String name,
+    required String cpf,
+    required String phone,
+  }) async {
+    await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
+
+    await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'name': name.trim(),
+      'cpf': cpf.trim(),
+      'phone': phone.trim(),
+      'profile_complete': true,
+    });
+
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: _auth.currentUser?.email ?? '',
+    );
+  }
+
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    return sha256.convert(bytes).toString();
   }
 
   bool _isInvalidCredentialError(String code) {
@@ -80,9 +200,64 @@ class AuthService {
       uid: credential.user!.uid,
       cpf: cpf.trim(),
       phone: phone.trim(),
+      email: email.trim(),
     );
 
     return 'CLIENT';
+  }
+
+  Future<void> completeSocialProfileWithVehicle({
+    required String uid,
+    required String name,
+    required String cpf,
+    required String phone,
+    required AppProfile appProfile,
+    required String vehicleType,
+    required Map<String, dynamic> vehicleData,
+  }) async {
+    await _checkUniqueFields(cpf: cpf.trim(), phone: phone.trim());
+
+    await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'name': name.trim(),
+      'cpf': cpf.trim(),
+      'phone': phone.trim(),
+      'profile_complete': true,
+      'app_profile': appProfile == AppProfile.both ? 'BOTH' : 'DELIVERY',
+    });
+
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: _auth.currentUser?.email ?? '',
+    );
+
+    await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
+      'user_id': uid,
+      'status': 'PENDING',
+      'average_rating': 0.0,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+
+    final photoUrls = await _uploadVehicleImages(
+      uid,
+      List<File>.from(vehicleData['newImages'] ?? []),
+    );
+
+    await _db
+        .collection(FirestoreCollections.deliveryPersons)
+        .doc(uid)
+        .collection(FirestoreCollections.vehicles)
+        .add({
+          'type': vehicleType,
+          'model': vehicleData['model'] ?? '',
+          'plate': vehicleData['plate'] ?? '',
+          'color': vehicleData['color'] ?? '',
+          'year': vehicleData['year'] ?? '',
+          'photo_urls': photoUrls,
+          'is_active': true,
+          'created_at': FieldValue.serverTimestamp(),
+        });
   }
 
   Future<String> registerDelivery({
@@ -113,7 +288,12 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
-    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: _auth.currentUser?.email ?? '',
+    );
 
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
@@ -181,7 +361,12 @@ class AuthService {
       'created_at': FieldValue.serverTimestamp(),
     });
 
-    await _registerUniqueFields(uid: uid, cpf: cpf.trim(), phone: phone.trim());
+    await _registerUniqueFields(
+      uid: uid,
+      cpf: cpf.trim(),
+      phone: phone.trim(),
+      email: email.trim(),
+    );
 
     await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
       'user_id': uid,
@@ -262,10 +447,12 @@ class AuthService {
     required String uid,
     required String cpf,
     required String phone,
+    required String email,
   }) async {
     final batch = _db.batch();
     batch.set(_db.collection('unique_cpfs').doc(cpf), {'user_id': uid});
     batch.set(_db.collection('unique_phones').doc(phone), {'user_id': uid});
+    batch.set(_db.collection('unique_emails').doc(email), {'user_id': uid});
     await batch.commit();
   }
 
@@ -280,5 +467,31 @@ class AuthService {
       urls.add('data:image/jpeg;base64,$base64Str');
     }
     return urls;
+  }
+
+  Future<bool> isCpfAvailable(String cpf) async {
+    final doc = await _db.collection('unique_cpfs').doc(cpf.trim()).get();
+    return !doc.exists;
+  }
+
+  Future<bool> isPhoneAvailable(String phone) async {
+    final doc = await _db.collection('unique_phones').doc(phone.trim()).get();
+    return !doc.exists;
+  }
+
+  Future<bool> isEmailAvailable(String email) async {
+    final doc = await _db.collection('unique_emails').doc(email.trim()).get();
+    return !doc.exists;
+  }
+
+  Future<String?> findDuplicateField({
+    required String cpf,
+    required String email,
+    required String phone,
+  }) async {
+    if (!await isCpfAvailable(cpf)) return 'cpf';
+    if (!await isEmailAvailable(email)) return 'email';
+    if (!await isPhoneAvailable(phone)) return 'phone';
+    return null;
   }
 }
