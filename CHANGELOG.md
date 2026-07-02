@@ -24,6 +24,13 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - `completeProfileWithType()` no `AuthProvider`: persiste perfil escolhido, dados de veículo ou endereço padrão conforme o tipo selecionado.
 - Botões "Continuar com Google" e "Continuar com Apple" na `LoginPage`, com estados de carregamento independentes (`_isGoogleLoading`, `_isAppleLoading`).
 - `AppRoutes.completeProfile` registrada em `buildRoutes()`.
+- `isEmailAvailable(email)`, `isCpfAvailable(cpf)`, `isPhoneAvailable(phone)` e `findDuplicateField()` no `AuthService`: verificação de duplicidade de CPF, e-mail e celular antes da criação de conta, utilizando coleções públicas de índice (`unique_cpfs`, `unique_phones`, `unique_emails`).
+- Coleção `unique_emails` registrada em `_registerUniqueFields()` no `AuthService`, junto a `unique_cpfs` e `unique_phones`, garantindo unicidade também para e-mail.
+- Regra de segurança do Firestore para a coleção `unique_emails` (leitura pública, escrita autenticada).
+- `UserExistsDialog`: novo dialog exibido quando o CPF, e-mail ou celular informado no cadastro já pertence a outra conta, com redirecionamento automático para o login (e-mail pré-preenchido) quando o campo duplicado é o e-mail.
+- Parâmetro `onEmailExists` adicionado a `registerClient()`, `registerDelivery()` e `registerBoth()` no `AuthProvider`, capturando o código `email-already-in-use` do Firebase Auth como rede de segurança e exibindo o `UserExistsDialog` em vez do dialog genérico de erro.
+- `RegisterPage`: checagem de duplicidade (`findDuplicateField`) executada antes do envio do formulário de cadastro, bloqueando a criação da conta e exibindo o `UserExistsDialog` quando necessário.
+- `LoginPage`: campo de e-mail agora é pré-preenchido automaticamente via argumento de rota quando o usuário é redirecionado a partir do `UserExistsDialog`.
 
 ### Changed
 - `AuthProvider._redirectAfterLogin()`: reaproveitado também no fluxo de login social após a conclusão do perfil.
