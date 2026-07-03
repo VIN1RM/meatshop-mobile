@@ -398,6 +398,87 @@ class AuthService {
     return 'BOTH';
   }
 
+  Future<void> completePendingUserData({
+    required String uid,
+    required String name,
+    required String cpf,
+    required String phone,
+  }) async {
+    final doc = await _db.collection(FirestoreCollections.users).doc(uid).get();
+    final data = doc.data() ?? {};
+
+    final currentCpf = (data['cpf'] as String? ?? '').trim();
+    final currentPhone = (data['phone'] as String? ?? '').trim();
+
+    if (currentCpf.isEmpty && cpf.trim().isNotEmpty) {
+      final cpfDoc = await _db.collection('unique_cpfs').doc(cpf.trim()).get();
+      if (cpfDoc.exists) {
+        throw ApiException('Este CPF já está sendo utilizado por outra conta.');
+      }
+      await _db.collection('unique_cpfs').doc(cpf.trim()).set({'user_id': uid});
+    }
+
+    if (currentPhone.isEmpty && phone.trim().isNotEmpty) {
+      final phoneDoc = await _db
+          .collection('unique_phones')
+          .doc(phone.trim())
+          .get();
+      if (phoneDoc.exists) {
+        throw ApiException(
+          'Este número de celular já está sendo utilizado por outra conta.',
+        );
+      }
+      await _db.collection('unique_phones').doc(phone.trim()).set({
+        'user_id': uid,
+      });
+    }
+
+    await _db.collection(FirestoreCollections.users).doc(uid).update({
+      'name': name.trim(),
+      if (cpf.trim().isNotEmpty) 'cpf': cpf.trim(),
+      if (phone.trim().isNotEmpty) 'phone': phone.trim(),
+    });
+  }
+
+  Future<void> addVehicleForDeliveryPerson({
+    required String uid,
+    required String vehicleType,
+    required Map<String, dynamic> vehicleData,
+  }) async {
+    final dpDoc = await _db
+        .collection(FirestoreCollections.deliveryPersons)
+        .doc(uid)
+        .get();
+    if (!dpDoc.exists) {
+      await _db.collection(FirestoreCollections.deliveryPersons).doc(uid).set({
+        'user_id': uid,
+        'status': 'PENDING',
+        'average_rating': 0.0,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+    }
+
+    final photoUrls = await _uploadVehicleImages(
+      uid,
+      List<File>.from(vehicleData['newImages'] ?? []),
+    );
+
+    await _db
+        .collection(FirestoreCollections.deliveryPersons)
+        .doc(uid)
+        .collection(FirestoreCollections.vehicles)
+        .add({
+          'type': vehicleType,
+          'model': vehicleData['model'] ?? '',
+          'plate': vehicleData['plate'] ?? '',
+          'color': vehicleData['color'] ?? '',
+          'year': vehicleData['year'] ?? '',
+          'photo_urls': photoUrls,
+          'is_active': true,
+          'created_at': FieldValue.serverTimestamp(),
+        });
+  }
+
   Future<void> deleteAccount({required String password}) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Usuário não autenticado.');

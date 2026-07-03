@@ -6,6 +6,11 @@ import 'package:meatshop_mobile/ui/screens/delivery/delivery_history_screen.dart
 import 'package:meatshop_mobile/ui/screens/delivery/personal_management_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/delivery_account_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/user/user_provider.dart';
+import 'package:meatshop_mobile/core/utils/pending_profile_checker.dart';
+import 'package:meatshop_mobile/ui/dialogs/pending_profile_dialog.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 
 class DeliveryShell extends StatefulWidget {
   const DeliveryShell({super.key});
@@ -24,7 +29,6 @@ class _DeliveryShellState extends State<DeliveryShell> {
     PersonalManagementScreen(),
     DeliveryAccountScreen(),
   ];
-
   @override
   void initState() {
     super.initState();
@@ -32,7 +36,47 @@ class _DeliveryShellState extends State<DeliveryShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().currentUser?.uid ?? '';
       _deliveryProvider.startListeningOrders(uid);
+      _checkPendingProfile();
     });
+  }
+
+  bool _checkedPending = false;
+  Future<void> _checkPendingProfile() async {
+    if (_checkedPending || !mounted) return;
+    _checkedPending = true;
+
+    final authProvider = context.read<AuthProvider>();
+    final user = context.read<UserProvider>().user;
+    final uid = authProvider.currentUser?.uid;
+    if (uid == null) return;
+
+    final vehicleProvider = context.read<VehicleProvider>();
+    if (vehicleProvider.vehicles.isEmpty) {
+      await vehicleProvider.loadVehicle(uid);
+    }
+    if (!mounted) return;
+
+    final missing = PendingProfileChecker.check(
+      user: user,
+      profile: authProvider.appProfile,
+      hasVehicle: vehicleProvider.vehicles.isNotEmpty,
+    );
+
+    if (missing.hasPending && mounted) {
+      final confirmed = await PendingProfileDialog.show(context);
+      if (confirmed == true && mounted) {
+        final updated = await Navigator.of(context).pushNamed(
+          AppRoutes.completeProfile,
+          arguments: CompleteProfileArgs(
+            lockedProfile: authProvider.appProfile,
+            existingUser: user,
+          ),
+        );
+        if (updated == true && mounted) {
+          await context.read<UserProvider>().loadUser(uid);
+        }
+      }
+    }
   }
 
   @override

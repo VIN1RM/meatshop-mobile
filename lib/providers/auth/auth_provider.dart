@@ -492,6 +492,58 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> completePendingProfile({
+    required BuildContext context,
+    required String name,
+    required String cpf,
+    required String phone,
+    AddressModel? addressData,
+    String? vehicleType,
+    Map<String, dynamic>? vehicleData,
+  }) async {
+    try {
+      final uid = AuthService.instance.currentUser!.uid;
+
+      await AuthService.instance.completePendingUserData(
+        uid: uid,
+        name: name,
+        cpf: cpf,
+        phone: phone,
+      );
+
+      if (addressData != null && context.mounted) {
+        await context.read<AddressProvider>().add(
+          uid,
+          addressData.copyWith(isDefault: true),
+        );
+      }
+
+      if (vehicleType != null && vehicleData != null) {
+        await AuthService.instance.addVehicleForDeliveryPerson(
+          uid: uid,
+          vehicleType: vehicleType,
+          vehicleData: vehicleData,
+        );
+      }
+
+      if (context.mounted) {
+        await context.read<UserProvider>().loadUser(uid);
+      }
+      return true;
+    } catch (e) {
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao salvar dados',
+          message: e is ApiException
+              ? e.message
+              : 'Não foi possível salvar seus dados. Tente novamente.',
+        );
+      }
+      return false;
+    }
+  }
+
   void selectActiveProfile({
     required BuildContext context,
     required AppProfile profile,

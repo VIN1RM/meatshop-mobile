@@ -88,6 +88,7 @@ Map<String, WidgetBuilder> buildRoutes() {
         ),
       ),
     ),
+
     AppRoutes.editProfile: (_) => const EditProfileScreen(),
     AppRoutes.addressSchedule: (_) => const AddressScheduleScreen(total: 0),
     AppRoutes.recipeTips: (_) => const RecipeTipsScreen(),
@@ -95,6 +96,16 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.forgotPassword: (_) => const ForgotPasswordPage(),
     AppRoutes.search: (_) => const SearchScreen(),
     AppRoutes.cart: (_) => const CartScreen(),
-    AppRoutes.completeProfile: (_) => const CompleteProfileScreen(),
+    AppRoutes.completeProfile: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final locked = args is CompleteProfileArgs ? args.lockedProfile : null;
+      final existingUser = args is CompleteProfileArgs
+          ? args.existingUser
+          : null;
+      return CompleteProfileScreen(
+        lockedProfile: locked,
+        existingUser: existingUser,
+      );
+    },
   };
 }

@@ -1,3 +1,6 @@
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
+import 'package:meatshop_mobile/models/user_model.dart';
+
 class AppRoutes {
   AppRoutes._();
 
@@ -47,4 +50,11 @@ class AppRoutes {
   static const String unitReviews = '/acougues/reviews';
   static const String productReviews = '/product-reviews';
   static const String completeProfile = '/complete-profile';
+}
+
+class CompleteProfileArgs {
+  final AppProfile? lockedProfile;
+  final UserModel? existingUser;
+
+  const CompleteProfileArgs({this.lockedProfile, this.existingUser});
 }

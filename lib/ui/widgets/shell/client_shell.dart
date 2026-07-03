@@ -6,6 +6,12 @@ import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
 import 'package:meatshop_mobile/ui/screens/account/account_screen.dart';
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/providers/user/user_provider.dart';
+import 'package:meatshop_mobile/core/utils/pending_profile_checker.dart';
+import 'package:meatshop_mobile/ui/dialogs/pending_profile_dialog.dart';
+import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -16,6 +22,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  bool _checkedPending = false;
 
   @override
   void didChangeDependencies() {
@@ -23,6 +30,50 @@ class _AppShellState extends State<AppShell> {
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is int) {
       _currentIndex = args;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPendingProfile());
+  }
+
+  Future<void> _checkPendingProfile() async {
+    if (_checkedPending || !mounted) return;
+    _checkedPending = true;
+
+    final authProvider = context.read<AuthProvider>();
+    final user = context.read<UserProvider>().user;
+    final uid = authProvider.currentUser?.uid;
+    if (uid == null) return;
+
+    final addressProvider = context.read<AddressProvider>();
+    if (addressProvider.addresses.isEmpty) {
+      await addressProvider.load(uid);
+    }
+    if (!mounted) return;
+
+    final missing = PendingProfileChecker.check(
+      user: user,
+      profile: authProvider.appProfile,
+      hasAddress: addressProvider.addresses.isNotEmpty,
+    );
+
+    if (missing.hasPending && mounted) {
+      final confirmed = await PendingProfileDialog.show(context);
+      if (confirmed == true && mounted) {
+        final updated = await Navigator.of(context).pushNamed(
+          AppRoutes.completeProfile,
+          arguments: CompleteProfileArgs(
+            lockedProfile: authProvider.appProfile,
+            existingUser: user,
+          ),
+        );
+        if (updated == true && mounted) {
+          await context.read<UserProvider>().loadUser(uid);
+        }
+      }
     }
   }
 
