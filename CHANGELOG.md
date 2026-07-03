@@ -11,8 +11,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [2.13.0] - 2026-07-02
-### Login Social com Google e Apple
+## [2.13.0] - 2026-07-03
+### 
 
 ### Added
 - `loginWithGoogle()` e `loginWithApple()` no `AuthService`: autenticação via `google_sign_in` e `sign_in_with_apple`, com geração de nonce e hash SHA-256 para o fluxo Apple.
@@ -31,6 +31,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Parâmetro `onEmailExists` adicionado a `registerClient()`, `registerDelivery()` e `registerBoth()` no `AuthProvider`, capturando o código `email-already-in-use` do Firebase Auth como rede de segurança e exibindo o `UserExistsDialog` em vez do dialog genérico de erro.
 - `RegisterPage`: checagem de duplicidade (`findDuplicateField`) executada antes do envio do formulário de cadastro, bloqueando a criação da conta e exibindo o `UserExistsDialog` quando necessário.
 - `LoginPage`: campo de e-mail agora é pré-preenchido automaticamente via argumento de rota quando o usuário é redirecionado a partir do `UserExistsDialog`.
+- `PendingProfileChecker`: utilitário que verifica se o usuário autenticado possui dados pendentes de preenchimento (nome, CPF, celular, veículo ou endereço) conforme o `app_profile` ativo.
+- `PendingProfileDialog`: dialog exibido ao usuário quando dados obrigatórios do perfil estão incompletos, direcionando para a `CompleteProfileScreen`.
+- `existingUser` adicionado ao `CompleteProfileArgs`, permitindo que a `CompleteProfileScreen` receba o `UserModel` já carregado ao ser aberta a partir do fluxo de pendências.
+- Carregamento de `AddressProvider` (cliente) e `VehicleProvider` (entregador) em `client_shell.dart` e `delivery_shell.dart` antes da checagem de pendências, substituindo o placeholder fixo anterior.
 
 ### Changed
 - `AuthProvider._redirectAfterLogin()`: reaproveitado também no fluxo de login social após a conclusão do perfil.
