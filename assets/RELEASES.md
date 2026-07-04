@@ -5,7 +5,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ---
 
 ## [2.13.0] — 03 de Julho de 2026
-### 
+### 🔐 Login com Google e Apple, Cadastro Mais Rápido
 
 ### ✨ Novidades
 - **Login Mais Rápido:** Agora você pode entrar no MeatShop usando sua conta Google ou Apple.

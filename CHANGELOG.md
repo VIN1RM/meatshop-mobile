@@ -12,7 +12,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [2.13.0] - 2026-07-03
-### 
+### Login Social (Google/Apple), Prevenção de Duplicidade e Checagem de Perfil Pendente
 
 ### Added
 - `loginWithGoogle()` e `loginWithApple()` no `AuthService`: autenticação via `google_sign_in` e `sign_in_with_apple`, com geração de nonce e hash SHA-256 para o fluxo Apple.
