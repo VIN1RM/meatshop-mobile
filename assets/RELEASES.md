@@ -4,6 +4,16 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.14.0] — 21 de Julho de 2026
+### 👋 Conheça o MeatShop Antes de Começar
+
+### ✨ Novidades
+- **Tour Rápido pelo App:** Na sua primeira vez no MeatShop, agora você vê um tour rápido explicando como escolher um açougue, montar seu pedido, agendar a entrega e acompanhar tudo em tempo real.
+- **Só Aparece Uma Vez:** O tour é exibido automaticamente apenas no seu primeiro acesso — depois disso, você vai direto para a tela de login normalmente.
+- **Pule Quando Quiser:** Se preferir não ver o tour, basta tocar em "Pular" a qualquer momento.
+
+---
+
 ## [2.13.0] — 03 de Julho de 2026
 ### 🔐 Login com Google e Apple, Cadastro Mais Rápido
 

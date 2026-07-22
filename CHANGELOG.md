@@ -11,6 +11,21 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.14.0] - 2026-07-21
+### Fluxo de Onboarding no Primeiro Acesso
+
+### Added
+- `OnboardingScreen`: novo tutorial de 4 slides cobrindo seleção de açougue, carrinho/pedido, agendamento de entrega e rastreamento em tempo real, com indicador de progresso, ação de "Pular" e botão principal "Próximo"/"Começar".
+- `OnboardingSlide`: modelo de dados leve (título, descrição, ícone) usado para popular os slides do onboarding.
+- Rota `AppRoutes.onboarding` registrada em `buildRoutes()`.
+- `WelcomePage._checkFirstAccess()`: verifica a flag `hasSeenOnboarding` via `SharedPreferences` no `initState` e navega automaticamente para o `OnboardingScreen` quando o usuário ainda não completou o tutorial.
+- Flag `hasSeenOnboarding` persistida via `SharedPreferences` ao finalizar ou pular o onboarding, impedindo que ele seja exibido novamente nas próximas aberturas do app.
+
+### Changed
+- `WelcomePage.initState()`: agora dispara `_checkFirstAccess()` logo após a configuração existente do carrossel/timer, usando `WidgetsBinding.instance.addPostFrameCallback` para evitar navegação durante a fase de build.
+
+---
+
 ## [2.13.0] - 2026-07-03
 ### Login Social (Google/Apple), Prevenção de Duplicidade e Checagem de Perfil Pendente
 
