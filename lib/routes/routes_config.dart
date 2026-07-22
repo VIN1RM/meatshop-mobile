@@ -34,11 +34,13 @@ import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';
+import 'package:meatshop_mobile/ui/screens/onboarding/onboarding_screen.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   return {
     AppRoutes.splash: (_) => const SplashPage(),
     AppRoutes.welcome: (_) => const WelcomePage(),
+    AppRoutes.onboarding: (_) => const OnboardingScreen(),
     AppRoutes.login: (_) => const LoginPage(),
     AppRoutes.selectRegister: (_) => const SelectRegisterPage(),
     AppRoutes.register: (_) => const RegisterPage(),

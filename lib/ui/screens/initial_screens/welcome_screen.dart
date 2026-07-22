@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
+import 'package:meatshop_mobile/ui/screens/onboarding/onboarding_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _CarouselItem {
   final String path;
@@ -40,7 +42,7 @@ class _WelcomePageState extends State<WelcomePage> {
     ),
     _CarouselItem(
       path: 'assets/images/person6.png',
-  alignment: Alignment(1.0, 0.0),
+      alignment: Alignment(1.0, 0.0),
     ),
     _CarouselItem(
       path: 'assets/images/person7.png',
@@ -78,6 +80,17 @@ class _WelcomePageState extends State<WelcomePage> {
         curve: Curves.easeInOut,
       );
     });
+
+    _checkFirstAccess();
+  }
+
+  Future<void> _checkFirstAccess() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+    debugPrint('hasSeenOnboarding = $hasSeenOnboarding');
+    if (!hasSeenOnboarding && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _goToOnboarding());
+    }
   }
 
   @override
@@ -95,6 +108,12 @@ class _WelcomePageState extends State<WelcomePage> {
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
     );
+  }
+
+  void _goToOnboarding() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
   }
 
   Widget _carouselImage(_CarouselItem item) {

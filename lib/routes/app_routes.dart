@@ -6,7 +6,7 @@ class AppRoutes {
 
   static const String splash = '/splash';
   static const String welcome = '/welcome';
-
+  static const String onboarding = '/onboarding';
   static const String login = '/auth/login';
   static const String selectRegister = '/auth/select_register';
   static const String register = '/auth/register';
