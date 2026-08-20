@@ -4,6 +4,27 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.15.0] — 20 de Agosto de 2026
+### 🔐 Login Mais Seguro e Cadastro sem Repetição
+
+### ✨ Novidades
+- **Uma Conta para Todos os Tipos de Login:** Se você já possui cadastro com e-mail e senha, agora pode vincular Google ou Apple à mesma conta. Na primeira vez, basta confirmar sua senha; depois, o login social entra diretamente na conta original.
+- **Seus Dados Continuam no Lugar:** Ao vincular um login social, seu perfil, pedidos, endereços, veículo e preferências permanecem associados à conta que você já utilizava.
+- **Complete Apenas o que Falta:** Nome, CPF, celular, tipo de perfil, endereço e veículo já cadastrados são reconhecidos automaticamente. A tela mostra somente as informações ainda pendentes.
+
+### 📈 Melhorias
+- **Conclusão Obrigatória do Cadastro:** Ao escolher completar o perfil, a tela permanece aberta até que todos os dados necessários sejam salvos. O aviso e a tela não podem mais ser fechados pelo botão ou gesto de voltar.
+- **Perfil Cliente & Entregador Completo:** Quem utiliza os dois modos agora informa e mantém tanto o endereço de cliente quanto o veículo de entrega no mesmo cadastro.
+- **Tentativas de Login Renovadas:** Tentativas incorretas antigas deixam de ficar acumuladas indefinidamente. Após 5 minutos sem novas falhas, o usuário volta a ter as cinco tentativas disponíveis.
+
+### 🐞 Correções
+- Corrigida a criação de contas duplicadas ao usar Google ou Apple com um e-mail já cadastrado.
+- Corrigido o bloqueio imediato depois de uma única senha incorreta quando existiam falhas antigas salvas.
+- Corrigida a solicitação de dados que o usuário já havia preenchido anteriormente.
+- Corrigida a criação duplicada de endereço ou veículo ao finalizar um cadastro pendente.
+
+---
+
 ## [2.14.0] — 21 de Julho de 2026
 ### 👋 Conheça o MeatShop Antes de Começar
 

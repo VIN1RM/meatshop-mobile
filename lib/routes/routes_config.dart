@@ -104,9 +104,17 @@ Map<String, WidgetBuilder> buildRoutes() {
       final existingUser = args is CompleteProfileArgs
           ? args.existingUser
           : null;
+      final existingAddress = args is CompleteProfileArgs
+          ? args.existingAddress
+          : null;
+      final existingVehicle = args is CompleteProfileArgs
+          ? args.existingVehicle
+          : null;
       return CompleteProfileScreen(
         lockedProfile: locked,
         existingUser: existingUser,
+        existingAddress: existingAddress,
+        existingVehicle: existingVehicle,
       );
     },
   };

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/ui/screens/home/home_screen.dart';
 import 'package:meatshop_mobile/ui/screens/cart/cart_screen.dart';
@@ -12,6 +13,7 @@ import 'package:meatshop_mobile/core/utils/pending_profile_checker.dart';
 import 'package:meatshop_mobile/ui/dialogs/pending_profile_dialog.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
+import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -54,10 +56,35 @@ class _AppShellState extends State<AppShell> {
     }
     if (!mounted) return;
 
+    final addresses = addressProvider.addresses;
+    final existingAddress = addresses.isEmpty
+        ? null
+        : addresses.firstWhere(
+            (address) => address.isDefault,
+            orElse: () => addresses.first,
+          );
+
+    Map<String, dynamic>? existingVehicle;
+    var hasVehicle = true;
+    if (authProvider.appProfile == AppProfile.both) {
+      final vehicleProvider = context.read<VehicleProvider>();
+      if (vehicleProvider.vehicles.isEmpty) {
+        await vehicleProvider.loadVehicle(uid);
+      }
+      if (!mounted) return;
+      hasVehicle = vehicleProvider.vehicles.isNotEmpty;
+      if (hasVehicle) {
+        existingVehicle = Map<String, dynamic>.from(
+          vehicleProvider.vehicleInfo,
+        );
+      }
+    }
+
     final missing = PendingProfileChecker.check(
       user: user,
       profile: authProvider.appProfile,
-      hasAddress: addressProvider.addresses.isNotEmpty,
+      hasAddress: addresses.isNotEmpty,
+      hasVehicle: hasVehicle,
     );
 
     if (missing.hasPending && mounted) {
@@ -68,6 +95,8 @@ class _AppShellState extends State<AppShell> {
           arguments: CompleteProfileArgs(
             lockedProfile: authProvider.appProfile,
             existingUser: user,
+            existingAddress: existingAddress,
+            existingVehicle: existingVehicle,
           ),
         );
         if (updated == true && mounted) {
@@ -148,9 +177,10 @@ class _BottomNav extends StatelessWidget {
                           ),
                           if (i == 2)
                             Consumer<CartProvider>(
-                              builder: (_, cart, __) {
-                                if (cart.items.isEmpty)
+                              builder: (context, cart, child) {
+                                if (cart.items.isEmpty) {
                                   return const SizedBox.shrink();
+                                }
                                 return Positioned(
                                   top: -6,
                                   right: -8,

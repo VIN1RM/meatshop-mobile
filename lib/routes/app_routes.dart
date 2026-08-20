@@ -1,4 +1,5 @@
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
+import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/models/user_model.dart';
 
 class AppRoutes {
@@ -55,6 +56,13 @@ class AppRoutes {
 class CompleteProfileArgs {
   final AppProfile? lockedProfile;
   final UserModel? existingUser;
+  final AddressModel? existingAddress;
+  final Map<String, dynamic>? existingVehicle;
 
-  const CompleteProfileArgs({this.lockedProfile, this.existingUser});
+  const CompleteProfileArgs({
+    this.lockedProfile,
+    this.existingUser,
+    this.existingAddress,
+    this.existingVehicle,
+  });
 }

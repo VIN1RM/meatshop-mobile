@@ -17,12 +17,22 @@ class LoginAttemptsService {
   }
 
   Future<void> guardLogin(String email) async {
-    final doc = await _ref(email).get();
+    final ref = _ref(email);
+    final doc = await ref.get();
     if (!doc.exists) return;
 
     final model = LoginAttemptModel.fromMap(doc.data()!);
-    if (model.isBlocked) {
+    final now = DateTime.now();
+
+    if (model.isBlockedAt(now)) {
       throw LoginBlockedException(blockedUntil: model.blockedUntil!);
+    }
+
+    if (model.shouldResetAttempts(
+      now,
+      LoginAttemptsConstants.attemptsResetDuration,
+    )) {
+      await ref.delete();
     }
   }
 
@@ -34,7 +44,15 @@ class LoginAttemptsService {
         ? LoginAttemptModel.fromMap(doc.data()!)
         : LoginAttemptModel(attempts: 0, lastAttempt: DateTime.now());
 
-    final newAttempts = current.attempts + 1;
+    final now = DateTime.now();
+    final attempts =
+        current.shouldResetAttempts(
+          now,
+          LoginAttemptsConstants.attemptsResetDuration,
+        )
+        ? 0
+        : current.attempts;
+    final newAttempts = attempts + 1;
 
     debugPrint('LOGIN FAILED ATTEMPT: $email -> $newAttempts');
 
@@ -43,12 +61,12 @@ class LoginAttemptsService {
     debugPrint('WILL BLOCK: $willBlock');
 
     final blockedUntil = willBlock
-        ? DateTime.now().add(LoginAttemptsConstants.blockDuration)
+        ? now.add(LoginAttemptsConstants.blockDuration)
         : null;
 
     final updated = LoginAttemptModel(
       attempts: newAttempts,
-      lastAttempt: DateTime.now(),
+      lastAttempt: now,
       blockedUntil: blockedUntil,
     );
 
