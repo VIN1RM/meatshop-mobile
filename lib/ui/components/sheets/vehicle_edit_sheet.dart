@@ -10,7 +10,15 @@ import 'dart:convert';
 
 class VehicleEditModal extends StatefulWidget {
   final String vehicleType;
-  const VehicleEditModal({super.key, required this.vehicleType});
+  final bool persistChanges;
+  final Map<String, dynamic>? initialData;
+
+  const VehicleEditModal({
+    super.key,
+    required this.vehicleType,
+    this.persistChanges = true,
+    this.initialData,
+  });
 
   @override
   State<VehicleEditModal> createState() => _VehicleEditModalState();
@@ -110,7 +118,11 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
     _yearController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final info = context.read<VehicleProvider>().vehicleInfo;
+      final info =
+          widget.initialData ??
+          (widget.persistChanges
+              ? context.read<VehicleProvider>().vehicleInfo
+              : <String, dynamic>{});
       if (info.isNotEmpty) {
         _modelController.text = info['model'] ?? '';
         _plateController.text = info['plate'] ?? '';
@@ -198,7 +210,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
-    if (uid != null && mounted) {
+    if (widget.persistChanges && uid != null && mounted) {
       try {
         await context.read<VehicleProvider>().updateVehicle(
           uid: uid,

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
+import 'package:meatshop_mobile/core/exceptions/social_account_link_required_exception.dart';
 import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'package:meatshop_mobile/services/login_attempts_service.dart';
 import 'dart:io';
@@ -60,9 +61,9 @@ class AuthService {
       idToken: googleAuth.idToken,
     );
 
-    final userCredential = await _auth.signInWithCredential(credential);
-    return _handleSocialUser(
-      userCredential.user!,
+    return _signInWithSocialCredential(
+      credential,
+      fallbackEmail: googleUser.email,
       fallbackName: googleUser.displayName,
     );
   }
@@ -83,17 +84,175 @@ class AuthService {
       'apple.com',
     ).credential(idToken: appleCredential.identityToken, rawNonce: rawNonce);
 
-    final userCredential = await _auth.signInWithCredential(oauthCredential);
-
     final fallbackName = [
       appleCredential.givenName,
       appleCredential.familyName,
     ].where((s) => s != null && s.isNotEmpty).join(' ');
 
-    return _handleSocialUser(
-      userCredential.user!,
+    return _signInWithSocialCredential(
+      oauthCredential,
+      fallbackEmail: appleCredential.email,
       fallbackName: fallbackName.isEmpty ? null : fallbackName,
     );
+  }
+
+  Future<String> _signInWithSocialCredential(
+    AuthCredential credential, {
+    String? fallbackEmail,
+    String? fallbackName,
+  }) async {
+    if (fallbackEmail != null &&
+        await _requiresAccountLinkBeforeSignIn(
+          email: fallbackEmail,
+          providerId: credential.providerId,
+        )) {
+      throw SocialAccountLinkRequiredException(
+        email: fallbackEmail,
+        pendingCredential: credential,
+      );
+    }
+
+    try {
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user!;
+
+      await _preventDuplicateSocialAccount(
+        user: user,
+        pendingCredential: credential,
+        fallbackEmail: fallbackEmail,
+      );
+
+      return _handleSocialUser(user, fallbackName: fallbackName);
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'account-exists-with-different-credential') {
+        final email = error.email ?? fallbackEmail;
+        if (email != null && email.isNotEmpty) {
+          throw SocialAccountLinkRequiredException(
+            email: email,
+            pendingCredential: error.credential ?? credential,
+          );
+        }
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> _requiresAccountLinkBeforeSignIn({
+    required String email,
+    required String providerId,
+  }) async {
+    final existingUid = await _findExistingUidForEmail(
+      email: email,
+      currentUid: '',
+    );
+    if (existingUid == null) return false;
+
+    // O SDK ainda oferece este método para resolver o primeiro vínculo.
+    // ignore: deprecated_member_use
+    final signInMethods = await _auth.fetchSignInMethodsForEmail(email.trim());
+    return signInMethods.contains('password') &&
+        !signInMethods.contains(providerId);
+  }
+
+  Future<void> _preventDuplicateSocialAccount({
+    required User user,
+    required AuthCredential pendingCredential,
+    String? fallbackEmail,
+  }) async {
+    final email = user.email ?? fallbackEmail;
+    if (email == null || email.isEmpty) return;
+
+    final existingUid = await _findExistingUidForEmail(
+      email: email,
+      currentUid: user.uid,
+    );
+    if (existingUid == null) return;
+
+    final duplicateRef = _db
+        .collection(FirestoreCollections.users)
+        .doc(user.uid);
+    final duplicateDoc = await duplicateRef.get();
+    final duplicateData = duplicateDoc.data();
+
+    if (duplicateData != null && !_isIncompleteSocialProfile(duplicateData)) {
+      await _auth.signOut();
+      throw ApiException(
+        'Encontramos duas contas em uso com este e-mail. Entre com e-mail e '
+        'senha e fale com o suporte para unificar os dados.',
+      );
+    }
+
+    try {
+      if (duplicateDoc.exists) {
+        await duplicateRef.delete();
+      }
+      await user.delete();
+    } catch (_) {
+      await _auth.signOut();
+      throw ApiException(
+        'Não foi possível vincular esta conta automaticamente. Entre com '
+        'e-mail e senha e tente novamente.',
+      );
+    }
+
+    throw SocialAccountLinkRequiredException(
+      email: email,
+      pendingCredential: pendingCredential,
+    );
+  }
+
+  Future<String?> _findExistingUidForEmail({
+    required String email,
+    required String currentUid,
+  }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    final candidates = <String>{email.trim(), normalizedEmail};
+
+    for (final candidate in candidates) {
+      final uniqueEmail = await _db
+          .collection('unique_emails')
+          .doc(candidate)
+          .get();
+      final uid = uniqueEmail.data()?['user_id'] as String?;
+      if (uid != null && uid.isNotEmpty && uid != currentUid) return uid;
+    }
+
+    return null;
+  }
+
+  bool _isIncompleteSocialProfile(Map<String, dynamic> data) {
+    return data['profile_complete'] != true &&
+        (data['cpf'] as String? ?? '').isEmpty &&
+        (data['phone'] as String? ?? '').isEmpty;
+  }
+
+  Future<String> linkSocialAccount({
+    required String email,
+    required String password,
+    required AuthCredential pendingCredential,
+  }) async {
+    try {
+      await LoginAttemptsService.instance.guardLogin(email);
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      final user = userCredential.user!;
+
+      await user.linkWithCredential(pendingCredential);
+      await LoginAttemptsService.instance.clearAttempts(email);
+      return _handleSocialUser(user);
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'provider-already-linked') {
+        final user = _auth.currentUser!;
+        await LoginAttemptsService.instance.clearAttempts(email);
+        return _handleSocialUser(user);
+      }
+      if (_isInvalidCredentialError(error.code)) {
+        await LoginAttemptsService.instance.registerFailedAttempt(email);
+      }
+      rethrow;
+    }
   }
 
   Future<String> _handleSocialUser(User user, {String? fallbackName}) async {
@@ -123,6 +282,14 @@ class AuthService {
     if (data == null) return false;
     return data['profile_complete'] == true ||
         (data['cpf'] as String?)?.isNotEmpty == true;
+  }
+
+  Future<bool> hasChosenProfile(String uid) async {
+    final doc = await _db.collection(FirestoreCollections.users).doc(uid).get();
+    final data = doc.data();
+    return data != null &&
+        data['app_profile'] != null &&
+        data['profile_complete'] != false;
   }
 
   Future<void> completeSocialProfile({

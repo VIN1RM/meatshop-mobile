@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/enums/app_profile.dart';
+import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/deliveries_screen.dart';
@@ -11,6 +13,7 @@ import 'package:meatshop_mobile/core/utils/pending_profile_checker.dart';
 import 'package:meatshop_mobile/ui/dialogs/pending_profile_dialog.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
 
 class DeliveryShell extends StatefulWidget {
   const DeliveryShell({super.key});
@@ -56,10 +59,33 @@ class _DeliveryShellState extends State<DeliveryShell> {
     }
     if (!mounted) return;
 
+    final existingVehicle = vehicleProvider.vehicles.isEmpty
+        ? null
+        : Map<String, dynamic>.from(vehicleProvider.vehicleInfo);
+
+    AddressModel? existingAddress;
+    var hasAddress = true;
+    if (authProvider.appProfile == AppProfile.both) {
+      final addressProvider = context.read<AddressProvider>();
+      if (addressProvider.addresses.isEmpty) {
+        await addressProvider.load(uid);
+      }
+      if (!mounted) return;
+      final addresses = addressProvider.addresses;
+      hasAddress = addresses.isNotEmpty;
+      if (hasAddress) {
+        existingAddress = addresses.firstWhere(
+          (address) => address.isDefault,
+          orElse: () => addresses.first,
+        );
+      }
+    }
+
     final missing = PendingProfileChecker.check(
       user: user,
       profile: authProvider.appProfile,
       hasVehicle: vehicleProvider.vehicles.isNotEmpty,
+      hasAddress: hasAddress,
     );
 
     if (missing.hasPending && mounted) {
@@ -70,6 +96,8 @@ class _DeliveryShellState extends State<DeliveryShell> {
           arguments: CompleteProfileArgs(
             lockedProfile: authProvider.appProfile,
             existingUser: user,
+            existingAddress: existingAddress,
+            existingVehicle: existingVehicle,
           ),
         );
         if (updated == true && mounted) {

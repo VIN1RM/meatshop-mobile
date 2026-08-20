@@ -15,11 +15,15 @@ import 'package:flutter/services.dart';
 class CompleteProfileScreen extends StatefulWidget {
   final AppProfile? lockedProfile;
   final UserModel? existingUser;
+  final AddressModel? existingAddress;
+  final Map<String, dynamic>? existingVehicle;
 
   const CompleteProfileScreen({
     super.key,
     this.lockedProfile,
     this.existingUser,
+    this.existingAddress,
+    this.existingVehicle,
   });
 
   @override
@@ -38,6 +42,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   AddressModel? _addressData;
 
   bool _isLoading = false;
+  bool _canLeave = false;
+
+  late final bool _nameWasMissing;
+  late final bool _cpfWasMissing;
+  late final bool _phoneWasMissing;
+  late final bool _addressWasMissing;
+  late final bool _vehicleWasMissing;
 
   final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'ON_FOOT'];
   final Map<String, String> _vehicleLabels = {
@@ -60,11 +71,33 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       _selectedProfile = widget.lockedProfile;
     }
     final existing = widget.existingUser;
+    _nameWasMissing = existing == null || existing.name.trim().isEmpty;
+    _cpfWasMissing = existing == null || existing.cpf.trim().isEmpty;
+    _phoneWasMissing = existing == null || existing.phone.trim().isEmpty;
+    _addressWasMissing = widget.existingAddress == null;
+    _vehicleWasMissing = widget.existingVehicle == null;
+
     if (existing != null) {
       _nameController.text = existing.name;
       _cpfController.text = _applyMask(CpfInputFormatter(), existing.cpf);
       _phoneController.text = _applyMask(PhoneInputFormatter(), existing.phone);
     }
+
+    _addressData = widget.existingAddress;
+    if (widget.existingVehicle case final existingVehicle?) {
+      _vehicleData = Map<String, dynamic>.from(existingVehicle);
+      _selectedVehicle = _normalizeVehicleType(existingVehicle['type']);
+    }
+  }
+
+  String? _normalizeVehicleType(Object? value) {
+    return switch (value?.toString().toUpperCase()) {
+      'MOTO' || 'MOTORCYCLE' => 'MOTORCYCLE',
+      'BICICLETA' || 'BIKE' => 'BIKE',
+      'CARRO' || 'CAR' => 'CAR',
+      'A PÉ' || 'ON_FOOT' => 'ON_FOOT',
+      _ => null,
+    };
   }
 
   String _applyMask(TextInputFormatter formatter, String rawValue) {
@@ -100,14 +133,19 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       );
       return;
     }
-    if (profile != AppProfile.client && _vehicleData == null) {
+    final needsVehicle =
+        profile == AppProfile.delivery || profile == AppProfile.both;
+    final needsAddress =
+        profile == AppProfile.client || profile == AppProfile.both;
+
+    if (needsVehicle && _vehicleData == null) {
       CustomSnackBar.warning(
         'Preencha os dados do veículo para continuar.',
         context: context,
       );
       return;
     }
-    if (profile == AppProfile.client && _addressData == null) {
+    if (needsAddress && _addressData == null) {
       CustomSnackBar.warning(
         'Preencha seu endereço para continuar.',
         context: context,
@@ -117,10 +155,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
     setState(() => _isLoading = true);
 
-    if (_cpfController.text.isNotEmpty) {
+    if (_cpfWasMissing && _cpfController.text.isNotEmpty) {
       final cpfOk = await AuthService.instance.isCpfAvailable(
         _cpfController.text,
       );
+      if (!mounted) return;
       if (!cpfOk) {
         setState(() => _isLoading = false);
         CustomSnackBar.warning(
@@ -130,10 +169,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         return;
       }
     }
-    if (_phoneController.text.isNotEmpty) {
+    if (_phoneWasMissing && _phoneController.text.isNotEmpty) {
       final phoneOk = await AuthService.instance.isPhoneAvailable(
         _phoneController.text,
       );
+      if (!mounted) return;
       if (!phoneOk) {
         setState(() => _isLoading = false);
         CustomSnackBar.warning(
@@ -144,6 +184,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       }
     }
 
+    if (!mounted) return;
     try {
       if (isPendingFlow) {
         final ok = await context.read<AuthProvider>().completePendingProfile(
@@ -151,11 +192,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           name: _nameController.text.trim(),
           cpf: _cpfController.text,
           phone: _phoneController.text,
-          addressData: _addressData,
-          vehicleType: _selectedVehicle,
-          vehicleData: _vehicleData,
+          addressData: _addressWasMissing ? _addressData : null,
+          vehicleType: _vehicleWasMissing ? _selectedVehicle : null,
+          vehicleData: _vehicleWasMissing ? _vehicleData : null,
         );
-        if (ok && mounted) Navigator.of(context).pop(true);
+        if (ok && mounted) {
+          setState(() => _canLeave = true);
+          Navigator.of(context).pop(true);
+        }
       } else {
         await context.read<AuthProvider>().completeProfileWithType(
           context: context,
@@ -163,9 +207,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           cpf: _cpfController.text,
           phone: _phoneController.text,
           profile: profile,
-          vehicleType: _selectedVehicle,
-          vehicleData: _vehicleData,
-          addressData: _addressData,
+          vehicleType: _vehicleWasMissing ? _selectedVehicle : null,
+          vehicleData: _vehicleWasMissing ? _vehicleData : null,
+          addressData: _addressWasMissing ? _addressData : null,
         );
       }
     } finally {
@@ -178,29 +222,32 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     final size = MediaQuery.of(context).size;
     final sh = size.height;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF424242),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHero(),
-                      SizedBox(height: sh * 0.03),
-                      _buildCard(),
-                    ],
+    return PopScope(
+      canPop: _canLeave,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF424242),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildTopBar(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHero(),
+                        SizedBox(height: sh * 0.03),
+                        _buildCard(),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -209,34 +256,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   Widget _buildTopBar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Complete seu perfil',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+      child: const Text(
+        'Complete seu perfil',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -295,15 +321,19 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           _buildInfoBanner(),
           const SizedBox(height: 20),
 
-          _buildSectionTitle('Tipo de Perfil'),
-          const SizedBox(height: 14),
-          _buildProfileSelection(),
+          if (widget.lockedProfile == null) ...[
+            _buildSectionTitle('Tipo de Perfil'),
+            const SizedBox(height: 14),
+            _buildProfileSelection(),
+          ],
 
-          if (_selectedProfile != null) ...[
+          if (_selectedProfile != null &&
+              (_nameWasMissing || _cpfWasMissing || _phoneWasMissing)) ...[
             const SizedBox(height: 20),
             _buildSectionTitle('Dados Pessoais'),
             const SizedBox(height: 14),
             _buildField(
+              visible: _nameWasMissing,
               label: 'Nome completo',
               controller: _nameController,
               hint: 'Seu nome',
@@ -315,6 +345,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             ),
             const SizedBox(height: 12),
             _buildField(
+              visible: _cpfWasMissing,
               label: 'CPF',
               controller: _cpfController,
               hint: '000.000.000-00',
@@ -331,6 +362,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             ),
             const SizedBox(height: 12),
             _buildField(
+              visible: _phoneWasMissing,
               label: 'Celular',
               controller: _phoneController,
               hint: '(00) 0 0000-0000',
@@ -347,15 +379,18 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             ),
           ],
 
-          if (_selectedProfile == AppProfile.client) ...[
+          if ((_selectedProfile == AppProfile.client ||
+                  _selectedProfile == AppProfile.both) &&
+              _addressWasMissing) ...[
             const SizedBox(height: 20),
             _buildSectionTitle('Endereço'),
             const SizedBox(height: 14),
             _buildAddressCard(),
           ],
 
-          if (_selectedProfile == AppProfile.delivery ||
-              _selectedProfile == AppProfile.both) ...[
+          if ((_selectedProfile == AppProfile.delivery ||
+                  _selectedProfile == AppProfile.both) &&
+              _vehicleWasMissing) ...[
             const SizedBox(height: 20),
             _buildSectionTitle('Tipo de Veículo'),
             const SizedBox(height: 14),
@@ -561,7 +596,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               context: context,
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
-              builder: (_) => VehicleEditModal(vehicleType: v),
+              builder: (_) => VehicleEditModal(
+                vehicleType: v,
+                persistChanges: false,
+                initialData: _vehicleData,
+              ),
             );
             if (result != null) {
               setState(() {
@@ -667,6 +706,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   }
 
   Widget _buildField({
+    bool visible = true,
     required String label,
     required TextEditingController controller,
     required String hint,
@@ -675,6 +715,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     List<dynamic>? formatters,
     String? Function(String?)? validator,
   }) {
+    if (!visible) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

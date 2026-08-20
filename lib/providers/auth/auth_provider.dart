@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/login_blocked_exception.dart';
+import 'package:meatshop_mobile/core/exceptions/social_account_link_required_exception.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
@@ -11,11 +12,13 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
+import 'package:meatshop_mobile/ui/dialogs/link_social_account_dialog.dart';
 import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/services/order_status_notification_service.dart';
 import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
+import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -110,7 +113,11 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     try {
       final profile = await AuthService.instance.loginWithGoogle();
+      if (!context.mounted) return;
       await _afterSocialLogin(context, profile);
+    } on SocialAccountLinkRequiredException catch (e) {
+      if (!context.mounted) return;
+      await _linkExistingSocialAccount(context, e);
     } on ApiException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -139,7 +146,11 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     try {
       final profile = await AuthService.instance.loginWithApple();
+      if (!context.mounted) return;
       await _afterSocialLogin(context, profile);
+    } on SocialAccountLinkRequiredException catch (e) {
+      if (!context.mounted) return;
+      await _linkExistingSocialAccount(context, e);
     } on ApiException catch (e) {
       _errorMessage = e.message;
       notifyListeners();
@@ -198,14 +209,16 @@ class AuthProvider extends ChangeNotifier {
           await FirebaseFirestore.instance.collection('users').doc(uid).update({
             'app_profile': 'CLIENT',
           });
-
-          if (addressData != null && context.mounted) {
-            await context.read<AddressProvider>().add(
-              uid,
-              addressData.copyWith(isDefault: true),
-            );
-          }
         }
+      }
+
+      if ((profile == AppProfile.client || profile == AppProfile.both) &&
+          addressData != null &&
+          context.mounted) {
+        await context.read<AddressProvider>().add(
+          uid,
+          addressData.copyWith(isDefault: true),
+        );
       }
 
       _needsProfileCompletion = false;
@@ -256,9 +269,101 @@ class AuthProvider extends ChangeNotifier {
     if (!context.mounted) return;
 
     if (_needsProfileCompletion) {
-      Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);
+      final hasChosenProfile = await AuthService.instance.hasChosenProfile(uid);
+      if (!context.mounted) return;
+
+      AddressModel? existingAddress;
+      Map<String, dynamic>? existingVehicle;
+
+      if (hasChosenProfile &&
+          (_appProfile == AppProfile.client ||
+              _appProfile == AppProfile.both)) {
+        final addressProvider = context.read<AddressProvider>();
+        await addressProvider.load(uid);
+        if (!context.mounted) return;
+        final addresses = addressProvider.addresses;
+        if (addresses.isNotEmpty) {
+          existingAddress = addresses.firstWhere(
+            (address) => address.isDefault,
+            orElse: () => addresses.first,
+          );
+        }
+      }
+
+      if (hasChosenProfile &&
+          (_appProfile == AppProfile.delivery ||
+              _appProfile == AppProfile.both)) {
+        final vehicleProvider = context.read<VehicleProvider>();
+        await vehicleProvider.loadVehicle(uid);
+        if (!context.mounted) return;
+        if (vehicleProvider.vehicles.isNotEmpty) {
+          existingVehicle = Map<String, dynamic>.from(
+            vehicleProvider.vehicleInfo,
+          );
+        }
+      }
+
+      Navigator.of(context).pushReplacementNamed(
+        AppRoutes.completeProfile,
+        arguments: CompleteProfileArgs(
+          lockedProfile: hasChosenProfile ? _appProfile : null,
+          existingUser: context.read<UserProvider>().user,
+          existingAddress: existingAddress,
+          existingVehicle: existingVehicle,
+        ),
+      );
     } else {
       _redirectAfterLogin(context);
+    }
+  }
+
+  Future<void> _linkExistingSocialAccount(
+    BuildContext context,
+    SocialAccountLinkRequiredException linkRequest,
+  ) async {
+    if (!context.mounted) return;
+
+    final password = await LinkSocialAccountDialog.show(
+      context,
+      email: linkRequest.email,
+    );
+    if (password == null || !context.mounted) return;
+
+    try {
+      final profile = await AuthService.instance.linkSocialAccount(
+        email: linkRequest.email,
+        password: password,
+        pendingCredential: linkRequest.pendingCredential,
+      );
+      if (context.mounted) {
+        await _afterSocialLogin(context, profile);
+      }
+    } on LoginBlockedException catch (error) {
+      if (context.mounted) {
+        Navigator.of(
+          context,
+        ).pushNamed(AppRoutes.accountBlocked, arguments: error.blockedUntil);
+      }
+    } on FirebaseAuthException catch (error) {
+      _errorMessage = _mapAuthError(error.code);
+      notifyListeners();
+      if (context.mounted) {
+        await CustomDialog.showError(
+          context: context,
+          title: 'Não foi possível vincular',
+          message: _errorMessage!,
+        );
+      }
+    } on ApiException catch (error) {
+      _errorMessage = error.message;
+      notifyListeners();
+      if (context.mounted) {
+        await CustomDialog.showError(
+          context: context,
+          title: 'Não foi possível vincular',
+          message: error.message,
+        );
+      }
     }
   }
 
@@ -720,6 +825,8 @@ class AuthProvider extends ChangeNotifier {
       'user-disabled' => 'Conta desativada.',
       'email-already-in-use' => 'Este e-mail já está cadastrado.',
       'weak-password' => 'Senha muito fraca.',
+      'credential-already-in-use' =>
+        'Este login social já está vinculado a outra conta.',
       'invalid-credential' => 'E-mail ou senha incorretos.',
       'too-many-requests' => 'Muitas tentativas. Tente novamente mais tarde.',
       'network-request-failed' => 'Sem conexão com a internet.',
