@@ -12,9 +12,36 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ---
 
 ## [2.15.0] - 2026-08-20
-###
+### Vinculação de Contas Sociais, Segurança de Login e Conclusão de Perfil
 
-###
+### Added
+- `LoginAttemptsConstants.attemptsResetDuration`: janela de 5 minutos para expiração do contador de falhas de autenticação.
+- `LoginAttemptModel.isBlockedAt()` e `shouldResetAttempts()`: regras testáveis para verificar bloqueio ativo e expiração das tentativas acumuladas.
+- Testes unitários de `LoginAttemptModel` cobrindo manutenção da contagem dentro da janela, reinício após expiração e bloqueio ativo.
+- `SocialAccountLinkRequiredException`: transporta o e-mail e a credencial social pendente durante a vinculação com uma conta existente.
+- `LinkSocialAccountDialog`: confirmação segura da senha da conta original para vincular Google ou Apple no primeiro acesso social.
+- `existingAddress` e `existingVehicle` em `CompleteProfileArgs`, permitindo transportar endereço e veículo já cadastrados para a tela de conclusão.
+- `hasChosenProfile(uid)` no `AuthService`: diferencia contas sociais novas de contas existentes que já possuem um tipo de perfil definido.
+
+### Changed
+- `LoginAttemptsService.guardLogin()`: remove registros expirados do Firestore antes de liberar uma nova tentativa.
+- `LoginAttemptsService.registerFailedAttempt()`: reinicia a contagem quando a última falha ocorreu fora da janela configurada.
+- Login com Google e Apple agora verifica contas existentes em `unique_emails`, trata `account-exists-with-different-credential` e vincula o provedor social ao usuário original com `linkWithCredential()`, preservando o mesmo `uid` e seus dados.
+- A primeira vinculação social exige a senha da conta existente e respeita o mesmo limite de tentativas e bloqueio temporário do login convencional.
+- Duplicatas sociais antigas e sem dados completos são removidas antes da vinculação; contas duplicadas que já possuam dados são preservadas e direcionadas para unificação assistida, evitando perda de informações.
+- `AuthProvider._afterSocialLogin()`: carrega usuário, endereço e veículo existentes antes de abrir a conclusão do perfil e mantém bloqueado o tipo de perfil já escolhido.
+- `CompleteProfileScreen`: nome, CPF, celular, endereço e veículo existentes são reutilizados; o formulário exibe e valida somente os dados ausentes.
+- `PendingProfileDialog` e `CompleteProfileScreen`: botão, gesto e ação de voltar bloqueados enquanto a conclusão obrigatória estiver pendente.
+- `client_shell.dart` e `delivery_shell.dart`: passam a verificar e carregar endereço e veículo para perfis `BOTH`, encaminhando os dados existentes pela rota.
+- `VehicleEditModal`: novo modo `persistChanges: false` para coletar os dados durante o cadastro e persistir somente na confirmação final.
+
+### Fixed
+- Corrigido bloqueio imediato após uma única senha incorreta quando o usuário já havia atingido cinco falhas dias ou meses antes.
+- Corrigida criação de um novo usuário ao entrar com Google ou Apple usando o e-mail de uma conta convencional existente.
+- Corrigido retorno à aplicação pelo botão ou gesto de voltar antes de concluir dados obrigatórios do perfil.
+- Corrigida solicitação repetida de nome, CPF, celular, endereço, veículo e tipo de perfil que já estavam cadastrados.
+- Corrigida duplicação de endereço e veículo durante a conclusão de perfis pendentes.
+- Corrigido o perfil `BOTH` para exigir e salvar endereço de cliente e veículo de entregador no mesmo fluxo.
 
 
 ---
