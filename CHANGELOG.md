@@ -11,6 +11,14 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [2.15.0] - 2026-08-20
+###
+
+###
+
+
+---
+
 ## [2.14.0] - 2026-07-21
 ### Fluxo de Onboarding no Primeiro Acesso
 

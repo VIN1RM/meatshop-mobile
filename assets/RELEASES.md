@@ -4,6 +4,14 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [2.15.0] — 20 de Agosto de 2026
+###
+
+### 
+
+
+---
+
 ## [2.14.0] — 21 de Julho de 2026
 ### 👋 Conheça o MeatShop Antes de Começar
 
