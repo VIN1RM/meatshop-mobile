@@ -4,6 +4,22 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [3.0.0] — Em desenvolvimento
+### Uma Nova Base para o MeatShop
+
+### ✨ Novidades
+- **Integração em Andamento:** Começamos a evolução que conectará o aplicativo ao mesmo backend e banco de dados usados pelo painel do açougue.
+- **Conexões Mais Confiáveis:** A nova base já diferencia falta de internet, demora do servidor, sessão expirada e cancelamento de uma operação.
+- **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
+
+### 📈 Melhorias
+- **Preparado para a Migração Gradual:** As próximas funcionalidades poderão ser transferidas uma por vez, sem trocar todos os fluxos de uma só vez.
+- **Qualidade Automatizada:** Novos testes protegem a arquitetura e os comportamentos essenciais de conexão e sessão.
+
+> A versão 3.0.0 permanece em desenvolvimento. Estas notas serão incrementadas a cada fase do plano de integração.
+
+---
+
 ## [2.15.0] — 20 de Agosto de 2026
 ### 🔐 Login Mais Seguro e Cadastro sem Repetição
 

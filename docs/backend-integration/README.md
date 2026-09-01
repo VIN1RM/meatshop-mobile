@@ -2,11 +2,14 @@
 
 Este diretório contém os artefatos de engenharia da refatoração que fará o aplicativo Flutter consumir o backend NestJS e usar o PostgreSQL como fonte única da verdade.
 
-## Estado da Fase 0
+## Estado da integração
 
 Data da linha de base: 1 de setembro de 2026.
 
 Branch de trabalho: `refactor/mobile-with-backend`.
+
+- Fase 0 — contratos, inventário e reset seguro: concluída;
+- Fase 1 — fundação da API Flutter: implementada, testada e documentada.
 
 Artefatos:
 
@@ -15,6 +18,7 @@ Artefatos:
 - [Padrões de API](API_STANDARDS.md): convenções que orientarão os repositórios e contratos;
 - [Ambientes e reset](ENVIRONMENTS_AND_RESET.md): configuração local, homologação, produção e descarte seguro de dados;
 - [Linha de base de qualidade](QUALITY_BASELINE.md): testes, analyzer, riscos e gates das próximas fases.
+- [Fundação da API](PHASE_1_API_FOUNDATION.md): composição, configuração, sessão, erros, cancelamento e uso pelos próximos repositórios.
 
 ## Decisões registradas
 
@@ -43,10 +47,10 @@ NestJS -> PostgreSQL
 NestJS -> Firebase Admin -> FCM
 ```
 
-As pastas `lib/data` e `lib/infra` estão vazias na linha de base. Elas serão ocupadas progressivamente, sem reescrever telas em massa:
+As pastas `lib/data` e `lib/infra` são ocupadas progressivamente, sem reescrever telas em massa:
 
-- `lib/data`: DTOs remotos, mapeadores e implementações de repositório;
-- `lib/infra`: cliente HTTP, sessão segura, Socket.IO e integrações Firebase permitidas;
+- `lib/data`: contratos de repositório e, nas próximas fases, DTOs e mapeadores remotos;
+- `lib/infra`: cliente HTTP, implementações de repositório, sessão segura e integrações permitidas;
 - `lib/models`: modelos de domínio sem imports de infraestrutura;
 - `lib/providers`: estado e orquestração de casos de uso, sem Firestore ou HTTP direto;
 - `lib/ui`: apresentação, sem acesso a banco, Firebase operacional ou transporte.
@@ -59,10 +63,10 @@ O teste `test/architecture/no_new_cloud_firestore_dependencies_test.dart` regist
 - Quando um arquivo for migrado, seu import e sua entrada na linha de base devem ser removidos no mesmo commit.
 - Adicionar um arquivo à lista para contornar o teste é proibido; qualquer exceção precisa de decisão arquitetural documentada.
 
-## Critério para iniciar a Fase 1
+## Critério atendido para iniciar a Fase 2
 
-- inventário Firebase conhecido;
-- todas as jornadas associadas a endpoint existente ou contrato proposto;
-- padrões de transporte e erro definidos;
-- ambientes e reset documentados;
-- regressão de novos imports Firestore bloqueada automaticamente.
+- fundação central da API disponível por `ApiFoundation`;
+- sessão persistida com segurança e refresh concorrente protegido;
+- endpoint público e protegido cobertos por contrato e testes;
+- cancelamento, timeout, paginação e erros normalizados;
+- UI e Providers protegidos de dependências de infraestrutura por teste.

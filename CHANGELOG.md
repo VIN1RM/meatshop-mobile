@@ -11,6 +11,31 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.0.0] - Em desenvolvimento
+### Integração Mobile com Backend e PostgreSQL
+
+### Added
+- Roadmap completo em 10 fases para tornar o backend NestJS e o PostgreSQL a fonte única dos dados operacionais do aplicativo.
+- Inventário rastreável dos acessos Firebase, contratos de API, ambientes, reset seguro e linha de base de qualidade.
+- Cliente REST central com URL por ambiente, métodos HTTP, headers JSON, timeout e cancelamento real de requisições.
+- Erros tipados para rede, timeout, cancelamento, autenticação, autorização, validação, conflito, limite de requisições, servidor e contrato inválido.
+- Sessão MeatShop com access/refresh token, renovação única para chamadas concorrentes e armazenamento seguro no sistema operacional.
+- Contrato de repositório para validar os endpoints público `/health` e protegido `/users/me` sem expor infraestrutura à UI.
+- Suporte comum a paginação e compatibilidade temporária entre `total_pages` e `totalPages` na borda remota.
+- Feature flags de autenticação e marketplace, desativadas por padrão para controlar o corte gradual.
+- Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
+
+### Changed
+- Versão do aplicativo iniciada em `3.0.0+1` durante todo o plano de refatoração.
+- Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
+
+### Security
+- Backup Android desativado para impedir restauração inconsistente de credenciais criptografadas.
+- Refresh token só é descartado em falha definitiva de autorização; indisponibilidade temporária de rede não encerra a sessão.
+- UI e Providers são impedidos por teste de importar HTTP, armazenamento seguro ou implementações de infraestrutura.
+
+---
+
 ## [2.15.0] - 2026-08-20
 ### Vinculação de Contas Sociais, Segurança de Login e Conclusão de Perfil
 

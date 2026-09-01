@@ -67,20 +67,24 @@ Todos os fluxos mobile possuem contrato definido e nenhuma dependência necessá
 
 ## Fase 1 — Fundação da API no Flutter
 
+**Status:** concluída em 1 de setembro de 2026. Detalhes em `docs/backend-integration/PHASE_1_API_FOUNDATION.md`.
+
 ### Entregas
 
-- [ ] Criar um cliente HTTP central com URL configurável por ambiente.
-- [ ] Padronizar autenticação, headers, timeout, cancelamento e erros.
-- [ ] Implementar renovação de token com proteção contra requisições concorrentes.
-- [ ] Armazenar tokens em armazenamento seguro do sistema operacional.
-- [ ] Criar interfaces de repositório entre Providers e fontes de dados.
-- [ ] Impedir que telas conheçam Firebase, HTTP ou detalhes de persistência.
-- [ ] Criar suporte a paginação e cancelamento de pesquisas.
-- [ ] Preparar feature flags apenas para controlar o corte gradual durante o desenvolvimento.
+- [x] Criar um cliente HTTP central com URL configurável por ambiente.
+- [x] Padronizar autenticação, headers, timeout, cancelamento e erros.
+- [x] Implementar renovação de token com proteção contra requisições concorrentes.
+- [x] Armazenar tokens em armazenamento seguro do sistema operacional.
+- [x] Criar interfaces de repositório entre Providers e fontes de dados.
+- [x] Impedir que telas conheçam Firebase, HTTP ou detalhes de persistência.
+- [x] Criar suporte a paginação e cancelamento de pesquisas.
+- [x] Preparar feature flags apenas para controlar o corte gradual durante o desenvolvimento.
 
 ### Critério de aceite
 
 O aplicativo consulta um endpoint público e um endpoint protegido, trata expiração de sessão e apresenta erros consistentes sem acesso direto das telas à infraestrutura.
+
+Validado por testes automatizados do contrato de `/health`, `/users/me`, Bearer token, renovação após `401`, concorrência, timeout, cancelamento, paginação e erros. A obtenção inicial da sessão via Firebase será conectada na Fase 2.
 
 ## Fase 2 — Federação do Firebase Auth com o backend
 

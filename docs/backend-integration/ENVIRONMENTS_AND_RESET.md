@@ -46,6 +46,8 @@ flutter run --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001
 flutter run --dart-define=MEATSHOP_API_URL=http://localhost:3001
 ```
 
+Informe também `--dart-define=MEATSHOP_ENV=development`. Homologação e produção aceitam apenas HTTPS. A aplicação não assume uma URL padrão quando a fundação do backend é ativada.
+
 ## Reset do PostgreSQL local
 
 > Destrutivo: execute somente no Compose local e depois de confirmar o diretório e o projeto Docker (`name: meatshop`).
