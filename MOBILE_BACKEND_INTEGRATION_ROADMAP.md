@@ -48,16 +48,18 @@ Regras fundamentais:
 
 ## Fase 0 — Contratos, inventário e reset seguro
 
+**Status:** concluída em 1 de setembro de 2026. Artefatos em `docs/backend-integration/`.
+
 ### Entregas
 
-- [ ] Inventariar todas as telas, Providers e serviços que acessam Firebase diretamente.
-- [ ] Mapear cada operação mobile para uma rota existente ou nova rota do backend.
-- [ ] Definir DTOs, enums, paginação e formato padronizado de erros.
-- [ ] Definir ambientes local, homologação e produção.
-- [ ] Documentar o procedimento de reset e seed do PostgreSQL.
-- [ ] Documentar a limpeza das coleções Firestore de desenvolvimento.
-- [ ] Criar uma matriz de rastreabilidade tela → Provider → repositório → endpoint.
-- [ ] Congelar a criação de novos acessos diretos ao Firestore.
+- [x] Inventariar todas as telas, Providers e serviços que acessam Firebase diretamente.
+- [x] Mapear cada operação mobile para uma rota existente ou nova rota do backend.
+- [x] Definir DTOs, enums, paginação e formato padronizado de erros.
+- [x] Definir ambientes local, homologação e produção.
+- [x] Documentar o procedimento de reset e seed do PostgreSQL.
+- [x] Documentar a limpeza das coleções Firestore de desenvolvimento.
+- [x] Criar uma matriz de rastreabilidade tela → Provider → repositório → endpoint.
+- [x] Congelar a criação de novos acessos diretos ao Firestore.
 
 ### Critério de aceite
 

@@ -56,3 +56,10 @@ O MeatShop resolve isso ao digitalizar toda a cadeia:
 | **Clean Architecture em camadas** | Separação do projeto em `core`, `data`, `infra`, `models`, `providers`, `services` e `ui` |
 | **Widgets reutilizáveis** | Componentes compartilhados entre telas |
 | **Responsive layout** | Tamanhos e espaçamentos relativos ao tamanho da tela via `MediaQuery` |
+
+## Refatoração de integração
+
+A integração do aplicativo com o backend NestJS e o PostgreSQL está sendo conduzida na branch `refactor/mobile-with-backend`.
+
+- [Roadmap completo](MOBILE_BACKEND_INTEGRATION_ROADMAP.md)
+- [Decisões e contratos da integração](docs/backend-integration/README.md)
