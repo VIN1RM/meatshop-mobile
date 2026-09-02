@@ -64,7 +64,7 @@ Os repositórios abaixo são contratos alvo. As implementações iniciais usarã
 
 `POST /auth/firebase/exchange`
 
-Entrada: Firebase ID Token no header `Authorization` e dados mínimos de conclusão somente quando solicitados pelo servidor.
+Entrada: Firebase ID Token no header `Authorization`. Se um e-mail verificado coincidir com uma conta local ainda não vinculada, o backend responde `ACCOUNT_LINK_REQUIRED`; a repetição inclui a senha atual somente para confirmar o primeiro vínculo.
 
 Saída:
 

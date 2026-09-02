@@ -88,25 +88,27 @@ Validado por testes automatizados do contrato de `/health`, `/users/me`, Bearer 
 
 ## Fase 2 — Federação do Firebase Auth com o backend
 
+**Status:** implementada e validada em 1 de setembro de 2026. A conclusão formal permanece pendente da regularização dos gates globais legados documentados em `docs/backend-integration/PHASE_2_FIREBASE_AUTH_FEDERATION.md`.
+
 ### Backend
 
-- [ ] Centralizar a inicialização do Firebase Admin em um único provider.
-- [ ] Adicionar identidade Firebase única e opcional ao usuário PostgreSQL.
-- [ ] Representar corretamente contas locais e contas autenticadas pelo Firebase.
-- [ ] Criar `POST /auth/firebase/exchange`.
-- [ ] Verificar integridade, expiração e revogação do Firebase ID Token.
-- [ ] Vincular contas apenas com identidade e e-mail verificados de forma segura.
-- [ ] Emitir os access e refresh tokens já utilizados pelo backend.
-- [ ] Manter perfil, permissões, aprovação e bloqueio como dados do PostgreSQL.
-- [ ] Coordenar logout, desativação e exclusão de conta.
+- [x] Centralizar a inicialização do Firebase Admin em um único provider.
+- [x] Adicionar identidade Firebase única e opcional ao usuário PostgreSQL.
+- [x] Representar corretamente contas locais e contas autenticadas pelo Firebase.
+- [x] Criar `POST /auth/firebase/exchange`.
+- [x] Verificar integridade, expiração e revogação do Firebase ID Token.
+- [x] Vincular contas apenas com identidade e e-mail verificados de forma segura.
+- [x] Emitir os access e refresh tokens já utilizados pelo backend.
+- [x] Manter perfil, permissões, aprovação e bloqueio como dados do PostgreSQL.
+- [x] Coordenar logout e desativação; exclusão definitiva permanece no corte de conta da Fase 10.
 
 ### Mobile
 
-- [ ] Manter login por e-mail, Google e Apple no Firebase Auth.
-- [ ] Trocar o Firebase ID Token por uma sessão MeatShop.
-- [ ] Restaurar e renovar a sessão ao iniciar o aplicativo.
-- [ ] Concluir dados obrigatórios do perfil por meio da API.
-- [ ] Remover consultas de papel e perfil feitas diretamente no Firestore.
+- [x] Manter login por e-mail, Google e Apple no Firebase Auth.
+- [x] Trocar o Firebase ID Token por uma sessão MeatShop.
+- [x] Restaurar e renovar a sessão ao iniciar o aplicativo.
+- [x] Concluir dados obrigatórios do perfil por meio da API.
+- [x] Remover consultas de papel e perfil feitas diretamente no Firestore quando `FEATURE_BACKEND_AUTH` está ativa.
 
 ### Critério de aceite
 

@@ -17,10 +17,20 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/providers/recipe_provider.dart';
+import '../core/config/feature_flags.dart';
+import '../data/repositories/federated_auth_repository.dart';
 
 class ProvidersConfig {
-  static List<SingleChildWidget> providers = [
-    ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+  static List<SingleChildWidget> providers({
+    FederatedAuthRepository? federatedAuth,
+    FeatureFlags flags = const FeatureFlags(
+      backendAuth: false,
+      backendMarketplace: false,
+    ),
+  }) => [
+    ChangeNotifierProvider<AuthProvider>(
+      create: (_) => AuthProvider(federatedAuth: federatedAuth, flags: flags),
+    ),
     ChangeNotifierProvider<DeliveryProvider>(create: (_) => DeliveryProvider()),
     ChangeNotifierProvider(create: (_) => UserProvider()),
     ChangeNotifierProvider(create: (_) => VehicleProvider()),

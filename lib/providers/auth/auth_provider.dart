@@ -19,8 +19,22 @@ import 'package:meatshop_mobile/services/order_status_notification_service.dart'
 import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
+import 'package:meatshop_mobile/core/config/feature_flags.dart';
+import 'package:meatshop_mobile/core/network/api_failure.dart';
+import 'package:meatshop_mobile/data/repositories/federated_auth_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
+  AuthProvider({
+    FederatedAuthRepository? federatedAuth,
+    FeatureFlags flags = const FeatureFlags(
+      backendAuth: false,
+      backendMarketplace: false,
+    ),
+  }) : _federatedAuth = federatedAuth,
+       _flags = flags;
+
+  final FederatedAuthRepository? _federatedAuth;
+  final FeatureFlags _flags;
   bool _isAuthenticated = false;
   AppProfile? _appProfile;
   AppProfile? _activeProfile;
@@ -49,7 +63,14 @@ class AuthProvider extends ChangeNotifier {
       final profileFromFirestore = await AuthService.instance.login(
         email: email,
         password: password,
+        loadFirestoreProfile: !_flags.backendAuth,
       );
+
+      if (_flags.backendAuth) {
+        if (!context.mounted) return;
+        await _finishBackendLogin(context);
+        return;
+      }
 
       _isAuthenticated = true;
       _appProfile = AppProfile.fromString(profileFromFirestore);
@@ -112,8 +133,14 @@ class AuthProvider extends ChangeNotifier {
   Future<void> loginWithGoogle(BuildContext context) async {
     _errorMessage = null;
     try {
-      final profile = await AuthService.instance.loginWithGoogle();
+      final profile = await AuthService.instance.loginWithGoogle(
+        useBackendProfile: _flags.backendAuth,
+      );
       if (!context.mounted) return;
+      if (_flags.backendAuth) {
+        await _finishBackendLogin(context);
+        return;
+      }
       await _afterSocialLogin(context, profile);
     } on SocialAccountLinkRequiredException catch (e) {
       if (!context.mounted) return;
@@ -145,8 +172,14 @@ class AuthProvider extends ChangeNotifier {
   Future<void> loginWithApple(BuildContext context) async {
     _errorMessage = null;
     try {
-      final profile = await AuthService.instance.loginWithApple();
+      final profile = await AuthService.instance.loginWithApple(
+        useBackendProfile: _flags.backendAuth,
+      );
       if (!context.mounted) return;
+      if (_flags.backendAuth) {
+        await _finishBackendLogin(context);
+        return;
+      }
       await _afterSocialLogin(context, profile);
     } on SocialAccountLinkRequiredException catch (e) {
       if (!context.mounted) return;
@@ -187,7 +220,26 @@ class AuthProvider extends ChangeNotifier {
     try {
       final uid = AuthService.instance.currentUser!.uid;
 
-      if (profile == AppProfile.delivery || profile == AppProfile.both) {
+      if (_flags.backendAuth) {
+        final user = await _requireFederatedAuth().completeProfile(
+          name: name,
+          cpf: cpf,
+          phone: phone,
+          appProfile: profile,
+        );
+        _appProfile = user.appProfile;
+        _needsProfileCompletion = !user.profileComplete;
+
+        if ((profile == AppProfile.delivery || profile == AppProfile.both) &&
+            vehicleType != null &&
+            vehicleData != null) {
+          await AuthService.instance.addVehicleForDeliveryPerson(
+            uid: uid,
+            vehicleType: vehicleType,
+            vehicleData: vehicleData,
+          );
+        }
+      } else if (profile == AppProfile.delivery || profile == AppProfile.both) {
         await AuthService.instance.completeSocialProfileWithVehicle(
           uid: uid,
           name: name,
@@ -334,9 +386,14 @@ class AuthProvider extends ChangeNotifier {
         email: linkRequest.email,
         password: password,
         pendingCredential: linkRequest.pendingCredential,
+        useBackendProfile: _flags.backendAuth,
       );
       if (context.mounted) {
-        await _afterSocialLogin(context, profile);
+        if (_flags.backendAuth) {
+          await _finishBackendLogin(context, accountPassword: password);
+        } else {
+          await _afterSocialLogin(context, profile);
+        }
       }
     } on LoginBlockedException catch (error) {
       if (context.mounted) {
@@ -412,6 +469,17 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
+      if (_flags.backendAuth) {
+        return await _registerWithBackend(
+          context: context,
+          name: name,
+          email: email,
+          password: password,
+          cpf: cpf,
+          phone: phone,
+          profile: AppProfile.client,
+        );
+      }
       await AuthService.instance.registerClient(
         name: name,
         email: email,
@@ -477,6 +545,19 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
+      if (_flags.backendAuth) {
+        return await _registerWithBackend(
+          context: context,
+          name: name,
+          email: email,
+          password: password,
+          cpf: cpf,
+          phone: phone,
+          profile: AppProfile.delivery,
+          vehicleType: vehicleType,
+          vehicleData: vehicleData,
+        );
+      }
       await AuthService.instance.registerDelivery(
         name: name,
         email: email,
@@ -544,6 +625,19 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
+      if (_flags.backendAuth) {
+        return await _registerWithBackend(
+          context: context,
+          name: name,
+          email: email,
+          password: password,
+          cpf: cpf,
+          phone: phone,
+          profile: AppProfile.both,
+          vehicleType: vehicleType,
+          vehicleData: vehicleData,
+        );
+      }
       await AuthService.instance.registerBoth(
         name: name,
         email: email,
@@ -675,6 +769,13 @@ class AuthProvider extends ChangeNotifier {
       await NotificationService.instance.clearTokenForUser(uid);
     }
 
+    if (_flags.backendAuth) {
+      try {
+        await _requireFederatedAuth().logout();
+      } catch (_) {
+        // Logout local e Firebase deve prosseguir mesmo se a API estiver indisponível.
+      }
+    }
     await AuthService.instance.logout();
 
     _isAuthenticated = false;
@@ -694,6 +795,14 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> restoreSession(BuildContext context, User firebaseUser) async {
     try {
+      if (_flags.backendAuth) {
+        final idToken = await firebaseUser.getIdToken(true);
+        if (idToken == null) throw StateError('Firebase ID token unavailable');
+        final user = await _requireFederatedAuth().restore(idToken);
+        if (!context.mounted) return;
+        await _applyBackendUser(context, user);
+        return;
+      }
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(firebaseUser.uid)
@@ -734,6 +843,131 @@ class AuthProvider extends ChangeNotifier {
       if (context.mounted) {
         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
+    }
+  }
+
+  FederatedAuthRepository _requireFederatedAuth() {
+    final repository = _federatedAuth;
+    if (repository == null) {
+      throw StateError(
+        'Backend authentication is enabled without a repository.',
+      );
+    }
+    return repository;
+  }
+
+  Future<bool> _registerWithBackend({
+    required BuildContext context,
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+    required String phone,
+    required AppProfile profile,
+    String? vehicleType,
+    Map<String, dynamic>? vehicleData,
+  }) async {
+    final firebaseUser = await AuthService.instance.registerFirebaseIdentity(
+      name: name,
+      email: email,
+      password: password,
+    );
+    final idToken = await firebaseUser.getIdToken(true);
+    if (idToken == null) throw StateError('Firebase ID token unavailable');
+
+    final repository = _requireFederatedAuth();
+    try {
+      await repository.exchangeFirebaseToken(idToken);
+      await repository.completeProfile(
+        name: name,
+        cpf: cpf,
+        phone: phone,
+        appProfile: profile,
+      );
+
+      if ((profile == AppProfile.delivery || profile == AppProfile.both) &&
+          vehicleType != null &&
+          vehicleData != null) {
+        await AuthService.instance.addVehicleForDeliveryPerson(
+          uid: firebaseUser.uid,
+          vehicleType: vehicleType,
+          vehicleData: vehicleData,
+        );
+      }
+    } catch (_) {
+      try {
+        await repository.logout();
+      } catch (_) {
+        // Preserve the registration failure; local Firebase logout still runs.
+      }
+      await AuthService.instance.logout();
+      rethrow;
+    }
+
+    await repository.logout();
+    await AuthService.instance.logout();
+    if (context.mounted) {
+      CustomDialog.showSuccess(
+        context: context,
+        title: 'Cadastro realizado!',
+        message: 'Faça login para continuar.',
+        onDismiss: () =>
+            Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+      );
+    }
+    return true;
+  }
+
+  Future<void> _finishBackendLogin(
+    BuildContext context, {
+    String? accountPassword,
+  }) async {
+    final firebaseUser = AuthService.instance.currentUser!;
+    final idToken = await firebaseUser.getIdToken(true);
+    if (idToken == null) throw StateError('Firebase ID token unavailable');
+
+    try {
+      final user = await _requireFederatedAuth().exchangeFirebaseToken(
+        idToken,
+        accountPassword: accountPassword,
+      );
+      if (context.mounted) await _applyBackendUser(context, user);
+    } on ApiFailure catch (failure) {
+      if (failure.code != 'ACCOUNT_LINK_REQUIRED' || !context.mounted) rethrow;
+      final password = await LinkSocialAccountDialog.show(
+        context,
+        email: firebaseUser.email ?? '',
+      );
+      if (password == null || !context.mounted) return;
+      final user = await _requireFederatedAuth().exchangeFirebaseToken(
+        idToken,
+        accountPassword: password,
+      );
+      if (context.mounted) await _applyBackendUser(context, user);
+    }
+  }
+
+  Future<void> _applyBackendUser(
+    BuildContext context,
+    BackendAuthUser user,
+  ) async {
+    _isAuthenticated = true;
+    _appProfile = user.appProfile;
+    _needsProfileCompletion = !user.profileComplete;
+    notifyListeners();
+
+    final uid = AuthService.instance.currentUser!.uid;
+    if (!context.mounted) return;
+    await context.read<UserPreferencesProvider>().loadForUser(uid);
+    if (!context.mounted) return;
+    context.read<PaymentProvider>().init();
+    if (_needsProfileCompletion) {
+      Navigator.of(context).pushReplacementNamed(
+        AppRoutes.completeProfile,
+        arguments: const CompleteProfileArgs(),
+      );
+    } else {
+      _redirectAfterLogin(context);
     }
   }
 

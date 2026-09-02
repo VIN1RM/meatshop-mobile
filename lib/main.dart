@@ -9,6 +9,8 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/routes/routes_config.dart';
 import 'package:meatshop_mobile/providers/providers_config.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
+import 'package:meatshop_mobile/core/config/feature_flags.dart';
+import 'package:meatshop_mobile/infra/api_foundation.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -16,10 +18,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 final navigatorKey = GlobalKey<NavigatorState>();
+final featureFlags = FeatureFlags.fromEnvironment();
+ApiFoundation? apiFoundation;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (featureFlags.backendAuth || featureFlags.backendMarketplace) {
+    apiFoundation = ApiFoundation.fromEnvironment();
+    await apiFoundation!.initialize();
+  }
   await initializeDateFormatting('pt_BR');
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const MeatShopApp());
@@ -44,7 +52,10 @@ class _MeatShopAppState extends State<MeatShopApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: ProvidersConfig.providers,
+      providers: ProvidersConfig.providers(
+        federatedAuth: apiFoundation?.federatedAuth,
+        flags: featureFlags,
+      ),
       child: MaterialApp(
         navigatorKey: navigatorKey,
         title: 'MeatShop',

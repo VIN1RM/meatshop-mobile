@@ -15,6 +15,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Federação do Firebase Authentication com `POST /auth/firebase/exchange`, validação de expiração/revogação e sessão MeatShop.
+- Identidade Firebase única e opcional no PostgreSQL, perfil incompleto explícito e conclusão cadastral pela API.
+- Vínculo inicial de conta local protegido pela senha atual e por e-mail Firebase verificado.
+- Repositório Flutter de autenticação federada, restauração da sessão e testes automatizados de troca e vínculo.
 - Roadmap completo em 10 fases para tornar o backend NestJS e o PostgreSQL a fonte única dos dados operacionais do aplicativo.
 - Inventário rastreável dos acessos Firebase, contratos de API, ambientes, reset seguro e linha de base de qualidade.
 - Cliente REST central com URL por ambiente, métodos HTTP, headers JSON, timeout e cancelamento real de requisições.
@@ -26,10 +30,14 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Login por e-mail, Google e Apple passa a usar access/refresh tokens MeatShop quando `FEATURE_BACKEND_AUTH` está ativa, preservando o fluxo anterior com a flag desligada.
+- Firebase Admin centralizado e compartilhado entre autenticação e FCM.
 - Versão do aplicativo iniciada em `3.0.0+1` durante todo o plano de refatoração.
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- Firebase ID Tokens são verificados com checagem de revogação; tokens e senhas não são registrados em logs.
+- Perfil, papel, bloqueio e estado da conta autenticada pelo mobile passam a ser autorizados pelo PostgreSQL no novo fluxo.
 - Backup Android desativado para impedir restauração inconsistente de credenciais criptografadas.
 - Refresh token só é descartado em falha definitiva de autorização; indisponibilidade temporária de rede não encerra a sessão.
 - UI e Providers são impedidos por teste de importar HTTP, armazenamento seguro ou implementações de infraestrutura.

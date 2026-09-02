@@ -7,12 +7,15 @@ import 'auth/secure_session_store.dart';
 import 'http/api_client.dart';
 import 'http/json_http_transport.dart';
 import 'repositories/http_backend_connection_repository.dart';
+import '../data/repositories/federated_auth_repository.dart';
+import 'repositories/http_federated_auth_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
     required JsonHttpTransport transport,
     required this.session,
     required this.backendConnection,
+    required this.federatedAuth,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -26,12 +29,18 @@ final class ApiFoundation {
       transport: transport,
       session: session,
       backendConnection: HttpBackendConnectionRepository(client),
+      federatedAuth: HttpFederatedAuthRepository(
+        transport: transport,
+        client: client,
+        session: session,
+      ),
     );
   }
 
   final JsonHttpTransport _transport;
   final SessionCoordinator session;
   final BackendConnectionRepository backendConnection;
+  final FederatedAuthRepository federatedAuth;
 
   Future<void> initialize() => session.initialize();
 

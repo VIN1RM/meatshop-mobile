@@ -24,6 +24,7 @@ class AuthService {
   Future<String> login({
     required String email,
     required String password,
+    bool loadFirestoreProfile = true,
   }) async {
     await LoginAttemptsService.instance.guardLogin(email);
 
@@ -34,6 +35,8 @@ class AuthService {
       );
 
       await LoginAttemptsService.instance.clearAttempts(email);
+
+      if (!loadFirestoreProfile) return 'CLIENT';
 
       final doc = await _db
           .collection(FirestoreCollections.users)
@@ -49,7 +52,7 @@ class AuthService {
     }
   }
 
-  Future<String> loginWithGoogle() async {
+  Future<String> loginWithGoogle({bool useBackendProfile = false}) async {
     final googleUser = await GoogleSignIn().signIn();
     if (googleUser == null) {
       throw ApiException('Login com Google cancelado.');
@@ -65,10 +68,11 @@ class AuthService {
       credential,
       fallbackEmail: googleUser.email,
       fallbackName: googleUser.displayName,
+      useBackendProfile: useBackendProfile,
     );
   }
 
-  Future<String> loginWithApple() async {
+  Future<String> loginWithApple({bool useBackendProfile = false}) async {
     final rawNonce = _generateNonce();
     final nonce = _sha256ofString(rawNonce);
 
@@ -93,6 +97,7 @@ class AuthService {
       oauthCredential,
       fallbackEmail: appleCredential.email,
       fallbackName: fallbackName.isEmpty ? null : fallbackName,
+      useBackendProfile: useBackendProfile,
     );
   }
 
@@ -100,8 +105,10 @@ class AuthService {
     AuthCredential credential, {
     String? fallbackEmail,
     String? fallbackName,
+    bool useBackendProfile = false,
   }) async {
-    if (fallbackEmail != null &&
+    if (!useBackendProfile &&
+        fallbackEmail != null &&
         await _requiresAccountLinkBeforeSignIn(
           email: fallbackEmail,
           providerId: credential.providerId,
@@ -115,6 +122,8 @@ class AuthService {
     try {
       final userCredential = await _auth.signInWithCredential(credential);
       final user = userCredential.user!;
+
+      if (useBackendProfile) return 'CLIENT';
 
       await _preventDuplicateSocialAccount(
         user: user,
@@ -230,6 +239,7 @@ class AuthService {
     required String email,
     required String password,
     required AuthCredential pendingCredential,
+    bool useBackendProfile = false,
   }) async {
     try {
       await LoginAttemptsService.instance.guardLogin(email);
@@ -241,11 +251,13 @@ class AuthService {
 
       await user.linkWithCredential(pendingCredential);
       await LoginAttemptsService.instance.clearAttempts(email);
+      if (useBackendProfile) return 'CLIENT';
       return _handleSocialUser(user);
     } on FirebaseAuthException catch (error) {
       if (error.code == 'provider-already-linked') {
         final user = _auth.currentUser!;
         await LoginAttemptsService.instance.clearAttempts(email);
+        if (useBackendProfile) return 'CLIENT';
         return _handleSocialUser(user);
       }
       if (_isInvalidCredentialError(error.code)) {
@@ -334,6 +346,20 @@ class AuthService {
     return code == 'wrong-password' ||
         code == 'user-not-found' ||
         code == 'invalid-credential';
+  }
+
+  Future<User> registerFirebaseIdentity({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
+    );
+    final user = credential.user!;
+    await user.updateDisplayName(name.trim());
+    return user;
   }
 
   Future<String> registerClient({
