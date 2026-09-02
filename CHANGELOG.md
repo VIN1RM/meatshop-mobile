@@ -15,6 +15,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Marketplace público alimentado pelo PostgreSQL, com unidades, detalhes, horários, avaliações e paginação.
+- Busca combinada de açougues, categorias e produtos, incluindo filtros de unidade, categoria e preço.
+- Repositório mobile de marketplace e testes de contratos públicos e catálogo vendável.
 - Federação do Firebase Authentication com `POST /auth/firebase/exchange`, validação de expiração/revogação e sessão MeatShop.
 - Identidade Firebase única e opcional no PostgreSQL, perfil incompleto explícito e conclusão cadastral pela API.
 - Vínculo inicial de conta local protegido pela senha atual e por e-mail Firebase verificado.
@@ -30,6 +33,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Unidades passam a aparecer no marketplace imediatamente após a criação.
+- Catálogo mobile passa a oferecer somente produtos e categorias ativos com estoque positivo e promoções vigentes quando `FEATURE_BACKEND_MARKETPLACE` está ativa.
 - Login por e-mail, Google e Apple passa a usar access/refresh tokens MeatShop quando `FEATURE_BACKEND_AUTH` está ativa, preservando o fluxo anterior com a flag desligada.
 - Firebase Admin centralizado e compartilhado entre autenticação e FCM.
 - Versão do aplicativo iniciada em `3.0.0+1` durante todo o plano de refatoração.

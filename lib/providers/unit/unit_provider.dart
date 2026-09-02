@@ -25,13 +25,21 @@ class UnitProvider extends ChangeNotifier {
 
   bool isOpenNow(String unitId) => _hoursMap[unitId]?.isOpenNow ?? false;
 
-  Future<void> loadUnits() async {
+  Future<void> loadUnits({
+    double? latitude,
+    double? longitude,
+    double? radiusKm,
+  }) async {
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _units = await _unitService.getAllUnits();
+      _units = await _unitService.getAllUnits(
+        latitude: latitude,
+        longitude: longitude,
+        radiusKm: radiusKm,
+      );
       _hoursMap = await _hoursService.fetchAllToday(
         _units.map((u) => u.id).toList(),
       );

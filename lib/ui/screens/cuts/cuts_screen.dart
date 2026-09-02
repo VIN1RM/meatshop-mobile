@@ -6,6 +6,10 @@ import 'package:meatshop_mobile/ui/components/sheets/cuts_filter_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/providers/product_provider.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
+import '../../../data/repositories/marketplace_context.dart';
+import '../../../services/category_service.dart';
+import '../../../services/product_service.dart';
+import '../../../services/unit_service.dart';
 
 class CutsScreen extends StatelessWidget {
   final String title;
@@ -19,9 +23,14 @@ class CutsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final marketplace = context.read<MarketplaceContext>().repository;
     return ChangeNotifierProvider(
-      create: (_) =>
-          ProductsProvider(categoryName: categoryName)..loadFirstPage(),
+      create: (_) => ProductsProvider(
+        categoryName: categoryName,
+        service: ProductService(marketplace: marketplace),
+        categoryService: CategoryService(marketplace: marketplace),
+        unitService: UnitService(marketplace: marketplace),
+      )..loadFirstPage(),
       child: _CutsView(title: title),
     );
   }

@@ -1,13 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/promotion_model.dart';
+import '../data/repositories/marketplace_repository.dart';
 
 class PromotionService {
   final FirebaseFirestore _db;
+  final MarketplaceRepository? _marketplace;
 
-  PromotionService({FirebaseFirestore? db})
-    : _db = db ?? FirebaseFirestore.instance;
+  PromotionService({FirebaseFirestore? db, MarketplaceRepository? marketplace})
+    : _db = db ?? FirebaseFirestore.instance,
+      _marketplace = marketplace;
 
   Future<List<PromotionModel>> fetchActivePromotions({int limit = 10}) async {
+    if (_marketplace != null) {
+      return (await _marketplace.listPromotions(limit: limit)).items;
+    }
     final now = Timestamp.now();
 
     final snap = await _db
@@ -54,6 +60,12 @@ class PromotionService {
     required String unitId,
     int limit = 10,
   }) async {
+    if (_marketplace != null) {
+      return (await _marketplace.listPromotions(
+        unitId: unitId,
+        limit: limit,
+      )).items;
+    }
     final now = Timestamp.now();
 
     final snap = await _db

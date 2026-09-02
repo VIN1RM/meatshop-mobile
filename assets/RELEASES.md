@@ -8,6 +8,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Marketplace Integrado:** Açougues, produtos, promoções, horários e avaliações agora podem ser carregados diretamente do sistema MeatShop.
+- **Busca Unificada:** A busca encontra açougues, categorias e produtos em uma única consulta.
 - **Login Conectado ao MeatShop:** O login por e-mail, Google ou Apple agora pode criar uma sessão segura no mesmo sistema usado pelo painel e pelo banco de dados principal.
 - **Vínculo Protegido:** Quando já existir uma conta com o mesmo e-mail, a senha atual será solicitada uma única vez antes de vincular o login.
 - **Integração em Andamento:** Começamos a evolução que conectará o aplicativo ao mesmo backend e banco de dados usados pelo painel do açougue.
@@ -15,6 +17,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
 
 ### 📈 Melhorias
+- **Disponibilidade Confiável:** Produtos inativos, categorias inativas ou itens sem estoque deixam de ser oferecidos no novo catálogo.
 - **Perfil Consistente:** Tipo de perfil e conclusão do cadastro passam a vir do sistema MeatShop durante o novo fluxo, evitando divergências entre aplicativo e painel.
 - **Preparado para a Migração Gradual:** As próximas funcionalidades poderão ser transferidas uma por vez, sem trocar todos os fluxos de uma só vez.
 - **Qualidade Automatizada:** Novos testes protegem a arquitetura e os comportamentos essenciais de conexão e sessão.

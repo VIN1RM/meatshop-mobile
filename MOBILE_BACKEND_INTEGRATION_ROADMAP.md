@@ -116,22 +116,24 @@ Cliente, entregador e usuário com os dois perfis entram pelo Firebase e acessam
 
 ## Fase 3 — Marketplace e consultas públicas
 
+**Status:** implementada e validada em 1 de setembro de 2026. A conclusão formal permanece condicionada aos gates globais legados já documentados. Detalhes em `docs/backend-integration/PHASE_3_MARKETPLACE.md`.
+
 ### Backend
 
-- [ ] Criar listagem pública e detalhes de unidades/açougues.
-- [ ] Confirmar filtros de unidades por localização e disponibilidade.
-- [ ] Completar busca de unidades, produtos e categorias.
-- [ ] Revisar contratos públicos de produtos, categorias, horários e promoções.
-- [ ] Garantir que somente produtos ativos e com estoque sejam oferecidos.
+- [x] Criar listagem pública e detalhes de unidades/açougues.
+- [x] Confirmar filtros de unidades por localização e disponibilidade.
+- [x] Completar busca de unidades, produtos e categorias.
+- [x] Revisar contratos públicos de produtos, categorias, horários e promoções.
+- [x] Garantir que somente produtos ativos e com estoque sejam oferecidos.
 
 ### Mobile
 
-- [ ] Migrar unidades e detalhes do açougue.
-- [ ] Migrar categorias, produtos e paginação.
-- [ ] Migrar horários de funcionamento e promoções.
-- [ ] Migrar busca e filtros combinados.
-- [ ] Migrar leitura de avaliações.
-- [ ] Remover os respectivos acessos Firestore.
+- [x] Migrar unidades e detalhes do açougue.
+- [x] Migrar categorias, produtos e paginação.
+- [x] Migrar horários de funcionamento e promoções.
+- [x] Migrar busca e filtros combinados.
+- [x] Migrar leitura de avaliações.
+- [x] Remover os respectivos acessos Firestore quando `FEATURE_BACKEND_MARKETPLACE` está ativa; o fallback permanece durante o corte gradual.
 
 ### Critério de aceite
 

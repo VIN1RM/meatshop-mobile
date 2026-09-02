@@ -26,7 +26,6 @@ const _legacyCloudFirestoreFiles = <String>{
   'lib/providers/auth/auth_provider.dart',
   'lib/providers/delivery/delivery_provider.dart',
   'lib/providers/delivery/vehicle_provider.dart',
-  'lib/providers/product_provider.dart',
   'lib/providers/recipe_provider.dart',
   'lib/services/address_service.dart',
   'lib/services/auth_service.dart',

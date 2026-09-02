@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meatshop_mobile/services/unit_service.dart';
 import '../models/product_model.dart';
@@ -12,6 +11,7 @@ enum ProductPriceRange { all, upTo20, from20to50, above50 }
 class ProductsProvider extends ChangeNotifier {
   final ProductService _service;
   final CategoryService _categoryService;
+  final UnitService _unitService;
 
   final String categoryName;
 
@@ -19,8 +19,10 @@ class ProductsProvider extends ChangeNotifier {
     required this.categoryName,
     ProductService? service,
     CategoryService? categoryService,
+    UnitService? unitService,
   }) : _service = service ?? ProductService(),
-       _categoryService = categoryService ?? CategoryService();
+       _categoryService = categoryService ?? CategoryService(),
+       _unitService = unitService ?? UnitService();
 
   final List<ProductModel> _items = [];
   List<ProductModel> get items => _filteredAndSorted;
@@ -39,7 +41,7 @@ class ProductsProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  DocumentSnapshot? _lastDoc;
+  Object? _lastDoc;
 
   String _searchQuery = '';
   String get searchQuery => _searchQuery;
@@ -178,7 +180,7 @@ class ProductsProvider extends ChangeNotifier {
     final Map<String, String> nameCache = {};
     for (final id in ids) {
       try {
-        final unit = await UnitService().getUnitById(id);
+        final unit = await _unitService.getUnitById(id);
         if (unit != null) nameCache[id] = unit.name;
       } catch (_) {}
     }

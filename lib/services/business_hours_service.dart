@@ -1,14 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meatshop_mobile/models/business_hours_model.dart';
+import '../data/repositories/marketplace_repository.dart';
 
 class BusinessHoursService {
   final FirebaseFirestore _db;
 
-  BusinessHoursService({FirebaseFirestore? db})
-    : _db = db ?? FirebaseFirestore.instance;
+  BusinessHoursService({
+    FirebaseFirestore? db,
+    MarketplaceRepository? marketplace,
+  }) : _db = db ?? FirebaseFirestore.instance,
+       _marketplace = marketplace;
+  final MarketplaceRepository? _marketplace;
 
   Future<BusinessHoursModel?> fetchToday(String unitId) async {
     final weekday = BusinessHoursModel.todayWeekday();
+    if (_marketplace != null) {
+      final hours = await _marketplace.listBusinessHours(unitId);
+      for (final item in hours) {
+        if (item.weekday.toLowerCase() == weekday) return item;
+      }
+      return null;
+    }
     final doc = await _db
         .collection('units')
         .doc(unitId)

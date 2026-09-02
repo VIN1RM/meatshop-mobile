@@ -1,14 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/models/review_model.dart';
+import '../data/repositories/marketplace_repository.dart';
 
 class ReviewService {
-  ReviewService({FirebaseFirestore? firestore, FirebaseAuth? auth})
-    : _db = firestore ?? FirebaseFirestore.instance,
-      _auth = auth ?? FirebaseAuth.instance;
+  ReviewService({
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+    MarketplaceRepository? marketplace,
+  }) : _db = firestore ?? FirebaseFirestore.instance,
+       _auth = auth ?? FirebaseAuth.instance,
+       _marketplace = marketplace;
 
   final FirebaseFirestore _db;
   final FirebaseAuth _auth;
+  final MarketplaceRepository? _marketplace;
 
   String get _uid {
     final uid = _auth.currentUser?.uid;
@@ -27,6 +33,13 @@ class ReviewService {
   }
 
   Stream<List<ReviewModel>> watchUnitReviews(String unitId, {int? limit}) {
+    if (_marketplace != null) {
+      return Stream.fromFuture(
+        _marketplace
+            .listReviews(unitId: unitId, limit: limit ?? 20)
+            .then((page) => page.items),
+      );
+    }
     Query<Map<String, dynamic>> query = _db
         .collection('reviews')
         .where('unit_id', isEqualTo: unitId)
@@ -43,6 +56,13 @@ class ReviewService {
     String productId, {
     int? limit,
   }) {
+    if (_marketplace != null) {
+      return Stream.fromFuture(
+        _marketplace
+            .listReviews(productId: productId, limit: limit ?? 20)
+            .then((page) => page.items),
+      );
+    }
     Query<Map<String, dynamic>> query = _db
         .collection('reviews')
         .where('product_id', isEqualTo: productId)

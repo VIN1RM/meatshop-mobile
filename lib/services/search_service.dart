@@ -4,8 +4,12 @@ import 'package:meatshop_mobile/models/unit_model.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/models/search_model.dart';
 import 'package:meatshop_mobile/core/enums/search_type_enum.dart';
+import '../data/repositories/marketplace_repository.dart';
 
 class SearchService {
+  SearchService({MarketplaceRepository? marketplace})
+    : _marketplace = marketplace;
+  final MarketplaceRepository? _marketplace;
   static final _db = FirebaseFirestore.instance;
 
   static const _categories = [
@@ -17,6 +21,9 @@ class SearchService {
 
   Future<List<SearchResultModel>> search(String query) async {
     if (query.trim().isEmpty) return [];
+    if (_marketplace != null) {
+      return (await _marketplace.search(query.trim())).items;
+    }
     final q = query.toLowerCase();
 
     final results = await Future.wait([_searchButchers(q), _searchProducts(q)]);

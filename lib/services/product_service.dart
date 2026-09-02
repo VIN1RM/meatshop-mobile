@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/product_model.dart';
+import '../data/repositories/marketplace_repository.dart';
 
 class ProductPage {
   final List<ProductModel> items;
 
-  final DocumentSnapshot? lastDoc;
+  final Object? lastDoc;
 
   final bool hasMore;
 
@@ -19,15 +20,35 @@ class ProductService {
   static const int _pageSize = 10;
 
   final FirebaseFirestore _db;
+  final MarketplaceRepository? _marketplace;
 
-  ProductService({FirebaseFirestore? db})
-    : _db = db ?? FirebaseFirestore.instance;
+  ProductService({FirebaseFirestore? db, MarketplaceRepository? marketplace})
+    : _db = db ?? FirebaseFirestore.instance,
+      _marketplace = marketplace;
 
   Future<ProductPage> fetchByCategory({
     required String categoryId,
-    DocumentSnapshot? startAfter,
+    Object? startAfter,
     String searchQuery = '',
   }) async {
+    if (_marketplace != null) {
+      final pageNumber = startAfter is int ? startAfter : 1;
+      final page = await _marketplace.listProducts(
+        categoryId: categoryId,
+        page: pageNumber,
+        limit: _pageSize,
+      );
+      var items = page.items;
+      if (searchQuery.isNotEmpty) {
+        final q = searchQuery.toLowerCase();
+        items = items.where((p) => p.name.toLowerCase().contains(q)).toList();
+      }
+      return ProductPage(
+        items: items,
+        lastDoc: page.meta.hasNextPage ? pageNumber + 1 : null,
+        hasMore: page.meta.hasNextPage,
+      );
+    }
     Query query = _db
         .collection('products')
         .where('category_id', isEqualTo: categoryId)
@@ -36,7 +57,7 @@ class ProductService {
         .limit(_pageSize);
 
     if (startAfter != null) {
-      query = query.startAfterDocument(startAfter);
+      query = query.startAfterDocument(startAfter as DocumentSnapshot);
     }
 
     final snapshot = await query.get();
@@ -59,11 +80,34 @@ class ProductService {
 
   Future<ProductPage> fetchByCategoryIds({
     required List<String> categoryIds,
-    DocumentSnapshot? startAfter,
+    Object? startAfter,
     String searchQuery = '',
   }) async {
     if (categoryIds.isEmpty) {
       return const ProductPage(items: [], lastDoc: null, hasMore: false);
+    }
+    if (_marketplace != null) {
+      final pageNumber = startAfter is int ? startAfter : 1;
+      final pages = await Future.wait(
+        categoryIds.map(
+          (id) => _marketplace.listProducts(
+            categoryId: id,
+            page: pageNumber,
+            limit: _pageSize,
+          ),
+        ),
+      );
+      var items = pages.expand((page) => page.items).toList();
+      if (searchQuery.isNotEmpty) {
+        final q = searchQuery.toLowerCase();
+        items = items.where((p) => p.name.toLowerCase().contains(q)).toList();
+      }
+      final hasMore = pages.any((page) => page.meta.hasNextPage);
+      return ProductPage(
+        items: items,
+        lastDoc: hasMore ? pageNumber + 1 : null,
+        hasMore: hasMore,
+      );
     }
 
     Query query = _db
@@ -74,7 +118,7 @@ class ProductService {
         .limit(_pageSize);
 
     if (startAfter != null) {
-      query = query.startAfterDocument(startAfter);
+      query = query.startAfterDocument(startAfter as DocumentSnapshot);
     }
 
     final snapshot = await query.get();
@@ -97,8 +141,21 @@ class ProductService {
 
   Future<ProductPage> fetchByUnitId({
     required String unitId,
-    DocumentSnapshot? startAfter,
+    Object? startAfter,
   }) async {
+    if (_marketplace != null) {
+      final pageNumber = startAfter is int ? startAfter : 1;
+      final page = await _marketplace.listProducts(
+        unitId: unitId,
+        page: pageNumber,
+        limit: 50,
+      );
+      return ProductPage(
+        items: page.items,
+        lastDoc: page.meta.hasNextPage ? pageNumber + 1 : null,
+        hasMore: page.meta.hasNextPage,
+      );
+    }
     Query query = _db
         .collection('products')
         .where('unit_id', isEqualTo: unitId)
@@ -107,7 +164,7 @@ class ProductService {
         .limit(50);
 
     if (startAfter != null) {
-      query = query.startAfterDocument(startAfter);
+      query = query.startAfterDocument(startAfter as DocumentSnapshot);
     }
 
     final snapshot = await query.get();

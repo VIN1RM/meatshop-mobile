@@ -104,16 +104,16 @@ O backend deve informar um estado explícito de perfil incompleto; não deve cri
 
 | Jornada/tela | Contrato alvo | Situação | Lacuna |
 |---|---|---|---|
-| Listar açougues | `GET /units?page=&limit=&lat=&lng=&radius_km=` | **Novo** | Backend só lista unidades geridas |
-| Detalhar açougue | `GET /units/:id` | **Novo** | `settings` é administrativo |
+| Listar açougues | `GET /units?page=&limit=&lat=&lng=&radius_km=` | **Pronto** | Toda unidade criada é pública; distância é opcional |
+| Detalhar açougue | `GET /units/:id` | **Pronto** | Resposta pública não expõe CNPJ ou administrador |
 | Horários | `GET /units/:unitId/business-hours` | **Pronto** | Público |
 | Listar categorias | `GET /categories?unit_id=` | **Pronto** | Público |
 | Detalhar categoria | `GET /categories/:id` | **Pronto** | Público |
-| Produtos por unidade/categoria | `GET /products?unit_id=&category_id=&active=true&page=&limit=` | **Pronto** | Deve filtrar disponibilidade vendável para catálogo |
+| Produtos por unidade/categoria | `GET /products?unit_id=&category_id=&available=true&page=&limit=` | **Pronto** | Produto/categoria ativos e estoque positivo |
 | Detalhar produto | `GET /products/:id` | **Pronto** | Público |
-| Promoções ativas | `GET /promotions?unit_id=&active=true&page=&limit=` | **Parcial** | Revisar acesso público, filtros e paginação |
-| Busca combinada | `GET /search?q=&unit_id=&category_id=&min_price=&max_price=&page=&limit=` | **Novo** | Hoje o cliente faz múltiplas consultas Firestore |
-| Avaliações da unidade/produto | `GET /reviews?...` | **Parcial** | Confirmar filtros públicos e paginação |
+| Promoções ativas | `GET /promotions?marketplace=true&unit_id=&page=&limit=` | **Pronto** | Vigência, produto vendável e paginação aplicados |
+| Busca combinada | `GET /search?q=&unit_id=&category_id=&min_price=&max_price=&page=&limit=` | **Pronto** | Unidades, categorias ativas e produtos vendáveis |
+| Avaliações da unidade/produto | `GET /reviews?marketplace=true&...` | **Pronto** | Filtros públicos e paginação |
 
 ## Carrinho e checkout
 

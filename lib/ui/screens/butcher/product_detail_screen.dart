@@ -12,6 +12,7 @@ import 'package:meatshop_mobile/models/review_model.dart';
 import 'package:meatshop_mobile/services/review_service.dart';
 import 'package:meatshop_mobile/ui/widgets/review_card.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
+import '../../../data/repositories/marketplace_context.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({super.key});
@@ -35,7 +36,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   bool _isEditingCart = false;
   bool _loaded = false;
-  final ReviewService _reviewService = ReviewService();
   List<ReviewModel> _reviews = [];
 
   @override
@@ -65,7 +65,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         prod = productArgs as ProductModel?;
       }
       if (prod != null) {
-        final reviews = await _reviewService
+        final reviewService = ReviewService(
+          marketplace: context.read<MarketplaceContext>().repository,
+        );
+        final reviews = await reviewService
             .watchProductReviews(prod.id, limit: 3)
             .first;
         if (mounted) setState(() => _reviews = reviews);

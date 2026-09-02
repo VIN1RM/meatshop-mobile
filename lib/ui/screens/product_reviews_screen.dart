@@ -3,6 +3,8 @@ import 'package:meatshop_mobile/models/review_model.dart';
 import 'package:meatshop_mobile/services/review_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/review_card.dart';
+import 'package:provider/provider.dart';
+import '../../data/repositories/marketplace_context.dart';
 
 class ProductReviewsScreen extends StatefulWidget {
   const ProductReviewsScreen({super.key});
@@ -15,7 +17,7 @@ class _ProductReviewsScreenState extends State<ProductReviewsScreen> {
   static const Color _red = Color(0xFFBE2C1B);
   static const Color _pageBg = Color.fromARGB(255, 58, 58, 58);
 
-  final ReviewService _reviewService = ReviewService();
+  ReviewService? _reviewService;
   List<ReviewModel> _reviews = [];
   bool _isLoading = true;
   String? _productId;
@@ -23,6 +25,9 @@ class _ProductReviewsScreenState extends State<ProductReviewsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _reviewService ??= ReviewService(
+      marketplace: context.read<MarketplaceContext>().repository,
+    );
     _loadReviews();
   }
 
@@ -31,7 +36,7 @@ class _ProductReviewsScreenState extends State<ProductReviewsScreen> {
 
     try {
       _productId = ModalRoute.of(context)!.settings.arguments as String;
-      final reviews = await _reviewService
+      final reviews = await _reviewService!
           .watchProductReviews(_productId!)
           .first;
 

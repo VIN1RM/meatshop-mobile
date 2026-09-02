@@ -9,6 +9,11 @@ import 'package:meatshop_mobile/ui/widgets/review_card.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/widgets/business_hours_banner.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../data/repositories/marketplace_context.dart';
+import '../../../services/business_hours_service.dart';
+import '../../../services/product_service.dart';
+import '../../../services/promotion_service.dart';
+import '../../../services/review_service.dart';
 
 class ButcherDetailScreen extends StatelessWidget {
   const ButcherDetailScreen({super.key});
@@ -28,8 +33,15 @@ class ButcherDetailScreen extends StatelessWidget {
       );
     }
 
+    final marketplace = context.read<MarketplaceContext>().repository;
     return ChangeNotifierProvider(
-      create: (_) => ButcherProvider(unitId: unit.id),
+      create: (_) => ButcherProvider(
+        unitId: unit.id,
+        productService: ProductService(marketplace: marketplace),
+        promotionService: PromotionService(marketplace: marketplace),
+        hoursService: BusinessHoursService(marketplace: marketplace),
+        reviewService: ReviewService(marketplace: marketplace),
+      ),
       child: _ButcherDetailLoader(unit: unit),
     );
   }

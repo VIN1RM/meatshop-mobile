@@ -54,6 +54,9 @@ class _MeatShopAppState extends State<MeatShopApp> {
     return MultiProvider(
       providers: ProvidersConfig.providers(
         federatedAuth: apiFoundation?.federatedAuth,
+        marketplace: featureFlags.backendMarketplace
+            ? apiFoundation?.marketplace
+            : null,
         flags: featureFlags,
       ),
       child: MaterialApp(

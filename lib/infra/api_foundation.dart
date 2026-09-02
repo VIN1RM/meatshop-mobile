@@ -9,6 +9,8 @@ import 'http/json_http_transport.dart';
 import 'repositories/http_backend_connection_repository.dart';
 import '../data/repositories/federated_auth_repository.dart';
 import 'repositories/http_federated_auth_repository.dart';
+import '../data/repositories/marketplace_repository.dart';
+import 'repositories/http_marketplace_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -16,6 +18,7 @@ final class ApiFoundation {
     required this.session,
     required this.backendConnection,
     required this.federatedAuth,
+    required this.marketplace,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -34,6 +37,7 @@ final class ApiFoundation {
         client: client,
         session: session,
       ),
+      marketplace: HttpMarketplaceRepository(client),
     );
   }
 
@@ -41,6 +45,7 @@ final class ApiFoundation {
   final SessionCoordinator session;
   final BackendConnectionRepository backendConnection;
   final FederatedAuthRepository federatedAuth;
+  final MarketplaceRepository marketplace;
 
   Future<void> initialize() => session.initialize();
 

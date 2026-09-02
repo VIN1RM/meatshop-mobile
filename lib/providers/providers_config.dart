@@ -19,25 +19,46 @@ import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/providers/recipe_provider.dart';
 import '../core/config/feature_flags.dart';
 import '../data/repositories/federated_auth_repository.dart';
+import '../data/repositories/marketplace_repository.dart';
+import '../data/repositories/marketplace_context.dart';
+import '../services/business_hours_service.dart';
+import '../services/promotion_service.dart';
+import '../services/search_service.dart';
+import '../services/unit_service.dart';
 
 class ProvidersConfig {
   static List<SingleChildWidget> providers({
     FederatedAuthRepository? federatedAuth,
+    MarketplaceRepository? marketplace,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
     ),
   }) => [
+    Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace)),
     ChangeNotifierProvider<AuthProvider>(
       create: (_) => AuthProvider(federatedAuth: federatedAuth, flags: flags),
     ),
     ChangeNotifierProvider<DeliveryProvider>(create: (_) => DeliveryProvider()),
     ChangeNotifierProvider(create: (_) => UserProvider()),
     ChangeNotifierProvider(create: (_) => VehicleProvider()),
-    ChangeNotifierProvider(create: (_) => UnitProvider()),
+    ChangeNotifierProvider(
+      create: (_) => UnitProvider(
+        unitService: UnitService(marketplace: marketplace),
+        hoursService: BusinessHoursService(marketplace: marketplace),
+      ),
+    ),
     ChangeNotifierProvider(create: (_) => AddressProvider()),
-    ChangeNotifierProvider(create: (_) => SearchProvider()),
-    ChangeNotifierProvider(create: (_) => PromotionProvider()),
+    ChangeNotifierProvider(
+      create: (_) =>
+          SearchProvider(service: SearchService(marketplace: marketplace)),
+    ),
+    ChangeNotifierProvider(
+      create: (_) => PromotionProvider(
+        service: PromotionService(marketplace: marketplace),
+        unitService: UnitService(marketplace: marketplace),
+      ),
+    ),
     ChangeNotifierProvider(create: (_) => PaymentProvider()),
     ChangeNotifierProvider(create: (_) => OrderProvider()),
     ChangeNotifierProvider(create: (_) => UserPreferencesProvider()),
