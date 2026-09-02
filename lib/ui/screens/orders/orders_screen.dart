@@ -3,11 +3,13 @@ import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/order_service.dart';
+import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/ui/screens/cart/write_product_review_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/dialogs/reorder_confirm_dialog.dart';
 import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -18,10 +20,8 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   static const Color _red = Color(0xFFC0392B);
-  final OrderService _service = OrderService();
-
   Future<void> _onReorder(BuildContext context, OrderModel order) async {
-    await ReorderConfirmDialog.show(
+    final confirmed = await ReorderConfirmDialog.show(
       context,
       acougueNome: order.unitName,
       itens: order.items
@@ -32,10 +32,35 @@ class _OrdersScreenState extends State<OrdersScreen> {
           .toList(),
       total: order.formattedTotal,
     );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      final result = await context.read<OrderProvider>().repeatOrder(order.id);
+      if (!context.mounted) return;
+      if (result == null) {
+        CustomSnackBar.info(
+          'Os itens foram enviados ao fluxo de recompra.',
+          context: context,
+        );
+        return;
+      }
+      CustomSnackBar.success(
+        result.orders.length > 1
+            ? '${result.orders.length} pedidos criados com sucesso.'
+            : 'Pedido criado com sucesso.',
+        context: context,
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      CustomSnackBar.error(
+        'Não foi possível repetir o pedido: §error',
+        context: context,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final orders = context.read<OrderProvider>();
     return Stack(
       children: [
         Positioned(
@@ -68,7 +93,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       _groupTitle('Em andamento'),
                       const SizedBox(height: 10),
                       _ActiveOrdersSection(
-                        service: _service,
+                        stream: orders.activeOrdersStream(),
                         onReorder: _onReorder,
                         red: _red,
                       ),
@@ -80,7 +105,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       ),
                       const SizedBox(height: 10),
                       _FinishedOrdersSection(
-                        service: _service,
+                        stream: orders.finishedOrdersStream(),
                         onReorder: _onReorder,
                         red: _red,
                       ),
@@ -136,26 +161,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
 class _ActiveOrdersSection extends StatelessWidget {
   const _ActiveOrdersSection({
-    required this.service,
+    required this.stream,
     required this.onReorder,
     required this.red,
   });
 
-  final OrderService service;
+  final Stream<List<OrderModel>> stream;
   final Future<void> Function(BuildContext, OrderModel) onReorder;
   final Color red;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<OrderModel>>(
-      stream: service.activeOrdersStream(),
+      stream: stream,
       builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting)
+        if (snap.connectionState == ConnectionState.waiting) {
           return const _Loading();
+        }
         if (snap.hasError) return const _ErrorTile();
         final orders = snap.data ?? [];
-        if (orders.isEmpty)
+        if (orders.isEmpty) {
           return const _EmptyTile(message: 'Nenhum pedido em andamento.');
+        }
         return Column(
           children: orders
               .map(
@@ -171,22 +198,23 @@ class _ActiveOrdersSection extends StatelessWidget {
 
 class _FinishedOrdersSection extends StatelessWidget {
   const _FinishedOrdersSection({
-    required this.service,
+    required this.stream,
     required this.onReorder,
     required this.red,
   });
 
-  final OrderService service;
+  final Stream<List<OrderModel>> stream;
   final Future<void> Function(BuildContext, OrderModel) onReorder;
   final Color red;
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<OrderModel>>(
-      stream: service.finishedOrdersStream(),
+      stream: stream,
       builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting)
+        if (snap.connectionState == ConnectionState.waiting) {
           return const _Loading();
+        }
         if (snap.hasError) return const _ErrorTile();
         final orders = snap.data ?? [];
         if (orders.isEmpty) {

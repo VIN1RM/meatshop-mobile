@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/routes/app_routes.dart';
 
 class ReorderItem {
   final String nome;
@@ -183,12 +182,7 @@ class ReorderConfirmDialog extends StatelessWidget {
       height: 48,
       child: ElevatedButton.icon(
         onPressed: () {
-          Navigator.pop(context);
-          Navigator.pushNamed(
-            context,
-            AppRoutes.addressSchedule,
-            arguments: {'total': 0.0},
-          );
+          Navigator.pop(context, true);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,

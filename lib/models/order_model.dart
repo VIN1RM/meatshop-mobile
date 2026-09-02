@@ -51,6 +51,7 @@ class OrderModel {
   final List<OrderItemModel> items;
   final bool reviewed;
   final bool productsReviewed;
+  final String? deliveryCode;
 
   const OrderModel({
     required this.id,
@@ -77,6 +78,7 @@ class OrderModel {
     this.items = const [],
     this.reviewed = false,
     this.productsReviewed = false,
+    this.deliveryCode,
   });
 
   bool get isCancelled => status == 'CANCELLED';
@@ -91,6 +93,7 @@ class OrderModel {
     bool? reviewed,
     String? deliveryPersonId,
     bool? productsReviewed,
+    String? deliveryCode,
   }) => OrderModel(
     id: id,
     clientId: clientId,
@@ -116,7 +119,73 @@ class OrderModel {
     items: items ?? this.items,
     reviewed: reviewed ?? this.reviewed,
     productsReviewed: productsReviewed ?? this.productsReviewed,
+    deliveryCode: deliveryCode ?? this.deliveryCode,
   );
+
+  factory OrderModel.fromApi(Map<String, Object?> data) {
+    double number(String key) {
+      final value = data[key];
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    DateTime? date(String key) {
+      final value = data[key];
+      return value is String ? DateTime.tryParse(value) : null;
+    }
+
+    final payment = data['payment'] is Map<String, Object?>
+        ? data['payment']! as Map<String, Object?>
+        : const <String, Object?>{};
+    final rawItems = data['items'];
+    final items = rawItems is List<Object?>
+        ? rawItems
+              .whereType<Map<String, Object?>>()
+              .map((item) {
+                double itemNumber(String key) {
+                  final value = item[key];
+                  if (value is num) return value.toDouble();
+                  if (value is String) return double.tryParse(value) ?? 0;
+                  return 0;
+                }
+
+                return OrderItemModel(
+                  productId: '${item['product_id'] ?? ''}',
+                  productName: item['product_name'] as String? ?? '',
+                  unitOfMeasure: item['unit_of_measure'] as String? ?? 'un',
+                  quantity: itemNumber('quantity'),
+                  unitPrice: itemNumber('unit_price'),
+                  productImageUrl: item['product_image_url'] as String? ?? '',
+                );
+              })
+              .toList(growable: false)
+        : const <OrderItemModel>[];
+    return OrderModel(
+      id: '${data['id'] ?? ''}',
+      clientId: '${data['client_id'] ?? ''}',
+      unitId: '${data['unit_id'] ?? ''}',
+      unitName: data['unit_name'] as String? ?? 'Açougue',
+      unitLogoUrl: data['unit_logo_url'] as String? ?? '',
+      addressId: '${data['address_id'] ?? ''}',
+      status: data['status'] as String? ?? 'PENDING',
+      deliveryStatus: data['delivery_status'] as String? ?? '',
+      deliveryPersonId: data['delivery_person_id']?.toString(),
+      deliveryType: data['delivery_type'] as String? ?? 'DELIVERY',
+      paymentStatus: data['payment_status'] as String? ?? 'PENDING',
+      paymentMethod: payment['method'] as String? ?? '',
+      subtotal: number('subtotal'),
+      deliveryFee: number('delivery_fee'),
+      discountAmount: number('discount_amount'),
+      totalAmount: number('total_amount'),
+      isScheduled: data['is_scheduled'] as bool? ?? false,
+      scheduledDeliveryDate: date('scheduled_delivery_date'),
+      orderDate: date('order_date'),
+      cancellationReason: data['cancellation_reason'] as String?,
+      items: items,
+      deliveryCode: data['delivery_code'] as String?,
+    );
+  }
 
   Map<String, dynamic> toFirestore() => {
     'client_id': clientId,

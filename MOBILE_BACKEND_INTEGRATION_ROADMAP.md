@@ -161,21 +161,25 @@ Atendido quando `FEATURE_BACKEND_PROFILE_CART=true`; o fallback Firestore perman
 
 ## Fase 5 — Checkout, pedidos e pagamentos
 
+**Status:** implementada e validada em 2 de setembro de 2026. A homologação financeira real do Mercado Pago requer credenciais sandbox externas. Detalhes em `docs/backend-integration/PHASE_5_CHECKOUT_ORDERS_PAYMENTS.md`.
+
 ### Entregas
 
-- [ ] Migrar criação, histórico, detalhes, cancelamento, agendamento e recompra.
-- [ ] Criar o pedido no backend a partir do carrinho validado.
-- [ ] Calcular preços, descontos, cupom e taxa de entrega no servidor.
-- [ ] Validar e alterar estoque em transação PostgreSQL.
-- [ ] Concluir o fluxo Mercado Pago ponta a ponta.
-- [ ] Tornar webhook/idempotência a confirmação oficial do pagamento.
-- [ ] Persistir somente IDs tokenizados e metadados seguros de cartões.
-- [ ] Exibir o código de entrega ao cliente de forma protegida.
-- [ ] Remover qualquer alteração direta de pedido ou pagamento no Firestore.
+- [x] Migrar criação, histórico, detalhes, cancelamento, agendamento e recompra.
+- [x] Criar o pedido no backend a partir do carrinho validado.
+- [x] Calcular preços, descontos, cupom e taxa de entrega no servidor.
+- [x] Validar e alterar estoque em transação PostgreSQL.
+- [x] Implementar o fluxo Mercado Pago ponta a ponta; homologação real depende das credenciais sandbox.
+- [x] Tornar webhook/idempotência a confirmação oficial do pagamento.
+- [x] Persistir somente IDs tokenizados e metadados seguros de cartões.
+- [x] Exibir o código de entrega ao cliente de forma protegida.
+- [x] Remover qualquer alteração direta de pedido ou pagamento no Firestore quando a flag da fase está ativa.
 
 ### Critério de aceite
 
 Um pedido criado no mobile aparece imediatamente no painel web, respeita estoque e pagamento e percorre todas as transições autorizadas sem divergência.
+
+Validado com checkout sintético multiunidade: dois pedidos no mesmo `checkout_id`, repetição idempotente e cancelamento com restauração transacional. A comprovação de liquidação financeira no ambiente Mercado Pago permanece um gate externo de homologação, sem bloquear a integridade local do domínio.
 
 ## Fase 6 — Fluxo completo do entregador
 

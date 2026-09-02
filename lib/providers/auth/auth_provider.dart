@@ -30,6 +30,7 @@ class AuthProvider extends ChangeNotifier {
       backendAuth: false,
       backendMarketplace: false,
       backendProfileCart: false,
+      backendCheckout: false,
     ),
   }) : _federatedAuth = federatedAuth,
        _flags = flags;

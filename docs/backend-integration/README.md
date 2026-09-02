@@ -13,6 +13,7 @@ Branch de trabalho: `refactor/mobile-with-backend`.
 - Fase 2 — federação do Firebase Authentication: implementada, testada e protegida por feature flag.
 - Fase 3 — marketplace público PostgreSQL: implementada sob feature flag, com catálogo vendável e busca combinada.
 - Fase 4 — perfil, endereços, mídia e carrinho multiunidade: implementada sob feature flag e validada por testes.
+- Fase 5 — checkout, pedidos e pagamentos: implementada sob feature flag, com checkout multiunidade transacional e Mercado Pago pronto para homologação sandbox.
 
 Artefatos:
 
@@ -25,6 +26,7 @@ Artefatos:
 - [Federação Firebase Auth](PHASE_2_FIREBASE_AUTH_FEDERATION.md): troca de identidade, vínculo seguro, perfil incompleto, sessão e corte gradual.
 - [Marketplace público](PHASE_3_MARKETPLACE.md): unidades sempre públicas, catálogo vendável, busca, paginação e corte gradual.
 - [Perfil, endereços e carrinho](PHASE_4_PROFILE_ADDRESS_CART.md): upload multipart, CEP, quantidades fracionadas e carrinho multiunidade.
+- [Checkout, pedidos e pagamentos](PHASE_5_CHECKOUT_ORDERS_PAYMENTS.md): cotação autoritativa, transação multiunidade, idempotência, Mercado Pago e código protegido.
 
 ## Decisões registradas
 

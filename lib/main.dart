@@ -26,7 +26,8 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (featureFlags.backendAuth ||
       featureFlags.backendMarketplace ||
-      featureFlags.backendProfileCart) {
+      featureFlags.backendProfileCart ||
+      featureFlags.backendCheckout) {
     apiFoundation = ApiFoundation.fromEnvironment();
     await apiFoundation!.initialize();
   }
@@ -62,6 +63,8 @@ class _MeatShopAppState extends State<MeatShopApp> {
         profile: apiFoundation?.profile,
         addresses: apiFoundation?.addresses,
         cart: apiFoundation?.cart,
+        orders: apiFoundation?.orders,
+        payments: apiFoundation?.payments,
         flags: featureFlags,
       ),
       child: MaterialApp(

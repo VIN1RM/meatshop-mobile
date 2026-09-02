@@ -15,6 +15,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Checkout HTTP completo sob `FEATURE_BACKEND_CHECKOUT`, com cotação autoritativa, criação multiunidade, histórico, detalhe, cancelamento, agendamento e recompra.
+- Repositórios de pedidos e pagamentos com `Idempotency-Key`, checkout agregado do Mercado Pago e métodos de pagamento tokenizados.
+- Testes de contrato da Fase 5 para checkout com duas unidades, repetição idempotente, pagamento por lote e metadados seguros de cartão.
+- Documentação operacional da Fase 5, incluindo ativação, contratos, consistência, segurança e homologação sandbox.
 - Repositórios HTTP de perfil, endereços e carrinho, injetados por contratos e ativados por `FEATURE_BACKEND_PROFILE_CART`.
 - Upload autenticado de avatar por `multipart/form-data`, com timeout, cancelamento, renovação de sessão e URL resolvida por ambiente.
 - Geocodificação de endereço pelo backend a partir do CEP, sem entrada manual de latitude ou longitude.
@@ -38,6 +42,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Revisão do pedido passa a usar preços, descontos, cupons e frete calculados pelo servidor quando a Fase 5 está ativa.
+- Histórico, rastreamento e recompra do cliente passam a consumir o PostgreSQL por meio da API, sem escrita dupla no Firestore.
+- Pagamentos online abrem uma única preferência Mercado Pago para todos os pedidos do mesmo checkout.
 - Perfil, endereços e carrinho passam a usar o PostgreSQL por meio da API quando `FEATURE_BACKEND_PROFILE_CART` está ativa, sem escrita dupla no Firestore.
 - Carrinho substitui snapshots locais pela resposta revalidada do servidor após cada mutação.
 - Consulta de horários e serviços legados deixam de inicializar Firestore quando uma implementação backend foi injetada.
@@ -49,6 +56,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- Criação de pedidos exige UUID v4 idempotente; estoque e cancelamento são protegidos por transações e bloqueios PostgreSQL.
+- Webhook Mercado Pago valida assinatura, tolerância temporal, consulta oficial, moeda e valor antes de confirmar pagamentos.
+- Código de entrega é exibido somente ao cliente proprietário, preservado criptografado e verificado por hash.
+- Cartões persistem apenas identificadores tokenizados, bandeira e últimos quatro dígitos; número completo e CVV não são armazenados.
 - Endereços vinculados a pedidos são preservados, e avatar deixa de ser armazenado como Base64 em documentos operacionais.
 - Produto, categoria, preço e estoque são revalidados pelo backend antes de incluir ou alterar itens no carrinho.
 - Firebase ID Tokens são verificados com checagem de revogação; tokens e senhas não são registrados em logs.

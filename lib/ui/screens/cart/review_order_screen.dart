@@ -12,6 +12,7 @@ import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ReviewOrderScreen extends StatefulWidget {
   final CheckoutSummaryModel summary;
@@ -36,11 +37,22 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
 
   Future<void> _calculateFees() async {
     setState(() => _calculatingFees = true);
+    final orderProvider = context.read<OrderProvider>();
+    final addressProvider = context.read<AddressProvider>();
+    final cart = context.read<CartProvider>();
 
     try {
-      final addressProvider = context.read<AddressProvider>();
-      final cart = context.read<CartProvider>();
-
+      final quote = await orderProvider.quote(widget.summary);
+      if (quote != null) {
+        if (mounted) {
+          setState(
+            () => _feeByUnit = {
+              for (final group in quote.groups) group.unitId: group.deliveryFee,
+            },
+          );
+        }
+        return;
+      }
       final address = addressProvider.addresses
           .cast<AddressModel?>()
           .firstWhere(
@@ -148,7 +160,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (context, error, stackTrace) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -327,11 +339,12 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         ? Image.network(
                             items.first.unitImageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.storefront_outlined,
-                              color: Color(0xFF888888),
-                              size: 20,
-                            ),
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                                  Icons.storefront_outlined,
+                                  color: Color(0xFF888888),
+                                  size: 20,
+                                ),
                           )
                         : const Icon(
                             Icons.storefront_outlined,
@@ -370,7 +383,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                           ? Image.network(
                               item.productImageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _imageFallback(),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _imageFallback(),
                             )
                           : _imageFallback(),
                     ),
@@ -621,6 +635,21 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 if (!context.mounted) return;
 
                 if (success) {
+                  final checkoutUrl = orderProvider.paymentCheckoutUrl;
+                  if (checkoutUrl != null) {
+                    final opened = await launchUrl(
+                      Uri.parse(checkoutUrl),
+                      mode: LaunchMode.externalApplication,
+                    );
+                    if (!opened && context.mounted) {
+                      CustomSnackBar.error(
+                        'Não foi possível abrir o pagamento seguro.',
+                        context: context,
+                      );
+                      return;
+                    }
+                  }
+                  if (!context.mounted) return;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -637,7 +666,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
-          disabledBackgroundColor: _red.withOpacity(0.4),
+          disabledBackgroundColor: _red.withValues(alpha: 0.4),
           foregroundColor: _white,
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(

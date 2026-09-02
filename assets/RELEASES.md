@@ -8,6 +8,10 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Checkout Integrado:** Seus pedidos agora são criados no mesmo sistema usado pelo açougue, aparecendo no painel da unidade logo após a confirmação.
+- **Pagamento por Carrinho:** Quando houver produtos de vários açougues, você realiza um único fluxo de pagamento e recebe pedidos separados e organizados.
+- **Acompanhe e Repita:** Histórico, detalhes, cancelamento, agendamento e recompra passam a acompanhar o estado oficial do pedido.
+- **Código de Entrega Protegido:** O código necessário para receber o pedido fica disponível somente para você enquanto ainda for válido.
 - **Um Carrinho, Vários Açougues:** Você pode adicionar produtos de unidades diferentes no mesmo carrinho. Os itens ficam organizados por açougue e, no checkout, serão preparados como pedidos separados.
 - **Perfil e Endereços Sincronizados:** Seus dados, foto e endereços agora podem acompanhar sua conta pelo sistema MeatShop, inclusive ao trocar de aparelho.
 - **Endereço pelo CEP:** Informe o CEP para preencher rua, bairro, cidade e estado e localizar o endereço sem digitar coordenadas.
@@ -20,6 +24,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
 
 ### 📈 Melhorias
+- **Valores Conferidos no Servidor:** Preços, descontos, cupons e taxa de entrega são recalculados antes da confirmação.
+- **Pedido sem Duplicidade:** Se a conexão oscilar durante a finalização, o sistema reconhece a tentativa anterior e evita cobrar ou criar o pedido novamente.
+- **Estoque Consistente:** Produtos de diferentes açougues são reservados com segurança; uma falha não deixa apenas parte do carrinho confirmada.
 - **Estoque e Preço Conferidos:** O sistema confere novamente disponibilidade, categoria, preço e quantidade sempre que o carrinho muda.
 - **Produtos por Peso:** O carrinho aceita quantidades fracionadas com precisão adequada para carnes vendidas por quilo.
 - **Limpeza Real do Carrinho:** Ao esvaziar a sacola, os itens também são removidos do servidor e não reaparecem em outro acesso.

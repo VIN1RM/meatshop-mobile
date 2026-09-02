@@ -69,4 +69,21 @@ class PaymentMethodModel {
       createdAt: createdAt,
     );
   }
+
+  factory PaymentMethodModel.fromApi(Map<String, Object?> data) {
+    return PaymentMethodModel(
+      id: '${data['id'] ?? ''}',
+      mpCardId: '',
+      mpCustomerId: '',
+      brand: data['brand'] as String? ?? 'credit_card',
+      lastFour: data['last_four'] as String? ?? '????',
+      holderName: data['holder_name'] as String? ?? '',
+      expirationMonth: data['expiration_month'] as String? ?? '',
+      expirationYear: data['expiration_year'] as String? ?? '',
+      isDefault: data['is_default'] as bool? ?? false,
+      createdAt: data['created_at'] is String
+          ? DateTime.tryParse(data['created_at']! as String)
+          : null,
+    );
+  }
 }

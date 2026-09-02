@@ -24,6 +24,8 @@ import '../data/repositories/marketplace_context.dart';
 import '../data/repositories/address_repository.dart';
 import '../data/repositories/cart_repository.dart';
 import '../data/repositories/profile_repository.dart';
+import '../data/repositories/order_repository.dart';
+import '../data/repositories/payment_repository.dart';
 import '../services/business_hours_service.dart';
 import '../services/promotion_service.dart';
 import '../services/search_service.dart';
@@ -36,10 +38,13 @@ class ProvidersConfig {
     ProfileRepository? profile,
     AddressRepository? addresses,
     CartRepository? cart,
+    OrderRepository? orders,
+    PaymentRepository? payments,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
       backendProfileCart: false,
+      backendCheckout: false,
     ),
   }) => [
     Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace)),
@@ -73,8 +78,14 @@ class ProvidersConfig {
         unitService: UnitService(marketplace: marketplace),
       ),
     ),
-    ChangeNotifierProvider(create: (_) => PaymentProvider()),
-    ChangeNotifierProvider(create: (_) => OrderProvider()),
+    ChangeNotifierProvider(
+      create: (_) =>
+          PaymentProvider(repository: flags.backendCheckout ? payments : null),
+    ),
+    ChangeNotifierProvider(
+      create: (_) =>
+          OrderProvider(repository: flags.backendCheckout ? orders : null),
+    ),
     ChangeNotifierProvider(create: (_) => UserPreferencesProvider()),
     ChangeNotifierProvider(create: (_) => RecipeProvider()),
     ChangeNotifierProvider(create: (_) => ReviewProvider()),

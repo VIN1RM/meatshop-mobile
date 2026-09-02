@@ -123,25 +123,25 @@ O backend deve informar um estado explícito de perfil incompleto; não deve cri
 | Alterar quantidade | `PATCH /cart/items/:itemId` | **Integrado** | Aceita quantidade fracionada positiva até 3 casas |
 | Remover item | `DELETE /cart/items/:itemId` | **Integrado** | Devolve o carrinho atualizado |
 | Limpar carrinho | `DELETE /cart` | **Integrado** | Limpa persistência e estado local |
-| Calcular prévia | `POST /cart/quote` | **Novo** | Preço, cupom, endereço, agenda e taxa calculados pelo servidor |
+| Calcular prévia | `POST /cart/quote` | **Integrado** | Preço, cupom, endereço, agenda e taxa calculados pelo servidor |
 | Validar cupom | `GET /coupons/validate/:code` | **Pronto** | Deve considerar usuário/unidade/carrinho |
-| Métodos salvos | `GET/POST /saved-payment-methods` | **Pronto** | Somente IDs tokenizados e metadados |
-| Tornar padrão | `PATCH /saved-payment-methods/:id/default` | **Pronto** | — |
-| Remover método | `DELETE /saved-payment-methods/:id` | **Pronto** | Remover/vincular também no provedor quando aplicável |
+| Métodos salvos | `GET/POST /saved-payment-methods` | **Integrado** | Somente IDs tokenizados e metadados |
+| Tornar padrão | `PATCH /saved-payment-methods/:id/default` | **Integrado** | — |
+| Remover método | `DELETE /saved-payment-methods/:id` | **Integrado** | Remover/vincular também no provedor quando aplicável |
 
 ## Pedidos e pagamentos
 
 | Jornada | Contrato alvo | Situação | Observação |
 |---|---|---|---|
-| Criar pedido | `POST /orders` | **Pronto** | Backend usa carrinho e valida regras |
-| Listar histórico/ativos | `GET /orders` com filtros e paginação | **Parcial** | Hoje retorna lista sem filtros/paginação explícitos |
-| Detalhar pedido | `GET /orders/:id` | **Pronto** | Autorização por participante |
-| Cancelar | `PATCH /orders/:id/cancel` | **Pronto** | Restaura estoque conforme regra |
-| Agendar | `PATCH /orders/:id/schedule` | **Pronto** | Validar horário da unidade |
-| Repetir | `POST /orders/:id/repeat` | **Pronto** | Revalidar preço/estoque |
-| Checkout Mercado Pago | `POST /mercadopago/orders/:id/checkout` | **Pronto** | Integração ainda precisa homologação ponta a ponta |
-| Confirmação de pagamento | `POST /webhooks/mercadopago` | **Pronto** | Webhook/idempotência são autoridade |
-| Código do cliente | incluído de forma protegida em detalhe/contexto autorizado | **Parcial** | Nunca enviar código ao ator incorreto ou registrar em log |
+| Criar pedido | `POST /orders` + `Idempotency-Key` | **Integrado** | Gera um pedido por unidade em uma transação |
+| Listar histórico/ativos | `GET /orders` | **Integrado** | Mobile reconcilia o estado periodicamente nesta fase |
+| Detalhar pedido | `GET /orders/:id` | **Integrado** | Autorização por participante |
+| Cancelar | `PATCH /orders/:id/cancel` | **Integrado** | Restaura estoque e cupom em transação |
+| Agendar | `PATCH /orders/:id/schedule` | **Integrado** | Valida horário da unidade |
+| Repetir | `POST /orders/:id/repeat` | **Integrado** | Revalida preço/estoque e cria novo checkout idempotente |
+| Checkout Mercado Pago | `POST /mercadopago/checkouts/:checkoutId/checkout` | **Integrado** | Uma preferência por lote; homologação real requer credenciais sandbox |
+| Confirmação de pagamento | `POST /webhooks/mercadopago` | **Integrado** | Assinatura, consulta oficial, valor e idempotência são autoridade |
+| Código do cliente | incluído criptografado no contexto do proprietário | **Integrado** | Nunca enviar código ao ator incorreto ou registrar em log |
 
 ## Entregador
 

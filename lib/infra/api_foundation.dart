@@ -17,6 +17,10 @@ import '../data/repositories/profile_repository.dart';
 import 'repositories/http_address_repository.dart';
 import 'repositories/http_cart_repository.dart';
 import 'repositories/http_profile_repository.dart';
+import '../data/repositories/order_repository.dart';
+import '../data/repositories/payment_repository.dart';
+import 'repositories/http_order_repository.dart';
+import 'repositories/http_payment_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -28,6 +32,8 @@ final class ApiFoundation {
     required this.profile,
     required this.addresses,
     required this.cart,
+    required this.orders,
+    required this.payments,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -51,6 +57,8 @@ final class ApiFoundation {
       profile: HttpProfileRepository(client, config),
       addresses: HttpAddressRepository(client),
       cart: HttpCartRepository(client),
+      orders: HttpOrderRepository(client),
+      payments: HttpPaymentRepository(client),
     );
   }
 
@@ -62,6 +70,8 @@ final class ApiFoundation {
   final ProfileRepository profile;
   final AddressRepository addresses;
   final CartRepository cart;
+  final OrderRepository orders;
+  final PaymentRepository payments;
 
   Future<void> initialize() => session.initialize();
 
