@@ -88,17 +88,16 @@ O backend deve informar um estado explícito de perfil incompleto; não deve cri
 
 | Jornada/tela | Contrato alvo | Situação | Observação |
 |---|---|---|---|
-| Exibir perfil | `GET /users/me` | **Pronto** | Adaptar IDs e resposta |
-| Editar perfil | `PATCH /users/me` | **Pronto** | Backend valida unicidade |
-| Avatar | `POST /users/me/avatar` e `DELETE /users/me/avatar` | **Novo** | Substitui Base64 e rota administrativa `users/:id/logo` |
+| Exibir perfil | `GET /users/me` | **Integrado** | IDs adaptados na borda HTTP |
+| Editar perfil | `PATCH /users/me` | **Integrado** | Backend valida unicidade |
+| Avatar | `POST /users/me/avatar` e `DELETE /users/me/avatar` | **Integrado** | Multipart de até 2 MB, sem Base64 |
 | Listar endereços | `GET /addresses` | **Pronto** | Usuário derivado do token |
 | Detalhar endereço | `GET /addresses/:id` | **Pronto** | Autorização existente |
-| Criar endereço | `POST /addresses` | **Pronto** | Coordenadas devem ser validadas |
-| Editar endereço | `PATCH /addresses/:id` | **Pronto** | — |
-| Tornar padrão | `PATCH /addresses/:id/default` | **Pronto** | Operação atômica no backend |
-| Excluir endereço | `DELETE /addresses/:id` | **Pronto** | Definir regra para endereço usado em pedido |
-| Consultar CEP cliente | `GET /geocoding/cep/:cep` | **Novo** | Hoje há apenas lookup administrativo da unidade |
-| Geocodificar endereço | `POST /geocoding/resolve` | **Novo** | Retorna coordenadas e precisão/fonte |
+| Criar endereço | `POST /addresses` | **Integrado** | CEP é resolvido e coordenadas são persistidas |
+| Editar endereço | `PATCH /addresses/:id` | **Integrado** | Regeocodifica ao alterar CEP |
+| Tornar padrão | `PATCH /addresses/:id/default` | **Integrado** | Um endereço padrão por usuário |
+| Excluir endereço | `DELETE /addresses/:id` | **Integrado** | Retorna `ADDRESS_IN_USE` quando vinculado a pedido |
+| Geocodificar endereço | `POST /geocoding/resolve` | **Integrado** | Retorna endereço, coordenadas, precisão e fonte |
 
 ## Marketplace
 
@@ -119,11 +118,11 @@ O backend deve informar um estado explícito de perfil incompleto; não deve cri
 
 | Operação | Contrato alvo | Situação | Regra crítica |
 |---|---|---|---|
-| Consultar carrinho | `GET /cart` | **Pronto** | Retornar snapshots necessários à apresentação |
-| Adicionar item | `POST /cart/items` | **Pronto** | Revalidar produto, unidade, atividade e estoque |
-| Alterar quantidade | `PATCH /cart/items/:itemId` | **Pronto** | Quantidade positiva e estoque |
-| Remover item | `DELETE /cart/items/:itemId` | **Pronto** | — |
-| Limpar carrinho | `DELETE /cart` | **Pronto** | — |
+| Consultar carrinho | `GET /cart` | **Integrado** | Itens e totais agrupados por unidade |
+| Adicionar item | `POST /cart/items` | **Integrado** | Revalida produto, categoria, preço e estoque |
+| Alterar quantidade | `PATCH /cart/items/:itemId` | **Integrado** | Aceita quantidade fracionada positiva até 3 casas |
+| Remover item | `DELETE /cart/items/:itemId` | **Integrado** | Devolve o carrinho atualizado |
+| Limpar carrinho | `DELETE /cart` | **Integrado** | Limpa persistência e estado local |
 | Calcular prévia | `POST /cart/quote` | **Novo** | Preço, cupom, endereço, agenda e taxa calculados pelo servidor |
 | Validar cupom | `GET /coupons/validate/:code` | **Pronto** | Deve considerar usuário/unidade/carrinho |
 | Métodos salvos | `GET/POST /saved-payment-methods` | **Pronto** | Somente IDs tokenizados e metadados |

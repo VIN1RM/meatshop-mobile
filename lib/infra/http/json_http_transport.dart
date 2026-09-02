@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../../core/config/api_config.dart';
 import '../../core/network/api_failure.dart';
@@ -22,16 +24,66 @@ final class JsonHttpTransport {
     Map<String, String> headers = const {},
     Object? body,
     CancellationToken? cancellationToken,
-  }) async {
-    if (cancellationToken?.isCancelled ?? false) {
-      throw const ApiFailure(
-        kind: ApiFailureKind.cancelled,
-        message: 'A requisição foi cancelada.',
-        code: 'REQUEST_CANCELLED',
-      );
-    }
-
+  }) {
     final uri = _config.resolve(path, query);
+    final encodedBody = body == null ? null : utf8.encode(jsonEncode(body));
+    return _execute(
+      cancellationToken: cancellationToken,
+      buildRequest: (abortTrigger) {
+        final request =
+            http.AbortableRequest(
+                method.toUpperCase(),
+                uri,
+                abortTrigger: abortTrigger,
+              )
+              ..headers.addAll({
+                'accept': 'application/json',
+                if (body != null)
+                  'content-type': 'application/json; charset=utf-8',
+                ...headers,
+              });
+        if (encodedBody != null) request.bodyBytes = encodedBody;
+        return request;
+      },
+    );
+  }
+
+  Future<Object?> sendMultipart({
+    required String path,
+    required Uint8List bytes,
+    required String fileName,
+    required String contentType,
+    Map<String, String> headers = const {},
+    CancellationToken? cancellationToken,
+  }) async {
+    _throwIfCancelled(cancellationToken);
+    final uri = _config.resolve(path);
+    final multipart = http.MultipartRequest('POST', uri)
+      ..headers.addAll({'accept': 'application/json', ...headers})
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: fileName,
+          contentType: MediaType.parse(contentType),
+        ),
+      );
+    final encodedBody = await multipart.finalize().toBytes();
+    final multipartHeaders = Map<String, String>.from(multipart.headers);
+    return _execute(
+      cancellationToken: cancellationToken,
+      buildRequest: (abortTrigger) =>
+          http.AbortableRequest('POST', uri, abortTrigger: abortTrigger)
+            ..headers.addAll(multipartHeaders)
+            ..bodyBytes = encodedBody,
+    );
+  }
+
+  Future<Object?> _execute({
+    required http.AbortableRequest Function(Future<void>) buildRequest,
+    CancellationToken? cancellationToken,
+  }) async {
+    _throwIfCancelled(cancellationToken);
     var timedOut = false;
     final abort = Completer<void>();
     final timeout = Timer(_config.requestTimeout, () {
@@ -42,21 +94,8 @@ final class JsonHttpTransport {
       if (!abort.isCompleted) abort.complete();
     });
 
-    final request =
-        http.AbortableRequest(
-            method.toUpperCase(),
-            uri,
-            abortTrigger: abort.future,
-          )
-          ..headers.addAll({
-            'accept': 'application/json',
-            if (body != null) 'content-type': 'application/json; charset=utf-8',
-            ...headers,
-          });
-    if (body != null) request.body = jsonEncode(body);
-
     try {
-      final streamedResponse = await _client.send(request);
+      final streamedResponse = await _client.send(buildRequest(abort.future));
       final response = await http.Response.fromStream(streamedResponse);
       final payload = _decodeBody(response);
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -64,18 +103,7 @@ final class JsonHttpTransport {
       }
       return payload;
     } on http.RequestAbortedException catch (_) {
-      if (timedOut) {
-        throw const ApiFailure(
-          kind: ApiFailureKind.timeout,
-          message: 'O servidor demorou para responder. Tente novamente.',
-          code: 'REQUEST_TIMEOUT',
-        );
-      }
-      throw const ApiFailure(
-        kind: ApiFailureKind.cancelled,
-        message: 'A requisição foi cancelada.',
-        code: 'REQUEST_CANCELLED',
-      );
+      throw _abortedFailure(timedOut);
     } on http.ClientException catch (_) {
       throw const ApiFailure(
         kind: ApiFailureKind.network,
@@ -96,6 +124,23 @@ final class JsonHttpTransport {
   }
 
   void close() => _client.close();
+
+  void _throwIfCancelled(CancellationToken? token) {
+    if (!(token?.isCancelled ?? false)) return;
+    throw const ApiFailure(
+      kind: ApiFailureKind.cancelled,
+      message: 'A requisição foi cancelada.',
+      code: 'REQUEST_CANCELLED',
+    );
+  }
+
+  ApiFailure _abortedFailure(bool timedOut) => ApiFailure(
+    kind: timedOut ? ApiFailureKind.timeout : ApiFailureKind.cancelled,
+    message: timedOut
+        ? 'O servidor demorou para responder. Tente novamente.'
+        : 'A requisição foi cancelada.',
+    code: timedOut ? 'REQUEST_TIMEOUT' : 'REQUEST_CANCELLED',
+  );
 
   Object? _decodeBody(http.Response response) {
     if (response.bodyBytes.isEmpty) return null;
@@ -123,7 +168,6 @@ final class JsonHttpTransport {
       List<Object?> values => values.whereType<String>().join('\n'),
       _ => 'O servidor não conseguiu concluir a operação.',
     };
-    final rawDetails = json['details'];
     final retryAfterSeconds = int.tryParse(
       response.headers['retry-after'] ?? '',
     );
@@ -134,7 +178,9 @@ final class JsonHttpTransport {
           ? 'O servidor não conseguiu concluir a operação.'
           : message,
       code: json['code'] is String ? json['code']! as String : null,
-      details: rawDetails is List<Object?> ? rawDetails : const [],
+      details: json['details'] is List<Object?>
+          ? json['details']! as List<Object?>
+          : const [],
       requestId: rawRequestId is String ? rawRequestId : null,
       retryAfter: retryAfterSeconds == null
           ? null

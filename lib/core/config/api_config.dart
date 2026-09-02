@@ -48,6 +48,13 @@ final class ApiConfig {
     );
   }
 
+  String resolveAsset(String value) {
+    if (value.isEmpty) return '';
+    final uri = Uri.tryParse(value);
+    if (uri?.hasScheme ?? false) return value;
+    return resolve(value).toString();
+  }
+
   void _validate() {
     if (!baseUrl.hasScheme || !baseUrl.hasAuthority) {
       throw ArgumentError.value(baseUrl, 'baseUrl', 'URL absoluta inválida.');

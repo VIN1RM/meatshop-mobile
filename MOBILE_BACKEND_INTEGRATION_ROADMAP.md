@@ -141,19 +141,23 @@ Todo o marketplace exibido pelo mobile reflete os mesmos dados cadastrados pelo 
 
 ## Fase 4 — Perfil, endereços, mídia e carrinho
 
+**Status:** implementada e validada em 2 de setembro de 2026. Detalhes em `docs/backend-integration/PHASE_4_PROFILE_ADDRESS_CART.md`.
+
 ### Entregas
 
-- [ ] Migrar leitura e atualização do perfil.
-- [ ] Migrar cadastro, edição, exclusão e seleção do endereço padrão.
-- [ ] Definir upload de avatar e documentos sem Base64 em documentos de banco.
-- [ ] Migrar adição, alteração e remoção de itens do carrinho.
-- [ ] Revalidar no backend preço, atividade e estoque de cada produto.
-- [ ] Impedir carrinho com produtos de unidades incompatíveis, conforme a regra escolhida.
-- [ ] Manter no dispositivo apenas preferências e cache descartável.
+- [x] Migrar leitura e atualização do perfil.
+- [x] Migrar cadastro, edição, exclusão e seleção do endereço padrão.
+- [x] Definir upload de avatar sem Base64 em documentos de banco.
+- [x] Migrar adição, alteração e remoção de itens do carrinho.
+- [x] Revalidar no backend preço, atividade, categoria e estoque de cada produto.
+- [x] Permitir um carrinho multiunidade, agrupando itens por açougue para gerar pedidos separados na Fase 5.
+- [x] Manter no dispositivo apenas estado de apresentação e cache descartável desses domínios.
 
 ### Critério de aceite
 
 Perfil, endereços, imagens e carrinho persistem exclusivamente por meio da API e continuam corretos após reinstalar ou usar o aplicativo em outro dispositivo.
+
+Atendido quando `FEATURE_BACKEND_PROFILE_CART=true`; o fallback Firestore permanece temporariamente apenas para rollback durante a migração gradual.
 
 ## Fase 5 — Checkout, pedidos e pagamentos
 

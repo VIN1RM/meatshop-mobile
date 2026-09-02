@@ -1,24 +1,35 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/models/user_model.dart';
-import 'package:meatshop_mobile/services/user_service.dart';
+
+import '../../data/repositories/profile_repository.dart';
+import '../../models/user_model.dart';
+import '../../services/user_service.dart';
 
 class UserProvider extends ChangeNotifier {
+  UserProvider({ProfileRepository? repository}) : _repository = repository;
+
+  final ProfileRepository? _repository;
   UserModel? _user;
   bool _isLoading = false;
+  String? _error;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   Future<void> loadUser(String uid) async {
-    _isLoading = true;
-    notifyListeners();
-
-    _user = await UserService.instance.fetchUser(uid);
-
-    _isLoading = false;
-    notifyListeners();
+    _setLoading(true);
+    try {
+      _user = _repository == null
+          ? await UserService.instance.fetchUser(uid)
+          : await _repository.getProfile();
+    } catch (error) {
+      _error = 'Não foi possível carregar seu perfil.';
+      debugPrint('[UserProvider] load error: $error');
+    } finally {
+      _setLoading(false);
+    }
   }
 
   Future<void> updateUser({
@@ -27,30 +38,85 @@ class UserProvider extends ChangeNotifier {
     required String email,
     required String phone,
   }) async {
-    await UserService.instance.updateUser(
-      uid,
-      name: name,
-      email: email,
-      phone: phone,
-    );
-    _user = _user?.copyWith(name: name, email: email, phone: phone);
-    notifyListeners();
+    _error = null;
+    try {
+      if (_repository == null) {
+        await UserService.instance.updateUser(
+          uid,
+          name: name,
+          email: email,
+          phone: phone,
+        );
+        _user = _user?.copyWith(name: name, email: email, phone: phone);
+      } else {
+        _user = await _repository.updateProfile(
+          name: name,
+          email: email,
+          phone: phone,
+        );
+      }
+      notifyListeners();
+    } catch (error) {
+      _error = 'Não foi possível atualizar seu perfil.';
+      notifyListeners();
+      rethrow;
+    }
   }
 
   Future<void> updateAvatar(String uid, File? file) async {
-    if (file == null) {
-      await UserService.instance.clearAvatar(uid);
-      _user = _user?.copyWith(photoUrl: '');
+    _error = null;
+    try {
+      final photoUrl = file == null
+          ? await _clearAvatar(uid)
+          : await _uploadAvatar(uid, file);
+      _user = _user?.copyWith(photoUrl: photoUrl);
       notifyListeners();
-      return;
+    } catch (error) {
+      _error = 'Não foi possível atualizar sua foto.';
+      notifyListeners();
+      rethrow;
     }
-    final url = await UserService.instance.updateAvatar(uid, file);
-    _user = _user?.copyWith(photoUrl: url);
+  }
+
+  Future<String> _uploadAvatar(String uid, File file) async {
+    if (_repository == null) {
+      return UserService.instance.updateAvatar(uid, file);
+    }
+    return _repository.uploadAvatar(
+      bytes: await file.readAsBytes(),
+      fileName: file.uri.pathSegments.last,
+      contentType: _imageContentType(file.path),
+    );
+  }
+
+  Future<String> _clearAvatar(String uid) async {
+    if (_repository == null) {
+      await UserService.instance.clearAvatar(uid);
+    } else {
+      await _repository.clearAvatar();
+    }
+    return '';
+  }
+
+  String _imageContentType(String path) {
+    final extension = path.split('.').last.toLowerCase();
+    return switch (extension) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'gif' => 'image/gif',
+      _ => 'image/jpeg',
+    };
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
+    if (value) _error = null;
     notifyListeners();
   }
 
   void clear() {
     _user = null;
+    _error = null;
     notifyListeners();
   }
 }

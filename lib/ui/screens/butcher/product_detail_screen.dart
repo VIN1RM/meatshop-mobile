@@ -109,6 +109,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     if (!context.mounted) return;
+    if (cart.error != null) {
+      CustomSnackBar.error(cart.error!, context: context);
+      return;
+    }
     CustomSnackBar.success(
       _isEditingCart
           ? '${product.name} - Carrinho atualizado'

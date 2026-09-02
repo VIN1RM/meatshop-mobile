@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
-import 'package:meatshop_mobile/services/cep_service.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
+import 'package:meatshop_mobile/providers/user/address_provider.dart';
+import 'package:provider/provider.dart';
 
 class AddressFormSheet extends StatefulWidget {
   const AddressFormSheet({super.key, this.address, required this.onSave});
@@ -68,23 +69,26 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
       _cepError = null;
     });
 
-    final result = await CepService.fetch(digits);
+    try {
+      final address = await context.read<AddressProvider>().resolveZipCode(
+        digits,
+      );
+      if (!mounted) return;
+      _streetCtrl.text = address.street;
+      _neighborhoodCtrl.text = address.neighborhood;
+      _cityCtrl.text = address.city;
+      _stateCtrl.text = address.state;
+      FocusScope.of(context).nextFocus();
+    } catch (error) {
+      if (mounted) setState(() => _cepError = _cepMessage(error));
+    } finally {
+      if (mounted) setState(() => _isLoadingCep = false);
+    }
+  }
 
-    if (!mounted) return;
-
-    result.fold(
-      onSuccess: (data) {
-        _streetCtrl.text = data.street;
-        _neighborhoodCtrl.text = data.neighborhood;
-        _cityCtrl.text = data.city;
-        _stateCtrl.text = data.state;
-
-        FocusScope.of(context).nextFocus();
-      },
-      onFailure: (message) => setState(() => _cepError = message),
-    );
-
-    setState(() => _isLoadingCep = false);
+  String _cepMessage(Object error) {
+    final message = error.toString().replaceFirst('Bad state: ', '');
+    return message.isEmpty ? 'Não foi possível consultar o CEP.' : message;
   }
 
   Future<void> _save() async {
@@ -327,12 +331,17 @@ class _CepField extends StatelessWidget {
       style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
       onChanged: (v) {
         final digits = v.replaceAll(RegExp(r'\D'), '');
-        if (digits.length == 8) onCompleted(v);
+        if (digits.length == 8) {
+          onCompleted(v);
+        }
       },
       validator: (v) {
-        if (v == null || v.replaceAll(RegExp(r'\D'), '').length < 8)
+        if (v == null || v.replaceAll(RegExp(r'\D'), '').length < 8) {
           return 'CEP inválido';
-        if (externalError != null) return externalError;
+        }
+        if (externalError != null) {
+          return externalError;
+        }
         return null;
       },
       decoration: InputDecoration(

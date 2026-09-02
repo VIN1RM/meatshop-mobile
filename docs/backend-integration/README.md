@@ -12,6 +12,7 @@ Branch de trabalho: `refactor/mobile-with-backend`.
 - Fase 1 — fundação da API Flutter: implementada, testada e documentada.
 - Fase 2 — federação do Firebase Authentication: implementada, testada e protegida por feature flag.
 - Fase 3 — marketplace público PostgreSQL: implementada sob feature flag, com catálogo vendável e busca combinada.
+- Fase 4 — perfil, endereços, mídia e carrinho multiunidade: implementada sob feature flag e validada por testes.
 
 Artefatos:
 
@@ -23,6 +24,7 @@ Artefatos:
 - [Fundação da API](PHASE_1_API_FOUNDATION.md): composição, configuração, sessão, erros, cancelamento e uso pelos próximos repositórios.
 - [Federação Firebase Auth](PHASE_2_FIREBASE_AUTH_FEDERATION.md): troca de identidade, vínculo seguro, perfil incompleto, sessão e corte gradual.
 - [Marketplace público](PHASE_3_MARKETPLACE.md): unidades sempre públicas, catálogo vendável, busca, paginação e corte gradual.
+- [Perfil, endereços e carrinho](PHASE_4_PROFILE_ADDRESS_CART.md): upload multipart, CEP, quantidades fracionadas e carrinho multiunidade.
 
 ## Decisões registradas
 

@@ -21,6 +21,9 @@ import '../core/config/feature_flags.dart';
 import '../data/repositories/federated_auth_repository.dart';
 import '../data/repositories/marketplace_repository.dart';
 import '../data/repositories/marketplace_context.dart';
+import '../data/repositories/address_repository.dart';
+import '../data/repositories/cart_repository.dart';
+import '../data/repositories/profile_repository.dart';
 import '../services/business_hours_service.dart';
 import '../services/promotion_service.dart';
 import '../services/search_service.dart';
@@ -30,9 +33,13 @@ class ProvidersConfig {
   static List<SingleChildWidget> providers({
     FederatedAuthRepository? federatedAuth,
     MarketplaceRepository? marketplace,
+    ProfileRepository? profile,
+    AddressRepository? addresses,
+    CartRepository? cart,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
+      backendProfileCart: false,
     ),
   }) => [
     Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace)),
@@ -40,7 +47,10 @@ class ProvidersConfig {
       create: (_) => AuthProvider(federatedAuth: federatedAuth, flags: flags),
     ),
     ChangeNotifierProvider<DeliveryProvider>(create: (_) => DeliveryProvider()),
-    ChangeNotifierProvider(create: (_) => UserProvider()),
+    ChangeNotifierProvider(
+      create: (_) =>
+          UserProvider(repository: flags.backendProfileCart ? profile : null),
+    ),
     ChangeNotifierProvider(create: (_) => VehicleProvider()),
     ChangeNotifierProvider(
       create: (_) => UnitProvider(
@@ -48,7 +58,11 @@ class ProvidersConfig {
         hoursService: BusinessHoursService(marketplace: marketplace),
       ),
     ),
-    ChangeNotifierProvider(create: (_) => AddressProvider()),
+    ChangeNotifierProvider(
+      create: (_) => AddressProvider(
+        repository: flags.backendProfileCart ? addresses : null,
+      ),
+    ),
     ChangeNotifierProvider(
       create: (_) =>
           SearchProvider(service: SearchService(marketplace: marketplace)),
@@ -71,8 +85,11 @@ class ProvidersConfig {
       ),
     ),
     ChangeNotifierProvider(
-      create: (_) =>
-          CartProvider(uid: AuthService.instance.currentUser?.uid ?? ''),
+      create: (_) => CartProvider(
+        uid: AuthService.instance.currentUser?.uid ?? '',
+        repository: flags.backendProfileCart ? cart : null,
+        hoursService: BusinessHoursService(marketplace: marketplace),
+      ),
     ),
   ];
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../core/auth/session_coordinator.dart';
 import '../../core/network/api_failure.dart';
 import '../../core/network/cancellation_token.dart';
@@ -88,6 +90,43 @@ final class ApiClient {
     cancellationToken: cancellationToken,
   );
 
+  Future<T> postMultipart<T>(
+    String path, {
+    required Uint8List bytes,
+    required String fileName,
+    required String contentType,
+    required T Function(Object? json) decode,
+    CancellationToken? cancellationToken,
+  }) async {
+    await _session.initialize();
+    try {
+      return decode(
+        await _sendMultipart(
+          path: path,
+          bytes: bytes,
+          fileName: fileName,
+          contentType: contentType,
+          cancellationToken: cancellationToken,
+        ),
+      );
+    } on ApiFailure catch (failure) {
+      if (failure.kind != ApiFailureKind.unauthorized ||
+          _session.current == null) {
+        rethrow;
+      }
+      await _session.refresh();
+      return decode(
+        await _sendMultipart(
+          path: path,
+          bytes: bytes,
+          fileName: fileName,
+          contentType: contentType,
+          cancellationToken: cancellationToken,
+        ),
+      );
+    }
+  }
+
   Future<T> _request<T>({
     required String method,
     required String path,
@@ -149,6 +188,31 @@ final class ApiClient {
       query: query,
       body: body,
       headers: {if (authenticated) 'authorization': 'Bearer $accessToken'},
+      cancellationToken: cancellationToken,
+    );
+  }
+
+  Future<Object?> _sendMultipart({
+    required String path,
+    required Uint8List bytes,
+    required String fileName,
+    required String contentType,
+    CancellationToken? cancellationToken,
+  }) {
+    final accessToken = _session.current?.accessToken;
+    if (accessToken == null) {
+      throw const ApiFailure(
+        kind: ApiFailureKind.unauthorized,
+        message: 'Entre na sua conta para continuar.',
+        code: 'SESSION_REQUIRED',
+      );
+    }
+    return _transport.sendMultipart(
+      path: path,
+      bytes: bytes,
+      fileName: fileName,
+      contentType: contentType,
+      headers: {'authorization': 'Bearer $accessToken'},
       cancellationToken: cancellationToken,
     );
   }

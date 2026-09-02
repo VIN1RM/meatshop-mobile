@@ -3,12 +3,12 @@ import 'package:meatshop_mobile/models/business_hours_model.dart';
 import '../data/repositories/marketplace_repository.dart';
 
 class BusinessHoursService {
-  final FirebaseFirestore _db;
+  final FirebaseFirestore? _db;
 
   BusinessHoursService({
     FirebaseFirestore? db,
     MarketplaceRepository? marketplace,
-  }) : _db = db ?? FirebaseFirestore.instance,
+  }) : _db = db ?? (marketplace == null ? FirebaseFirestore.instance : null),
        _marketplace = marketplace;
   final MarketplaceRepository? _marketplace;
 
@@ -21,7 +21,7 @@ class BusinessHoursService {
       }
       return null;
     }
-    final doc = await _db
+    final doc = await _db!
         .collection('units')
         .doc(unitId)
         .collection('business_hours')

@@ -8,6 +8,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Um Carrinho, Vários Açougues:** Você pode adicionar produtos de unidades diferentes no mesmo carrinho. Os itens ficam organizados por açougue e, no checkout, serão preparados como pedidos separados.
+- **Perfil e Endereços Sincronizados:** Seus dados, foto e endereços agora podem acompanhar sua conta pelo sistema MeatShop, inclusive ao trocar de aparelho.
+- **Endereço pelo CEP:** Informe o CEP para preencher rua, bairro, cidade e estado e localizar o endereço sem digitar coordenadas.
 - **Marketplace Integrado:** Açougues, produtos, promoções, horários e avaliações agora podem ser carregados diretamente do sistema MeatShop.
 - **Busca Unificada:** A busca encontra açougues, categorias e produtos em uma única consulta.
 - **Login Conectado ao MeatShop:** O login por e-mail, Google ou Apple agora pode criar uma sessão segura no mesmo sistema usado pelo painel e pelo banco de dados principal.
@@ -17,6 +20,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
 
 ### 📈 Melhorias
+- **Estoque e Preço Conferidos:** O sistema confere novamente disponibilidade, categoria, preço e quantidade sempre que o carrinho muda.
+- **Produtos por Peso:** O carrinho aceita quantidades fracionadas com precisão adequada para carnes vendidas por quilo.
+- **Limpeza Real do Carrinho:** Ao esvaziar a sacola, os itens também são removidos do servidor e não reaparecem em outro acesso.
 - **Disponibilidade Confiável:** Produtos inativos, categorias inativas ou itens sem estoque deixam de ser oferecidos no novo catálogo.
 - **Perfil Consistente:** Tipo de perfil e conclusão do cadastro passam a vir do sistema MeatShop durante o novo fluxo, evitando divergências entre aplicativo e painel.
 - **Preparado para a Migração Gradual:** As próximas funcionalidades poderão ser transferidas uma por vez, sem trocar todos os fluxos de uma só vez.

@@ -39,14 +39,13 @@ Resultado esperado:
 - backend saudável em `:3001`;
 - frontend saudável em `:3000`.
 
-Exemplos de execução futura do mobile, após a Fase 1 implementar a leitura da variável:
+Exemplo de execução do mobile no emulador Android com as Fases 1 a 4 ativas:
 
 ```powershell
-flutter run --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001
-flutter run --dart-define=MEATSHOP_API_URL=http://localhost:3001
+flutter run --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001 --dart-define=MEATSHOP_ENV=development --dart-define=FEATURE_BACKEND_AUTH=true --dart-define=FEATURE_BACKEND_MARKETPLACE=true --dart-define=FEATURE_BACKEND_PROFILE_CART=true
 ```
 
-Informe também `--dart-define=MEATSHOP_ENV=development`. Homologação e produção aceitam apenas HTTPS. A aplicação não assume uma URL padrão quando a fundação do backend é ativada.
+Para desktop ou Web, use `http://localhost:3001`; em dispositivo físico, use o IP local da máquina. Homologação e produção aceitam apenas HTTPS. A aplicação não assume uma URL padrão quando a fundação do backend é ativada.
 
 ## Reset do PostgreSQL local
 

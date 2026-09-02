@@ -33,11 +33,12 @@ flutter run --dart-define=MEATSHOP_ENV=development --dart-define=MEATSHOP_API_UR
 
 Para desktop/iOS Simulator local, use `http://localhost:3001`. Dispositivo físico deve usar o IP local da máquina. Homologação e produção rejeitam URLs sem HTTPS.
 
-Flags disponíveis, ambas desativadas por padrão:
+Flags disponíveis, todas desativadas por padrão:
 
 ```text
 FEATURE_BACKEND_AUTH
 FEATURE_BACKEND_MARKETPLACE
+FEATURE_BACKEND_PROFILE_CART
 ```
 
 As flags controlam somente o corte gradual. Elas não podem duplicar regra de negócio ou autorização do backend.

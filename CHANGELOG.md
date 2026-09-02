@@ -15,6 +15,11 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Repositórios HTTP de perfil, endereços e carrinho, injetados por contratos e ativados por `FEATURE_BACKEND_PROFILE_CART`.
+- Upload autenticado de avatar por `multipart/form-data`, com timeout, cancelamento, renovação de sessão e URL resolvida por ambiente.
+- Geocodificação de endereço pelo backend a partir do CEP, sem entrada manual de latitude ou longitude.
+- Suporte a carrinho único com produtos de múltiplas unidades, quantidades fracionadas e agrupamento por açougue.
+- Testes de contratos de perfil, CEP e carrinho, incluindo persistência da limpeza e cenário multiunidade.
 - Marketplace público alimentado pelo PostgreSQL, com unidades, detalhes, horários, avaliações e paginação.
 - Busca combinada de açougues, categorias e produtos, incluindo filtros de unidade, categoria e preço.
 - Repositório mobile de marketplace e testes de contratos públicos e catálogo vendável.
@@ -33,6 +38,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Perfil, endereços e carrinho passam a usar o PostgreSQL por meio da API quando `FEATURE_BACKEND_PROFILE_CART` está ativa, sem escrita dupla no Firestore.
+- Carrinho substitui snapshots locais pela resposta revalidada do servidor após cada mutação.
+- Consulta de horários e serviços legados deixam de inicializar Firestore quando uma implementação backend foi injetada.
 - Unidades passam a aparecer no marketplace imediatamente após a criação.
 - Catálogo mobile passa a oferecer somente produtos e categorias ativos com estoque positivo e promoções vigentes quando `FEATURE_BACKEND_MARKETPLACE` está ativa.
 - Login por e-mail, Google e Apple passa a usar access/refresh tokens MeatShop quando `FEATURE_BACKEND_AUTH` está ativa, preservando o fluxo anterior com a flag desligada.
@@ -41,6 +49,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- Endereços vinculados a pedidos são preservados, e avatar deixa de ser armazenado como Base64 em documentos operacionais.
+- Produto, categoria, preço e estoque são revalidados pelo backend antes de incluir ou alterar itens no carrinho.
 - Firebase ID Tokens são verificados com checagem de revogação; tokens e senhas não são registrados em logs.
 - Perfil, papel, bloqueio e estado da conta autenticada pelo mobile passam a ser autorizados pelo PostgreSQL no novo fluxo.
 - Backup Android desativado para impedir restauração inconsistente de credenciais criptografadas.

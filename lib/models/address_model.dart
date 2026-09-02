@@ -93,10 +93,46 @@ class AddressModel {
       state: map['state'] as String? ?? '',
       zipCode: map['zip_code'] as String? ?? '',
       isDefault: map['is_default'] as bool? ?? false,
-      lat: (map['lat'] as num?)?.toDouble(), 
-      lng: (map['lng'] as num?)?.toDouble(), 
+      lat: (map['lat'] as num?)?.toDouble(),
+      lng: (map['lng'] as num?)?.toDouble(),
     );
   }
+
+  factory AddressModel.fromApi(Map<String, Object?> map) {
+    double? coordinate(String key) {
+      final value = map[key];
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
+    return AddressModel(
+      id: '${map['id'] ?? ''}',
+      label: map['label'] as String? ?? '',
+      street: map['street'] as String? ?? '',
+      number: map['number'] as String? ?? '',
+      complement: map['complement'] as String? ?? '',
+      neighborhood: map['neighborhood'] as String? ?? '',
+      city: map['city'] as String? ?? '',
+      state: map['state'] as String? ?? '',
+      zipCode: map['zip_code'] as String? ?? '',
+      isDefault: map['is_default'] == true,
+      lat: coordinate('latitude'),
+      lng: coordinate('longitude'),
+    );
+  }
+
+  Map<String, Object?> toApi() => {
+    'label': label,
+    'street': street.trim(),
+    'number': number.trim(),
+    'complement': complement.trim(),
+    'neighborhood': neighborhood.trim(),
+    'city': city.trim(),
+    'state': state.trim().toUpperCase(),
+    'zip_code': zipCode.trim(),
+    'is_default': isDefault,
+  };
 
   Map<String, dynamic> toFirestore() => {
     'label': label,
@@ -108,7 +144,7 @@ class AddressModel {
     'state': state,
     'zip_code': zipCode,
     'is_default': isDefault,
-    if (lat != null) 'lat': lat, 
-    if (lng != null) 'lng': lng, 
+    if (lat != null) 'lat': lat,
+    if (lng != null) 'lng': lng,
   };
 }

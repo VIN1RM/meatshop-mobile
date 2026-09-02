@@ -29,6 +29,7 @@ class AuthProvider extends ChangeNotifier {
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
+      backendProfileCart: false,
     ),
   }) : _federatedAuth = federatedAuth,
        _flags = flags;

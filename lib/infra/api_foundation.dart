@@ -11,6 +11,12 @@ import '../data/repositories/federated_auth_repository.dart';
 import 'repositories/http_federated_auth_repository.dart';
 import '../data/repositories/marketplace_repository.dart';
 import 'repositories/http_marketplace_repository.dart';
+import '../data/repositories/address_repository.dart';
+import '../data/repositories/cart_repository.dart';
+import '../data/repositories/profile_repository.dart';
+import 'repositories/http_address_repository.dart';
+import 'repositories/http_cart_repository.dart';
+import 'repositories/http_profile_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -19,10 +25,14 @@ final class ApiFoundation {
     required this.backendConnection,
     required this.federatedAuth,
     required this.marketplace,
+    required this.profile,
+    required this.addresses,
+    required this.cart,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
-    final transport = JsonHttpTransport(config: ApiConfig.fromEnvironment());
+    final config = ApiConfig.fromEnvironment();
+    final transport = JsonHttpTransport(config: config);
     final session = SessionCoordinator(
       store: SecureSessionStore(FlutterSecureKeyValueStore()),
       refresher: BackendSessionRefresher(transport),
@@ -38,6 +48,9 @@ final class ApiFoundation {
         session: session,
       ),
       marketplace: HttpMarketplaceRepository(client),
+      profile: HttpProfileRepository(client, config),
+      addresses: HttpAddressRepository(client),
+      cart: HttpCartRepository(client),
     );
   }
 
@@ -46,6 +59,9 @@ final class ApiFoundation {
   final BackendConnectionRepository backendConnection;
   final FederatedAuthRepository federatedAuth;
   final MarketplaceRepository marketplace;
+  final ProfileRepository profile;
+  final AddressRepository addresses;
+  final CartRepository cart;
 
   Future<void> initialize() => session.initialize();
 

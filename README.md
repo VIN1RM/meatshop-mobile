@@ -2,7 +2,7 @@
 
 > Conectando clientes, açougues e entregadores em uma plataforma prática e segura.
 
-**Versão:** 2.15.0
+**Versão:** 3.0.0 (em desenvolvimento)
 **Data:** Agosto 2026  
 **Autor:** Vinícius Rodrigues  
 **Plataforma:** Android & iOS  

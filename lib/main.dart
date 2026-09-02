@@ -24,7 +24,9 @@ ApiFoundation? apiFoundation;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  if (featureFlags.backendAuth || featureFlags.backendMarketplace) {
+  if (featureFlags.backendAuth ||
+      featureFlags.backendMarketplace ||
+      featureFlags.backendProfileCart) {
     apiFoundation = ApiFoundation.fromEnvironment();
     await apiFoundation!.initialize();
   }
@@ -57,6 +59,9 @@ class _MeatShopAppState extends State<MeatShopApp> {
         marketplace: featureFlags.backendMarketplace
             ? apiFoundation?.marketplace
             : null,
+        profile: apiFoundation?.profile,
+        addresses: apiFoundation?.addresses,
+        cart: apiFoundation?.cart,
         flags: featureFlags,
       ),
       child: MaterialApp(
