@@ -28,7 +28,8 @@ void main() async {
       featureFlags.backendMarketplace ||
       featureFlags.backendProfileCart ||
       featureFlags.backendCheckout ||
-      featureFlags.backendDelivery) {
+      featureFlags.backendDelivery ||
+      featureFlags.backendRealtime) {
     apiFoundation = ApiFoundation.fromEnvironment();
     await apiFoundation!.initialize();
   }
@@ -67,6 +68,8 @@ class _MeatShopAppState extends State<MeatShopApp> {
         orders: apiFoundation?.orders,
         payments: apiFoundation?.payments,
         delivery: apiFoundation?.delivery,
+        chat: apiFoundation?.chat,
+        realtime: apiFoundation?.realtime,
         flags: featureFlags,
       ),
       child: MaterialApp(

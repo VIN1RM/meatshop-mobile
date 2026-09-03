@@ -213,18 +213,20 @@ Concluída e validada em 3 de setembro de 2026 sob `FEATURE_BACKEND_DELIVERY`, c
 
 ### Entregas
 
-- [ ] Integrar o Flutter ao Socket.IO do backend.
-- [ ] Autenticar sockets com a sessão MeatShop.
-- [ ] Migrar os três canais de chat autorizados por pedido.
-- [ ] Carregar histórico via REST e receber novas mensagens via socket.
-- [ ] Implementar leitura, não lidas, digitação, reconexão e recuperação de eventos.
-- [ ] Migrar rastreamento e mudanças de status para os gateways do backend.
-- [ ] Usar REST como reconciliação após perda de conexão.
-- [ ] Remover conversas e tracking do Firestore.
+- [x] Integrar o Flutter ao Socket.IO do backend.
+- [x] Autenticar sockets com a sessão MeatShop.
+- [x] Migrar os três canais de chat autorizados por pedido.
+- [x] Carregar histórico via REST e receber novas mensagens via socket.
+- [x] Implementar leitura, não lidas, digitação, reconexão e recuperação de eventos.
+- [x] Migrar rastreamento e mudanças de status para os gateways do backend.
+- [x] Usar REST como reconciliação após perda de conexão.
+- [x] Remover conversas e tracking do Firestore.
 
 ### Critério de aceite
 
 Cliente, entregador e unidade conversam somente nos canais permitidos e recuperam o estado correto após fechar o app, perder rede ou reconectar.
+
+Concluída em 3 de setembro de 2026 sob `FEATURE_BACKEND_REALTIME`. Com a flag ativa, chat e atualizações operacionais não consultam nem escrevem no Firestore; o legado permanece isolado somente para rollback até a Fase 9.
 
 ## Fase 8 — Push e serviços Firebase complementares
 

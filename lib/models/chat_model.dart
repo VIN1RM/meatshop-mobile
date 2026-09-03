@@ -35,6 +35,9 @@ class ChatParticipant {
 
 class ChatConversation {
   final String id;
+  final int? orderId;
+  final ChatChannel? channel;
+  final bool closed;
 
   final List<String> participantIds;
   final Map<String, ChatParticipant> participants;
@@ -47,6 +50,9 @@ class ChatConversation {
 
   const ChatConversation({
     required this.id,
+    this.orderId,
+    this.channel,
+    this.closed = false,
     required this.participantIds,
     required this.participants,
     this.lastMessage,
@@ -55,6 +61,54 @@ class ChatConversation {
     required this.unreadCount,
     required this.createdAt,
   });
+
+  factory ChatConversation.fromApi(
+    Map<String, Object?> data, {
+    required int currentUserId,
+    required ChatParticipantType currentUserType,
+  }) {
+    final participant = data['participant'];
+    if (participant is! Map<String, Object?>) {
+      throw const FormatException('Participante do chat inválido');
+    }
+    final participantId = (participant['id'] as num).toInt();
+    final channel = ChatChannel.fromApi(data['participant_type'] as String);
+    final participantType = switch (channel) {
+      ChatChannel.unit =>
+        currentUserType == ChatParticipantType.client
+            ? ChatParticipantType.unit
+            : ChatParticipantType.client,
+      ChatChannel.deliveryPerson =>
+        currentUserType == ChatParticipantType.client
+            ? ChatParticipantType.delivery
+            : ChatParticipantType.client,
+      ChatChannel.unitDeliveryPerson =>
+        currentUserType == ChatParticipantType.delivery
+            ? ChatParticipantType.unit
+            : ChatParticipantType.delivery,
+    };
+    final other = ChatParticipant(
+      userId: '$participantId',
+      name: participant['name'] as String? ?? '',
+      photoUrl: participant['avatar_url'] as String?,
+      type: participantType,
+    );
+    final lastMessageAt = DateTime.parse(data['last_message_at'] as String);
+    return ChatConversation(
+      id: data['id'] as String,
+      orderId: (data['order_id'] as num).toInt(),
+      channel: channel,
+      closed: data['closed'] as bool? ?? false,
+      participantIds: ['$currentUserId', '$participantId'],
+      participants: {'$participantId': other},
+      lastMessage: data['last_message'] as String?,
+      lastMessageAt: lastMessageAt,
+      unreadCount: {
+        '$currentUserId': (data['unread_count'] as num?)?.toInt() ?? 0,
+      },
+      createdAt: lastMessageAt,
+    );
+  }
 
   factory ChatConversation.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -138,6 +192,9 @@ class ChatMessage {
   final String text;
   final DateTime sentAt;
   final bool read;
+  final bool mine;
+  final int? orderId;
+  final ChatChannel? channel;
 
   final String? attachmentUrl;
   final String? attachmentType;
@@ -148,9 +205,31 @@ class ChatMessage {
     required this.text,
     required this.sentAt,
     required this.read,
+    this.mine = false,
+    this.orderId,
+    this.channel,
     this.attachmentUrl,
     this.attachmentType,
   });
+
+  factory ChatMessage.fromApi(
+    Map<String, Object?> data, {
+    int? currentUserId,
+    bool? isMine,
+  }) {
+    final senderId = (data['sender_id'] as num).toInt();
+    final participantType = data['participant_type'] as String;
+    return ChatMessage(
+      id: '${data['id']}',
+      senderId: '$senderId',
+      text: data['message'] as String,
+      sentAt: DateTime.parse(data['sent_at'] as String),
+      read: data['read_at'] != null,
+      mine: isMine ?? senderId == currentUserId,
+      orderId: (data['order_id'] as num).toInt(),
+      channel: ChatChannel.fromApi(participantType),
+    );
+  }
 
   factory ChatMessage.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;

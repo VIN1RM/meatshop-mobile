@@ -8,8 +8,8 @@ Migrar cadastro, aprovação, operação de entrega, veículos, disponibilidade,
 
 ```bash
 flutter run \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000 \
-  --dart-define=APP_ENV=development \
+  --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001 \
+  --dart-define=MEATSHOP_ENV=development \
   --dart-define=FEATURE_BACKEND_AUTH=true \
   --dart-define=FEATURE_BACKEND_DELIVERY=true
 ```
@@ -18,10 +18,10 @@ A flag é desativada por padrão. Quando ativa, cadastro de entregador e veícul
 
 ## Contratos implementados
 
-- `POST /delivery/register` — cria o perfil pendente no PostgreSQL;
+- `POST /delivery/register` — cria um perfil autônomo ativo no PostgreSQL;
 - `GET /delivery/me` — perfil, aprovação, nota, disponibilidade e veículos;
 - `PATCH /delivery/me/availability` — online/offline; exige aprovação e veículo ativo para ficar online;
-- `GET /delivery/me/vehicles`, `POST /delivery/vehicles`, `PATCH/DELETE /delivery/me/vehicles/:id` e `PATCH /delivery/vehicles/:id/activate`;
+- `GET /delivery/me/vehicles`, `POST /delivery/vehicles`, `PATCH/DELETE /delivery/me/vehicles/:id`, `POST/DELETE /delivery/me/vehicles/:id/photos/:filename` e `PATCH /delivery/vehicles/:id/activate`;
 - `GET /delivery/me/orders/available|active|history`;
 - `POST /delivery/orders/:orderId/accept|reject`;
 - `POST /delivery/units/:unitId/orders/:orderId/verify-pickup` — unidade valida o código apresentado pelo entregador;
@@ -32,8 +32,9 @@ A flag é desativada por padrão. Quando ativa, cadastro de entregador e veícul
 
 ## Regras de domínio e segurança
 
-- somente entregador aprovado, online e com veículo ativo aceita uma oferta;
-- ofertas são limitadas às unidades às quais o usuário possui vínculo ativo;
+- o entregador autônomo se cadastra ativo; o entregador criado pela unidade permanece pendente até aprovação;
+- somente entregador ativo, online e com veículo ativo aceita uma oferta;
+- autônomos podem atender qualquer unidade; vinculados veem apenas unidades em que possuem vínculo `DELIVERY` ativo;
 - uma rejeição oculta somente aquela oferta para aquele entregador e não altera o pedido;
 - o aceite continua atômico e impede dois entregadores de assumirem o mesmo pedido;
 - a oferta não expõe endereço exato ou coordenadas do cliente antes do aceite;
@@ -44,7 +45,7 @@ A flag é desativada por padrão. Quando ativa, cadastro de entregador e veícul
 
 ## Migration
 
-`1788540000000-CompleteDeliveryPersonFlow` adiciona disponibilidade, desativação lógica de veículos, rejeições por oferta, metas, precisão e índice temporal de tracking.
+`1788540000000-CompleteDeliveryPersonFlow` adiciona disponibilidade, desativação lógica de veículos, rejeições por oferta, metas, precisão e índice temporal de tracking. `1788630000000-SupportAutonomousDeliveryPeople` diferencia entregadores autônomos e vinculados e adiciona as fotos dos veículos.
 
 ## Testes
 

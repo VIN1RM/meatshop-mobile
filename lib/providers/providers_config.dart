@@ -27,6 +27,8 @@ import '../data/repositories/profile_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../data/repositories/payment_repository.dart';
 import '../data/repositories/delivery_repository.dart';
+import '../data/repositories/chat_repository.dart';
+import '../data/repositories/realtime_repository.dart';
 import '../services/business_hours_service.dart';
 import '../services/promotion_service.dart';
 import '../services/search_service.dart';
@@ -42,14 +44,23 @@ class ProvidersConfig {
     OrderRepository? orders,
     PaymentRepository? payments,
     DeliveryRepository? delivery,
+    ChatRepository? chat,
+    RealtimeRepository? realtime,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
       backendProfileCart: false,
       backendCheckout: false,
       backendDelivery: false,
+      backendRealtime: false,
     ),
   }) => [
+    Provider<BackendRealtimeAccess>.value(
+      value: BackendRealtimeAccess(
+        chat: flags.backendRealtime ? chat : null,
+        realtime: flags.backendRealtime ? realtime : null,
+      ),
+    ),
     Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace)),
     ChangeNotifierProvider<AuthProvider>(
       create: (_) => AuthProvider(
@@ -96,8 +107,10 @@ class ProvidersConfig {
           PaymentProvider(repository: flags.backendCheckout ? payments : null),
     ),
     ChangeNotifierProvider(
-      create: (_) =>
-          OrderProvider(repository: flags.backendCheckout ? orders : null),
+      create: (_) => OrderProvider(
+        repository: flags.backendCheckout ? orders : null,
+        realtime: flags.backendRealtime ? realtime : null,
+      ),
     ),
     ChangeNotifierProvider(create: (_) => UserPreferencesProvider()),
     ChangeNotifierProvider(create: (_) => RecipeProvider()),

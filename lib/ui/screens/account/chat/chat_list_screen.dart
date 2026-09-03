@@ -8,6 +8,7 @@ import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/data/repositories/realtime_repository.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
@@ -23,10 +24,14 @@ class ChatListScreen extends StatelessWidget {
     final activeType = auth.isDelivery
         ? ChatParticipantType.delivery
         : ChatParticipantType.client;
+    final backend = context.read<BackendRealtimeAccess>();
 
     return ChangeNotifierProvider(
       create: (_) => ChatListProvider(
-        service: ChatService(),
+        service: backend.enabled ? null : ChatService(),
+        repository: backend.chat,
+        realtime: backend.realtime,
+        backendUserId: auth.backendUserId,
         currentUserId: currentUserId,
         activeType: activeType,
       ),
@@ -43,7 +48,7 @@ class ChatListScreen extends StatelessWidget {
                 child: Image.asset(
                   'assets/images/background.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (_, _, _) =>
                       Container(color: const Color(0xFF1A1A1A)),
                 ),
               ),
@@ -168,6 +173,9 @@ class _ConversationTile extends StatelessWidget {
           otherUserName: other.name,
           otherUserType: other.type,
           otherUserPhoto: other.photoUrl,
+          orderId: conversation.orderId,
+          channel: conversation.channel,
+          closed: conversation.closed,
         ),
       ),
       child: Container(
@@ -277,7 +285,7 @@ class _Avatar extends StatelessWidget {
                 ? Image.network(
                     participant.photoUrl!,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _fallback(),
+                    errorBuilder: (_, _, _) => _fallback(),
                   )
                 : _fallback(),
           ),

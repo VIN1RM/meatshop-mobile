@@ -15,6 +15,7 @@ Branch de trabalho: `refactor/mobile-with-backend`.
 - Fase 4 — perfil, endereços, mídia e carrinho multiunidade: implementada sob feature flag e validada por testes.
 - Fase 5 — checkout, pedidos e pagamentos: implementada sob feature flag, com checkout multiunidade transacional e Mercado Pago pronto para homologação sandbox.
 - Fase 6 — fluxo do entregador: implementada, testada e protegida por feature flag, com consentimento explícito para localização durante a entrega ativa.
+- Fase 7 — chat e tempo real: implementada sob feature flag com histórico REST, Socket.IO autenticado e reconciliação após reconexão.
 
 Artefatos:
 
@@ -29,6 +30,7 @@ Artefatos:
 - [Perfil, endereços e carrinho](PHASE_4_PROFILE_ADDRESS_CART.md): upload multipart, CEP, quantidades fracionadas e carrinho multiunidade.
 - [Checkout, pedidos e pagamentos](PHASE_5_CHECKOUT_ORDERS_PAYMENTS.md): cotação autoritativa, transação multiunidade, idempotência, Mercado Pago e código protegido.
 - [Fluxo completo do entregador](PHASE_6_DELIVERY_FLOW.md): aprovação, veículos, disponibilidade, ofertas, códigos, histórico, avaliações, ganhos, metas e política de localização.
+- [Chat e tempo real](PHASE_7_REALTIME_CHAT.md): canais por pedido, leitura, digitação, tracking, reconexão e segurança dos sockets.
 
 ## Decisões registradas
 

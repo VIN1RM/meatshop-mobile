@@ -30,6 +30,7 @@ class DeliveryProvider extends ChangeNotifier {
   final List<DeliveryOrder> _historyOrders = [];
   bool _isLoadingHistory = false;
   String? _historyError;
+  String? _lastError;
 
   double _averageRating = 0.0;
   int _reviewCount = 0;
@@ -46,6 +47,7 @@ class DeliveryProvider extends ChangeNotifier {
   List<DeliveryOrder> get historyOrders => List.unmodifiable(_historyOrders);
   bool get isLoadingHistory => _isLoadingHistory;
   String? get historyError => _historyError;
+  String? get lastError => _lastError;
 
   String get deliveryPersonName => _vehicleInfo['name'] ?? 'Entregador';
   double get averageRating => _averageRating;
@@ -112,20 +114,25 @@ class DeliveryProvider extends ChangeNotifier {
     }
   }
 
-  void toggleOnline() => toggleAvailability();
+  Future<void> toggleOnline() => toggleAvailability();
 
-  void toggleAvailability() {
+  Future<void> toggleAvailability() async {
     final next = isAvailable
         ? DeliveryAvailability.unavailable
         : DeliveryAvailability.available;
     if (repository != null) {
-      repository!
-          .setAvailability(next == DeliveryAvailability.available)
-          .then((_) {
-            _availability = next;
-            notifyListeners();
-          })
-          .catchError((_) {});
+      try {
+        _lastError = null;
+        await repository!.setAvailability(
+          next == DeliveryAvailability.available,
+        );
+        _availability = next;
+      } catch (error) {
+        _lastError = 'Não foi possível alterar sua disponibilidade.';
+        rethrow;
+      } finally {
+        notifyListeners();
+      }
       return;
     }
     _availability = next;
@@ -137,6 +144,7 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _lastError = null;
       if (repository != null) {
         _pickupCode = await repository!.accept(order.id);
       } else {
@@ -151,7 +159,9 @@ class DeliveryProvider extends ChangeNotifier {
       order.step = DeliveryStep.pickup;
       _activeOrder = order;
     } catch (e) {
+      _lastError = 'Não foi possível aceitar esta entrega.';
       debugPrint('Erro ao aceitar pedido: $e');
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -166,6 +176,7 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _lastError = null;
       final order = _pendingOrders.firstWhere((o) => o.id == orderId);
       if (repository != null) {
         await repository!.reject(orderId, reasons.map((r) => r.label).toList());
@@ -177,6 +188,9 @@ class DeliveryProvider extends ChangeNotifier {
       }
       _pendingOrders.removeWhere((o) => o.id == orderId);
     } catch (e) {
+      _lastError = 'Não foi possível rejeitar esta oferta.';
+      debugPrint('Erro ao rejeitar pedido: $e');
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -190,6 +204,7 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _lastError = null;
       if (repository != null) {
         _activeOrder = await repository!.activeOrder();
       } else {
@@ -197,7 +212,9 @@ class DeliveryProvider extends ChangeNotifier {
         _activeOrder!.step = DeliveryStep.delivering;
       }
     } catch (e) {
+      _lastError = 'Não foi possível confirmar a retirada.';
       debugPrint('Erro ao confirmar retirada: $e');
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -211,6 +228,7 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      _lastError = null;
       if (repository != null) {
         if (customerCode == null || customerCode.length != 6) {
           throw ArgumentError('Código do cliente obrigatório');
@@ -224,7 +242,9 @@ class DeliveryProvider extends ChangeNotifier {
       _pickupCode = null;
       stopLocationSharing();
     } catch (e) {
+      _lastError = 'Não foi possível concluir a entrega.';
       debugPrint('Erro ao confirmar entrega: $e');
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -432,7 +452,10 @@ class DeliveryProvider extends ChangeNotifier {
                 position.longitude,
                 accuracy: position.accuracy,
               )
-              .catchError((_) {});
+              .catchError((error) {
+                _lastError = 'Falha temporária ao enviar localização.';
+                debugPrint('Erro ao enviar localização: $error');
+              });
         });
     return true;
   }

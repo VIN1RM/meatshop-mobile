@@ -7,6 +7,7 @@ import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/chat_service.dart';
+import 'package:meatshop_mobile/data/repositories/realtime_repository.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -73,16 +74,18 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   }
 
   void _onContactTap(OrderModel order) async {
-    final service = ChatService();
-    await service.getOrCreateConversation(
-      currentUserId: _currentUserId,
-      currentUserName: _currentUserName,
-      currentUserType: ChatParticipantType.client,
-      otherUserId: order.deliveryPersonId ?? '',
-      otherUserName:
-          'Entregador #${order.deliveryPersonId?.substring(0, 8) ?? ''}',
-      otherUserType: ChatParticipantType.delivery,
-    );
+    final backend = context.read<BackendRealtimeAccess>();
+    if (!backend.enabled) {
+      final service = ChatService();
+      await service.getOrCreateConversation(
+        currentUserId: _currentUserId,
+        currentUserName: _currentUserName,
+        currentUserType: ChatParticipantType.client,
+        otherUserId: order.deliveryPersonId ?? '',
+        otherUserName: 'Entregador #${_shortId(order.deliveryPersonId)}',
+        otherUserType: ChatParticipantType.delivery,
+      );
+    }
 
     if (!mounted) return;
     Navigator.pushNamed(
@@ -93,12 +96,17 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         currentUserName: _currentUserName,
         currentUserType: ChatParticipantType.client,
         otherUserId: order.deliveryPersonId ?? '',
-        otherUserName:
-            'Entregador #${order.deliveryPersonId?.substring(0, 8) ?? ''}',
+        otherUserName: 'Entregador #${_shortId(order.deliveryPersonId)}',
         otherUserType: ChatParticipantType.delivery,
         otherUserPhoto: null,
+        orderId: int.tryParse(order.id),
       ),
     );
+  }
+
+  String _shortId(String? value) {
+    if (value == null || value.isEmpty) return '';
+    return value.length <= 8 ? value : value.substring(0, 8);
   }
 
   @override

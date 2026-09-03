@@ -8,8 +8,10 @@ import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 class VehicleProvider extends ChangeNotifier {
   VehicleProvider({this.repository});
   final DeliveryRepository? repository;
-  final _db = FirebaseFirestore.instance;
-  final _storage = FirebaseStorage.instance;
+  FirebaseFirestore? _db;
+  FirebaseStorage? _storage;
+  FirebaseFirestore get _firestore => _db ??= FirebaseFirestore.instance;
+  FirebaseStorage get _firebaseStorage => _storage ??= FirebaseStorage.instance;
 
   Map<String, dynamic> _vehicleInfo = {};
   Map<String, dynamic> get vehicleInfo => _vehicleInfo;
@@ -56,7 +58,7 @@ class VehicleProvider extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    final snap = await _db
+    final snap = await _firestore
         .collection('delivery_persons')
         .doc(uid)
         .collection('vehicles')
@@ -106,12 +108,32 @@ class VehicleProvider extends ChangeNotifier {
             ? await repository!.createVehicle(payload)
             : await repository!.updateVehicle(id, payload);
         final savedId = (saved['id'] as num).toInt();
+        final previousUrls = List<String>.from(
+          _vehicleInfo['photo_urls'] as List? ?? const [],
+        );
+        for (final url in previousUrls.where(
+          (url) => !keptUrls.contains(url),
+        )) {
+          await repository!.deleteVehiclePhoto(savedId, _fileName(url));
+        }
+        final uploadedUrls = <String>[];
+        for (final image in newImages) {
+          final name = image.uri.pathSegments.last;
+          uploadedUrls.add(
+            await repository!.uploadVehiclePhoto(
+              savedId,
+              bytes: await image.readAsBytes(),
+              fileName: name,
+              contentType: _contentType(name),
+            ),
+          );
+        }
         await repository!.activateVehicle(savedId);
         _vehicleDocId = '$savedId';
         _vehicleInfo = <String, dynamic>{
           ...saved,
           'is_active': true,
-          'photo_urls': keptUrls,
+          'photo_urls': [...keptUrls, ...uploadedUrls],
         };
         await loadVehicle(uid);
         return;
@@ -131,14 +153,14 @@ class VehicleProvider extends ChangeNotifier {
       };
 
       if (_vehicleDocId != null) {
-        await _db
+        await _firestore
             .collection('delivery_persons')
             .doc(uid)
             .collection('vehicles')
             .doc(_vehicleDocId)
             .update(payload);
       } else {
-        final ref = await _db
+        final ref = await _firestore
             .collection('delivery_persons')
             .doc(uid)
             .collection('vehicles')
@@ -159,7 +181,12 @@ class VehicleProvider extends ChangeNotifier {
     required String imageUrl,
   }) async {
     if (repository != null) {
-      final urls = List<String>.from(_vehicleInfo['photo_urls'] ?? const []);
+      final id = int.tryParse(_vehicleDocId ?? '');
+      if (id == null) return;
+      await repository!.deleteVehiclePhoto(id, _fileName(imageUrl));
+      final urls = List<String>.from(
+        _vehicleInfo['photo_urls'] as List? ?? const [],
+      );
       urls.remove(imageUrl);
       _vehicleInfo['photo_urls'] = urls;
       notifyListeners();
@@ -169,10 +196,10 @@ class VehicleProvider extends ChangeNotifier {
     urls.remove(imageUrl);
 
     try {
-      await _storage.refFromURL(imageUrl).delete();
+      await _firebaseStorage.refFromURL(imageUrl).delete();
     } catch (_) {}
 
-    await _db
+    await _firestore
         .collection('delivery_persons')
         .doc(uid)
         .collection('vehicles')
@@ -200,5 +227,19 @@ class VehicleProvider extends ChangeNotifier {
     }
     if (normalized.contains('CAR')) return 'CAR';
     return 'MOTORCYCLE';
+  }
+
+  String _fileName(String url) {
+    final segments = Uri.tryParse(url)?.pathSegments;
+    return segments != null && segments.isNotEmpty
+        ? segments.last
+        : url.split('/').last;
+  }
+
+  String _contentType(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    if (extension == 'png') return 'image/png';
+    if (extension == 'webp') return 'image/webp';
+    return 'image/jpeg';
   }
 }

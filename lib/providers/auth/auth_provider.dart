@@ -34,6 +34,7 @@ class AuthProvider extends ChangeNotifier {
       backendProfileCart: false,
       backendCheckout: false,
       backendDelivery: false,
+      backendRealtime: false,
     ),
   }) : _federatedAuth = federatedAuth,
        _delivery = delivery,
@@ -46,11 +47,13 @@ class AuthProvider extends ChangeNotifier {
   AppProfile? _appProfile;
   AppProfile? _activeProfile;
   String? _errorMessage;
+  int? _backendUserId;
 
   bool get isAuthenticated => _isAuthenticated;
   AppProfile? get appProfile => _appProfile;
   AppProfile? get activeProfile => _activeProfile;
   String? get errorMessage => _errorMessage;
+  int? get backendUserId => _backendUserId;
 
   bool get isClient => _activeProfile == AppProfile.client;
   bool get isDelivery => _activeProfile == AppProfile.delivery;
@@ -789,6 +792,7 @@ class AuthProvider extends ChangeNotifier {
     _appProfile = null;
     _activeProfile = null;
     _errorMessage = null;
+    _backendUserId = null;
     notifyListeners();
 
     if (context.mounted) {
@@ -985,6 +989,7 @@ class AuthProvider extends ChangeNotifier {
     BackendAuthUser user,
   ) async {
     _isAuthenticated = true;
+    _backendUserId = user.id;
     _appProfile = user.appProfile;
     _needsProfileCompletion = !user.profileComplete;
     notifyListeners();

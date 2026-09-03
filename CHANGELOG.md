@@ -15,6 +15,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Chat REST e Socket.IO sob `FEATURE_BACKEND_REALTIME`, com três canais por pedido, caixa de entrada, não lidas, leitura, digitação e reconciliação após reconexão.
+- Atualizações de status e localização da entrega por salas autorizadas do backend, eliminando polling no fluxo novo.
+- Distinção entre entregador autônomo ativo e entregador vinculado sujeito à aprovação da unidade.
+- Upload autenticado e validado de até quatro fotos por veículo.
 - Fluxo REST do entregador sob `FEATURE_BACKEND_DELIVERY`, cobrindo cadastro, aprovação, veículos, disponibilidade, ofertas, aceite/rejeição, entrega ativa, códigos, histórico, avaliações, ganhos e metas.
 - Persistência PostgreSQL de disponibilidade, rejeições individuais de ofertas e metas diária, semanal e mensal, com exclusão lógica de veículos.
 - Testes de contrato da Fase 6 para ofertas, disponibilidade e rejeição sem Firestore ou dados pessoais no payload.
@@ -45,6 +49,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Contas criadas pela unidade também são provisionadas no Firebase Authentication para acesso ao aplicativo com a mesma credencial.
+- Aceite e rejeição de ofertas agora validam vínculo, disponibilidade e estado atual de forma concorrente; consultas de itens foram consolidadas para evitar N+1.
 - Cadastro de entregador/veículo e operação diária passam a usar o backend quando a flag da Fase 6 está ativa, preservando o fluxo legado com a flag desligada.
 - Ganhos passam a ser derivados de pedidos efetivamente entregues, eliminando lançamento operacional duplicado pelo aplicativo.
 - Revisão do pedido passa a usar preços, descontos, cupons e frete calculados pelo servidor quando a Fase 5 está ativa.
@@ -61,6 +67,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- Salas de chat e tracking revalidam usuário ativo e participação no pedido; token em query string deixou de ser aceito e eventos abusivos são limitados.
 - Ofertas são visíveis apenas para entregadores vinculados à unidade e não expõem endereço exato ou coordenadas do cliente antes do aceite.
 - Disponibilidade exige aprovação e veículo ativo; atualização de localização é limitada à entrega atribuída, com frequência mínima, precisão opcional e retenção de 30 dias.
 - Criação de pedidos exige UUID v4 idempotente; estoque e cancelamento são protegidos por transações e bloqueios PostgreSQL.

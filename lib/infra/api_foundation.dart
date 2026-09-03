@@ -23,6 +23,9 @@ import 'repositories/http_order_repository.dart';
 import 'repositories/http_payment_repository.dart';
 import '../data/repositories/delivery_repository.dart';
 import 'repositories/http_delivery_repository.dart';
+import '../data/repositories/chat_repository.dart';
+import 'repositories/http_chat_repository.dart';
+import 'realtime/backend_realtime_client.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -37,6 +40,8 @@ final class ApiFoundation {
     required this.orders,
     required this.payments,
     required this.delivery,
+    required this.chat,
+    required this.realtime,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -62,7 +67,9 @@ final class ApiFoundation {
       cart: HttpCartRepository(client),
       orders: HttpOrderRepository(client),
       payments: HttpPaymentRepository(client),
-      delivery: HttpDeliveryRepository(client),
+      delivery: HttpDeliveryRepository(client, config),
+      chat: HttpChatRepository(client),
+      realtime: BackendRealtimeClient(config: config, session: session),
     );
   }
 
@@ -77,8 +84,13 @@ final class ApiFoundation {
   final OrderRepository orders;
   final PaymentRepository payments;
   final DeliveryRepository delivery;
+  final ChatRepository chat;
+  final BackendRealtimeClient realtime;
 
   Future<void> initialize() => session.initialize();
 
-  void dispose() => _transport.close();
+  void dispose() {
+    realtime.dispose();
+    _transport.close();
+  }
 }

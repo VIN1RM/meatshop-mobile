@@ -68,6 +68,7 @@ final class ApiClient {
     Object? body,
     bool authenticated = true,
     CancellationToken? cancellationToken,
+    Map<String, Object?> query = const {},
   }) => _request(
     method: 'PATCH',
     path: path,
@@ -75,6 +76,7 @@ final class ApiClient {
     body: body,
     authenticated: authenticated,
     cancellationToken: cancellationToken,
+    query: query,
   );
 
   Future<T> delete<T>(

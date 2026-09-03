@@ -1,17 +1,31 @@
+import 'dart:typed_data';
+
 import '../../core/network/api_failure.dart';
 import '../../data/repositories/delivery_repository.dart';
 import '../../models/delivery_earnings_model.dart';
 import '../../models/delivery_goal_model.dart';
 import '../../models/delivery_order_model.dart';
 import '../http/api_client.dart';
+import '../../core/config/api_config.dart';
 
 final class HttpDeliveryRepository implements DeliveryRepository {
-  HttpDeliveryRepository(this._client);
+  HttpDeliveryRepository(this._client, [this._config]);
   final ApiClient _client;
+  final ApiConfig? _config;
 
   @override
-  Future<Map<String, Object?>> profile() =>
-      _client.get('/delivery/me', decode: _map);
+  Future<Map<String, Object?>> profile() => _client.get(
+    '/delivery/me',
+    decode: (value) {
+      final data = _map(value);
+      final vehicles = data['vehicles'];
+      return {
+        ...data,
+        if (vehicles is List<Object?>)
+          'vehicles': vehicles.map((item) => _vehicle(_map(item))).toList(),
+      };
+    },
+  );
   @override
   Future<Map<String, Object?>> register(String vehicle) => _client.post(
     '/delivery/register',
@@ -27,7 +41,8 @@ final class HttpDeliveryRepository implements DeliveryRepository {
   @override
   Future<List<Map<String, Object?>>> vehicles() => _client.get(
     '/delivery/me/vehicles',
-    decode: (value) => _list(value).map(_map).toList(),
+    decode: (value) =>
+        _list(value).map((item) => _vehicle(_map(item))).toList(),
   );
   @override
   Future<Map<String, Object?>> createVehicle(Map<String, Object?> data) =>
@@ -43,6 +58,28 @@ final class HttpDeliveryRepository implements DeliveryRepository {
   @override
   Future<void> deleteVehicle(int id) =>
       _client.delete('/delivery/me/vehicles/$id', decode: (_) {});
+  @override
+  Future<String> uploadVehiclePhoto(
+    int id, {
+    required Uint8List bytes,
+    required String fileName,
+    required String contentType,
+  }) => _client.postMultipart(
+    '/delivery/me/vehicles/$id/photos',
+    bytes: bytes,
+    fileName: fileName,
+    contentType: contentType,
+    decode: (value) {
+      final url = _map(value)['url'];
+      if (url is! String || url.isEmpty) throw _malformed();
+      return _config?.resolveAsset(url) ?? url;
+    },
+  );
+  @override
+  Future<void> deleteVehiclePhoto(int id, String fileName) => _client.delete(
+    '/delivery/me/vehicles/$id/photos/${Uri.encodeComponent(fileName)}',
+    decode: (_) {},
+  );
   @override
   Future<List<DeliveryOrder>> availableOrders() =>
       _orders('/delivery/me/orders/available');
@@ -86,8 +123,24 @@ final class HttpDeliveryRepository implements DeliveryRepository {
     double? accuracy,
   }) => _client.post(
     '/delivery/orders/$orderId/location',
-    body: {'latitude': latitude, 'longitude': longitude, ?'accuracy': accuracy},
+    body: _locationBody(latitude, longitude, accuracy),
     decode: (_) {},
+  );
+  @override
+  Future<DeliveryTrackingPoint?> latestTracking(int orderId) => _client.get(
+    '/delivery/orders/$orderId/tracking',
+    decode: (value) {
+      final points = _list(value);
+      if (points.isEmpty) return null;
+      final point = _map(points.first);
+      return DeliveryTrackingPoint(
+        orderId: (point['order_id'] as num).toInt(),
+        latitude: _number(point['latitude']),
+        longitude: _number(point['longitude']),
+        accuracy: point['accuracy'] == null ? null : _number(point['accuracy']),
+        recordedAt: DateTime.parse(point['created_at'] as String),
+      );
+    },
   );
   @override
   Future<List<DeliveryEarningModel>> earnings() => _client.get(
@@ -126,6 +179,37 @@ final class HttpDeliveryRepository implements DeliveryRepository {
       value is Map<String, Object?> ? value : throw _malformed();
   static List<Object?> _list(Object? value) =>
       value is List<Object?> ? value : throw _malformed();
+  static double _number(Object? value) {
+    if (value is num) return value.toDouble();
+    if (value is String) return double.parse(value);
+    throw _malformed();
+  }
+
+  Map<String, Object?> _vehicle(Map<String, Object?> value) {
+    final photos = value['photo_urls'];
+    return {
+      ...value,
+      if (photos is List<Object?>)
+        'photo_urls': photos
+            .whereType<String>()
+            .map((url) => _config?.resolveAsset(url) ?? url)
+            .toList(growable: false),
+    };
+  }
+
+  static Map<String, Object?> _locationBody(
+    double latitude,
+    double longitude,
+    double? accuracy,
+  ) {
+    final body = <String, Object?>{
+      'latitude': latitude,
+      'longitude': longitude,
+    };
+    if (accuracy != null) body['accuracy'] = accuracy;
+    return body;
+  }
+
   static ApiFailure _malformed() => ApiFailure(
     kind: ApiFailureKind.malformedResponse,
     message: 'O servidor retornou dados de entrega inválidos.',

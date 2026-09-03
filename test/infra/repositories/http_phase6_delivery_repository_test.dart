@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -82,6 +83,60 @@ void main() {
       expect(call, 2);
     },
   );
+
+  test(
+    'envia foto do veículo e resolve a URL retornada pelo backend',
+    () async {
+      final repository = HttpDeliveryRepository(
+        _client(
+          MockClient((request) async {
+            expect(request.method, 'POST');
+            expect(request.url.path, '/delivery/me/vehicles/4/photos');
+            expect(request.headers['authorization'], 'Bearer access');
+            expect(
+              request.headers['content-type'],
+              contains('multipart/form-data'),
+            );
+            expect(request.bodyBytes, containsAllInOrder([0xff, 0xd8, 0xff]));
+            return _json({'url': '/uploads/vehicles/photo.jpg'});
+          }),
+        ),
+        _config,
+      );
+
+      final url = await repository.uploadVehiclePhoto(
+        4,
+        bytes: Uint8List.fromList([0xff, 0xd8, 0xff]),
+        fileName: 'vehicle.jpg',
+        contentType: 'image/jpeg',
+      );
+
+      expect(url, 'http://localhost:3001/uploads/vehicles/photo.jpg');
+    },
+  );
+
+  test('reconcilia a última localização autorizada via REST', () async {
+    final repository = HttpDeliveryRepository(
+      _client(
+        MockClient((request) async {
+          expect(request.url.path, '/delivery/orders/42/tracking');
+          return _json([
+            {
+              'order_id': 42,
+              'latitude': '-16.3285000',
+              'longitude': '-48.9534000',
+              'accuracy': '8.25',
+              'created_at': '2026-09-03T12:00:00.000Z',
+            },
+          ]);
+        }),
+      ),
+    );
+
+    final point = await repository.latestTracking(42);
+    expect(point?.latitude, -16.3285);
+    expect(point?.accuracy, 8.25);
+  });
 }
 
 const _order = <String, Object?>{

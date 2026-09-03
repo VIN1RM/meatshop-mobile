@@ -9,20 +9,24 @@ import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/services/cart_service.dart';
 import 'package:meatshop_mobile/services/order_service.dart';
+import 'package:meatshop_mobile/data/repositories/realtime_repository.dart';
 
 class OrderProvider extends ChangeNotifier {
   OrderProvider({
     OrderRepository? repository,
     OrderService? service,
     CartService? cartService,
+    RealtimeRepository? realtime,
   }) : _repository = repository,
        _service = service ?? (repository == null ? OrderService() : null),
        _cartService =
-           cartService ?? (repository == null ? CartService() : null);
+           cartService ?? (repository == null ? CartService() : null),
+       _realtime = realtime;
 
   final OrderRepository? _repository;
   final OrderService? _service;
   final CartService? _cartService;
+  final RealtimeRepository? _realtime;
 
   bool _isLoading = false;
   String? _error;
@@ -93,6 +97,7 @@ class OrderProvider extends ChangeNotifier {
   Stream<List<OrderModel>> activeOrdersStream() {
     final repository = _repository;
     if (repository == null) return _service!.activeOrdersStream();
+    if (_realtime != null) return _realtimeOrders(repository, active: true);
     return _poll(repository).map(
       (orders) => orders
           .where(
@@ -105,6 +110,7 @@ class OrderProvider extends ChangeNotifier {
   Stream<List<OrderModel>> finishedOrdersStream() {
     final repository = _repository;
     if (repository == null) return _service!.finishedOrdersStream();
+    if (_realtime != null) return _realtimeOrders(repository, active: false);
     final since = DateTime.now().subtract(const Duration(days: 90));
     return _poll(repository).map(
       (orders) => orders
@@ -138,6 +144,70 @@ class OrderProvider extends ChangeNotifier {
     await for (final _ in Stream<void>.periodic(const Duration(seconds: 10))) {
       yield await repository.list();
     }
+  }
+
+  Stream<List<OrderModel>> _realtimeOrders(
+    OrderRepository repository, {
+    required bool active,
+  }) {
+    late StreamController<List<OrderModel>> controller;
+    StreamSubscription<Map<String, Object?>>? statusSubscription;
+    StreamSubscription<RealtimeConnectionState>? connectionSubscription;
+    final subscribedOrderIds = <int>{};
+
+    Future<void> refresh() async {
+      try {
+        final orders = await repository.list();
+        final activeOrders = orders
+            .where(
+              (order) =>
+                  !const {'DELIVERED', 'CANCELLED'}.contains(order.status),
+            )
+            .toList(growable: false);
+        for (final order in activeOrders) {
+          final orderId = int.tryParse(order.id);
+          if (orderId != null && subscribedOrderIds.add(orderId)) {
+            await _realtime!.subscribeDelivery(orderId);
+          }
+        }
+        if (active) {
+          controller.add(activeOrders);
+        } else {
+          final since = DateTime.now().subtract(const Duration(days: 90));
+          controller.add(
+            orders
+                .where(
+                  (order) =>
+                      const {'DELIVERED', 'CANCELLED'}.contains(order.status) &&
+                      (order.orderDate?.isAfter(since) ?? false),
+                )
+                .toList(growable: false),
+          );
+        }
+      } catch (error, stackTrace) {
+        controller.addError(error, stackTrace);
+      }
+    }
+
+    controller = StreamController<List<OrderModel>>(
+      onListen: () {
+        refresh();
+        _realtime!.connect();
+        statusSubscription = _realtime.statuses.listen((_) => refresh());
+        connectionSubscription = _realtime.connection.listen((state) {
+          if (state == RealtimeConnectionState.connected) refresh();
+        });
+      },
+      onCancel: () async {
+        await statusSubscription?.cancel();
+        await connectionSubscription?.cancel();
+        for (final orderId in subscribedOrderIds) {
+          _realtime!.unsubscribeDelivery(orderId);
+        }
+        subscribedOrderIds.clear();
+      },
+    );
+    return controller.stream;
   }
 
   bool _isOnlinePayment(String method) =>

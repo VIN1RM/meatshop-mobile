@@ -8,6 +8,10 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Entregador Autônomo ou da Unidade:** Quem se cadastra pelo app pode trabalhar como autônomo, enquanto contas criadas pelo açougue continuam sob aprovação da unidade.
+- **Chat em Tempo Real:** Cliente, açougue e entregador conversam nos canais corretos de cada pedido, com mensagens não lidas, confirmação de leitura e indicação de digitação.
+- **Atualizações ao Vivo:** Mudanças da entrega chegam imediatamente e o aplicativo recupera o estado correto depois de uma oscilação de internet.
+- **Fotos do Veículo:** O entregador pode manter fotos reais do veículo no cadastro integrado.
 - **Área do Entregador Integrada:** Cadastro, aprovação, veículos, disponibilidade, ofertas, entregas, histórico, avaliações, ganhos e metas agora podem acompanhar o sistema oficial do MeatShop.
 - **Códigos Protegidos na Entrega:** O entregador apresenta o código de retirada à unidade e conclui a entrega somente com o código informado pelo cliente.
 - **Mais Privacidade nas Ofertas:** O endereço exato do cliente só fica disponível depois que o entregador aceita a entrega.

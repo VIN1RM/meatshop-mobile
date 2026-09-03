@@ -7,6 +7,8 @@ import 'package:meatshop_mobile/services/chat_service.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/data/repositories/realtime_repository.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -36,8 +38,16 @@ class _ChatScreenState extends State<ChatScreen> {
     if (args is! ChatArgs) return;
 
     _args = args;
+    final backend = context.read<BackendRealtimeAccess>();
+    final auth = context.read<AuthProvider>();
     _chatProvider = ChatProvider(
-      service: ChatService(),
+      service: backend.enabled ? null : ChatService(),
+      repository: backend.chat,
+      realtime: backend.realtime,
+      backendUserId: auth.backendUserId,
+      orderId: args.orderId,
+      channel: args.channel,
+      closed: args.closed,
       currentUserId: args.currentUserId,
       currentUserName: args.currentUserName,
       currentUserType: args.currentUserType,
@@ -58,10 +68,19 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _send() {
+  Future<void> _send() async {
     final text = _messageController.text;
-    _messageController.clear();
-    _chatProvider?.sendMessage(text).then((_) => _scrollToBottom());
+    try {
+      await _chatProvider?.sendMessage(text);
+      _messageController.clear();
+      _chatProvider?.setTyping(false);
+      _scrollToBottom();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Não foi possível enviar a mensagem.')),
+      );
+    }
   }
 
   void _scrollToBottom() {
@@ -100,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Image.asset(
                   'assets/images/background.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (_, _, _) =>
                       Container(color: const Color(0xFF1A1A1A)),
                 ),
               ),
@@ -166,7 +185,21 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          Consumer<ChatProvider>(
+            builder: (_, provider, _) => SizedBox(
+              height: 20,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: provider.otherTyping
+                    ? Text(
+                        'digitando...',
+                        key: const ValueKey('typing'),
+                        style: TextStyle(fontSize: 12, color: accentColor),
+                      )
+                    : const SizedBox(key: ValueKey('idle')),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -177,16 +210,14 @@ class _ChatScreenState extends State<ChatScreen> {
       return Image.asset(
         args.logoAsset!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            _fallbackAvatar(args.otherUserType, accent),
+        errorBuilder: (_, _, _) => _fallbackAvatar(args.otherUserType, accent),
       );
     }
     if (args.otherUserPhoto != null) {
       return Image.network(
         args.otherUserPhoto!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            _fallbackAvatar(args.otherUserType, accent),
+        errorBuilder: (_, _, _) => _fallbackAvatar(args.otherUserType, accent),
       );
     }
     return _fallbackAvatar(args.otherUserType, accent);
@@ -299,13 +330,18 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           child: Row(
             children: [
-              GestureDetector(
-                onTap: _showAttachmentOptions,
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: Icon(Icons.attach_file_rounded, color: _red, size: 26),
+              if (!provider.backendEnabled)
+                GestureDetector(
+                  onTap: _showAttachmentOptions,
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: Icon(
+                      Icons.attach_file_rounded,
+                      color: _red,
+                      size: 26,
+                    ),
+                  ),
                 ),
-              ),
               Expanded(
                 child: Container(
                   height: 44,
@@ -317,9 +353,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: TextField(
                     controller: _messageController,
                     style: const TextStyle(fontSize: 14, color: Colors.black87),
-                    decoration: const InputDecoration(
-                      hintText: 'Mensagem...',
-                      hintStyle: TextStyle(
+                    decoration: InputDecoration(
+                      hintText: provider.closed
+                          ? 'Conversa encerrada'
+                          : 'Mensagem...',
+                      hintStyle: const TextStyle(
                         color: Color(0xFFAAAAAA),
                         fontSize: 14,
                       ),
@@ -329,18 +367,23 @@ class _ChatScreenState extends State<ChatScreen> {
                         vertical: 12,
                       ),
                     ),
+                    onChanged: (value) =>
+                        provider.setTyping(value.trim().isNotEmpty),
                     onSubmitted: (_) => _send(),
+                    enabled: !provider.closed,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: provider.sending ? null : _send,
+                onTap: provider.sending || provider.closed ? null : _send,
                 child: Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: provider.sending ? const Color(0xFFAAAAAA) : _red,
+                    color: provider.sending || provider.closed
+                        ? const Color(0xFFAAAAAA)
+                        : _red,
                     shape: BoxShape.circle,
                   ),
                   child: provider.sending

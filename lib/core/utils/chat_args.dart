@@ -2,6 +2,9 @@ import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 
 class ChatArgs {
   final String conversationId;
+  final int? orderId;
+  final ChatChannel channel;
+  final bool closed;
 
   final String currentUserId;
   final String currentUserName;
@@ -25,7 +28,13 @@ class ChatArgs {
     this.currentUserPhoto,
     this.otherUserPhoto,
     this.logoAsset,
-  }) : conversationId = _buildId(currentUserId, otherUserId);
+    this.orderId,
+    ChatChannel? channel,
+    this.closed = false,
+  }) : channel = channel ?? ChatChannel.between(currentUserType, otherUserType),
+       conversationId = orderId == null
+           ? _buildId(currentUserId, otherUserId)
+           : '$orderId:${(channel ?? ChatChannel.between(currentUserType, otherUserType)).apiValue}';
 
   static String _buildId(String a, String b) {
     final sorted = [a, b]..sort();
