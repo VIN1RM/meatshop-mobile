@@ -121,7 +121,37 @@ class DeliveriesTab extends StatelessWidget {
               return OrderCardWidget(
                 order: order,
                 isLoading: provider.isLoading,
-                onAccept: () => provider.acceptOrder(order),
+                onAccept: () async {
+                  await provider.acceptOrder(order);
+                  if (!context.mounted ||
+                      provider.repository == null ||
+                      !provider.hasActiveOrder) {
+                    return;
+                  }
+                  final consent = await showDialog<bool>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (dialogContext) => AlertDialog(
+                      title: const Text('Compartilhar localização?'),
+                      content: const Text(
+                        'Durante esta entrega, sua localização precisa poderá ser acompanhada pelo cliente e pela unidade. O envio termina ao concluir ou sair da entrega.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, false),
+                          child: const Text('Agora não'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(dialogContext, true),
+                          child: const Text('Permitir durante a entrega'),
+                        ),
+                      ],
+                    ),
+                  );
+                  await provider.startLocationSharing(
+                    consent: consent ?? false,
+                  );
+                },
                 onReject: () async {
                   final reasons = await RejectOrderDialog.show(context);
                   if (reasons != null && reasons.isNotEmpty) {

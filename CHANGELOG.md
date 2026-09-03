@@ -15,6 +15,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Fluxo REST do entregador sob `FEATURE_BACKEND_DELIVERY`, cobrindo cadastro, aprovação, veículos, disponibilidade, ofertas, aceite/rejeição, entrega ativa, códigos, histórico, avaliações, ganhos e metas.
+- Persistência PostgreSQL de disponibilidade, rejeições individuais de ofertas e metas diária, semanal e mensal, com exclusão lógica de veículos.
+- Testes de contrato da Fase 6 para ofertas, disponibilidade e rejeição sem Firestore ou dados pessoais no payload.
 - Checkout HTTP completo sob `FEATURE_BACKEND_CHECKOUT`, com cotação autoritativa, criação multiunidade, histórico, detalhe, cancelamento, agendamento e recompra.
 - Repositórios de pedidos e pagamentos com `Idempotency-Key`, checkout agregado do Mercado Pago e métodos de pagamento tokenizados.
 - Testes de contrato da Fase 5 para checkout com duas unidades, repetição idempotente, pagamento por lote e metadados seguros de cartão.
@@ -42,6 +45,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Cadastro de entregador/veículo e operação diária passam a usar o backend quando a flag da Fase 6 está ativa, preservando o fluxo legado com a flag desligada.
+- Ganhos passam a ser derivados de pedidos efetivamente entregues, eliminando lançamento operacional duplicado pelo aplicativo.
 - Revisão do pedido passa a usar preços, descontos, cupons e frete calculados pelo servidor quando a Fase 5 está ativa.
 - Histórico, rastreamento e recompra do cliente passam a consumir o PostgreSQL por meio da API, sem escrita dupla no Firestore.
 - Pagamentos online abrem uma única preferência Mercado Pago para todos os pedidos do mesmo checkout.
@@ -56,6 +61,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- Ofertas são visíveis apenas para entregadores vinculados à unidade e não expõem endereço exato ou coordenadas do cliente antes do aceite.
+- Disponibilidade exige aprovação e veículo ativo; atualização de localização é limitada à entrega atribuída, com frequência mínima, precisão opcional e retenção de 30 dias.
 - Criação de pedidos exige UUID v4 idempotente; estoque e cancelamento são protegidos por transações e bloqueios PostgreSQL.
 - Webhook Mercado Pago valida assinatura, tolerância temporal, consulta oficial, moeda e valor antes de confirmar pagamentos.
 - Código de entrega é exibido somente ao cliente proprietário, preservado criptografado e verificado por hash.

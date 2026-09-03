@@ -3,13 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 import 'package:meatshop_mobile/models/delivery_goal_model.dart';
 import 'package:meatshop_mobile/services/delivery_earnings_service.dart';
+import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class DeliveryEarningsProvider extends ChangeNotifier {
   final String deliveryPersonId;
 
-  DeliveryEarningsProvider({required this.deliveryPersonId}) {
+  DeliveryEarningsProvider({required this.deliveryPersonId, this.repository}) {
     _init();
   }
+  final DeliveryRepository? repository;
 
   List<DeliveryEarningModel> _earnings = [];
   List<DeliveryGoalModel> _goals = [];
@@ -74,6 +76,13 @@ class DeliveryEarningsProvider extends ChangeNotifier {
     DeliveryGoalModel goal,
     double newTarget,
   ) async {
+    if (repository != null) {
+      final updated = await repository!.updateGoal(goal.period, newTarget);
+      final index = _goals.indexWhere((item) => item.period == goal.period);
+      if (index >= 0) _goals[index] = updated;
+      notifyListeners();
+      return;
+    }
     await DeliveryEarningsService.instance.updateGoalTarget(
       deliveryPersonId: deliveryPersonId,
       goalId: goal.id,
@@ -82,6 +91,21 @@ class DeliveryEarningsProvider extends ChangeNotifier {
   }
 
   Future<void> _init() async {
+    if (repository != null) {
+      try {
+        final values = await Future.wait([
+          repository!.earnings(),
+          repository!.goals(),
+        ]);
+        _earnings = values[0] as List<DeliveryEarningModel>;
+        _goals = values[1] as List<DeliveryGoalModel>;
+      } finally {
+        _loadingEarnings = false;
+        _loadingGoals = false;
+        notifyListeners();
+      }
+      return;
+    }
     await DeliveryEarningsService.instance.ensureDefaultGoals(deliveryPersonId);
 
     _earningsSub = DeliveryEarningsService.instance

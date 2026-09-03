@@ -37,6 +37,14 @@ class DeliveryGoalModel {
     );
   }
 
+  factory DeliveryGoalModel.fromApi(Map<String, Object?> data) =>
+      DeliveryGoalModel(
+        id: '${data['id'] ?? ''}',
+        deliveryPersonId: '${data['delivery_person_id'] ?? ''}',
+        period: _parsePeriod('${data['period'] ?? 'daily'}'),
+        target: (data['target'] as num?)?.toDouble() ?? 0,
+      );
+
   Map<String, dynamic> toMap() => {
     'delivery_person_id': deliveryPersonId,
     'period': periodKey,

@@ -22,20 +22,25 @@ import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:meatshop_mobile/core/config/feature_flags.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/data/repositories/federated_auth_repository.dart';
+import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
   AuthProvider({
     FederatedAuthRepository? federatedAuth,
+    DeliveryRepository? delivery,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
       backendProfileCart: false,
       backendCheckout: false,
+      backendDelivery: false,
     ),
   }) : _federatedAuth = federatedAuth,
+       _delivery = delivery,
        _flags = flags;
 
   final FederatedAuthRepository? _federatedAuth;
+  final DeliveryRepository? _delivery;
   final FeatureFlags _flags;
   bool _isAuthenticated = false;
   AppProfile? _appProfile;
@@ -890,11 +895,27 @@ class AuthProvider extends ChangeNotifier {
       if ((profile == AppProfile.delivery || profile == AppProfile.both) &&
           vehicleType != null &&
           vehicleData != null) {
-        await AuthService.instance.addVehicleForDeliveryPerson(
-          uid: firebaseUser.uid,
-          vehicleType: vehicleType,
-          vehicleData: vehicleData,
-        );
+        if (_flags.backendDelivery && _delivery != null) {
+          final type = _backendVehicleType(vehicleType);
+          await _delivery.register(type == 'SCOOTER' ? 'MOTORCYCLE' : type);
+          await _delivery.createVehicle({
+            'type': type,
+            'model': '${vehicleData['model'] ?? ''}',
+            'plate': '${vehicleData['plate'] ?? ''}'
+                .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+                .toUpperCase(),
+            'color': '${vehicleData['color'] ?? ''}',
+            'year':
+                int.tryParse('${vehicleData['year'] ?? ''}') ??
+                DateTime.now().year,
+          });
+        } else {
+          await AuthService.instance.addVehicleForDeliveryPerson(
+            uid: firebaseUser.uid,
+            vehicleType: vehicleType,
+            vehicleData: vehicleData,
+          );
+        }
       }
     } catch (_) {
       try {
@@ -918,6 +939,16 @@ class AuthProvider extends ChangeNotifier {
       );
     }
     return true;
+  }
+
+  String _backendVehicleType(String value) {
+    final normalized = value.toUpperCase();
+    if (normalized.contains('BIKE') || normalized.contains('BICI')) {
+      return 'BIKE';
+    }
+    if (normalized.contains('CAR')) return 'CAR';
+    if (normalized.contains('SCOOTER')) return 'SCOOTER';
+    return 'MOTORCYCLE';
   }
 
   Future<void> _finishBackendLogin(

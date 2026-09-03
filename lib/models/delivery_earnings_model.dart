@@ -29,6 +29,17 @@ class DeliveryEarningModel {
     );
   }
 
+  factory DeliveryEarningModel.fromApi(Map<String, Object?> data) =>
+      DeliveryEarningModel(
+        id: '${data['id'] ?? ''}',
+        deliveryPersonId: '${data['delivery_person_id'] ?? ''}',
+        orderId: '${data['order_id'] ?? ''}',
+        label: '${data['label'] ?? 'Entrega'}',
+        amount: (data['amount'] as num?)?.toDouble() ?? 0,
+        createdAt:
+            DateTime.tryParse('${data['created_at'] ?? ''}') ?? DateTime.now(),
+      );
+
   Map<String, dynamic> toMap() => {
     'delivery_person_id': deliveryPersonId,
     'order_id': orderId,

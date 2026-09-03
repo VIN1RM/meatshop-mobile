@@ -1,25 +1,30 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/core/enums/chat_enums.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
-import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/delivery_order_service.dart';
 import 'package:meatshop_mobile/services/delivery_rating_service.dart';
+import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class DeliveryProvider extends ChangeNotifier {
+  DeliveryProvider({this.repository});
+  final DeliveryRepository? repository;
   final DeliveryOrderService _orderService = DeliveryOrderService();
   final DeliveryRatingService _ratingService = DeliveryRatingService.instance;
 
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
   DeliveryOrder? _activeOrder;
   bool _isLoading = false;
+  String? _pickupCode;
   Map<String, String> _vehicleInfo = {};
   String? _deliveryPersonUid;
+  int? _deliveryPersonId;
   StreamSubscription<List<DeliveryOrder>>? _ordersSubscription;
   StreamSubscription<double>? _ratingSubscription;
+  StreamSubscription<Position>? _locationSubscription;
 
   final List<DeliveryOrder> _pendingOrders = [];
   final List<DeliveryOrder> _historyOrders = [];
@@ -36,6 +41,7 @@ class DeliveryProvider extends ChangeNotifier {
   DeliveryOrder? get activeOrder => _activeOrder;
   bool get hasActiveOrder => _activeOrder != null;
   bool get isLoading => _isLoading;
+  String? get pickupCode => _pickupCode;
   List<DeliveryOrder> get pendingOrders => List.unmodifiable(_pendingOrders);
   List<DeliveryOrder> get historyOrders => List.unmodifiable(_historyOrders);
   bool get isLoadingHistory => _isLoadingHistory;
@@ -51,6 +57,10 @@ class DeliveryProvider extends ChangeNotifier {
 
   void startListeningOrders(String uid) {
     _deliveryPersonUid = uid;
+    if (repository != null) {
+      _refreshBackendState();
+      return;
+    }
     _ordersSubscription?.cancel();
     _ordersSubscription = _orderService.watchAvailableOrders(uid).listen((
       orders,
@@ -86,9 +96,15 @@ class DeliveryProvider extends ChangeNotifier {
     _ordersSubscription = null;
     _ratingSubscription?.cancel();
     _ratingSubscription = null;
+    stopLocationSharing();
   }
 
   Future<void> _restoreActiveOrder(String uid) async {
+    if (repository != null) {
+      _activeOrder = await repository!.activeOrder();
+      notifyListeners();
+      return;
+    }
     final order = await _orderService.fetchActiveOrder(uid);
     if (order != null) {
       _activeOrder = order;
@@ -99,9 +115,20 @@ class DeliveryProvider extends ChangeNotifier {
   void toggleOnline() => toggleAvailability();
 
   void toggleAvailability() {
-    _availability = isAvailable
+    final next = isAvailable
         ? DeliveryAvailability.unavailable
         : DeliveryAvailability.available;
+    if (repository != null) {
+      repository!
+          .setAvailability(next == DeliveryAvailability.available)
+          .then((_) {
+            _availability = next;
+            notifyListeners();
+          })
+          .catchError((_) {});
+      return;
+    }
+    _availability = next;
     notifyListeners();
   }
 
@@ -110,12 +137,16 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _orderService.acceptOrder(
-        firestoreId: order.firestoreId,
-        deliveryPersonId: _deliveryPersonUid ?? '',
-      );
+      if (repository != null) {
+        _pickupCode = await repository!.accept(order.id);
+      } else {
+        await _orderService.acceptOrder(
+          firestoreId: order.firestoreId,
+          deliveryPersonId: _deliveryPersonUid ?? '',
+        );
+      }
 
-      _pendingOrders.removeWhere((o) => o.firestoreId == order.firestoreId);
+      _pendingOrders.removeWhere((o) => o.id == order.id);
       order.status = DeliveryOrderStatus.onTheWay;
       order.step = DeliveryStep.pickup;
       _activeOrder = order;
@@ -136,10 +167,14 @@ class DeliveryProvider extends ChangeNotifier {
 
     try {
       final order = _pendingOrders.firstWhere((o) => o.id == orderId);
-      await _orderService.rejectOrder(
-        firestoreId: order.firestoreId,
-        reasons: reasons.map((r) => r.label).toList(),
-      );
+      if (repository != null) {
+        await repository!.reject(orderId, reasons.map((r) => r.label).toList());
+      } else {
+        await _orderService.rejectOrder(
+          firestoreId: order.firestoreId,
+          reasons: reasons.map((r) => r.label).toList(),
+        );
+      }
       _pendingOrders.removeWhere((o) => o.id == orderId);
     } catch (e) {
     } finally {
@@ -155,8 +190,12 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _orderService.confirmPickup(_activeOrder!.firestoreId);
-      _activeOrder!.step = DeliveryStep.delivering;
+      if (repository != null) {
+        _activeOrder = await repository!.activeOrder();
+      } else {
+        await _orderService.confirmPickup(_activeOrder!.firestoreId);
+        _activeOrder!.step = DeliveryStep.delivering;
+      }
     } catch (e) {
       debugPrint('Erro ao confirmar retirada: $e');
     } finally {
@@ -165,16 +204,25 @@ class DeliveryProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> confirmDelivery() async {
+  Future<void> confirmDelivery([String? customerCode]) async {
     if (_activeOrder == null) return;
 
     _isLoading = true;
     notifyListeners();
 
     try {
-      await _orderService.confirmDelivery(_activeOrder!.firestoreId);
+      if (repository != null) {
+        if (customerCode == null || customerCode.length != 6) {
+          throw ArgumentError('Código do cliente obrigatório');
+        }
+        await repository!.finish(_activeOrder!.id, customerCode);
+      } else {
+        await _orderService.confirmDelivery(_activeOrder!.firestoreId);
+      }
       _activeOrder!.status = DeliveryOrderStatus.delivered;
       _activeOrder = null;
+      _pickupCode = null;
+      stopLocationSharing();
     } catch (e) {
       debugPrint('Erro ao confirmar entrega: $e');
     } finally {
@@ -184,6 +232,29 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   Future<void> loadVehicle(String uid) async {
+    if (repository != null) {
+      final data = await repository!.profile();
+      final vehicles = data['vehicles'] as List? ?? const [];
+      final active = vehicles.cast<Map>().where(
+        (item) => item['is_active'] == true,
+      );
+      final vehicle = active.isEmpty ? null : active.first;
+      _vehicleInfo = {
+        'name': '${data['name'] ?? 'Entregador'}',
+        'type': '${vehicle?['type'] ?? data['vehicle'] ?? ''}',
+        'model': '${vehicle?['model'] ?? ''}',
+        'plate': '${vehicle?['plate'] ?? ''}',
+        'color': '${vehicle?['color'] ?? ''}',
+        'year': '${vehicle?['year'] ?? ''}',
+      };
+      _averageRating = (data['average_rating'] as num?)?.toDouble() ?? 0;
+      _deliveryPersonId = (data['id'] as num?)?.toInt();
+      _availability = data['is_online'] == true
+          ? DeliveryAvailability.available
+          : DeliveryAvailability.unavailable;
+      notifyListeners();
+      return;
+    }
     final snap = await FirebaseFirestore.instance
         .collection('delivery_persons')
         .doc(uid)
@@ -209,6 +280,7 @@ class DeliveryProvider extends ChangeNotifier {
     stopListeningOrders();
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
+    _pickupCode = null;
     _deliveryPersonUid = null;
     _averageRating = 0.0;
     _reviewCount = 0;
@@ -223,6 +295,7 @@ class DeliveryProvider extends ChangeNotifier {
     stopListeningOrders();
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
+    _pickupCode = null;
     _deliveryPersonUid = null;
     _averageRating = 0.0;
     _reviewCount = 0;
@@ -243,9 +316,9 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final orders = await _orderService.fetchDeliveryHistory(
-        _deliveryPersonUid!,
-      );
+      final orders = repository != null
+          ? await repository!.history()
+          : await _orderService.fetchDeliveryHistory(_deliveryPersonUid!);
       _historyOrders
         ..clear()
         ..addAll(orders);
@@ -264,6 +337,12 @@ class DeliveryProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      if (repository != null) {
+        await _refreshBackendState();
+        _isReloading = false;
+        notifyListeners();
+        return true;
+      }
       stopListeningOrders();
       startListeningOrders(_deliveryPersonUid!);
       await Future.delayed(const Duration(milliseconds: 800));
@@ -278,12 +357,113 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>> getRatingStats() async {
+    if (repository != null && _deliveryPersonId != null) {
+      final reviews = await repository!.reviews(_deliveryPersonId!);
+      final distribution = {for (var i = 1; i <= 5; i++) i: 0};
+      for (final review in reviews) {
+        final rating = (review['rating'] as num?)?.toInt() ?? 0;
+        if (distribution.containsKey(rating)) {
+          distribution[rating] = distribution[rating]! + 1;
+        }
+      }
+      return {
+        'rating': _averageRating,
+        'count': reviews.length,
+        'distribution': distribution,
+      };
+    }
     if (_deliveryPersonUid == null) return {};
     return await _ratingService.getDetailedRatingStats(_deliveryPersonUid!);
   }
 
   Future<List<DeliveryReview>> getReviews() async {
+    if (repository != null && _deliveryPersonId != null) {
+      final values = await repository!.reviews(_deliveryPersonId!);
+      return values
+          .map(
+            (data) => DeliveryReview(
+              id: '${data['id'] ?? ''}',
+              orderId: '${data['order_id'] ?? ''}',
+              clientId: '${data['client_id'] ?? ''}',
+              deliveryPersonId: '$_deliveryPersonId',
+              rating: (data['rating'] as num?)?.toInt() ?? 0,
+              comment: '${data['comment'] ?? ''}',
+              createdAt:
+                  DateTime.tryParse('${data['created_at'] ?? ''}') ??
+                  DateTime.now(),
+            ),
+          )
+          .toList();
+    }
     if (_deliveryPersonUid == null) return [];
     return await _ratingService.getDeliveryReviews(_deliveryPersonUid!);
+  }
+
+  Future<bool> startLocationSharing({required bool consent}) async {
+    if (!consent || repository == null || _activeOrder == null) return false;
+    if (!await Geolocator.isLocationServiceEnabled()) return false;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      return false;
+    }
+
+    await _locationSubscription?.cancel();
+    _locationSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 20,
+          ),
+        ).listen((position) {
+          final order = _activeOrder;
+          if (order == null || order.status == DeliveryOrderStatus.delivered) {
+            stopLocationSharing();
+            return;
+          }
+          repository!
+              .sendLocation(
+                order.id,
+                position.latitude,
+                position.longitude,
+                accuracy: position.accuracy,
+              )
+              .catchError((_) {});
+        });
+    return true;
+  }
+
+  void stopLocationSharing() {
+    _locationSubscription?.cancel();
+    _locationSubscription = null;
+  }
+
+  Future<void> _refreshBackendState() async {
+    final results = await Future.wait<Object?>([
+      repository!.availableOrders(),
+      repository!.activeOrder(),
+      repository!.profile(),
+    ]);
+    _pendingOrders
+      ..clear()
+      ..addAll(results[0] as List<DeliveryOrder>);
+    _activeOrder = results[1] as DeliveryOrder?;
+    final profile = results[2] as Map<String, Object?>;
+    _availability = profile['is_online'] == true
+        ? DeliveryAvailability.available
+        : DeliveryAvailability.unavailable;
+    _averageRating = (profile['average_rating'] as num?)?.toDouble() ?? 0;
+    _deliveryPersonId = (profile['id'] as num?)?.toInt();
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    stopListeningOrders();
+    super.dispose();
   }
 }

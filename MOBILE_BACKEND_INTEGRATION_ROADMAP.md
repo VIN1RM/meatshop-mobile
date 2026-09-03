@@ -185,27 +185,29 @@ Validado com checkout sintético multiunidade: dois pedidos no mesmo `checkout_i
 
 ### Backend
 
-- [ ] Completar consulta do perfil atual do entregador.
-- [ ] Completar listagem, edição, ativação e exclusão de veículos.
-- [ ] Implementar disponibilidade online/offline.
-- [ ] Implementar entregas disponíveis, ativa e histórico do entregador.
-- [ ] Definir aceite e rejeição de ofertas.
-- [ ] Implementar ganhos, resumo e metas do entregador.
-- [ ] Revisar frequência, precisão e retenção da localização.
+- [x] Completar consulta do perfil atual do entregador.
+- [x] Completar listagem, edição, ativação e exclusão de veículos.
+- [x] Implementar disponibilidade online/offline.
+- [x] Implementar entregas disponíveis, ativa e histórico do entregador.
+- [x] Definir aceite e rejeição de ofertas.
+- [x] Implementar ganhos, resumo e metas do entregador.
+- [x] Revisar frequência, precisão e retenção da localização.
 
 ### Mobile
 
-- [ ] Migrar cadastro e acompanhamento da aprovação.
-- [ ] Migrar veículos e disponibilidade.
-- [ ] Migrar oferta, aceite e entrega ativa.
-- [ ] Migrar código de retirada na unidade.
-- [ ] Enviar localização apenas com consentimento e durante entrega ativa.
-- [ ] Migrar confirmação com o código do cliente.
-- [ ] Migrar histórico, avaliações, ganhos e metas.
+- [x] Migrar cadastro e acompanhamento da aprovação.
+- [x] Migrar veículos e disponibilidade.
+- [x] Migrar oferta, aceite e entrega ativa.
+- [x] Migrar código de retirada na unidade.
+- [x] Enviar localização apenas com consentimento e durante entrega ativa.
+- [x] Migrar confirmação com o código do cliente.
+- [x] Migrar histórico, avaliações, ganhos e metas.
 
 ### Critério de aceite
 
 O entregador conclui do cadastro à entrega final usando somente o backend, enquanto cliente e unidade acompanham o mesmo estado e localização.
+
+Concluída e validada em 3 de setembro de 2026 sob `FEATURE_BACKEND_DELIVERY`, com consentimento explícito por entrega, interrupção automática do GPS, frequência mínima no backend e retenção operacional de 30 dias.
 
 ## Fase 7 — Chat e atualizações em tempo real
 

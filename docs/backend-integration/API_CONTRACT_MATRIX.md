@@ -148,28 +148,28 @@ O backend deve informar um estado explícito de perfil incompleto; não deve cri
 | Jornada/tela | Contrato alvo | Situação |
 |---|---|---|
 | Registrar entregador | `POST /delivery/register` | **Pronto** |
-| Meu perfil/status | `GET /delivery/me` | **Novo** |
-| Atualizar disponibilidade | `PATCH /delivery/me/availability` | **Novo** |
-| Listar veículos | `GET /delivery/vehicles` | **Novo** |
+| Meu perfil/status | `GET /delivery/me` | **Integrado** |
+| Atualizar disponibilidade | `PATCH /delivery/me/availability` | **Integrado** |
+| Listar veículos | `GET /delivery/me/vehicles` | **Integrado** |
 | Criar veículo | `POST /delivery/vehicles` | **Pronto** |
-| Editar veículo | `PATCH /delivery/vehicles/:id` | **Novo** |
-| Excluir veículo | `DELETE /delivery/vehicles/:id` | **Novo** |
+| Editar veículo | `PATCH /delivery/me/vehicles/:id` | **Integrado** |
+| Excluir veículo | `DELETE /delivery/me/vehicles/:id` | **Integrado** |
 | Ativar veículo | `PATCH /delivery/vehicles/:id/activate` | **Pronto** |
 | Fotos/documentos do veículo | endpoint multipart autorizado | **Novo** |
-| Entregas disponíveis | `GET /delivery/orders/available?page=&limit=` | **Novo** |
-| Entrega ativa | `GET /delivery/orders/active` | **Novo** |
-| Histórico | `GET /delivery/orders/history?page=&limit=` | **Novo** |
+| Entregas disponíveis | `GET /delivery/me/orders/available` | **Integrado** |
+| Entrega ativa | `GET /delivery/me/orders/active` | **Integrado** |
+| Histórico | `GET /delivery/me/orders/history` | **Integrado** |
 | Aceitar | `POST /delivery/orders/:orderId/accept` | **Pronto** |
-| Rejeitar oferta | `POST /delivery/orders/:orderId/reject` | **Novo** |
+| Rejeitar oferta | `POST /delivery/orders/:orderId/reject` | **Integrado** |
 | Atualizar status | `PATCH /delivery/orders/:orderId/status` | **Pronto** |
 | Atualizar localização | `POST /delivery/orders/:orderId/location` | **Pronto** |
 | Finalizar com código | `POST /delivery/orders/:orderId/finish` | **Pronto** |
 | Tracking autorizado | `GET /delivery/orders/:orderId/tracking` | **Pronto** |
 | Avaliações | `GET /delivery-persons/:id/reviews` | **Pronto** |
-| Resumo de ganhos | `GET /delivery/me/earnings?from=&to=` | **Novo** |
-| Metas | `GET/PATCH /delivery/me/goals/:period` | **Novo** |
+| Resumo de ganhos | `GET /delivery/me/earnings` | **Integrado** |
+| Metas | `GET /delivery/me/goals` e `PATCH /delivery/me/goals/:period` | **Integrado** |
 
-O aceite, códigos, status e localização já possuem núcleo no backend. Disponibilidade, descoberta de ofertas, perfil próprio, CRUD completo de veículo e ganhos são os maiores bloqueadores da jornada do entregador.
+O domínio do entregador está integrado por REST sob feature flag. A transmissão contínua de GPS permanece condicionada a consentimento explícito e autorização de tratamento do dado sensível.
 
 ## Chat
 

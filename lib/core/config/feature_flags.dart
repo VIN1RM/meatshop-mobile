@@ -4,6 +4,7 @@ final class FeatureFlags {
     required this.backendMarketplace,
     required this.backendProfileCart,
     required this.backendCheckout,
+    required this.backendDelivery,
   });
 
   factory FeatureFlags.fromEnvironment() {
@@ -12,6 +13,7 @@ final class FeatureFlags {
       backendMarketplace: bool.fromEnvironment('FEATURE_BACKEND_MARKETPLACE'),
       backendProfileCart: bool.fromEnvironment('FEATURE_BACKEND_PROFILE_CART'),
       backendCheckout: bool.fromEnvironment('FEATURE_BACKEND_CHECKOUT'),
+      backendDelivery: bool.fromEnvironment('FEATURE_BACKEND_DELIVERY'),
     );
   }
 
@@ -19,4 +21,5 @@ final class FeatureFlags {
   final bool backendMarketplace;
   final bool backendProfileCart;
   final bool backendCheckout;
+  final bool backendDelivery;
 }

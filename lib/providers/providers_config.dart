@@ -26,6 +26,7 @@ import '../data/repositories/cart_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../data/repositories/payment_repository.dart';
+import '../data/repositories/delivery_repository.dart';
 import '../services/business_hours_service.dart';
 import '../services/promotion_service.dart';
 import '../services/search_service.dart';
@@ -40,23 +41,35 @@ class ProvidersConfig {
     CartRepository? cart,
     OrderRepository? orders,
     PaymentRepository? payments,
+    DeliveryRepository? delivery,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
       backendProfileCart: false,
       backendCheckout: false,
+      backendDelivery: false,
     ),
   }) => [
     Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace)),
     ChangeNotifierProvider<AuthProvider>(
-      create: (_) => AuthProvider(federatedAuth: federatedAuth, flags: flags),
+      create: (_) => AuthProvider(
+        federatedAuth: federatedAuth,
+        delivery: delivery,
+        flags: flags,
+      ),
     ),
-    ChangeNotifierProvider<DeliveryProvider>(create: (_) => DeliveryProvider()),
+    ChangeNotifierProvider<DeliveryProvider>(
+      create: (_) =>
+          DeliveryProvider(repository: flags.backendDelivery ? delivery : null),
+    ),
     ChangeNotifierProvider(
       create: (_) =>
           UserProvider(repository: flags.backendProfileCart ? profile : null),
     ),
-    ChangeNotifierProvider(create: (_) => VehicleProvider()),
+    ChangeNotifierProvider(
+      create: (_) =>
+          VehicleProvider(repository: flags.backendDelivery ? delivery : null),
+    ),
     ChangeNotifierProvider(
       create: (_) => UnitProvider(
         unitService: UnitService(marketplace: marketplace),
@@ -93,6 +106,7 @@ class ProvidersConfig {
     ChangeNotifierProvider(
       create: (_) => DeliveryEarningsProvider(
         deliveryPersonId: AuthService.instance.currentUser?.uid ?? '',
+        repository: flags.backendDelivery ? delivery : null,
       ),
     ),
     ChangeNotifierProvider(

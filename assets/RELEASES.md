@@ -8,6 +8,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Área do Entregador Integrada:** Cadastro, aprovação, veículos, disponibilidade, ofertas, entregas, histórico, avaliações, ganhos e metas agora podem acompanhar o sistema oficial do MeatShop.
+- **Códigos Protegidos na Entrega:** O entregador apresenta o código de retirada à unidade e conclui a entrega somente com o código informado pelo cliente.
+- **Mais Privacidade nas Ofertas:** O endereço exato do cliente só fica disponível depois que o entregador aceita a entrega.
 - **Checkout Integrado:** Seus pedidos agora são criados no mesmo sistema usado pelo açougue, aparecendo no painel da unidade logo após a confirmação.
 - **Pagamento por Carrinho:** Quando houver produtos de vários açougues, você realiza um único fluxo de pagamento e recebe pedidos separados e organizados.
 - **Acompanhe e Repita:** Histórico, detalhes, cancelamento, agendamento e recompra passam a acompanhar o estado oficial do pedido.

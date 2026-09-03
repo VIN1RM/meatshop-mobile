@@ -27,7 +27,8 @@ void main() async {
   if (featureFlags.backendAuth ||
       featureFlags.backendMarketplace ||
       featureFlags.backendProfileCart ||
-      featureFlags.backendCheckout) {
+      featureFlags.backendCheckout ||
+      featureFlags.backendDelivery) {
     apiFoundation = ApiFoundation.fromEnvironment();
     await apiFoundation!.initialize();
   }
@@ -65,6 +66,7 @@ class _MeatShopAppState extends State<MeatShopApp> {
         cart: apiFoundation?.cart,
         orders: apiFoundation?.orders,
         payments: apiFoundation?.payments,
+        delivery: apiFoundation?.delivery,
         flags: featureFlags,
       ),
       child: MaterialApp(
