@@ -15,6 +15,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Seletor de contato no pedido do cliente para iniciar o canal autorizado com o açougue ou, quando atribuído, com o entregador.
 - Chat REST e Socket.IO sob `FEATURE_BACKEND_REALTIME`, com três canais por pedido, caixa de entrada, não lidas, leitura, digitação e reconciliação após reconexão.
 - Atualizações de status e localização da entrega por salas autorizadas do backend, eliminando polling no fluxo novo.
 - Distinção entre entregador autônomo ativo e entregador vinculado sujeito à aprovação da unidade.

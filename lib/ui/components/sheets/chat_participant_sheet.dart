@@ -5,13 +5,17 @@ class ChatParticipantDialog {
   static Future<ChatParticipantType?> show({
     required BuildContext context,
     required String unitName,
-    required String clientName,
+    String? secondaryName,
+    ChatParticipantType secondaryType = ChatParticipantType.client,
   }) {
     return showModalBottomSheet<ChatParticipantType>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) =>
-          _ChatParticipantSheet(unitName: unitName, clientName: clientName),
+      builder: (_) => _ChatParticipantSheet(
+        unitName: unitName,
+        secondaryName: secondaryName,
+        secondaryType: secondaryType,
+      ),
     );
   }
 }
@@ -19,12 +23,15 @@ class ChatParticipantDialog {
 class _ChatParticipantSheet extends StatelessWidget {
   const _ChatParticipantSheet({
     required this.unitName,
-    required this.clientName,
+    required this.secondaryName,
+    required this.secondaryType,
   });
 
   final String unitName;
-  final String clientName;
+  final String? secondaryName;
+  final ChatParticipantType secondaryType;
 
+  @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final screenH = MediaQuery.of(context).size.height;
@@ -54,7 +61,7 @@ class _ChatParticipantSheet extends StatelessWidget {
               const Text(
                 'Com quem quer falar?',
                 style: TextStyle(
-                  color: const Color(0xFF1A1A1A),
+                  color: Color(0xFF1A1A1A),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -62,7 +69,7 @@ class _ChatParticipantSheet extends StatelessWidget {
               const SizedBox(height: 6),
               const Text(
                 'Escolha o destinatário da conversa',
-                style: TextStyle(color: const Color(0xFF888888), fontSize: 13),
+                style: TextStyle(color: Color(0xFF888888), fontSize: 13),
               ),
               const SizedBox(height: 20),
               _ParticipantTile(
@@ -72,20 +79,22 @@ class _ChatParticipantSheet extends StatelessWidget {
                 accentColor: const Color(0xFFC0392B),
                 onTap: () => Navigator.pop(context, ChatParticipantType.unit),
               ),
-              const SizedBox(height: 12),
-              _ParticipantTile(
-                emoji: ChatParticipantType.client.icon,
-                label: ChatParticipantType.client.label,
-                name: clientName,
-                accentColor: const Color(0xFF27AE60),
-                onTap: () => Navigator.pop(context, ChatParticipantType.client),
-              ),
+              if (secondaryName != null) ...[
+                const SizedBox(height: 12),
+                _ParticipantTile(
+                  emoji: secondaryType.icon,
+                  label: secondaryType.label,
+                  name: secondaryName!,
+                  accentColor: const Color(0xFF27AE60),
+                  onTap: () => Navigator.pop(context, secondaryType),
+                ),
+              ],
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text(
                   'Cancelar',
-                  style: TextStyle(color: const Color(0xFF888888)),
+                  style: TextStyle(color: Color(0xFF888888)),
                 ),
               ),
             ],
@@ -145,7 +154,7 @@ class _ParticipantTile extends StatelessWidget {
                   Text(
                     name,
                     style: const TextStyle(
-                      color: const Color(0xFF1A1A1A),
+                      color: Color(0xFF1A1A1A),
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),

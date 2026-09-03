@@ -10,6 +10,7 @@ import 'package:meatshop_mobile/services/chat_service.dart';
 import 'package:meatshop_mobile/data/repositories/realtime_repository.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
+import 'package:meatshop_mobile/ui/components/sheets/chat_participant_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/delivery_person_card.dart';
 import 'package:provider/provider.dart';
@@ -74,6 +75,21 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   }
 
   void _onContactTap(OrderModel order) async {
+    final deliveryId = order.deliveryPersonId;
+    final participant = await ChatParticipantDialog.show(
+      context: context,
+      unitName: order.unitName,
+      secondaryName: deliveryId == null
+          ? null
+          : 'Entregador #${_shortId(deliveryId)}',
+      secondaryType: ChatParticipantType.delivery,
+    );
+    if (participant == null || !mounted) return;
+    final isUnit = participant == ChatParticipantType.unit;
+    final receiverId = isUnit ? order.unitId : deliveryId!;
+    final receiverName = isUnit
+        ? order.unitName
+        : 'Entregador #${_shortId(deliveryId)}';
     final backend = context.read<BackendRealtimeAccess>();
     if (!backend.enabled) {
       final service = ChatService();
@@ -81,9 +97,9 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         currentUserId: _currentUserId,
         currentUserName: _currentUserName,
         currentUserType: ChatParticipantType.client,
-        otherUserId: order.deliveryPersonId ?? '',
-        otherUserName: 'Entregador #${_shortId(order.deliveryPersonId)}',
-        otherUserType: ChatParticipantType.delivery,
+        otherUserId: receiverId,
+        otherUserName: receiverName,
+        otherUserType: participant,
       );
     }
 
@@ -95,9 +111,9 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         currentUserId: _currentUserId,
         currentUserName: _currentUserName,
         currentUserType: ChatParticipantType.client,
-        otherUserId: order.deliveryPersonId ?? '',
-        otherUserName: 'Entregador #${_shortId(order.deliveryPersonId)}',
-        otherUserType: ChatParticipantType.delivery,
+        otherUserId: receiverId,
+        otherUserName: receiverName,
+        otherUserType: participant,
         otherUserPhoto: null,
         orderId: int.tryParse(order.id),
       ),

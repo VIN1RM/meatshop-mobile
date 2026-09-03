@@ -260,7 +260,7 @@ Future<void> _onOpenChat(BuildContext context, order) async {
   final participant = await ChatParticipantDialog.show(
     context: context,
     unitName: order.unitName,
-    clientName: order.clientName,
+    secondaryName: order.clientName,
   );
 
   if (participant == null || !context.mounted) return;

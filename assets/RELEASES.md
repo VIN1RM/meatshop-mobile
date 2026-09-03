@@ -8,6 +8,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Contato pelo Pedido:** O cliente escolhe falar com o açougue ou com o entregador diretamente no acompanhamento do pedido.
 - **Entregador Autônomo ou da Unidade:** Quem se cadastra pelo app pode trabalhar como autônomo, enquanto contas criadas pelo açougue continuam sob aprovação da unidade.
 - **Chat em Tempo Real:** Cliente, açougue e entregador conversam nos canais corretos de cada pedido, com mensagens não lidas, confirmação de leitura e indicação de digitação.
 - **Atualizações ao Vivo:** Mudanças da entrega chegam imediatamente e o aplicativo recupera o estado correto depois de uma oscilação de internet.
