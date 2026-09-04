@@ -58,7 +58,9 @@ final class ApiFoundation {
     final config = ApiConfig.fromEnvironment();
     final transport = JsonHttpTransport(
       config: config,
-      requestHeaders: FirebaseComplementaryServices.requestHeaders,
+      requestHeaders: () => FirebaseComplementaryServices.requestHeaders(
+        requireAppCheck: config.environment != AppEnvironment.development,
+      ),
     );
     final session = SessionCoordinator(
       store: SecureSessionStore(FlutterSecureKeyValueStore()),

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 import '../../core/config/api_config.dart';
+import '../../core/network/api_error_localizer.dart';
 import '../../core/network/api_failure.dart';
 import '../../core/network/cancellation_token.dart';
 
@@ -176,22 +177,19 @@ final class JsonHttpTransport {
     final json = payload is Map<String, Object?>
         ? payload
         : const <String, Object?>{};
-    final rawMessage = json['message'];
-    final message = switch (rawMessage) {
-      String value when value.isNotEmpty => value,
-      List<Object?> values => values.whereType<String>().join('\n'),
-      _ => 'O servidor não conseguiu concluir a operação.',
-    };
+    final code = json['code'] is String ? json['code']! as String : null;
+    final message = ApiErrorLocalizer.translate(
+      code: code,
+      statusCode: response.statusCode,
+    );
     final retryAfterSeconds = int.tryParse(
       response.headers['retry-after'] ?? '',
     );
     final rawRequestId = json['request_id'] ?? response.headers['x-request-id'];
     return ApiFailure.forStatus(
       statusCode: response.statusCode,
-      message: message.isEmpty
-          ? 'O servidor não conseguiu concluir a operação.'
-          : message,
-      code: json['code'] is String ? json['code']! as String : null,
+      message: message,
+      code: code,
       details: json['details'] is List<Object?>
           ? json['details']! as List<Object?>
           : const [],

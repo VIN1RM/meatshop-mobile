@@ -13,7 +13,7 @@
 1. Na raiz web/backend, copie os exemplos de ambiente sem versionar segredos.
 2. Suba PostgreSQL com `docker compose up -d`.
 3. Em `meatshop-backend`, execute `npm install`, `npm run migration:run`, `npm run build` e `npm run seed:run`.
-4. Inicie a API com `npm run start:dev` e confirme `/health` e `/api` (Swagger).
+4. Inicie a API com `npm run start:dev` e confirme `/health` e `/docs` (Swagger).
 5. No mobile, copie `.env.example` para `.env` e configure `MEATSHOP_API_URL` com o host acessível pelo aparelho ou emulador.
 6. No Android Emulator, execute `flutter run --dart-define-from-file=.env` ou inicie a configuração `MeatShop Mobile (local API)` pelo VS Code.
 

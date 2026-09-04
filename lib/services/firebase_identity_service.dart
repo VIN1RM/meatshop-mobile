@@ -107,6 +107,7 @@ class AuthService {
       password: password,
     )).user!;
     await user.updateDisplayName(name.trim());
+    await user.sendEmailVerification();
     return user;
   }
 

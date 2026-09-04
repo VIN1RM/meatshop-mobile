@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
@@ -87,8 +88,8 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
   }
 
   String _cepMessage(Object error) {
-    final message = error.toString().replaceFirst('Bad state: ', '');
-    return message.isEmpty ? 'Não foi possível consultar o CEP.' : message;
+    if (error is ApiFailure) return error.message;
+    return 'Não foi possível consultar o CEP.';
   }
 
   Future<void> _save() async {

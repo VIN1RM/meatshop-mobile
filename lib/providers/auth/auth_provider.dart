@@ -81,7 +81,20 @@ class AuthProvider extends ChangeNotifier {
           message: _errorMessage!,
         );
       }
-    } catch (e) {
+    } on ApiFailure catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: _errorMessage!,
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('EMAIL LOGIN FAILURE: $e');
+      debugPrintStack(stackTrace: stackTrace);
       _errorMessage = 'Erro inesperado. Tente novamente.';
       notifyListeners();
 
@@ -209,9 +222,7 @@ class AuthProvider extends ChangeNotifier {
         CustomDialog.showError(
           context: context,
           title: 'Erro ao salvar dados',
-          message: e is ApiException
-              ? e.message
-              : 'Não foi possível salvar seus dados. Tente novamente.',
+          message: _completionErrorMessage(e),
         );
       }
     }
@@ -293,9 +304,7 @@ class AuthProvider extends ChangeNotifier {
         CustomDialog.showError(
           context: context,
           title: 'Erro ao salvar dados',
-          message: e is ApiException
-              ? e.message
-              : 'Não foi possível salvar seus dados. Tente novamente.',
+          message: _completionErrorMessage(e),
         );
       }
     }
@@ -511,9 +520,7 @@ class AuthProvider extends ChangeNotifier {
         CustomDialog.showError(
           context: context,
           title: 'Erro ao salvar dados',
-          message: e is ApiException
-              ? e.message
-              : 'Não foi possível salvar seus dados. Tente novamente.',
+          message: _completionErrorMessage(e),
         );
       }
       return false;
@@ -603,6 +610,25 @@ class AuthProvider extends ChangeNotifier {
       email: email,
       password: password,
     );
+
+    // Password identities are unverified when Firebase creates them. The
+    // backend intentionally rejects such tokens, so defer profile creation
+    // until the user verifies the address and signs in for the first time.
+    if (!firebaseUser.emailVerified) {
+      await AuthService.instance.logout();
+      if (context.mounted) {
+        CustomDialog.showSuccess(
+          context: context,
+          title: 'Verifique seu e-mail',
+          message:
+              'Enviamos um link de verificação. Confirme seu e-mail e faça login para concluir o cadastro.',
+          onDismiss: () =>
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+        );
+      }
+      return true;
+    }
+
     final idToken = await firebaseUser.getIdToken(true);
     if (idToken == null) throw StateError('Firebase ID token unavailable');
 
@@ -662,16 +688,33 @@ class AuthProvider extends ChangeNotifier {
     final delivery = _delivery;
     final type = _backendVehicleType(vehicleType);
     await delivery.register(type == 'SCOOTER' ? 'MOTORCYCLE' : type);
+    final normalizedPlate = '${vehicleData['plate'] ?? ''}'
+        .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+        .toUpperCase();
+    final vehicles = await delivery.vehicles();
+    final alreadyCreated = vehicles.any(
+      (vehicle) =>
+          '${vehicle['plate'] ?? ''}'
+              .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+              .toUpperCase() ==
+          normalizedPlate,
+    );
+    if (alreadyCreated) return;
+
     await delivery.createVehicle({
       'type': type,
       'model': '${vehicleData['model'] ?? ''}',
-      'plate': '${vehicleData['plate'] ?? ''}'
-          .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
-          .toUpperCase(),
+      'plate': normalizedPlate,
       'color': '${vehicleData['color'] ?? ''}',
       'year':
           int.tryParse('${vehicleData['year'] ?? ''}') ?? DateTime.now().year,
     });
+  }
+
+  String _completionErrorMessage(Object error) {
+    if (error is ApiFailure) return error.message;
+    if (error is ApiException) return error.message;
+    return 'Não foi possível salvar seus dados. Tente novamente.';
   }
 
   Future<void> _finishBackendLogin(
@@ -713,20 +756,24 @@ class AuthProvider extends ChangeNotifier {
     _needsProfileCompletion = !user.profileComplete;
     notifyListeners();
 
+    // O primeiro login cria um perfil incompleto no backend. Completar esse
+    // perfil é a continuação da autenticação, então efeitos protegidos ficam
+    // para depois do preenchimento obrigatório.
+    if (_needsProfileCompletion) {
+      Navigator.of(context).pushReplacementNamed(
+        AppRoutes.completeProfile,
+        arguments: const CompleteProfileArgs(),
+      );
+      return;
+    }
+
     final uid = AuthService.instance.currentUser!.uid;
     await NotificationService.instance.saveTokenForUser(uid);
     if (!context.mounted) return;
     await context.read<UserPreferencesProvider>().loadForUser(uid);
     if (!context.mounted) return;
     context.read<PaymentProvider>().init();
-    if (_needsProfileCompletion) {
-      Navigator.of(context).pushReplacementNamed(
-        AppRoutes.completeProfile,
-        arguments: const CompleteProfileArgs(),
-      );
-    } else {
-      _redirectAfterLogin(context);
-    }
+    _redirectAfterLogin(context);
   }
 
   void switchToDeliveryMode(BuildContext context) {

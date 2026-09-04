@@ -123,7 +123,7 @@ class AddressModel {
   }
 
   Map<String, Object?> toApi() => {
-    'label': label,
+    'label': _apiLabel(label),
     'street': street.trim(),
     'number': number.trim(),
     'complement': complement.trim(),
@@ -133,6 +133,15 @@ class AddressModel {
     'zip_code': zipCode.trim(),
     'is_default': isDefault,
   };
+
+  static String _apiLabel(String value) {
+    return switch (value.trim().toLowerCase()) {
+      'casa' => 'Casa',
+      'trabalho' => 'Trabalho',
+      'outro' || 'outros' => 'Outro',
+      _ => 'Outro',
+    };
+  }
 
   Map<String, dynamic> toFirestore() => {
     'label': label,

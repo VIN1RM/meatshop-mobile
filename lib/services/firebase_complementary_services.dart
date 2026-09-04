@@ -38,13 +38,20 @@ final class FirebaseComplementaryServices {
     );
   }
 
-  static Future<Map<String, String>> requestHeaders() async {
+  static Future<Map<String, String>> requestHeaders({
+    bool requireAppCheck = true,
+  }) async {
     if (!_enabled) return const {'x-meatshop-client': 'mobile'};
-    final token = await FirebaseAppCheck.instance.getToken();
-    return {
-      'x-meatshop-client': 'mobile',
-      if (token != null && token.isNotEmpty) 'x-firebase-appcheck': token,
-    };
+    try {
+      final token = await FirebaseAppCheck.instance.getToken();
+      return {
+        'x-meatshop-client': 'mobile',
+        if (token != null && token.isNotEmpty) 'x-firebase-appcheck': token,
+      };
+    } catch (_) {
+      if (requireAppCheck) rethrow;
+      return const {'x-meatshop-client': 'mobile'};
+    }
   }
 
   static Future<void> logNavigation(String destination) async {
