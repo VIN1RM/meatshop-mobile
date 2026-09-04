@@ -17,12 +17,12 @@ class ProductsProvider extends ChangeNotifier {
 
   ProductsProvider({
     required this.categoryName,
-    ProductService? service,
-    CategoryService? categoryService,
-    UnitService? unitService,
-  }) : _service = service ?? ProductService(),
-       _categoryService = categoryService ?? CategoryService(),
-       _unitService = unitService ?? UnitService();
+    required ProductService service,
+    required CategoryService categoryService,
+    required UnitService unitService,
+  }) : _service = service,
+       _categoryService = categoryService,
+       _unitService = unitService;
 
   final List<ProductModel> _items = [];
   List<ProductModel> get items => _filteredAndSorted;

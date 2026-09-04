@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
 
 class ActiveOrderModel {
@@ -22,21 +21,4 @@ class ActiveOrderModel {
 
   bool get canCancel => status.canCancel;
   bool get isCancelled => status == OrderStatus.cancelled;
-
-  factory ActiveOrderModel.fromFirestore(
-    DocumentSnapshot<Map<String, dynamic>> doc, {
-    required String unitName,
-    required String unitLogoUrl,
-  }) {
-    final d = doc.data()!;
-    return ActiveOrderModel(
-      id: doc.id,
-      unitId: d['unit_id'] as String? ?? '',
-      unitName: unitName,
-      unitLogoUrl: unitLogoUrl,
-      status: OrderStatusX.fromString(d['status'] as String? ?? 'PENDING'),
-      cancellationReason: d['cancellation_reason'] as String?,
-      orderDate: (d['order_date'] as Timestamp?)?.toDate(),
-    );
-  }
 }

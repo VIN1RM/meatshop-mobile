@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/models/chat_model.dart';
 import 'package:meatshop_mobile/providers/chat_provider.dart';
-import 'package:meatshop_mobile/services/chat_service.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -28,9 +27,8 @@ class ChatListScreen extends StatelessWidget {
 
     return ChangeNotifierProvider(
       create: (_) => ChatListProvider(
-        service: backend.enabled ? null : ChatService(),
-        repository: backend.chat,
-        realtime: backend.realtime,
+        repository: backend.chat!,
+        realtime: backend.realtime!,
         backendUserId: auth.backendUserId,
         currentUserId: currentUserId,
         activeType: activeType,

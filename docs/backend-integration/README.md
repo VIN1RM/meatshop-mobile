@@ -18,6 +18,7 @@ Branch de trabalho: `refactor/mobile-with-backend`.
 - Fase 7 — chat e tempo real: implementada sob feature flag com histórico REST, Socket.IO autenticado e reconciliação após reconexão.
 - Fase 8 — push e Firebase complementar: implementada sob feature flag com tokens FCM no PostgreSQL, App Check e observabilidade consentida.
 - Fase 9 — reset, seed e corte definitivo: concluída com banco recriado por migrations, dataset sintético idempotente e Firestore bloqueado.
+- Fase 10 — qualidade, segurança e conclusão: concluída com corte físico do Firestore, testes, builds e documentação reproduzível.
 
 Artefatos:
 
@@ -35,6 +36,8 @@ Artefatos:
 - [Chat e tempo real](PHASE_7_REALTIME_CHAT.md): canais por pedido, leitura, digitação, tracking, reconexão e segurança dos sockets.
 - [Push e Firebase complementar](PHASE_8_FIREBASE_COMPLEMENTARY.md): ciclo de tokens FCM, navegação revalidada, App Check, Crashlytics, Analytics e Performance.
 - [Reset, seed e corte do Firestore](PHASE_9_RESET_SEED_FIRESTORE_CUTOVER.md): preparação reproduzível, contas, cenários e evidências do corte definitivo.
+- [Qualidade, segurança e conclusão](PHASE_10_QUALITY_SECURITY_COMPLETION.md): gates, LGPD, cobertura, limitações externas e roteiro de homologação.
+- [Setup reproduzível](../../SETUP.md): preparação completa do backend, PostgreSQL e aplicativo.
 
 ## Decisões registradas
 
@@ -73,11 +76,7 @@ As pastas `lib/data` e `lib/infra` são ocupadas progressivamente, sem reescreve
 
 ## Regra de evolução
 
-O teste `test/architecture/no_new_cloud_firestore_dependencies_test.dart` registra todos os imports legados de `cloud_firestore` existentes nesta data.
-
-- Um novo import fora da linha de base falha o teste.
-- Quando um arquivo for migrado, seu import e sua entrada na linha de base devem ser removidos no mesmo commit.
-- Adicionar um arquivo à lista para contornar o teste é proibido; qualquer exceção precisa de decisão arquitetural documentada.
+O teste `test/architecture/no_new_cloud_firestore_dependencies_test.dart` proíbe qualquer import de `cloud_firestore`. A linha de base legada está vazia e não pode receber exceções.
 
 ## Critério atendido para iniciar a Fase 2
 

@@ -63,3 +63,5 @@ A integração do aplicativo com o backend NestJS e o PostgreSQL está sendo con
 
 - [Roadmap completo](MOBILE_BACKEND_INTEGRATION_ROADMAP.md)
 - [Decisões e contratos da integração](docs/backend-integration/README.md)
+- [Preparação completa do ambiente](SETUP.md)
+- [Evidências da Fase 10](docs/backend-integration/PHASE_10_QUALITY_SECURITY_COMPLETION.md)

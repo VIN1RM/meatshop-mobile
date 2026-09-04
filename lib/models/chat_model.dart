@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 
 class ChatParticipant {
@@ -110,35 +109,6 @@ class ChatConversation {
     );
   }
 
-  factory ChatConversation.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
-    final rawParticipants =
-        (data['participants'] as Map<String, dynamic>?) ?? {};
-    final participants = rawParticipants.map(
-      (userId, pMap) => MapEntry(
-        userId,
-        ChatParticipant.fromMap(userId, pMap as Map<String, dynamic>),
-      ),
-    );
-
-    final rawUnread = (data['unread_count'] as Map<String, dynamic>?) ?? {};
-    final unreadCount = rawUnread.map(
-      (k, v) => MapEntry(k, (v as num).toInt()),
-    );
-
-    return ChatConversation(
-      id: doc.id,
-      participantIds: List<String>.from(data['participant_ids'] ?? []),
-      participants: participants,
-      lastMessage: data['last_message'] as String?,
-      lastMessageAt: (data['last_message_at'] as Timestamp?)?.toDate(),
-      lastMessageSenderId: data['last_message_sender_id'] as String?,
-      unreadCount: unreadCount,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-    );
-  }
-
   ChatParticipant? otherParticipant(String currentUserId) {
     String otherId = participantIds.firstWhere(
       (id) => id != currentUserId,
@@ -228,19 +198,6 @@ class ChatMessage {
       mine: isMine ?? senderId == currentUserId,
       orderId: (data['order_id'] as num).toInt(),
       channel: ChatChannel.fromApi(participantType),
-    );
-  }
-
-  factory ChatMessage.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return ChatMessage(
-      id: doc.id,
-      senderId: data['sender_id'] as String? ?? '',
-      text: data['text'] as String? ?? '',
-      sentAt: (data['sent_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      read: data['read'] as bool? ?? false,
-      attachmentUrl: data['attachment_url'] as String?,
-      attachmentType: data['attachment_type'] as String?,
     );
   }
 

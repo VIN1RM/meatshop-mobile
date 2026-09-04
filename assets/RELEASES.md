@@ -8,6 +8,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Integração Concluída:** A base mobile agora usa exclusivamente o sistema oficial do MeatShop para todos os dados do negócio; o antigo Firestore foi removido do aplicativo.
+- **Exclusão de Conta com Privacidade:** Ao excluir sua conta, sessões são encerradas e dados pessoais são anonimizados com segurança.
 - **Dados Oficiais em um Só Lugar:** Perfil, catálogo, pedidos, entregas, conversas e notificações agora usam o sistema MeatShop como fonte única; o antigo banco operacional do aplicativo foi desativado.
 - **Ambiente de Testes Reproduzível:** A equipe pode preparar novamente unidade, produtos e contas de demonstração de forma segura e consistente.
 - **Notificações mais confiáveis:** Alertas de pedidos, entregas e conversas agora chegam pelo backend e abrem sempre informações atualizadas.
@@ -37,6 +39,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
 
 ### 📈 Melhorias
+- **Mais Leve e Previsível:** Dependências e caminhos antigos foram removidos, reduzindo risco de informações diferentes entre aplicativo e painel.
+- **Qualidade Final Automatizada:** Testes cobrem conexão lenta, falta de rede, sessão expirada, reconexão, checkout, entregas, conversas e notificações.
 - **Valores Conferidos no Servidor:** Preços, descontos, cupons e taxa de entrega são recalculados antes da confirmação.
 - **Pedido sem Duplicidade:** Se a conexão oscilar durante a finalização, o sistema reconhece a tentativa anterior e evita cobrar ou criar o pedido novamente.
 - **Estoque Consistente:** Produtos de diferentes açougues são reservados com segurança; uma falha não deixa apenas parte do carrinho confirmada.

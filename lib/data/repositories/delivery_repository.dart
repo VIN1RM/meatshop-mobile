@@ -22,6 +22,7 @@ final class DeliveryTrackingPoint {
 
 abstract interface class DeliveryRepository {
   Future<Map<String, Object?>> profile();
+  Future<Map<String, Object?>> publicProfile(int deliveryPersonId);
   Future<Map<String, Object?>> register(String vehicle);
   Future<void> setAvailability(bool online);
   Future<List<Map<String, Object?>>> vehicles();

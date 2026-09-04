@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
-import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
-import 'package:meatshop_mobile/services/delivery_fee_service.dart';
-import 'package:meatshop_mobile/services/geocoding_service.dart';
 import 'package:meatshop_mobile/ui/screens/fallback/order_processing_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ReviewOrderScreen extends StatefulWidget {
@@ -38,88 +34,15 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   Future<void> _calculateFees() async {
     setState(() => _calculatingFees = true);
     final orderProvider = context.read<OrderProvider>();
-    final addressProvider = context.read<AddressProvider>();
-    final cart = context.read<CartProvider>();
-
     try {
       final quote = await orderProvider.quote(widget.summary);
-      if (quote != null) {
-        if (mounted) {
-          setState(
-            () => _feeByUnit = {
-              for (final group in quote.groups) group.unitId: group.deliveryFee,
-            },
-          );
-        }
-        return;
-      }
-      final address = addressProvider.addresses
-          .cast<AddressModel?>()
-          .firstWhere(
-            (a) => a?.id == widget.summary.addressId,
-            orElse: () => null,
-          );
-
-      if (address == null) return;
-
-      double? destLat = address.lat;
-      double? destLng = address.lng;
-
-      if (destLat == null || destLng == null) {
-        final coords = await GeocodingService.instance.geocode(
-          street: address.street,
-          number: address.number,
-          city: address.city,
-          state: address.state,
-          zipCode: address.zipCode,
+      if (mounted && quote != null) {
+        setState(
+          () => _feeByUnit = {
+            for (final group in quote.groups) group.unitId: group.deliveryFee,
+          },
         );
-        destLat = coords?.lat;
-        destLng = coords?.lng;
       }
-
-      if (destLat == null || destLng == null) return;
-
-      final fees = <String, double>{};
-
-      for (final unitId in cart.itemsByUnit.keys) {
-        final unitDoc = await FirebaseFirestore.instance
-            .collection('units')
-            .doc(unitId)
-            .get();
-
-        final data = unitDoc.data();
-        if (data == null) continue;
-
-        final unitLat = (data['lat'] as num?)?.toDouble();
-        final unitLng = (data['lng'] as num?)?.toDouble();
-
-        if (unitLat == null || unitLng == null) {
-          final coords = await GeocodingService.instance.geocode(
-            street: data['street'] as String? ?? '',
-            number: data['number'] as String? ?? '',
-            city: data['city'] as String? ?? '',
-            state: data['state'] as String? ?? '',
-            zipCode: data['zip_code'] as String? ?? '',
-          );
-          if (coords == null) continue;
-
-          fees[unitId] = DeliveryFeeService.instance.calculate(
-            unitLat: coords.lat,
-            unitLng: coords.lng,
-            destLat: destLat,
-            destLng: destLng,
-          );
-        } else {
-          fees[unitId] = DeliveryFeeService.instance.calculate(
-            unitLat: unitLat,
-            unitLng: unitLng,
-            destLat: destLat,
-            destLng: destLng,
-          );
-        }
-      }
-
-      if (mounted) setState(() => _feeByUnit = fees);
     } finally {
       if (mounted) setState(() => _calculatingFees = false);
     }

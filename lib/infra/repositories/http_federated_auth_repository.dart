@@ -83,6 +83,12 @@ final class HttpFederatedAuthRepository implements FederatedAuthRepository {
     await _session.clear();
   }
 
+  @override
+  Future<void> deleteAccount() async {
+    await _client.delete('/users/me', decode: (_) {});
+    await _session.clear();
+  }
+
   BackendAuthUser _decodeMe(Object? value) {
     final json = _map(value);
     return _decodeUser(json['user']);

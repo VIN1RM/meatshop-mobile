@@ -1,14 +1,14 @@
 import 'dart:developer' as dev;
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
+import '../data/repositories/recipe_repository.dart';
 
 enum RecipeLoadState { idle, loading, loaded, error }
 
 class RecipeProvider extends ChangeNotifier {
-  RecipeProvider();
-
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  RecipeProvider({required RecipeRepository repository})
+    : _repository = repository;
+  final RecipeRepository _repository;
 
   RecipeLoadState _state = RecipeLoadState.idle;
   RecipeLoadState get state => _state;
@@ -26,15 +26,7 @@ class RecipeProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final snapshot = await _db
-          .collectionGroup('recipes')
-          .where('active', isEqualTo: true)
-          .orderBy('displayOrder')
-          .get();
-
-      _recipes = snapshot.docs
-          .map((doc) => RecipeModel.fromMap(doc.id, doc.data()))
-          .toList();
+      _recipes = await _repository.listActive();
 
       _state = RecipeLoadState.loaded;
     } catch (e, stack) {

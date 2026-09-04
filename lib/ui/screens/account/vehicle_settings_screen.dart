@@ -226,47 +226,45 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
               ],
             ),
           ),
-          if (context.read<VehicleProvider>().repository != null) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                if (vehicle['is_active'] != true)
-                  TextButton.icon(
-                    onPressed: () async {
-                      final uid = FirebaseAuth.instance.currentUser?.uid;
-                      final id = (vehicle['id'] as num?)?.toInt();
-                      if (uid != null && id != null) {
-                        await context.read<VehicleProvider>().activateVehicle(
-                          uid,
-                          id,
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Tornar principal'),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              if (vehicle['is_active'] != true)
+                TextButton.icon(
+                  onPressed: () async {
+                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    final id = (vehicle['id'] as num?)?.toInt();
+                    if (uid != null && id != null) {
+                      await context.read<VehicleProvider>().activateVehicle(
+                        uid,
+                        id,
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Tornar principal'),
+                ),
+              const Spacer(),
+              if (vehicle['is_active'] != true)
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red.shade700,
                   ),
-                const Spacer(),
-                if (vehicle['is_active'] != true)
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red.shade700,
-                    ),
-                    onPressed: () async {
-                      final uid = FirebaseAuth.instance.currentUser?.uid;
-                      final id = (vehicle['id'] as num?)?.toInt();
-                      if (uid != null && id != null) {
-                        await context.read<VehicleProvider>().deleteVehicle(
-                          uid,
-                          id,
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Excluir'),
-                  ),
-              ],
-            ),
-          ],
+                  onPressed: () async {
+                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    final id = (vehicle['id'] as num?)?.toInt();
+                    if (uid != null && id != null) {
+                      await context.read<VehicleProvider>().deleteVehicle(
+                        uid,
+                        id,
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Excluir'),
+                ),
+            ],
+          ),
         ],
       ),
     );

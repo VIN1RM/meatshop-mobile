@@ -13,7 +13,7 @@ import 'package:meatshop_mobile/ui/widgets/swipe_to_delete.dart';
 import 'package:meatshop_mobile/ui/widgets/swipe_tooltip.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../data/repositories/marketplace_context.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -169,7 +169,9 @@ class _CartScreenState extends State<CartScreen> {
         children: [
           GestureDetector(
             onTap: () async {
-              final unit = await UnitService().getUnitById(unitId);
+              final unit = await UnitService(
+                marketplace: context.read<MarketplaceContext>().repository,
+              ).getUnitById(unitId);
               if (!context.mounted) return;
               Navigator.pushNamed(
                 context,
@@ -323,23 +325,17 @@ class _CartScreenState extends State<CartScreen> {
             }),
         child: GestureDetector(
           onTap: () async {
-            final doc = await FirebaseFirestore.instance
-                .collection('products')
-                .doc(item.productId)
-                .get();
-
-            final unitDoc = await FirebaseFirestore.instance
-                .collection('units')
-                .doc(item.unitId)
-                .get();
+            final marketplace = context.read<MarketplaceContext>().repository;
+            final page = await marketplace.listProducts(
+              unitId: item.unitId,
+              limit: 100,
+            );
 
             if (!context.mounted) return;
 
-            final product = doc.exists
-                ? ProductModel.fromFirestore(doc).copyWith(
-                    unitName:
-                        unitDoc.data()?['name'] as String? ?? item.unitName,
-                  )
+            final remote = page.items.where((p) => p.id == item.productId);
+            final product = remote.isNotEmpty
+                ? remote.first.copyWith(unitName: item.unitName)
                 : ProductModel(
                     id: item.productId,
                     name: item.productName,

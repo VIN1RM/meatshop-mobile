@@ -213,14 +213,6 @@ class ActiveDeliveryScreen extends StatelessWidget {
     BuildContext context,
     DeliveryProvider provider,
   ) async {
-    if (provider.repository == null) {
-      final confirmed = await ConfirmDeliveryDialog.show(
-        context: context,
-        isPickup: false,
-      );
-      if (confirmed) await provider.confirmDelivery();
-      return;
-    }
     final controller = TextEditingController();
     final code = await showDialog<String>(
       context: context,

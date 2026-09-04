@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 

@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 enum NotificationType { order, delivery, promotion, system }
 
 class NotificationModel {
@@ -22,20 +20,6 @@ class NotificationModel {
     required this.createdAt,
     this.payload,
   });
-
-  factory NotificationModel.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return NotificationModel(
-      id: doc.id,
-      userId: data['user_id'] as String? ?? '',
-      message: data['message'] as String? ?? '',
-      title: data['title'] as String? ?? 'MeatShop',
-      type: _parseType(data['type'] as String? ?? 'SYSTEM'),
-      read: data['read'] as bool? ?? false,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      payload: data['payload'] as Map<String, dynamic>?,
-    );
-  }
 
   factory NotificationModel.fromApi(Map<String, Object?> data) {
     final rawDate = data['created_at'];

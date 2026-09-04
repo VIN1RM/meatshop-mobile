@@ -32,4 +32,5 @@ abstract interface class FederatedAuthRepository {
   });
 
   Future<void> logout();
+  Future<void> deleteAccount();
 }

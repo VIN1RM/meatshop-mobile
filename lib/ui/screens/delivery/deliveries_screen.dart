@@ -123,9 +123,7 @@ class DeliveriesTab extends StatelessWidget {
                 isLoading: provider.isLoading,
                 onAccept: () async {
                   await provider.acceptOrder(order);
-                  if (!context.mounted ||
-                      provider.repository == null ||
-                      !provider.hasActiveOrder) {
+                  if (!context.mounted || !provider.hasActiveOrder) {
                     return;
                   }
                   final consent = await showDialog<bool>(

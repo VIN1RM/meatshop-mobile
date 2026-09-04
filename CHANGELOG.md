@@ -15,6 +15,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Gate final da Fase 10 com teste arquitetural de ausência total do Firestore, setup reproduzível, roteiro de homologação e matriz de evidências de qualidade/segurança.
+- Consulta autorizada do perfil público do entregador atribuído e estado consolidado de avaliações do pedido.
+- Exclusão de conta com revogação de sessões/dispositivos e anonimização transacional dos dados pessoais no PostgreSQL.
 - Preparação reproduzível da Fase 9 com seed PostgreSQL idempotente, contas e cenários sintéticos documentados.
 - Configuração Firebase versionada com regras que bloqueiam toda leitura e escrita no Firestore após o corte.
 - Push FCM sob `FEATURE_BACKEND_FIREBASE_SERVICES`, com registro Android/iOS no PostgreSQL, renovação de token e remoção no logout.
@@ -55,6 +58,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Dependências `cloud_firestore` e `firebase_storage`, adaptadores legados, serializadores de snapshots e todos os fallbacks operacionais foram removidos fisicamente.
+- Firebase fica restrito a identidade primária, push, App Check, Crashlytics, Analytics consentido e Performance; toda persistência operacional passa obrigatoriamente pela API.
+- Frete exibido no checkout passa a vir exclusivamente da cotação autoritativa do backend.
 - Todos os domínios migrados passam a usar obrigatoriamente o backend; defines antigos não reativam fallbacks Firestore.
 - Seed operacional do Firestore removido e coleções de desenvolvimento apagadas, preservando Firebase Authentication.
 - Abertura de push passa a consultar a notificação atual na API e marcar sua leitura, sem confiar no payload recebido.
@@ -78,6 +84,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- Perfil público do entregador só é retornado ao cliente que possui pedido atribuído a ele.
+- Exclusão de conta autentica novamente no Firebase antes de anonimizar o PostgreSQL e somente então remove a identidade primária, evitando exclusão parcial iniciada sem prova de senha.
 - Regras Firestore `deny all` impedem recriação de dados operacionais e mantêm o Firebase restrito à identidade e serviços complementares.
 - App Check pode ser imposto gradualmente no backend; payloads de push contêm somente contexto mínimo e nunca códigos de entrega, conversa, token ou dados pessoais.
 - Salas de chat e tracking revalidam usuário ativo e participação no pedido; token em query string deixou de ser aceito e eventos abusivos são limitados.

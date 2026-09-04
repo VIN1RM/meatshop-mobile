@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 
 import '../../data/repositories/profile_repository.dart';
 import '../../models/user_model.dart';
-import '../../services/user_service.dart';
 
 class UserProvider extends ChangeNotifier {
-  UserProvider({ProfileRepository? repository}) : _repository = repository;
+  UserProvider({required ProfileRepository repository})
+    : _repository = repository;
 
-  final ProfileRepository? _repository;
+  final ProfileRepository _repository;
   UserModel? _user;
   bool _isLoading = false;
   String? _error;
@@ -21,9 +21,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> loadUser(String uid) async {
     _setLoading(true);
     try {
-      _user = _repository == null
-          ? await UserService.instance.fetchUser(uid)
-          : await _repository.getProfile();
+      _user = await _repository.getProfile();
     } catch (error) {
       _error = 'Não foi possível carregar seu perfil.';
       debugPrint('[UserProvider] load error: $error');
@@ -40,21 +38,11 @@ class UserProvider extends ChangeNotifier {
   }) async {
     _error = null;
     try {
-      if (_repository == null) {
-        await UserService.instance.updateUser(
-          uid,
-          name: name,
-          email: email,
-          phone: phone,
-        );
-        _user = _user?.copyWith(name: name, email: email, phone: phone);
-      } else {
-        _user = await _repository.updateProfile(
-          name: name,
-          email: email,
-          phone: phone,
-        );
-      }
+      _user = await _repository.updateProfile(
+        name: name,
+        email: email,
+        phone: phone,
+      );
       notifyListeners();
     } catch (error) {
       _error = 'Não foi possível atualizar seu perfil.';
@@ -79,9 +67,6 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<String> _uploadAvatar(String uid, File file) async {
-    if (_repository == null) {
-      return UserService.instance.updateAvatar(uid, file);
-    }
     return _repository.uploadAvatar(
       bytes: await file.readAsBytes(),
       fileName: file.uri.pathSegments.last,
@@ -90,11 +75,7 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<String> _clearAvatar(String uid) async {
-    if (_repository == null) {
-      await UserService.instance.clearAvatar(uid);
-    } else {
-      await _repository.clearAvatar();
-    }
+    await _repository.clearAvatar();
     return '';
   }
 

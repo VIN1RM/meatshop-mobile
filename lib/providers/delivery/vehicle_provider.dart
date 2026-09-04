@@ -1,17 +1,10 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class VehicleProvider extends ChangeNotifier {
-  VehicleProvider({this.repository});
-  final DeliveryRepository? repository;
-  FirebaseFirestore? _db;
-  FirebaseStorage? _storage;
-  FirebaseFirestore get _firestore => _db ??= FirebaseFirestore.instance;
-  FirebaseStorage get _firebaseStorage => _storage ??= FirebaseStorage.instance;
+  VehicleProvider({required this.repository});
+  final DeliveryRepository repository;
 
   Map<String, dynamic> _vehicleInfo = {};
   Map<String, dynamic> get vehicleInfo => _vehicleInfo;
@@ -30,20 +23,18 @@ class VehicleProvider extends ChangeNotifier {
   }
 
   Future<void> activateVehicle(String uid, int id) async {
-    if (repository == null) return;
-    await repository!.activateVehicle(id);
+    await repository.activateVehicle(id);
     await loadVehicle(uid);
   }
 
   Future<void> deleteVehicle(String uid, int id) async {
-    if (repository == null) return;
-    await repository!.deleteVehicle(id);
+    await repository.deleteVehicle(id);
     await loadVehicle(uid);
   }
 
   Future<void> loadVehicle(String uid) async {
-    if (repository != null) {
-      final values = await repository!.vehicles();
+    {
+      final values = await repository.vehicles();
       _vehicles = values
           .map((item) => <String, dynamic>{...item, '_docId': '${item['id']}'})
           .toList();
@@ -56,31 +47,7 @@ class VehicleProvider extends ChangeNotifier {
         _vehicleInfo = _vehicles.first;
       }
       notifyListeners();
-      return;
     }
-    final snap = await _firestore
-        .collection('delivery_persons')
-        .doc(uid)
-        .collection('vehicles')
-        .orderBy('created_at', descending: false)
-        .get();
-
-    _vehicles = snap.docs.map((doc) {
-      final data = Map<String, dynamic>.from(doc.data());
-      data['_docId'] = doc.id;
-      return data;
-    }).toList();
-
-    final active = _vehicles.where((v) => v['is_active'] == true);
-    if (active.isNotEmpty) {
-      _vehicleDocId = active.first['_docId'];
-      _vehicleInfo = active.first;
-    } else if (_vehicles.isNotEmpty) {
-      _vehicleDocId = _vehicles.first['_docId'];
-      _vehicleInfo = _vehicles.first;
-    }
-
-    notifyListeners();
   }
 
   Future<void> updateVehicle({
@@ -93,7 +60,7 @@ class VehicleProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (repository != null) {
+      {
         final payload = <String, Object?>{
           'type': _vehicleType(data['type']),
           'model': data['model'] ?? '',
@@ -105,8 +72,8 @@ class VehicleProvider extends ChangeNotifier {
         };
         final id = int.tryParse(_vehicleDocId ?? '');
         final saved = id == null
-            ? await repository!.createVehicle(payload)
-            : await repository!.updateVehicle(id, payload);
+            ? await repository.createVehicle(payload)
+            : await repository.updateVehicle(id, payload);
         final savedId = (saved['id'] as num).toInt();
         final previousUrls = List<String>.from(
           _vehicleInfo['photo_urls'] as List? ?? const [],
@@ -114,13 +81,13 @@ class VehicleProvider extends ChangeNotifier {
         for (final url in previousUrls.where(
           (url) => !keptUrls.contains(url),
         )) {
-          await repository!.deleteVehiclePhoto(savedId, _fileName(url));
+          await repository.deleteVehiclePhoto(savedId, _fileName(url));
         }
         final uploadedUrls = <String>[];
         for (final image in newImages) {
           final name = image.uri.pathSegments.last;
           uploadedUrls.add(
-            await repository!.uploadVehiclePhoto(
+            await repository.uploadVehiclePhoto(
               savedId,
               bytes: await image.readAsBytes(),
               fileName: name,
@@ -128,7 +95,7 @@ class VehicleProvider extends ChangeNotifier {
             ),
           );
         }
-        await repository!.activateVehicle(savedId);
+        await repository.activateVehicle(savedId);
         _vehicleDocId = '$savedId';
         _vehicleInfo = <String, dynamic>{
           ...saved,
@@ -136,40 +103,7 @@ class VehicleProvider extends ChangeNotifier {
           'photo_urls': [...keptUrls, ...uploadedUrls],
         };
         await loadVehicle(uid);
-        return;
       }
-      final existingUrls = keptUrls;
-      final uploadedUrls = await _uploadImages(uid, newImages);
-      final allUrls = [...existingUrls, ...uploadedUrls];
-
-      final payload = {
-        'type': data['type'] ?? '',
-        'model': data['model'] ?? '',
-        'plate': data['plate'] ?? '',
-        'color': data['color'] ?? '',
-        'year': data['year'] ?? '',
-        'photo_urls': allUrls,
-        'is_active': true,
-      };
-
-      if (_vehicleDocId != null) {
-        await _firestore
-            .collection('delivery_persons')
-            .doc(uid)
-            .collection('vehicles')
-            .doc(_vehicleDocId)
-            .update(payload);
-      } else {
-        final ref = await _firestore
-            .collection('delivery_persons')
-            .doc(uid)
-            .collection('vehicles')
-            .add({...payload, 'created_at': FieldValue.serverTimestamp()});
-        _vehicleDocId = ref.id;
-      }
-
-      _vehicleInfo = payload;
-      notifyListeners();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -180,44 +114,17 @@ class VehicleProvider extends ChangeNotifier {
     required String uid,
     required String imageUrl,
   }) async {
-    if (repository != null) {
+    {
       final id = int.tryParse(_vehicleDocId ?? '');
       if (id == null) return;
-      await repository!.deleteVehiclePhoto(id, _fileName(imageUrl));
+      await repository.deleteVehiclePhoto(id, _fileName(imageUrl));
       final urls = List<String>.from(
         _vehicleInfo['photo_urls'] as List? ?? const [],
       );
       urls.remove(imageUrl);
       _vehicleInfo['photo_urls'] = urls;
       notifyListeners();
-      return;
     }
-    final urls = List<String>.from(_vehicleInfo['photo_urls'] ?? []);
-    urls.remove(imageUrl);
-
-    try {
-      await _firebaseStorage.refFromURL(imageUrl).delete();
-    } catch (_) {}
-
-    await _firestore
-        .collection('delivery_persons')
-        .doc(uid)
-        .collection('vehicles')
-        .doc(_vehicleDocId)
-        .update({'photo_urls': urls});
-
-    _vehicleInfo['photo_urls'] = urls;
-    notifyListeners();
-  }
-
-  Future<List<String>> _uploadImages(String uid, List<File> files) async {
-    final urls = <String>[];
-    for (final file in files) {
-      final bytes = await file.readAsBytes();
-      final base64Str = base64Encode(bytes);
-      urls.add('data:image/jpeg;base64,$base64Str');
-    }
-    return urls;
   }
 
   String _vehicleType(String? value) {

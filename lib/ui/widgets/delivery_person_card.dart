@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_person_info_model.dart';
 import 'package:meatshop_mobile/services/delivery_person_info_service.dart';
+import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'package:meatshop_mobile/ui/screens/account/profile_photo_viewer_screen.dart';
 import 'package:shimmer/shimmer.dart';
@@ -19,13 +21,14 @@ class _DeliveryPersonCardState extends State<DeliveryPersonCard> {
   static const Color _dark = Color(0xFF1A1A1A);
   static const Color _red = Color(0xFFBE2C1B);
 
-  final DeliveryPersonInfoService _service = DeliveryPersonInfoService();
-  late final Future<DeliveryPersonInfoModel?> _future;
+  Future<DeliveryPersonInfoModel?>? _future;
 
   @override
-  void initState() {
-    super.initState();
-    _future = _service.fetchInfo(widget.deliveryPersonId);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _future ??= DeliveryPersonInfoService(
+      context.read<DeliveryProvider>().repository,
+    ).fetchInfo(widget.deliveryPersonId);
   }
 
   @override

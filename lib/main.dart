@@ -45,8 +45,12 @@ void main() async {
     apiFoundation = ApiFoundation.fromEnvironment();
     await apiFoundation!.initialize();
   }
+  final notifications = apiFoundation?.notifications;
+  if (notifications == null) {
+    throw StateError('Notification repository was not initialized.');
+  }
   NotificationService.instance.configure(
-    backend: apiFoundation?.notifications,
+    backend: notifications,
     useBackend: featureFlags.backendFirebaseServices,
   );
   await initializeDateFormatting('pt_BR');
@@ -86,6 +90,8 @@ class _MeatShopAppState extends State<MeatShopApp> {
         delivery: apiFoundation?.delivery,
         chat: apiFoundation?.chat,
         realtime: apiFoundation?.realtime,
+        recipes: apiFoundation?.recipes,
+        reviews: apiFoundation?.reviews,
         flags: featureFlags,
       ),
       child: MaterialApp(

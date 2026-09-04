@@ -3,22 +3,17 @@ import 'package:flutter/foundation.dart';
 import '../data/repositories/cart_repository.dart';
 import '../models/cart_item_model.dart';
 import '../services/business_hours_service.dart';
-import '../services/cart_service.dart';
 
 class CartProvider extends ChangeNotifier {
   CartProvider({
     required this.uid,
-    CartRepository? repository,
-    CartService? service,
+    required CartRepository repository,
     BusinessHoursService? hoursService,
   }) : _repository = repository,
-       _service = service ?? (repository == null ? CartService() : null),
-       _hoursService =
-           hoursService ?? (repository == null ? BusinessHoursService() : null);
+       _hoursService = hoursService;
 
   final String uid;
-  final CartRepository? _repository;
-  final CartService? _service;
+  final CartRepository _repository;
   final BusinessHoursService? _hoursService;
   final Map<String, bool> _unitOpenStatus = {};
 
@@ -45,9 +40,7 @@ class CartProvider extends ChangeNotifier {
   Future<void> loadCart() async {
     _setLoading(true);
     try {
-      _items = _repository == null
-          ? await _loadLegacyCart()
-          : await _repository.getCart();
+      _items = await _repository.getCart();
       await _checkUnitsOpen();
     } catch (error) {
       _error = 'Não foi possível carregar o carrinho.';
@@ -59,21 +52,7 @@ class CartProvider extends ChangeNotifier {
 
   Future<void> addItem(CartItemModel item) async {
     await _mutate(() async {
-      if (_repository != null) {
-        _items = await _repository.addItem(item.productId, item.quantity);
-        return;
-      }
-      final index = _items.indexWhere(
-        (current) => current.productId == item.productId,
-      );
-      if (index == -1) {
-        await _legacyService.addItem(uid, item);
-        _items.add(item);
-        return;
-      }
-      final quantity = _items[index].quantity + item.quantity;
-      await _legacyService.updateQuantity(uid, item.productId, quantity);
-      _items[index] = _items[index].copyWith(quantity: quantity);
+      _items = await _repository.addItem(item.productId, item.quantity);
     });
   }
 
@@ -82,15 +61,10 @@ class CartProvider extends ChangeNotifier {
     await _mutate(() async {
       final index = _items.indexWhere((item) => item.productId == productId);
       if (index == -1) return;
-      if (_repository != null) {
-        _items = await _repository.updateItem(
-          _requiredCartItemId(_items[index]),
-          quantity,
-        );
-      } else {
-        await _legacyService.updateQuantity(uid, productId, quantity);
-        _items[index] = _items[index].copyWith(quantity: quantity);
-      }
+      _items = await _repository.updateItem(
+        _requiredCartItemId(_items[index]),
+        quantity,
+      );
     });
   }
 
@@ -98,27 +72,15 @@ class CartProvider extends ChangeNotifier {
     await _mutate(() async {
       final item = _findByProductId(productId);
       if (item == null) return;
-      if (_repository != null) {
-        _items = await _repository.removeItem(_requiredCartItemId(item));
-      } else {
-        await _legacyService.removeItem(uid, productId);
-        _items.removeWhere((current) => current.productId == productId);
-      }
+      _items = await _repository.removeItem(_requiredCartItemId(item));
     });
   }
 
   Future<void> clearCart() async {
     await _mutate(() async {
-      _items = _repository == null
-          ? await _clearLegacyCart()
-          : await _repository.clear();
+      _items = await _repository.clear();
       _unitOpenStatus.clear();
     });
-  }
-
-  Future<List<CartItemModel>> _clearLegacyCart() async {
-    await _legacyService.clearCart(uid);
-    return [];
   }
 
   String _requiredCartItemId(CartItemModel item) {
@@ -143,39 +105,6 @@ class CartProvider extends ChangeNotifier {
       debugPrint('[CartProvider] mutation error: $error');
       notifyListeners();
     }
-  }
-
-  Future<List<CartItemModel>> _loadLegacyCart() async {
-    final rawItems = await _legacyService.fetchItems(uid);
-    return Future.wait(rawItems.map(_resolveLegacySnapshots));
-  }
-
-  Future<CartItemModel> _resolveLegacySnapshots(CartItemModel item) async {
-    var resolved = item;
-    if (item.unitName.isEmpty) {
-      resolved = resolved.copyWith(
-        unitName: await _legacyService.fetchUnitName(item.unitId),
-      );
-    }
-    if (item.unitImageUrl.isEmpty) {
-      resolved = resolved.copyWith(
-        unitImageUrl: await _legacyService.fetchUnitImageUrl(item.unitId),
-      );
-    }
-    if (item.productImageUrl.isEmpty) {
-      resolved = resolved.copyWith(
-        productImageUrl: await _legacyService.fetchProductImageUrl(
-          item.productId,
-        ),
-      );
-    }
-    return resolved;
-  }
-
-  CartService get _legacyService {
-    final service = _service;
-    if (service != null) return service;
-    throw StateError('O serviço legado do carrinho não está configurado.');
   }
 
   Future<void> _checkUnitsOpen() async {

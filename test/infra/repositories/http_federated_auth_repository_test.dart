@@ -77,6 +77,29 @@ void main() {
     expect(user.profileComplete, isTrue);
     expect(user.appProfile?.name, 'both');
   });
+
+  test('deletes the backend account and clears the local session', () async {
+    final store = _MemorySessionStore();
+    await store.write(
+      const SessionTokens(
+        accessToken: 'access-secret',
+        refreshToken: 'refresh-secret',
+      ),
+    );
+    final repository = _repository(
+      store,
+      MockClient((request) async {
+        expect(request.method, 'DELETE');
+        expect(request.url.path, '/users/me');
+        expect(request.headers['authorization'], 'Bearer access-secret');
+        return http.Response('', 204);
+      }),
+    );
+
+    await repository.deleteAccount();
+
+    expect(store.tokens, isNull);
+  });
 }
 
 HttpFederatedAuthRepository _repository(

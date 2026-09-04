@@ -6,8 +6,6 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/chat_service.dart';
-import 'package:meatshop_mobile/data/repositories/realtime_repository.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
 import 'package:meatshop_mobile/ui/components/sheets/chat_participant_sheet.dart';
@@ -90,19 +88,6 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
     final receiverName = isUnit
         ? order.unitName
         : 'Entregador #${_shortId(deliveryId)}';
-    final backend = context.read<BackendRealtimeAccess>();
-    if (!backend.enabled) {
-      final service = ChatService();
-      await service.getOrCreateConversation(
-        currentUserId: _currentUserId,
-        currentUserName: _currentUserName,
-        currentUserType: ChatParticipantType.client,
-        otherUserId: receiverId,
-        otherUserName: receiverName,
-        otherUserType: participant,
-      );
-    }
-
     if (!mounted) return;
     Navigator.pushNamed(
       context,

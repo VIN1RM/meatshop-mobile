@@ -8,7 +8,6 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/models/user_model.dart';
 import 'package:flutter/services.dart';
 
@@ -154,35 +153,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     }
 
     setState(() => _isLoading = true);
-
-    if (_cpfWasMissing && _cpfController.text.isNotEmpty) {
-      final cpfOk = await AuthService.instance.isCpfAvailable(
-        _cpfController.text,
-      );
-      if (!mounted) return;
-      if (!cpfOk) {
-        setState(() => _isLoading = false);
-        CustomSnackBar.warning(
-          'Este CPF já está sendo utilizado por outra conta.',
-          context: context,
-        );
-        return;
-      }
-    }
-    if (_phoneWasMissing && _phoneController.text.isNotEmpty) {
-      final phoneOk = await AuthService.instance.isPhoneAvailable(
-        _phoneController.text,
-      );
-      if (!mounted) return;
-      if (!phoneOk) {
-        setState(() => _isLoading = false);
-        CustomSnackBar.warning(
-          'Este celular já está sendo utilizado por outra conta.',
-          context: context,
-        );
-        return;
-      }
-    }
 
     if (!mounted) return;
     try {

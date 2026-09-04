@@ -29,6 +29,10 @@ import 'realtime/backend_realtime_client.dart';
 import '../services/firebase_complementary_services.dart';
 import '../data/repositories/notification_repository.dart';
 import 'repositories/http_notification_repository.dart';
+import '../data/repositories/recipe_repository.dart';
+import '../data/repositories/review_repository.dart';
+import 'repositories/http_recipe_repository.dart';
+import 'repositories/http_review_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -46,6 +50,8 @@ final class ApiFoundation {
     required this.chat,
     required this.realtime,
     required this.notifications,
+    required this.recipes,
+    required this.reviews,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -78,6 +84,8 @@ final class ApiFoundation {
       chat: HttpChatRepository(client),
       realtime: BackendRealtimeClient(config: config, session: session),
       notifications: HttpNotificationRepository(client),
+      recipes: HttpRecipeRepository(client),
+      reviews: HttpReviewRepository(client, HttpMarketplaceRepository(client)),
     );
   }
 
@@ -95,6 +103,8 @@ final class ApiFoundation {
   final ChatRepository chat;
   final BackendRealtimeClient realtime;
   final NotificationRepository notifications;
+  final RecipeRepository recipes;
+  final ReviewRepository reviews;
 
   Future<void> initialize() => session.initialize();
 

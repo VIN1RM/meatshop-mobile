@@ -5,8 +5,7 @@ import 'package:meatshop_mobile/core/enums/search_type_enum.dart';
 import 'package:meatshop_mobile/services/search_service.dart';
 
 class SearchProvider extends ChangeNotifier {
-  SearchProvider({SearchService? service})
-    : _service = service ?? SearchService();
+  SearchProvider({required SearchService service}) : _service = service;
   final SearchService _service;
 
   String _query = '';

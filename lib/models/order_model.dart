@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class OrderItemModel {
   final String productId;
   final String productName;
@@ -184,68 +182,6 @@ class OrderModel {
       cancellationReason: data['cancellation_reason'] as String?,
       items: items,
       deliveryCode: data['delivery_code'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toFirestore() => {
-    'client_id': clientId,
-    'client_ref': null,
-    'unit_id': unitId,
-    'unit_ref': null,
-    'delivery_person_id': null,
-    'delivery_person_ref': null,
-    'address_id': addressId,
-    'address_ref': null,
-    'coupon_id': null,
-    'coupon_ref': null,
-    'order_date': FieldValue.serverTimestamp(),
-    'scheduled_delivery_date': scheduledDeliveryDate != null
-        ? Timestamp.fromDate(scheduledDeliveryDate!)
-        : null,
-    'scheduled_time': scheduledTime,
-    'is_scheduled': isScheduled,
-    'delivery_type': deliveryType,
-    'status': status,
-    'delivery_status': deliveryStatus,
-    'delivery_step': null,
-    'payment_status': paymentStatus,
-    'payment_method': paymentMethod,
-    'subtotal': subtotal,
-    'delivery_fee': deliveryFee,
-    'discount_amount': discountAmount,
-    'total_amount': totalAmount,
-    'cancellation_reason': null,
-    'cancelled_at': null,
-    'cancelled_by': null,
-    'products_reviewed': productsReviewed,
-  };
-
-  factory OrderModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final d = doc.data()!;
-    return OrderModel(
-      id: doc.id,
-      clientId: d['client_id'] as String? ?? '',
-      unitId: d['unit_id'] as String? ?? '',
-      addressId: d['address_id'] as String? ?? '',
-      status: d['status'] as String? ?? 'PENDING',
-      deliveryStatus:
-          d['delivery_status'] as String? ?? 'WAITING_DELIVERY_PERSON',
-      deliveryPersonId: d['delivery_person_id'] as String?,
-      deliveryType: d['delivery_type'] as String? ?? 'DELIVERY',
-      paymentStatus: d['payment_status'] as String? ?? 'PENDING',
-      paymentMethod: d['payment_method'] as String? ?? '',
-      subtotal: (d['subtotal'] as num?)?.toDouble() ?? 0,
-      deliveryFee: (d['delivery_fee'] as num?)?.toDouble() ?? 0,
-      discountAmount: (d['discount_amount'] as num?)?.toDouble() ?? 0,
-      totalAmount: (d['total_amount'] as num?)?.toDouble() ?? 0,
-      isScheduled: d['is_scheduled'] as bool? ?? false,
-      scheduledDeliveryDate: (d['scheduled_delivery_date'] as Timestamp?)
-          ?.toDate(),
-      scheduledTime: d['scheduled_time'] as String?,
-      orderDate: (d['order_date'] as Timestamp?)?.toDate(),
-      cancellationReason: d['cancellation_reason'] as String?,
-      reviewed: d['reviewed'] as bool? ?? false,
-      productsReviewed: d['products_reviewed'] as bool? ?? false,
     );
   }
 }

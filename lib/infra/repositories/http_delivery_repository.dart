@@ -27,6 +27,9 @@ final class HttpDeliveryRepository implements DeliveryRepository {
     },
   );
   @override
+  Future<Map<String, Object?>> publicProfile(int deliveryPersonId) =>
+      _client.get('/delivery/$deliveryPersonId/public-profile', decode: _map);
+  @override
   Future<Map<String, Object?>> register(String vehicle) => _client.post(
     '/delivery/register',
     body: {'vehicle': vehicle},

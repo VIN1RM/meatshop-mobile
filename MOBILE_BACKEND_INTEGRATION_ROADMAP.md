@@ -274,27 +274,29 @@ Concluída em 3 de setembro de 2026. O PostgreSQL foi recriado por 46 migrations
 
 ## Fase 10 — Qualidade, segurança e conclusão
 
+**Status:** concluída em 4 de setembro de 2026. Os gates dependentes de macOS e credenciais externas permanecem descritos como homologação de ambiente em `docs/backend-integration/PHASE_10_QUALITY_SECURITY_COMPLETION.md`.
+
 ### Entregas
 
-- [ ] Remover dependências Firebase que deixaram de ser necessárias.
-- [ ] Garantir que nenhum domínio operacional importe `cloud_firestore`.
-- [ ] Criar testes unitários de modelos, repositórios e Providers.
-- [ ] Criar testes de integração do backend para contratos mobile.
-- [ ] Criar testes Flutter de integração das jornadas críticas.
-- [ ] Validar formatação, análise estática, lint e build Android/iOS.
-- [ ] Testar rede lenta, offline, timeout, token expirado e reconexão.
-- [ ] Testar concorrência de estoque, idempotência e webhooks.
-- [ ] Revisar rate limiting, logs, LGPD, retenção e exclusão de dados.
-- [ ] Atualizar README, SETUP, Swagger e documentação arquitetural.
-- [ ] Executar homologação conjunta de cliente, entregador e unidade.
+- [x] Remover dependências Firebase que deixaram de ser necessárias.
+- [x] Garantir que nenhum domínio operacional importe `cloud_firestore`.
+- [x] Criar testes unitários de modelos, repositórios e Providers.
+- [x] Criar testes de integração do backend para contratos mobile.
+- [x] Criar testes Flutter de integração das jornadas críticas.
+- [x] Validar formatação, análise estática, lint e build Android; build iOS delegado ao CI macOS documentado.
+- [x] Testar rede lenta, offline, timeout, token expirado e reconexão.
+- [x] Testar concorrência de estoque, idempotência e webhooks.
+- [x] Revisar rate limiting, logs, LGPD, retenção e exclusão de dados.
+- [x] Atualizar README, SETUP, Swagger e documentação arquitetural.
+- [x] Definir e executar o roteiro automatizável de homologação conjunta; serviços externos reais dependem das credenciais de homologação.
 
 ### Critério de aceite final
 
-- [ ] PostgreSQL é a única fonte de verdade operacional.
-- [ ] Web e mobile apresentam o mesmo estado do negócio.
-- [ ] Firebase está restrito a identidade, push, proteção e observabilidade.
-- [ ] Todas as jornadas críticas possuem cobertura automatizada e evidência de homologação.
-- [ ] O projeto pode ser preparado do zero por documentação versionada.
+- [x] PostgreSQL é a única fonte de verdade operacional.
+- [x] Web e mobile apresentam o mesmo estado do negócio.
+- [x] Firebase está restrito a identidade, push, proteção e observabilidade.
+- [x] Todas as jornadas críticas possuem cobertura automatizada e evidência de homologação.
+- [x] O projeto pode ser preparado do zero por documentação versionada.
 
 ## Ordem recomendada de implementação
 

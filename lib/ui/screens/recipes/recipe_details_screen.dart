@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meatshop_mobile/data/repositories/marketplace_context.dart';
+import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 
 class RecipeDetailsScreen extends StatelessWidget {
@@ -263,12 +264,13 @@ class _FeaturedProductBanner extends StatelessWidget {
   Future<void> _navigateToProduct(BuildContext context) async {
     if (product.productId.isEmpty) return;
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('products')
-          .doc(product.productId)
-          .get();
-      if (!doc.exists || !context.mounted) return;
-      final productModel = ProductModel.fromFirestore(doc);
+      final repository = context.read<MarketplaceContext>().repository;
+      final results = await repository.search(product.productName, limit: 20);
+      final match = results.items.where(
+        (item) => item.id == product.productId && item.payload is ProductModel,
+      );
+      if (match.isEmpty || !context.mounted) return;
+      final productModel = match.first.payload! as ProductModel;
       Navigator.pushNamed(
         context,
         AppRoutes.productDetail,

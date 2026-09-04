@@ -8,7 +8,6 @@ import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/services/cep_service.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/user_exists_dialog.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -157,26 +156,6 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     setState(() => _isLoading = true);
-
-    final duplicateField = await AuthService.instance.findDuplicateField(
-      cpf: _cpfController.text,
-      email: _emailController.text,
-      phone: _phoneController.text,
-    );
-
-    if (duplicateField != null) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder: (_) => UserExistsDialog(
-            field: duplicateField,
-            email: _emailController.text.trim(),
-          ),
-        );
-      }
-      return;
-    }
 
     if (!isClient && _vehicleData == null) {
       CustomSnackBar.warning(

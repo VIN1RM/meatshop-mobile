@@ -7,25 +7,16 @@ import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
-import 'package:meatshop_mobile/services/cart_service.dart';
-import 'package:meatshop_mobile/services/order_service.dart';
 import 'package:meatshop_mobile/data/repositories/realtime_repository.dart';
 
 class OrderProvider extends ChangeNotifier {
   OrderProvider({
-    OrderRepository? repository,
-    OrderService? service,
-    CartService? cartService,
+    required OrderRepository repository,
     RealtimeRepository? realtime,
   }) : _repository = repository,
-       _service = service ?? (repository == null ? OrderService() : null),
-       _cartService =
-           cartService ?? (repository == null ? CartService() : null),
        _realtime = realtime;
 
-  final OrderRepository? _repository;
-  final OrderService? _service;
-  final CartService? _cartService;
+  final OrderRepository _repository;
   final RealtimeRepository? _realtime;
 
   bool _isLoading = false;
@@ -42,9 +33,7 @@ class OrderProvider extends ChangeNotifier {
   String? get paymentCheckoutUrl => _paymentCheckoutUrl;
 
   Future<CheckoutQuote?> quote(CheckoutSummaryModel summary) async {
-    final repository = _repository;
-    if (repository == null) return null;
-    return repository.quote(summary);
+    return _repository.quote(summary);
   }
 
   Future<bool> placeOrder({
@@ -60,30 +49,18 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final repository = _repository;
-      if (repository != null) {
-        final key = _pendingIdempotencyKey ?? IdempotencyKey.generate();
-        _pendingIdempotencyKey = key;
-        final checkout = await repository.create(summary, idempotencyKey: key);
-        _lastCheckoutId = checkout.checkoutId;
-        _lastOrderId = checkout.orders.firstOrNull?.id;
-        if (_isOnlinePayment(summary.paymentMethod)) {
-          _paymentCheckoutUrl = await repository.createPayment(
-            checkout.checkoutId,
-          );
-        }
-        _pendingIdempotencyKey = null;
-        await cartProvider.clearCart();
-      } else {
-        _lastOrderId = await _service!.createOrder(
-          summary: summary,
-          items: items,
-          total: total,
-          feeByUnit: feeByUnit,
+      final key = _pendingIdempotencyKey ?? IdempotencyKey.generate();
+      _pendingIdempotencyKey = key;
+      final checkout = await _repository.create(summary, idempotencyKey: key);
+      _lastCheckoutId = checkout.checkoutId;
+      _lastOrderId = checkout.orders.firstOrNull?.id;
+      if (_isOnlinePayment(summary.paymentMethod)) {
+        _paymentCheckoutUrl = await _repository.createPayment(
+          checkout.checkoutId,
         );
-        await _cartService!.clearCart(cartProvider.uid);
-        await cartProvider.clearCart();
       }
+      _pendingIdempotencyKey = null;
+      await cartProvider.clearCart();
       return true;
     } catch (error) {
       _error = _message(error);
@@ -96,7 +73,6 @@ class OrderProvider extends ChangeNotifier {
 
   Stream<List<OrderModel>> activeOrdersStream() {
     final repository = _repository;
-    if (repository == null) return _service!.activeOrdersStream();
     if (_realtime != null) return _realtimeOrders(repository, active: true);
     return _poll(repository).map(
       (orders) => orders
@@ -109,7 +85,6 @@ class OrderProvider extends ChangeNotifier {
 
   Stream<List<OrderModel>> finishedOrdersStream() {
     final repository = _repository;
-    if (repository == null) return _service!.finishedOrdersStream();
     if (_realtime != null) return _realtimeOrders(repository, active: false);
     final since = DateTime.now().subtract(const Duration(days: 90));
     return _poll(repository).map(
@@ -127,16 +102,11 @@ class OrderProvider extends ChangeNotifier {
     required String orderId,
     required String reason,
   }) async {
-    final repository = _repository;
-    if (repository != null) {
-      await repository.cancel(orderId, reason);
-    } else {
-      await _service!.cancelOrder(orderId: orderId, reason: reason);
-    }
+    await _repository.cancel(orderId, reason);
   }
 
   Future<CheckoutResult?> repeatOrder(String orderId) async {
-    return _repository?.repeat(orderId);
+    return _repository.repeat(orderId);
   }
 
   Stream<List<OrderModel>> _poll(OrderRepository repository) async* {

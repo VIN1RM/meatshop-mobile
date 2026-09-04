@@ -6,32 +6,27 @@ import '../core/enums/chat_enums.dart';
 import '../data/repositories/chat_repository.dart';
 import '../data/repositories/realtime_repository.dart';
 import '../models/chat_model.dart';
-import '../services/chat_service.dart';
 
 class ChatListProvider extends ChangeNotifier {
   ChatListProvider({
-    ChatService? service,
-    ChatRepository? repository,
-    RealtimeRepository? realtime,
+    required ChatRepository repository,
+    required RealtimeRepository realtime,
     required this.currentUserId,
     required this.activeType,
     this.backendUserId,
-  }) : _service = service,
-       _repository = repository,
+  }) : _repository = repository,
        _realtime = realtime {
     _init();
   }
 
-  final ChatService? _service;
-  final ChatRepository? _repository;
-  final RealtimeRepository? _realtime;
+  final ChatRepository _repository;
+  final RealtimeRepository _realtime;
   final String currentUserId;
   final int? backendUserId;
   final ChatParticipantType activeType;
   List<ChatConversation> _conversations = [];
   bool _loading = true;
   String? _error;
-  StreamSubscription<List<ChatConversation>>? _legacySubscription;
   final List<StreamSubscription<Object?>> _subscriptions = [];
 
   List<ChatConversation> get conversations => _conversations;
@@ -39,7 +34,7 @@ class ChatListProvider extends ChangeNotifier {
   String? get error => _error;
 
   void _init() {
-    if (_repository != null && _realtime != null && backendUserId != null) {
+    if (backendUserId != null) {
       _loadBackend();
       _realtime.connect();
       _subscriptions.add(
@@ -54,27 +49,9 @@ class ChatListProvider extends ChangeNotifier {
       );
       return;
     }
-    final service = _service;
-    if (service == null) {
-      _loading = false;
-      _error = 'Chat indisponível.';
-      notifyListeners();
-      return;
-    }
-    _legacySubscription = service
-        .conversationsStream(currentUserId, activeType)
-        .listen(
-          (list) {
-            _conversations = list;
-            _loading = false;
-            notifyListeners();
-          },
-          onError: (_) {
-            _error = 'Não foi possível carregar as conversas.';
-            _loading = false;
-            notifyListeners();
-          },
-        );
+    _loading = false;
+    _error = 'Sessão backend indisponível.';
+    notifyListeners();
   }
 
   Future<void> _loadBackend({bool silent = false}) async {
@@ -83,7 +60,7 @@ class ChatListProvider extends ChangeNotifier {
       notifyListeners();
     }
     try {
-      _conversations = await _repository!.conversations(
+      _conversations = await _repository.conversations(
         currentUserId: backendUserId!,
         currentUserType: activeType,
       );
@@ -98,7 +75,6 @@ class ChatListProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _legacySubscription?.cancel();
     for (final subscription in _subscriptions) {
       subscription.cancel();
     }
@@ -108,9 +84,8 @@ class ChatListProvider extends ChangeNotifier {
 
 class ChatProvider extends ChangeNotifier {
   ChatProvider({
-    ChatService? service,
-    ChatRepository? repository,
-    RealtimeRepository? realtime,
+    required ChatRepository repository,
+    required RealtimeRepository realtime,
     required this.currentUserId,
     required this.currentUserName,
     required this.currentUserType,
@@ -124,15 +99,13 @@ class ChatProvider extends ChangeNotifier {
     this.closed = false,
     this.currentUserPhoto,
     this.receiverPhoto,
-  }) : _service = service,
-       _repository = repository,
+  }) : _repository = repository,
        _realtime = realtime {
     _init();
   }
 
-  final ChatService? _service;
-  final ChatRepository? _repository;
-  final RealtimeRepository? _realtime;
+  final ChatRepository _repository;
+  final RealtimeRepository _realtime;
   final String currentUserId;
   final int? backendUserId;
   final String currentUserName;
@@ -154,7 +127,6 @@ class ChatProvider extends ChangeNotifier {
   String? _error;
   Timer? _typingTimer;
   bool _typingSent = false;
-  StreamSubscription<List<ChatMessage>>? _legacySubscription;
   final List<StreamSubscription<Object?>> _subscriptions = [];
 
   List<ChatMessage> get messages => _messages;
@@ -163,15 +135,11 @@ class ChatProvider extends ChangeNotifier {
   bool get otherTyping => _otherTyping;
   String? get error => _error;
   bool get backendEnabled =>
-      _repository != null &&
-      _realtime != null &&
-      backendUserId != null &&
-      orderId != null &&
-      channel != null;
+      backendUserId != null && orderId != null && channel != null;
 
   Future<void> _init() async {
     if (backendEnabled) {
-      final realtime = _realtime!;
+      final realtime = _realtime;
       _subscriptions.add(realtime.chatMessages.listen(_onRealtimeMessage));
       _subscriptions.add(realtime.chatReads.listen(_onRead));
       _subscriptions.add(realtime.chatTyping.listen(_onTyping));
@@ -185,43 +153,14 @@ class ChatProvider extends ChangeNotifier {
       return;
     }
 
-    final service = _service;
-    if (service == null) {
-      _loading = false;
-      _error = 'Chat indisponível.';
-      notifyListeners();
-      return;
-    }
-    await service.getOrCreateConversation(
-      currentUserId: currentUserId,
-      currentUserName: currentUserName,
-      currentUserType: currentUserType,
-      otherUserId: receiverId,
-      otherUserName: receiverName,
-      otherUserType: receiverType,
-      currentUserPhoto: currentUserPhoto,
-      otherUserPhoto: receiverPhoto,
-    );
-    service.markConversationAsRead(
-      conversationId: conversationId,
-      userId: currentUserId,
-    );
-    _legacySubscription = service.messagesStream(conversationId).listen((
-      messages,
-    ) {
-      _messages = messages;
-      _loading = false;
-      notifyListeners();
-      service.markConversationAsRead(
-        conversationId: conversationId,
-        userId: currentUserId,
-      );
-    });
+    _loading = false;
+    _error = 'Sessão backend indisponível.';
+    notifyListeners();
   }
 
   Future<void> _reconcile() async {
     try {
-      final values = await _repository!.history(
+      final values = await _repository.history(
         orderId!,
         channel!,
         currentUserId: backendUserId!,
@@ -241,7 +180,7 @@ class ChatProvider extends ChangeNotifier {
     if (!_sameConversation(data)) return;
     final message = ChatMessage.fromApi(data, currentUserId: backendUserId);
     _merge([message]);
-    if (!message.mine) _repository!.markRead(orderId!, channel!);
+    if (!message.mine) _repository.markRead(orderId!, channel!);
     notifyListeners();
   }
 
@@ -295,15 +234,10 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
     try {
       if (backendEnabled) {
-        final message = await _repository!.send(orderId!, channel!, normalized);
+        final message = await _repository.send(orderId!, channel!, normalized);
         _merge([message]);
       } else {
-        await _service!.sendMessage(
-          conversationId: conversationId,
-          senderId: currentUserId,
-          receiverId: receiverId,
-          text: normalized,
-        );
+        throw StateError('Sessão backend indisponível.');
       }
     } catch (_) {
       _error = 'Não foi possível enviar a mensagem.';
@@ -320,18 +254,18 @@ class ChatProvider extends ChangeNotifier {
     if (!typing) {
       if (_typingSent) {
         _typingSent = false;
-        _realtime!.sendTyping(orderId!, channel!, false);
+        _realtime.sendTyping(orderId!, channel!, false);
       }
       return;
     }
     if (typing && !_typingSent) {
       _typingSent = true;
-      _realtime!.sendTyping(orderId!, channel!, true);
+      _realtime.sendTyping(orderId!, channel!, true);
     }
     _typingTimer = Timer(const Duration(milliseconds: 800), () {
       if (!_typingSent) return;
       _typingSent = false;
-      _realtime!.sendTyping(orderId!, channel!, false);
+      _realtime.sendTyping(orderId!, channel!, false);
     });
   }
 
@@ -340,65 +274,50 @@ class ChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _legacySubscription?.cancel();
     _typingTimer?.cancel();
     if (backendEnabled && _typingSent) {
-      _realtime!.sendTyping(orderId!, channel!, false);
+      _realtime.sendTyping(orderId!, channel!, false);
     }
     for (final subscription in _subscriptions) {
       subscription.cancel();
     }
-    if (backendEnabled) _realtime!.leaveChat(orderId!, channel!);
+    if (backendEnabled) _realtime.leaveChat(orderId!, channel!);
     super.dispose();
   }
 }
 
 class ChatUnreadProvider extends ChangeNotifier {
   ChatUnreadProvider({
-    ChatService? service,
-    ChatRepository? repository,
-    RealtimeRepository? realtime,
+    required ChatRepository repository,
+    required RealtimeRepository realtime,
     required this.currentUserId,
-  }) : _service = service,
-       _repository = repository,
+  }) : _repository = repository,
        _realtime = realtime {
     _init();
   }
 
-  final ChatService? _service;
-  final ChatRepository? _repository;
-  final RealtimeRepository? _realtime;
+  final ChatRepository _repository;
+  final RealtimeRepository _realtime;
   final String currentUserId;
   int _total = 0;
-  StreamSubscription<int>? _legacySubscription;
   StreamSubscription<Map<String, Object?>>? _messageSubscription;
 
   int get total => _total;
   bool get hasUnread => _total > 0;
 
   void _init() {
-    if (_repository != null && _realtime != null) {
-      _refresh();
-      _realtime.connect();
-      _messageSubscription = _realtime.chatMessages.listen((_) => _refresh());
-      return;
-    }
-    _legacySubscription = _service?.totalUnreadStream(currentUserId).listen((
-      count,
-    ) {
-      _total = count;
-      notifyListeners();
-    });
+    _refresh();
+    _realtime.connect();
+    _messageSubscription = _realtime.chatMessages.listen((_) => _refresh());
   }
 
   Future<void> _refresh() async {
-    _total = await _repository!.unreadCount();
+    _total = await _repository.unreadCount();
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _legacySubscription?.cancel();
     _messageSubscription?.cancel();
     super.dispose();
   }

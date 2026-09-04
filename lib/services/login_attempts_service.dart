@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/constants/login_attempts_constants.dart';
 import 'package:meatshop_mobile/core/exceptions/login_blocked_exception.dart';
 import 'package:meatshop_mobile/models/login_attempt_model.dart';
@@ -8,20 +6,14 @@ class LoginAttemptsService {
   LoginAttemptsService._();
   static final LoginAttemptsService instance = LoginAttemptsService._();
 
-  final _db = FirebaseFirestore.instance;
+  final Map<String, LoginAttemptModel> _attempts = {};
 
   String _docId(String email) => email.trim().toLowerCase();
 
-  DocumentReference<Map<String, dynamic>> _ref(String email) {
-    return _db.collection(LoginAttemptsConstants.collection).doc(_docId(email));
-  }
-
   Future<void> guardLogin(String email) async {
-    final ref = _ref(email);
-    final doc = await ref.get();
-    if (!doc.exists) return;
-
-    final model = LoginAttemptModel.fromMap(doc.data()!);
+    final key = _docId(email);
+    final model = _attempts[key];
+    if (model == null) return;
     final now = DateTime.now();
 
     if (model.isBlockedAt(now)) {
@@ -32,17 +24,15 @@ class LoginAttemptsService {
       now,
       LoginAttemptsConstants.attemptsResetDuration,
     )) {
-      await ref.delete();
+      _attempts.remove(key);
     }
   }
 
   Future<void> registerFailedAttempt(String email) async {
-    final ref = _ref(email);
-    final doc = await ref.get();
-
-    final current = doc.exists
-        ? LoginAttemptModel.fromMap(doc.data()!)
-        : LoginAttemptModel(attempts: 0, lastAttempt: DateTime.now());
+    final key = _docId(email);
+    final current =
+        _attempts[key] ??
+        LoginAttemptModel(attempts: 0, lastAttempt: DateTime.now());
 
     final now = DateTime.now();
     final attempts =
@@ -54,11 +44,7 @@ class LoginAttemptsService {
         : current.attempts;
     final newAttempts = attempts + 1;
 
-    debugPrint('LOGIN FAILED ATTEMPT: $email -> $newAttempts');
-
     final willBlock = newAttempts >= LoginAttemptsConstants.maxAttempts;
-
-    debugPrint('WILL BLOCK: $willBlock');
 
     final blockedUntil = willBlock
         ? now.add(LoginAttemptsConstants.blockDuration)
@@ -70,15 +56,14 @@ class LoginAttemptsService {
       blockedUntil: blockedUntil,
     );
 
-    await ref.set(updated.toMap());
+    _attempts[key] = updated;
 
     if (willBlock) {
-      debugPrint('THROWING LoginBlockedException');
       throw LoginBlockedException(blockedUntil: blockedUntil!);
     }
   }
 
   Future<void> clearAttempts(String email) async {
-    await _ref(email).delete();
+    _attempts.remove(_docId(email));
   }
 }

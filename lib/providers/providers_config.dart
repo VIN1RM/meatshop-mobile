@@ -12,7 +12,7 @@ import 'package:meatshop_mobile/providers/user/address_provider.dart';
 import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
 import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
@@ -29,6 +29,8 @@ import '../data/repositories/payment_repository.dart';
 import '../data/repositories/delivery_repository.dart';
 import '../data/repositories/chat_repository.dart';
 import '../data/repositories/realtime_repository.dart';
+import '../data/repositories/recipe_repository.dart';
+import '../data/repositories/review_repository.dart';
 import '../services/business_hours_service.dart';
 import '../services/promotion_service.dart';
 import '../services/search_service.dart';
@@ -46,6 +48,8 @@ class ProvidersConfig {
     DeliveryRepository? delivery,
     ChatRepository? chat,
     RealtimeRepository? realtime,
+    RecipeRepository? recipes,
+    ReviewRepository? reviews,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
@@ -62,25 +66,17 @@ class ProvidersConfig {
         realtime: flags.backendRealtime ? realtime : null,
       ),
     ),
-    Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace)),
+    Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace!)),
     ChangeNotifierProvider<AuthProvider>(
-      create: (_) => AuthProvider(
-        federatedAuth: federatedAuth,
-        delivery: delivery,
-        flags: flags,
-      ),
+      create: (_) =>
+          AuthProvider(federatedAuth: federatedAuth!, delivery: delivery!),
     ),
     ChangeNotifierProvider<DeliveryProvider>(
-      create: (_) =>
-          DeliveryProvider(repository: flags.backendDelivery ? delivery : null),
+      create: (_) => DeliveryProvider(repository: delivery!),
     ),
+    ChangeNotifierProvider(create: (_) => UserProvider(repository: profile!)),
     ChangeNotifierProvider(
-      create: (_) =>
-          UserProvider(repository: flags.backendProfileCart ? profile : null),
-    ),
-    ChangeNotifierProvider(
-      create: (_) =>
-          VehicleProvider(repository: flags.backendDelivery ? delivery : null),
+      create: (_) => VehicleProvider(repository: delivery!),
     ),
     ChangeNotifierProvider(
       create: (_) => UnitProvider(
@@ -89,9 +85,7 @@ class ProvidersConfig {
       ),
     ),
     ChangeNotifierProvider(
-      create: (_) => AddressProvider(
-        repository: flags.backendProfileCart ? addresses : null,
-      ),
+      create: (_) => AddressProvider(repository: addresses!),
     ),
     ChangeNotifierProvider(
       create: (_) =>
@@ -104,29 +98,30 @@ class ProvidersConfig {
       ),
     ),
     ChangeNotifierProvider(
-      create: (_) =>
-          PaymentProvider(repository: flags.backendCheckout ? payments : null),
+      create: (_) => PaymentProvider(repository: payments!),
     ),
     ChangeNotifierProvider(
       create: (_) => OrderProvider(
-        repository: flags.backendCheckout ? orders : null,
+        repository: orders!,
         realtime: flags.backendRealtime ? realtime : null,
       ),
     ),
     ChangeNotifierProvider(create: (_) => UserPreferencesProvider()),
-    ChangeNotifierProvider(create: (_) => RecipeProvider()),
-    ChangeNotifierProvider(create: (_) => ReviewProvider()),
-    ChangeNotifierProvider(create: (_) => ProductReviewProvider()),
+    ChangeNotifierProvider(create: (_) => RecipeProvider(repository: recipes!)),
+    ChangeNotifierProvider(create: (_) => ReviewProvider(repository: reviews!)),
+    ChangeNotifierProvider(
+      create: (_) => ProductReviewProvider(repository: reviews!),
+    ),
     ChangeNotifierProvider(
       create: (_) => DeliveryEarningsProvider(
         deliveryPersonId: AuthService.instance.currentUser?.uid ?? '',
-        repository: flags.backendDelivery ? delivery : null,
+        repository: delivery!,
       ),
     ),
     ChangeNotifierProvider(
       create: (_) => CartProvider(
         uid: AuthService.instance.currentUser?.uid ?? '',
-        repository: flags.backendProfileCart ? cart : null,
+        repository: cart!,
         hoursService: BusinessHoursService(marketplace: marketplace),
       ),
     ),

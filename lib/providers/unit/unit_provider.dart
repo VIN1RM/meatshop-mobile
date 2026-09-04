@@ -8,9 +8,11 @@ class UnitProvider extends ChangeNotifier {
   final UnitService _unitService;
   final BusinessHoursService _hoursService;
 
-  UnitProvider({UnitService? unitService, BusinessHoursService? hoursService})
-    : _unitService = unitService ?? UnitService(),
-      _hoursService = hoursService ?? BusinessHoursService();
+  UnitProvider({
+    required UnitService unitService,
+    required BusinessHoursService hoursService,
+  }) : _unitService = unitService,
+       _hoursService = hoursService;
 
   List<UnitModel> _units = [];
   Map<String, BusinessHoursModel?> _hoursMap = {};

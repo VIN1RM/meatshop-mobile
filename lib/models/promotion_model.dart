@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class PromotionModel {
   final String id;
   final String unitId;
@@ -37,23 +35,6 @@ class PromotionModel {
       'R\$${promotionalPrice.toStringAsFixed(2).replaceAll('.', ',')}';
 
   String get descontoLabel => '${discountPercentage.toStringAsFixed(0)}% OFF';
-
-  factory PromotionModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-    return PromotionModel(
-      id: doc.id,
-      unitId: (data['unit_id'] as String?) ?? '',
-      productId: (data['product_id'] as String?) ?? '',
-      title: (data['title'] as String?) ?? '',
-      description: (data['description'] as String?) ?? '',
-      discountPercentage:
-          (data['discount_percentage'] as num?)?.toDouble() ?? 0.0,
-      promotionalPrice: (data['promotional_price'] as num?)?.toDouble() ?? 0.0,
-      startsAt: (data['starts_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      endsAt: (data['ends_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      active: (data['active'] as bool?) ?? false,
-    );
-  }
 
   PromotionModel copyWith({
     String? productName,

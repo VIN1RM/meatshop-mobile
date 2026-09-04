@@ -1,10 +1,8 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:meatshop_mobile/core/firebase/firestore_collections.dart';
 import 'package:meatshop_mobile/models/notification_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,9 +26,7 @@ class NotificationService {
 
   final _messaging = FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
-  final _db = FirebaseFirestore.instance;
   NotificationRepository? _backend;
-  bool _useBackend = false;
   String? _registeredToken;
 
   static const _channelId = 'meatshop_channel';
@@ -39,9 +35,11 @@ class NotificationService {
 
   GlobalKey<NavigatorState>? navigatorKey;
 
-  void configure({NotificationRepository? backend, required bool useBackend}) {
+  void configure({
+    required NotificationRepository backend,
+    bool useBackend = true,
+  }) {
     _backend = backend;
-    _useBackend = useBackend && backend != null;
   }
 
   Future<void> initialize({
@@ -55,15 +53,7 @@ class NotificationService {
     _setupMessageOpenedHandler();
     await _checkInitialMessage();
     _messaging.onTokenRefresh.listen((newToken) async {
-      if (_useBackend) {
-        await _registerBackendToken(newToken);
-        return;
-      }
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
-      await _db.collection(FirestoreCollections.users).doc(user.uid).set({
-        'fcm_token': newToken,
-      }, SetOptions(merge: true));
+      await _registerBackendToken(newToken);
     });
   }
 
@@ -190,17 +180,15 @@ class NotificationService {
 
   Future<void> _navigateAfterRefresh(Map<String, dynamic> data) async {
     var verified = data;
-    if (_useBackend) {
-      final notificationId = '${data['notification_id'] ?? ''}';
-      if (notificationId.isEmpty) return;
-      final current = await _backend!.list();
-      final item = current
-          .where((entry) => entry.id == notificationId)
-          .firstOrNull;
-      if (item == null) return;
-      await _backend!.markAsRead(notificationId);
-      verified = {'type': item.type.name.toUpperCase(), ...?item.payload};
-    }
+    final notificationId = '${data['notification_id'] ?? ''}';
+    if (notificationId.isEmpty) return;
+    final current = await _backend!.list();
+    final item = current
+        .where((entry) => entry.id == notificationId)
+        .firstOrNull;
+    if (item == null) return;
+    await _backend!.markAsRead(notificationId);
+    verified = {'type': item.type.name.toUpperCase(), ...?item.payload};
     _navigateFromData(verified);
   }
 
@@ -243,70 +231,32 @@ class NotificationService {
   Future<void> saveTokenForUser(String userId) async {
     final token = await getToken();
     if (token == null) return;
-    if (_useBackend) {
-      await _registerBackendToken(token);
-      return;
-    }
-    await _db.collection(FirestoreCollections.users).doc(userId).set({
-      'fcm_token': token,
-      'fcm_token_updated_at': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    await _registerBackendToken(token);
   }
 
   Future<void> clearTokenForUser(String userId) async {
-    if (_useBackend) {
-      final token = _registeredToken ?? await getToken();
-      if (token != null) {
-        try {
-          await _backend!.unregisterDeviceToken(token);
-        } catch (_) {
-          // O logout local deve prosseguir mesmo sem rede.
-        }
+    final token = _registeredToken ?? await getToken();
+    if (token != null) {
+      try {
+        await _backend!.unregisterDeviceToken(token);
+      } catch (_) {
+        // O logout local deve prosseguir mesmo sem rede.
       }
-      _registeredToken = null;
-      await _messaging.deleteToken();
-      return;
     }
-    await _db.collection(FirestoreCollections.users).doc(userId).set({
-      'fcm_token': null,
-    }, SetOptions(merge: true));
+    _registeredToken = null;
     await _messaging.deleteToken();
   }
 
   Stream<List<NotificationModel>> notificationsStream(String userId) {
-    if (_useBackend) {
-      return Stream.fromFuture(_backend!.list());
-    }
-    return _db
-        .collection(FirestoreCollections.notifications)
-        .where('user_id', isEqualTo: userId)
-        .orderBy('created_at', descending: true)
-        .limit(50)
-        .snapshots()
-        .map((snap) => snap.docs.map(NotificationModel.fromDoc).toList());
+    return Stream.fromFuture(_backend!.list());
   }
 
   Future<void> markAsRead(String notificationId) async {
-    if (_useBackend) return _backend!.markAsRead(notificationId);
-    await _db
-        .collection(FirestoreCollections.notifications)
-        .doc(notificationId)
-        .update({'read': true});
+    return _backend!.markAsRead(notificationId);
   }
 
   Future<void> markAllAsRead(String userId) async {
-    if (_useBackend) return _backend!.markAllAsRead();
-    final snap = await _db
-        .collection(FirestoreCollections.notifications)
-        .where('user_id', isEqualTo: userId)
-        .where('read', isEqualTo: false)
-        .get();
-
-    final batch = _db.batch();
-    for (final doc in snap.docs) {
-      batch.update(doc.reference, {'read': true});
-    }
-    await batch.commit();
+    return _backend!.markAllAsRead();
   }
 
   Future<void> showLocalNotificationFromData({
