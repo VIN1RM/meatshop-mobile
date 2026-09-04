@@ -14,8 +14,10 @@
 2. Suba PostgreSQL com `docker compose up -d`.
 3. Em `meatshop-backend`, execute `npm install`, `npm run migration:run`, `npm run build` e `npm run seed:run`.
 4. Inicie a API com `npm run start:dev` e confirme `/health` e `/api` (Swagger).
-5. No mobile, configure MEATSHOP_API_URL para o host acessível pelo aparelho ou emulador.
-6. Execute flutter pub get e flutter run --dart-define=MEATSHOP_ENV=development --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001 no Android Emulator.
+5. No mobile, copie `.env.example` para `.env` e configure `MEATSHOP_API_URL` com o host acessível pelo aparelho ou emulador.
+6. No Android Emulator, execute `flutter run --dart-define-from-file=.env` ou inicie a configuração `MeatShop Mobile (local API)` pelo VS Code.
+
+`10.0.2.2` acessa o computador host a partir do Android Emulator. Em aparelho físico, substitua esse endereço no `.env` pelo IPv4 do computador na mesma rede, mantendo a porta `3001`.
 
 Os comandos destrutivos e as contas sintéticas estão em `docs/backend-integration/ENVIRONMENTS_AND_RESET.md` e `PHASE_9_RESET_SEED_FIRESTORE_CUTOVER.md`. Nunca use o reset em produção.
 

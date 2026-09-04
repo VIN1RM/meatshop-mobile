@@ -15,6 +15,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Configuração local via `.env` nativo do Flutter e perfil do VS Code para iniciar o aplicativo apontando ao backend Docker sem expor dados específicos da máquina.
 - CI mobile para análise estática, testes com cobertura, APK release, build iOS sem assinatura, teste de integração em emulador Android e revisão de dependências.
 - Teste de integração do login e teste unitário para push data-only em segundo plano.
 - Gate final da Fase 10 com teste arquitetural de ausência total do Firestore, setup reproduzível, roteiro de homologação e matriz de evidências de qualidade/segurança.
