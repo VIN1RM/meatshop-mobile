@@ -37,6 +37,25 @@ class NotificationModel {
     );
   }
 
+  factory NotificationModel.fromApi(Map<String, Object?> data) {
+    final rawDate = data['created_at'];
+    return NotificationModel(
+      id: '${data['id'] ?? ''}',
+      userId: '',
+      message: data['message'] as String? ?? '',
+      title: data['title'] as String? ?? 'MeatShop',
+      type: _parseType(data['type'] as String? ?? 'SYSTEM'),
+      read: data['read'] == true,
+      createdAt: rawDate is String
+          ? DateTime.tryParse(rawDate)?.toLocal() ?? DateTime.now()
+          : DateTime.now(),
+      payload: {
+        if (data['action_url'] != null) 'action_url': data['action_url'],
+        if (data['unit_id'] != null) 'unit_id': data['unit_id'],
+      },
+    );
+  }
+
   static NotificationType _parseType(String value) {
     return switch (value.toUpperCase()) {
       'ORDER' => NotificationType.order,

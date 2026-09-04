@@ -8,6 +8,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Notificações mais confiáveis:** Alertas de pedidos, entregas e conversas agora chegam pelo backend e abrem sempre informações atualizadas.
+- **Proteção do aplicativo:** O App Check ajuda a impedir acessos feitos por cópias não autorizadas do app.
+- **Mais estabilidade:** Crashlytics e monitoramento de desempenho ajudam a identificar falhas, sem enviar seus dados operacionais.
 - **Contato pelo Pedido:** O cliente escolhe falar com o açougue ou com o entregador diretamente no acompanhamento do pedido.
 - **Entregador Autônomo ou da Unidade:** Quem se cadastra pelo app pode trabalhar como autônomo, enquanto contas criadas pelo açougue continuam sob aprovação da unidade.
 - **Chat em Tempo Real:** Cliente, açougue e entregador conversam nos canais corretos de cada pedido, com mensagens não lidas, confirmação de leitura e indicação de digitação.

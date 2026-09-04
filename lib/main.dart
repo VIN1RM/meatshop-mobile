@@ -11,10 +11,18 @@ import 'package:meatshop_mobile/providers/providers_config.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
 import 'package:meatshop_mobile/core/config/feature_flags.dart';
 import 'package:meatshop_mobile/infra/api_foundation.dart';
+import 'package:meatshop_mobile/services/firebase_complementary_services.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await NotificationService.instance.showLocalNotification(message);
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+  if (message.notification == null) {
+    await NotificationService.instance.showLocalNotification(message);
+  }
 }
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -24,15 +32,23 @@ ApiFoundation? apiFoundation;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseComplementaryServices.initialize(
+    enabled: featureFlags.backendFirebaseServices,
+  );
   if (featureFlags.backendAuth ||
       featureFlags.backendMarketplace ||
       featureFlags.backendProfileCart ||
       featureFlags.backendCheckout ||
       featureFlags.backendDelivery ||
-      featureFlags.backendRealtime) {
+      featureFlags.backendRealtime ||
+      featureFlags.backendFirebaseServices) {
     apiFoundation = ApiFoundation.fromEnvironment();
     await apiFoundation!.initialize();
   }
+  NotificationService.instance.configure(
+    backend: apiFoundation?.notifications,
+    useBackend: featureFlags.backendFirebaseServices,
+  );
   await initializeDateFormatting('pt_BR');
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const MeatShopApp());

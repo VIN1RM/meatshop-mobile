@@ -16,6 +16,7 @@ Branch de trabalho: `refactor/mobile-with-backend`.
 - Fase 5 — checkout, pedidos e pagamentos: implementada sob feature flag, com checkout multiunidade transacional e Mercado Pago pronto para homologação sandbox.
 - Fase 6 — fluxo do entregador: implementada, testada e protegida por feature flag, com consentimento explícito para localização durante a entrega ativa.
 - Fase 7 — chat e tempo real: implementada sob feature flag com histórico REST, Socket.IO autenticado e reconciliação após reconexão.
+- Fase 8 — push e Firebase complementar: implementada sob feature flag com tokens FCM no PostgreSQL, App Check e observabilidade consentida.
 
 Artefatos:
 
@@ -31,6 +32,7 @@ Artefatos:
 - [Checkout, pedidos e pagamentos](PHASE_5_CHECKOUT_ORDERS_PAYMENTS.md): cotação autoritativa, transação multiunidade, idempotência, Mercado Pago e código protegido.
 - [Fluxo completo do entregador](PHASE_6_DELIVERY_FLOW.md): aprovação, veículos, disponibilidade, ofertas, códigos, histórico, avaliações, ganhos, metas e política de localização.
 - [Chat e tempo real](PHASE_7_REALTIME_CHAT.md): canais por pedido, leitura, digitação, tracking, reconexão e segurança dos sockets.
+- [Push e Firebase complementar](PHASE_8_FIREBASE_COMPLEMENTARY.md): ciclo de tokens FCM, navegação revalidada, App Check, Crashlytics, Analytics e Performance.
 
 ## Decisões registradas
 

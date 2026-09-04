@@ -74,14 +74,22 @@ final class BackendRealtimeClient implements RealtimeRepository {
       _connection.add(RealtimeConnectionState.connected);
       _restoreSubscriptions(socket);
     });
-    socket.onDisconnect(
-      (_) => _connection.add(RealtimeConnectionState.disconnected),
-    );
+    socket.onDisconnect((reason) {
+      _connection.add(RealtimeConnectionState.disconnected);
+      if (reason == 'io server disconnect') {
+        _recoverSession(socket, 'unauthorized server disconnect');
+      }
+    });
     socket.onConnectError((error) => _recoverSession(socket, error));
     return socket;
   }
 
   void _configureChat(io.Socket socket) {
+    socket.on('chat:error', (error) {
+      if (isRealtimeAuthenticationFailure(error)) {
+        _recoverSession(socket, error);
+      }
+    });
     socket.on('chat:message', (data) => _addMap(_chatMessages, data));
     socket.on('chat:read', (data) => _addMap(_chatReads, data));
     socket.on('chat:typing', (data) => _addMap(_chatTyping, data));
@@ -99,11 +107,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
   }
 
   Future<void> _recoverSession(io.Socket socket, Object? error) async {
-    final message = error.toString().toLowerCase();
-    final authenticationFailure =
-        message.contains('unauthorized') ||
-        message.contains('jwt') ||
-        message.contains('token');
+    final authenticationFailure = isRealtimeAuthenticationFailure(error);
     if (!authenticationFailure || _refreshing || _session.current == null) {
       return;
     }
@@ -112,7 +116,8 @@ final class BackendRealtimeClient implements RealtimeRepository {
       final tokens = await _session.refresh();
       _chatSocket?.auth = {'token': tokens.accessToken};
       _deliverySocket?.auth = {'token': tokens.accessToken};
-      socket.connect();
+      if (!(_chatSocket?.connected ?? false)) _chatSocket?.connect();
+      if (!(_deliverySocket?.connected ?? false)) _deliverySocket?.connect();
     } catch (_) {
       // SessionCoordinator classifies and clears only definitive auth failures.
     } finally {
@@ -178,6 +183,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
   @override
   void unsubscribeDelivery(int orderId) {
     _deliveryOrderIds.remove(orderId);
+    _deliverySocket?.emit('delivery:unsubscribe-order', {'orderId': orderId});
   }
 
   void _addMap(
@@ -199,4 +205,12 @@ final class BackendRealtimeClient implements RealtimeRepository {
     _deliveryStatuses.close();
     _connection.close();
   }
+}
+
+bool isRealtimeAuthenticationFailure(Object? error) {
+  final message = error.toString().toLowerCase();
+  return message.contains('unauthorized') ||
+      message.contains('jwt') ||
+      message.contains('token') ||
+      message.contains('authentication');
 }

@@ -228,23 +228,27 @@ Cliente, entregador e unidade conversam somente nos canais permitidos e recupera
 
 Concluída em 3 de setembro de 2026 sob `FEATURE_BACKEND_REALTIME`. Com a flag ativa, chat e atualizações operacionais não consultam nem escrevem no Firestore; o legado permanece isolado somente para rollback até a Fase 9.
 
+Endurecida em 3 de setembro de 2026: desconexões de autenticação iniciadas pelo servidor renovam a sessão e restauram as inscrições; ao encerrar o acompanhamento, o aplicativo abandona explicitamente a sala do pedido.
+
 ## Fase 8 — Push e serviços Firebase complementares
 
 ### Entregas
 
-- [ ] Registrar e atualizar o token FCM no backend após autenticação.
-- [ ] Remover token no logout e eliminar tokens inválidos ou inativos.
-- [ ] Enviar notificações pelo backend a partir de eventos reais do domínio.
-- [ ] Tratar notificações em primeiro plano, segundo plano e app encerrado.
-- [ ] Consultar a API ao abrir uma notificação, sem confiar em payload antigo.
-- [ ] Implantar App Check no Flutter e validar seu token no backend.
-- [ ] Configurar Crashlytics sem registrar dados pessoais ou segredos.
-- [ ] Definir eventos mínimos de Analytics com consentimento e finalidade.
-- [ ] Configurar Performance Monitoring quando a integração funcional estiver estável.
+- [x] Registrar e atualizar o token FCM no backend após autenticação.
+- [x] Remover token no logout e eliminar tokens inválidos ou inativos.
+- [x] Enviar notificações pelo backend a partir de eventos reais do domínio.
+- [x] Tratar notificações em primeiro plano, segundo plano e app encerrado.
+- [x] Consultar a API ao abrir uma notificação, sem confiar em payload antigo.
+- [x] Implantar App Check no Flutter e validar seu token no backend.
+- [x] Configurar Crashlytics sem registrar dados pessoais ou segredos.
+- [x] Definir eventos mínimos de Analytics com consentimento e finalidade.
+- [x] Configurar Performance Monitoring quando a integração funcional estiver estável.
 
 ### Critério de aceite
 
 Push funciona nos estados suportados, tokens são gerenciados no PostgreSQL e Firebase não mantém dados operacionais duplicados.
+
+Concluída em 3 de setembro de 2026 sob `FEATURE_BACKEND_FIREBASE_SERVICES`. Detalhes, ativação e políticas de privacidade em `docs/backend-integration/PHASE_8_FIREBASE_COMPLEMENTARY.md`.
 
 ## Fase 9 — Reset, seed e corte definitivo do Firestore
 

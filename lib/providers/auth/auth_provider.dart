@@ -35,6 +35,7 @@ class AuthProvider extends ChangeNotifier {
       backendCheckout: false,
       backendDelivery: false,
       backendRealtime: false,
+      backendFirebaseServices: false,
     ),
   }) : _federatedAuth = federatedAuth,
        _delivery = delivery,
@@ -995,6 +996,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     final uid = AuthService.instance.currentUser!.uid;
+    await NotificationService.instance.saveTokenForUser(uid);
     if (!context.mounted) return;
     await context.read<UserPreferencesProvider>().loadForUser(uid);
     if (!context.mounted) return;

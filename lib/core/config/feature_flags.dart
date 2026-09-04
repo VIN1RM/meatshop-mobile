@@ -6,6 +6,7 @@ final class FeatureFlags {
     required this.backendCheckout,
     required this.backendDelivery,
     required this.backendRealtime,
+    required this.backendFirebaseServices,
   });
 
   factory FeatureFlags.fromEnvironment() {
@@ -16,6 +17,9 @@ final class FeatureFlags {
       backendCheckout: bool.fromEnvironment('FEATURE_BACKEND_CHECKOUT'),
       backendDelivery: bool.fromEnvironment('FEATURE_BACKEND_DELIVERY'),
       backendRealtime: bool.fromEnvironment('FEATURE_BACKEND_REALTIME'),
+      backendFirebaseServices: bool.fromEnvironment(
+        'FEATURE_BACKEND_FIREBASE_SERVICES',
+      ),
     );
   }
 
@@ -25,4 +29,5 @@ final class FeatureFlags {
   final bool backendCheckout;
   final bool backendDelivery;
   final bool backendRealtime;
+  final bool backendFirebaseServices;
 }

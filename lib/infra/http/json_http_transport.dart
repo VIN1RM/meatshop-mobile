@@ -9,13 +9,20 @@ import '../../core/config/api_config.dart';
 import '../../core/network/api_failure.dart';
 import '../../core/network/cancellation_token.dart';
 
+typedef RequestHeadersProvider = Future<Map<String, String>> Function();
+
 final class JsonHttpTransport {
-  JsonHttpTransport({required ApiConfig config, http.Client? client})
-    : _config = config,
-      _client = client ?? http.Client();
+  JsonHttpTransport({
+    required ApiConfig config,
+    http.Client? client,
+    RequestHeadersProvider? requestHeaders,
+  }) : _config = config,
+       _client = client ?? http.Client(),
+       _requestHeaders = requestHeaders;
 
   final ApiConfig _config;
   final http.Client _client;
+  final RequestHeadersProvider? _requestHeaders;
 
   Future<Object?> send({
     required String method,
@@ -24,7 +31,8 @@ final class JsonHttpTransport {
     Map<String, String> headers = const {},
     Object? body,
     CancellationToken? cancellationToken,
-  }) {
+  }) async {
+    final dynamicHeaders = await _requestHeaders?.call() ?? const {};
     final uri = _config.resolve(path, query);
     final encodedBody = body == null ? null : utf8.encode(jsonEncode(body));
     return _execute(
@@ -40,6 +48,7 @@ final class JsonHttpTransport {
                 'accept': 'application/json',
                 if (body != null)
                   'content-type': 'application/json; charset=utf-8',
+                ...dynamicHeaders,
                 ...headers,
               });
         if (encodedBody != null) request.bodyBytes = encodedBody;
@@ -58,8 +67,13 @@ final class JsonHttpTransport {
   }) async {
     _throwIfCancelled(cancellationToken);
     final uri = _config.resolve(path);
+    final dynamicHeaders = await _requestHeaders?.call() ?? const {};
     final multipart = http.MultipartRequest('POST', uri)
-      ..headers.addAll({'accept': 'application/json', ...headers})
+      ..headers.addAll({
+        'accept': 'application/json',
+        ...dynamicHeaders,
+        ...headers,
+      })
       ..files.add(
         http.MultipartFile.fromBytes(
           'file',

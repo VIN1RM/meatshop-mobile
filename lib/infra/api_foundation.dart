@@ -26,6 +26,9 @@ import 'repositories/http_delivery_repository.dart';
 import '../data/repositories/chat_repository.dart';
 import 'repositories/http_chat_repository.dart';
 import 'realtime/backend_realtime_client.dart';
+import '../services/firebase_complementary_services.dart';
+import '../data/repositories/notification_repository.dart';
+import 'repositories/http_notification_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -42,11 +45,15 @@ final class ApiFoundation {
     required this.delivery,
     required this.chat,
     required this.realtime,
+    required this.notifications,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
     final config = ApiConfig.fromEnvironment();
-    final transport = JsonHttpTransport(config: config);
+    final transport = JsonHttpTransport(
+      config: config,
+      requestHeaders: FirebaseComplementaryServices.requestHeaders,
+    );
     final session = SessionCoordinator(
       store: SecureSessionStore(FlutterSecureKeyValueStore()),
       refresher: BackendSessionRefresher(transport),
@@ -70,6 +77,7 @@ final class ApiFoundation {
       delivery: HttpDeliveryRepository(client, config),
       chat: HttpChatRepository(client),
       realtime: BackendRealtimeClient(config: config, session: session),
+      notifications: HttpNotificationRepository(client),
     );
   }
 
@@ -86,6 +94,7 @@ final class ApiFoundation {
   final DeliveryRepository delivery;
   final ChatRepository chat;
   final BackendRealtimeClient realtime;
+  final NotificationRepository notifications;
 
   Future<void> initialize() => session.initialize();
 

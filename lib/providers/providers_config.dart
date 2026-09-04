@@ -53,6 +53,7 @@ class ProvidersConfig {
       backendCheckout: false,
       backendDelivery: false,
       backendRealtime: false,
+      backendFirebaseServices: false,
     ),
   }) => [
     Provider<BackendRealtimeAccess>.value(

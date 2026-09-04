@@ -10,10 +10,16 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/ui/widgets/in_app_notification_banner.dart';
 import 'package:meatshop_mobile/services/user_preferences_service.dart';
+import 'package:meatshop_mobile/data/repositories/notification_repository.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'dart:io' show Platform;
+import 'firebase_complementary_services.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await NotificationService.instance.showLocalNotification(message);
+  if (message.notification == null) {
+    await NotificationService.instance.showLocalNotification(message);
+  }
 }
 
 class NotificationService {
@@ -23,12 +29,20 @@ class NotificationService {
   final _messaging = FirebaseMessaging.instance;
   final _localNotifications = FlutterLocalNotificationsPlugin();
   final _db = FirebaseFirestore.instance;
+  NotificationRepository? _backend;
+  bool _useBackend = false;
+  String? _registeredToken;
 
   static const _channelId = 'meatshop_channel';
   static const _channelName = 'MeatShop Notificações';
   static const _channelDesc = 'Pedidos, entregas e promoções';
 
   GlobalKey<NavigatorState>? navigatorKey;
+
+  void configure({NotificationRepository? backend, required bool useBackend}) {
+    _backend = backend;
+    _useBackend = useBackend && backend != null;
+  }
 
   Future<void> initialize({
     required GlobalKey<NavigatorState> navigatorKey,
@@ -41,6 +55,10 @@ class NotificationService {
     _setupMessageOpenedHandler();
     await _checkInitialMessage();
     _messaging.onTokenRefresh.listen((newToken) async {
+      if (_useBackend) {
+        await _registerBackendToken(newToken);
+        return;
+      }
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
       await _db.collection(FirestoreCollections.users).doc(user.uid).set({
@@ -89,6 +107,7 @@ class NotificationService {
 
       final type = (message.data['type'] as String? ?? 'SYSTEM').toUpperCase();
       if (!await _isTypeAllowed(type)) return;
+      if (!context.mounted) return;
 
       final notification = message.notification;
       final data = message.data;
@@ -165,12 +184,29 @@ class NotificationService {
     );
   }
 
-  void _handleNavigation(RemoteMessage message) {
-    _navigateFromData(message.data);
+  Future<void> _handleNavigation(RemoteMessage message) async {
+    await _navigateAfterRefresh(message.data);
+  }
+
+  Future<void> _navigateAfterRefresh(Map<String, dynamic> data) async {
+    var verified = data;
+    if (_useBackend) {
+      final notificationId = '${data['notification_id'] ?? ''}';
+      if (notificationId.isEmpty) return;
+      final current = await _backend!.list();
+      final item = current
+          .where((entry) => entry.id == notificationId)
+          .firstOrNull;
+      if (item == null) return;
+      await _backend!.markAsRead(notificationId);
+      verified = {'type': item.type.name.toUpperCase(), ...?item.payload};
+    }
+    _navigateFromData(verified);
   }
 
   void _navigateFromData(Map<String, dynamic> data) {
     final type = (data['type'] as String? ?? '').toUpperCase();
+    FirebaseComplementaryServices.logNavigation(type.toLowerCase());
     final nav = navigatorKey?.currentState;
     if (nav == null) return;
 
@@ -207,6 +243,10 @@ class NotificationService {
   Future<void> saveTokenForUser(String userId) async {
     final token = await getToken();
     if (token == null) return;
+    if (_useBackend) {
+      await _registerBackendToken(token);
+      return;
+    }
     await _db.collection(FirestoreCollections.users).doc(userId).set({
       'fcm_token': token,
       'fcm_token_updated_at': FieldValue.serverTimestamp(),
@@ -214,6 +254,19 @@ class NotificationService {
   }
 
   Future<void> clearTokenForUser(String userId) async {
+    if (_useBackend) {
+      final token = _registeredToken ?? await getToken();
+      if (token != null) {
+        try {
+          await _backend!.unregisterDeviceToken(token);
+        } catch (_) {
+          // O logout local deve prosseguir mesmo sem rede.
+        }
+      }
+      _registeredToken = null;
+      await _messaging.deleteToken();
+      return;
+    }
     await _db.collection(FirestoreCollections.users).doc(userId).set({
       'fcm_token': null,
     }, SetOptions(merge: true));
@@ -221,6 +274,9 @@ class NotificationService {
   }
 
   Stream<List<NotificationModel>> notificationsStream(String userId) {
+    if (_useBackend) {
+      return Stream.fromFuture(_backend!.list());
+    }
     return _db
         .collection(FirestoreCollections.notifications)
         .where('user_id', isEqualTo: userId)
@@ -231,6 +287,7 @@ class NotificationService {
   }
 
   Future<void> markAsRead(String notificationId) async {
+    if (_useBackend) return _backend!.markAsRead(notificationId);
     await _db
         .collection(FirestoreCollections.notifications)
         .doc(notificationId)
@@ -238,6 +295,7 @@ class NotificationService {
   }
 
   Future<void> markAllAsRead(String userId) async {
+    if (_useBackend) return _backend!.markAllAsRead();
     final snap = await _db
         .collection(FirestoreCollections.notifications)
         .where('user_id', isEqualTo: userId)
@@ -276,5 +334,15 @@ class NotificationService {
       ),
       payload: jsonEncode(data),
     );
+  }
+
+  Future<void> _registerBackendToken(String token) async {
+    final info = await PackageInfo.fromPlatform();
+    await _backend!.registerDeviceToken(
+      token: token,
+      platform: Platform.isIOS ? 'IOS' : 'ANDROID',
+      appVersion: info.version,
+    );
+    _registeredToken = token;
   }
 }

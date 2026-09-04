@@ -15,6 +15,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Push FCM sob `FEATURE_BACKEND_FIREBASE_SERVICES`, com registro Android/iOS no PostgreSQL, renovação de token e remoção no logout.
+- App Check em todas as chamadas mobile, Crashlytics para falhas fatais, Analytics somente com consentimento e Performance Monitoring configurável.
+- Repositório HTTP de notificações e testes de contrato para registro, remoção, atestação e revalidação antes da navegação.
 - Seletor de contato no pedido do cliente para iniciar o canal autorizado com o açougue ou, quando atribuído, com o entregador.
 - Chat REST e Socket.IO sob `FEATURE_BACKEND_REALTIME`, com três canais por pedido, caixa de entrada, não lidas, leitura, digitação e reconciliação após reconexão.
 - Atualizações de status e localização da entrega por salas autorizadas do backend, eliminando polling no fluxo novo.
@@ -50,6 +53,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Abertura de push passa a consultar a notificação atual na API e marcar sua leitura, sem confiar no payload recebido.
+- Reconexão Socket.IO renova a sessão também quando o servidor encerra a conexão e restaura todas as inscrições.
+- Encerrar o acompanhamento de uma entrega agora abandona explicitamente a sala do pedido no backend.
 - Contas criadas pela unidade também são provisionadas no Firebase Authentication para acesso ao aplicativo com a mesma credencial.
 - Aceite e rejeição de ofertas agora validam vínculo, disponibilidade e estado atual de forma concorrente; consultas de itens foram consolidadas para evitar N+1.
 - Cadastro de entregador/veículo e operação diária passam a usar o backend quando a flag da Fase 6 está ativa, preservando o fluxo legado com a flag desligada.
@@ -68,6 +74,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- App Check pode ser imposto gradualmente no backend; payloads de push contêm somente contexto mínimo e nunca códigos de entrega, conversa, token ou dados pessoais.
 - Salas de chat e tracking revalidam usuário ativo e participação no pedido; token em query string deixou de ser aceito e eventos abusivos são limitados.
 - Ofertas são visíveis apenas para entregadores vinculados à unidade e não expõem endereço exato ou coordenadas do cliente antes do aceite.
 - Disponibilidade exige aprovação e veículo ativo; atualização de localização é limitada à entrega atribuída, com frequência mínima, precisão opcional e retenção de 30 dias.
