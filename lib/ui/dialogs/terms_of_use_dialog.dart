@@ -78,7 +78,7 @@ class _DialogTitle extends StatelessWidget {
     return const Text(
       'Termos de Uso - Meatshop',
       style: TextStyle(
-        color: const Color(0xFF1A1A1A),
+        color: Color(0xFF1A1A1A),
         fontSize: 17,
         fontWeight: FontWeight.w700,
       ),
@@ -94,11 +94,7 @@ class _DialogBody extends StatelessWidget {
     return const Text(
       'Deseja visualizar os Termos de Uso?\nVocê será redirecionado para nossa página de termos.',
       textAlign: TextAlign.center,
-      style: TextStyle(
-        color: const Color(0xFF555555),
-        fontSize: 13,
-        height: 1.5,
-      ),
+      style: TextStyle(color: Color(0xFF555555), fontSize: 13, height: 1.5),
     );
   }
 }

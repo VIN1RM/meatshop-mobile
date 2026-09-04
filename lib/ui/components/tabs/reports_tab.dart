@@ -86,6 +86,7 @@ class ReportsTab extends StatelessWidget {
                   earnings: earnings,
                   summary: summary,
                 ).catchError((e) {
+                  if (!context.mounted) return;
                   CustomSnackBar.error(
                     'Erro ao gerar PDF: $e',
                     context: context,

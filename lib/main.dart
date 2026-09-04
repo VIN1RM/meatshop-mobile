@@ -21,7 +21,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
   }
   if (message.notification == null) {
-    await NotificationService.instance.showLocalNotification(message);
+    await NotificationService.instance.showBackgroundNotification(message);
   }
 }
 
@@ -49,10 +49,7 @@ void main() async {
   if (notifications == null) {
     throw StateError('Notification repository was not initialized.');
   }
-  NotificationService.instance.configure(
-    backend: notifications,
-    useBackend: featureFlags.backendFirebaseServices,
-  );
+  NotificationService.instance.configure(backend: notifications);
   await initializeDateFormatting('pt_BR');
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const MeatShopApp());

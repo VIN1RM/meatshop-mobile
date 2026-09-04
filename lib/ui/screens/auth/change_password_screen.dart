@@ -130,7 +130,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -185,8 +185,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             hint: 'seu@email.com',
                             icon: Icons.email_outlined,
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty)
+                              if (v == null || v.trim().isEmpty) {
                                 return 'Informe o e-mail';
+                              }
                               if (!v.contains('@')) return 'E-mail inválido';
                               return null;
                             },
@@ -213,8 +214,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Informe a senha atual';
+                              }
                               return null;
                             },
                           ),
@@ -263,10 +265,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Confirme a nova senha';
-                              if (v != _newPasswordController.text)
+                              }
+                              if (v != _newPasswordController.text) {
                                 return 'As senhas não coincidem';
+                              }
                               return null;
                             },
                           ),

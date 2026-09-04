@@ -50,10 +50,12 @@ class _HomeBodyState extends State<HomeBody> {
   @override
   void initState() {
     super.initState();
+    final unitProvider = context.read<UnitProvider>();
+    final promotionProvider = context.read<PromotionProvider>();
     _loader = Future.microtask(() async {
       await Future.wait([
-        context.read<UnitProvider>().loadUnits(),
-        context.read<PromotionProvider>().loadPromotions(),
+        unitProvider.loadUnits(),
+        promotionProvider.loadPromotions(),
       ]);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoScroll());
@@ -243,7 +245,7 @@ class _HomeBodyState extends State<HomeBody> {
                       width: 48,
                       height: 48,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (_, _, _) => const Icon(
                         Icons.image_not_supported_outlined,
                         color: Color(0xFF3A3A3A),
                         size: 30,
@@ -356,7 +358,7 @@ class _HomeBodyState extends State<HomeBody> {
                                             width: double.infinity,
                                             height: double.infinity,
                                             fit: BoxFit.contain,
-                                            errorBuilder: (_, __, ___) =>
+                                            errorBuilder: (_, _, _) =>
                                                 _placeholderCard(
                                                   promo.productName,
                                                 ),
@@ -495,7 +497,7 @@ class _HomeBodyState extends State<HomeBody> {
                       width: 44,
                       height: 44,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _unitLogoFallback(),
+                      errorBuilder: (_, _, _) => _unitLogoFallback(),
                     )
                   : _unitLogoFallback(),
             ),

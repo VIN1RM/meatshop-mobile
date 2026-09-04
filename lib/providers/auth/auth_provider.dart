@@ -747,7 +747,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       await AuthService.instance.reauthenticate(password: password);
       await _federatedAuth.deleteAccount();
-      await AuthService.instance.deleteCurrentIdentity();
 
       _isAuthenticated = false;
       _appProfile = null;

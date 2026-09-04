@@ -126,8 +126,6 @@ class AuthService {
     return user;
   }
 
-  Future<void> deleteCurrentIdentity() async => _auth.currentUser?.delete();
-
   Future<void> changePassword({
     required String email,
     required String currentPassword,

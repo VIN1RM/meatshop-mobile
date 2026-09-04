@@ -15,6 +15,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- CI mobile para análise estática, testes com cobertura, APK release, build iOS sem assinatura, teste de integração em emulador Android e revisão de dependências.
+- Teste de integração do login e teste unitário para push data-only em segundo plano.
 - Gate final da Fase 10 com teste arquitetural de ausência total do Firestore, setup reproduzível, roteiro de homologação e matriz de evidências de qualidade/segurança.
 - Consulta autorizada do perfil público do entregador atribuído e estado consolidado de avaliações do pedido.
 - Exclusão de conta com revogação de sessões/dispositivos e anonimização transacional dos dados pessoais no PostgreSQL.
@@ -58,6 +60,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Analyzer regularizado sem erros, warnings ou infos; APIs visuais depreciadas, parâmetros wildcard e usos assíncronos de BuildContext foram corrigidos.
+- Exclusão de conta delega a remoção da identidade Firebase ao backend transacional, evitando execução duplicada no cliente.
+- Notificações data-only agora inicializam o canal local e exibem conteúdo seguro também em segundo plano.
 - Dependências `cloud_firestore` e `firebase_storage`, adaptadores legados, serializadores de snapshots e todos os fallbacks operacionais foram removidos fisicamente.
 - Firebase fica restrito a identidade primária, push, App Check, Crashlytics, Analytics consentido e Performance; toda persistência operacional passa obrigatoriamente pela API.
 - Frete exibido no checkout passa a vir exclusivamente da cotação autoritativa do backend.

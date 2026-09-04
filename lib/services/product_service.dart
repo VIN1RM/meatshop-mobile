@@ -43,8 +43,9 @@ class ProductService {
     Object? startAfter,
     required String searchQuery,
   }) async {
-    if (categoryIds.isEmpty)
+    if (categoryIds.isEmpty) {
       return const ProductPage(items: [], lastDoc: null, hasMore: false);
+    }
     final pageNumber = startAfter is int ? startAfter : 1;
     final pages = await Future.wait(
       categoryIds.map(

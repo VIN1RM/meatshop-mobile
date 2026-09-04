@@ -94,7 +94,7 @@ class _ButcherDetailView extends StatelessWidget {
             ],
           ),
           Consumer<CartProvider>(
-            builder: (_, cart, __) {
+            builder: (_, cart, _) {
               if (cart.items.isEmpty) return const SizedBox.shrink();
               return Positioned(
                 bottom: 24,
@@ -164,7 +164,11 @@ class _ButcherDetailView extends StatelessWidget {
   Widget _buildDivider() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Divider(color: _red.withOpacity(0.25), thickness: 0.8, height: 1),
+      child: Divider(
+        color: _red.withValues(alpha: 0.25),
+        thickness: 0.8,
+        height: 1,
+      ),
     );
   }
 
@@ -180,7 +184,7 @@ class _ButcherDetailView extends StatelessWidget {
               ? Image.network(
                   unit.coverUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
                 )
               : const SizedBox.shrink(),
         ),
@@ -199,7 +203,7 @@ class _ButcherDetailView extends StatelessWidget {
                   ? Image.network(
                       unit.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
+                      errorBuilder: (_, _, _) =>
                           const Icon(Icons.store, color: _white, size: 40),
                     )
                   : const Icon(Icons.store, color: _white, size: 40),
@@ -219,7 +223,7 @@ class _ButcherDetailView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -256,7 +260,7 @@ class _ButcherDetailView extends StatelessWidget {
             ],
           ),
           Consumer<ButcherProvider>(
-            builder: (_, provider, __) =>
+            builder: (_, provider, _) =>
                 BusinessHoursBanner(hours: provider.todayHours),
           ),
         ],
@@ -281,7 +285,7 @@ class _ButcherDetailView extends StatelessWidget {
 
   Widget _buildPromocoesSection(BuildContext context) {
     return Consumer<ButcherProvider>(
-      builder: (_, provider, __) {
+      builder: (_, provider, _) {
         if (provider.promotions.isEmpty) return const SizedBox.shrink();
 
         return Column(
@@ -344,7 +348,7 @@ class _ButcherDetailView extends StatelessWidget {
                                       ? Image.network(
                                           promo.productImageUrl,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
+                                          errorBuilder: (_, _, _) =>
                                               _imageFallback(),
                                         )
                                       : _imageFallback(),
@@ -417,7 +421,7 @@ class _ButcherDetailView extends StatelessWidget {
 
   Widget _buildProductList(BuildContext context) {
     return Consumer<ButcherProvider>(
-      builder: (_, provider, __) {
+      builder: (_, provider, _) {
         if (provider.isLoading) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 32),
@@ -463,7 +467,7 @@ class _ButcherDetailView extends StatelessWidget {
 
   Widget _buildReviewsSection(BuildContext context) {
     return Consumer<ButcherProvider>(
-      builder: (_, provider, __) {
+      builder: (_, provider, _) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -496,10 +500,10 @@ class _ButcherDetailView extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _red.withOpacity(0.1),
+                          color: _red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: _red.withOpacity(0.4),
+                            color: _red.withValues(alpha: 0.4),
                             width: 1,
                           ),
                         ),
@@ -557,10 +561,10 @@ class _ButcherDetailView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+        border: Border.all(color: _red.withValues(alpha: 0.15), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -572,7 +576,7 @@ class _ButcherDetailView extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: _red.withOpacity(0.08),
+              color: _red.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -610,9 +614,9 @@ class _ButcherDetailView extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-        color: _red.withOpacity(0.05),
+        color: _red.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+        border: Border.all(color: _red.withValues(alpha: 0.15), width: 1),
       ),
       child: Row(
         children: const [
@@ -659,7 +663,7 @@ class _ButcherDetailView extends StatelessWidget {
                     ? Image.network(
                         product.imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _imageFallback(),
+                        errorBuilder: (_, _, _) => _imageFallback(),
                       )
                     : _imageFallback(),
               ),
@@ -729,9 +733,8 @@ class _ButcherDetailLoaderState extends State<_ButcherDetailLoader> {
   @override
   void initState() {
     super.initState();
-    _loader = Future.microtask(
-      () => context.read<ButcherProvider>().loadProducts(),
-    );
+    final provider = context.read<ButcherProvider>();
+    _loader = Future.microtask(provider.loadProducts);
   }
 
   @override

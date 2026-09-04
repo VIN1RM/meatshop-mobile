@@ -175,7 +175,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ],
           ),
           Consumer<CartProvider>(
-            builder: (_, cart, __) {
+            builder: (_, cart, _) {
               if (cart.items.isEmpty) return const SizedBox.shrink();
               return Positioned(
                 top: MediaQuery.of(context).padding.top + 8,
@@ -237,7 +237,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ? Image.network(
                   product.imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, _) => _heroBannerFallback(),
+                  errorBuilder: (_, _, _) => _heroBannerFallback(),
                 )
               : _heroBannerFallback(),
         ),
@@ -645,9 +645,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: _red.withOpacity(0.07),
+        color: _red.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _red.withOpacity(0.25)),
+        border: Border.all(color: _red.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -720,10 +720,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: _red.withOpacity(0.1),
+                      color: _red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _red.withOpacity(0.4),
+                        color: _red.withValues(alpha: 0.4),
                         width: 1,
                       ),
                     ),
@@ -772,10 +772,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+        border: Border.all(color: _red.withValues(alpha: 0.15), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -787,7 +787,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: _red.withOpacity(0.08),
+              color: _red.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -825,9 +825,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-        color: _red.withOpacity(0.05),
+        color: _red.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _red.withOpacity(0.15), width: 1),
+        border: Border.all(color: _red.withValues(alpha: 0.15), width: 1),
       ),
       child: Row(
         children: const [
@@ -866,7 +866,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         color: _white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, -4),
           ),
@@ -879,7 +879,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           onPressed: isValid ? () => _addToCart(context, product) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: _red,
-            disabledBackgroundColor: _red.withOpacity(0.4),
+            disabledBackgroundColor: _red.withValues(alpha: 0.4),
             foregroundColor: _white,
             elevation: 0,
             shape: RoundedRectangleBorder(

@@ -39,6 +39,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
 
 ### 📈 Melhorias
+- **Qualidade sem Pendências:** A análise estática do aplicativo está limpa e os testes automatizados passam em todas as plataformas cobertas pelo CI.
+- **Alertas em Segundo Plano:** Notificações enviadas apenas com dados agora também aparecem corretamente quando o aplicativo não está aberto.
+- **Exclusão Mais Confiável:** O servidor coordena a remoção da conta e da identidade de login em uma única operação.
 - **Mais Leve e Previsível:** Dependências e caminhos antigos foram removidos, reduzindo risco de informações diferentes entre aplicativo e painel.
 - **Qualidade Final Automatizada:** Testes cobrem conexão lenta, falta de rede, sessão expirada, reconexão, checkout, entregas, conversas e notificações.
 - **Valores Conferidos no Servidor:** Preços, descontos, cupons e taxa de entrega são recalculados antes da confirmação.

@@ -138,7 +138,7 @@ class _CutsViewState extends State<_CutsView> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -148,7 +148,7 @@ class _CutsViewState extends State<_CutsView> {
               children: [
                 const AppHeader(),
                 Consumer<ProductsProvider>(
-                  builder: (_, provider, __) => SearchWidget(
+                  builder: (_, provider, _) => SearchWidget(
                     controller: _searchController,
                     hintText: 'Procure por um corte específico',
                     showBackButton: true,
@@ -157,7 +157,7 @@ class _CutsViewState extends State<_CutsView> {
                 ),
                 Expanded(
                   child: Consumer<ProductsProvider>(
-                    builder: (_, provider, __) {
+                    builder: (_, provider, _) {
                       final filterActive = _isFilterActive(provider);
 
                       return Column(
@@ -461,7 +461,7 @@ class _CutsViewState extends State<_CutsView> {
           if (progress == null) return child;
           return _imagePlaceholder(showLoader: true);
         },
-        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+        errorBuilder: (_, _, _) => _imagePlaceholder(),
       );
     }
     return _imagePlaceholder();

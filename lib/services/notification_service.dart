@@ -13,13 +13,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io' show Platform;
 import 'firebase_complementary_services.dart';
 
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  if (message.notification == null) {
-    await NotificationService.instance.showLocalNotification(message);
-  }
-}
-
 class NotificationService {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
@@ -35,10 +28,7 @@ class NotificationService {
 
   GlobalKey<NavigatorState>? navigatorKey;
 
-  void configure({
-    required NotificationRepository backend,
-    bool useBackend = true,
-  }) {
+  void configure({required NotificationRepository backend}) {
     _backend = backend;
   }
 
@@ -150,8 +140,7 @@ class NotificationService {
   }
 
   Future<void> showLocalNotification(RemoteMessage message) async {
-    final notification = message.notification;
-    if (notification == null) return;
+    final content = notificationContent(message);
 
     final androidDetails = AndroidNotificationDetails(
       _channelId,
@@ -164,13 +153,34 @@ class NotificationService {
 
     await _localNotifications.show(
       message.hashCode,
-      notification.title ?? 'MeatShop',
-      notification.body ?? '',
+      content.title,
+      content.body,
       NotificationDetails(
         android: androidDetails,
         iOS: const DarwinNotificationDetails(),
       ),
       payload: jsonEncode(message.data),
+    );
+  }
+
+  Future<void> showBackgroundNotification(RemoteMessage message) async {
+    await _setupLocalNotifications();
+    await showLocalNotification(message);
+  }
+
+  @visibleForTesting
+  static ({String title, String body}) notificationContent(
+    RemoteMessage message,
+  ) {
+    final data = message.data;
+    return (
+      title:
+          message.notification?.title ?? data['title'] as String? ?? 'MeatShop',
+      body:
+          message.notification?.body ??
+          data['message'] as String? ??
+          data['body'] as String? ??
+          'Você recebeu uma nova notificação',
     );
   }
 

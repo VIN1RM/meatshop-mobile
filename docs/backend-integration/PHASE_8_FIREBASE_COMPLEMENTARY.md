@@ -16,7 +16,7 @@ Analytics inicia desativado sem consentimento explícito. O único evento defini
 
 ## Configuração backend
 
-`FIREBASE_SERVICE_ACCOUNT` configura o Firebase Admin já compartilhado por Auth, FCM e App Check. `FIREBASE_APP_CHECK_ENFORCED=true` exige `X-Firebase-AppCheck` nas requisições identificadas por `X-MeatShop-Client: mobile`; o painel web permanece independente desse atestado.
+FIREBASE_SERVICE_ACCOUNT configura o Firebase Admin compartilhado por Auth, FCM e App Check. Com FIREBASE_APP_CHECK_ENFORCED=true, o servidor exige X-Firebase-AppCheck nas rotas listadas em FIREBASE_APP_CHECK_PROTECTED_PATHS. A decisão não confia em cabeçalhos de identificação enviados pelo cliente, evitando bypass; o painel web permanece fora das rotas protegidas.
 
 Ative a imposição somente depois de registrar os aplicativos Android/iOS e os provedores Play Integrity/App Attest no console Firebase. Builds de desenvolvimento usam o provedor debug e exigem o cadastro do token de debug no console.
 

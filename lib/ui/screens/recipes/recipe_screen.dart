@@ -71,7 +71,7 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: _red.withOpacity(0.5),
+                      color: _red.withValues(alpha: 0.5),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -172,7 +172,7 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
                         width: 52,
                         height: 52,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _buildImageFallback(),
+                        errorBuilder: (_, _, _) => _buildImageFallback(),
                       )
                     : _buildImageFallback(),
               ),
@@ -204,7 +204,7 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: _red.withOpacity(0.2),
+                        color: _red.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -236,7 +236,7 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
       width: 52,
       height: 52,
       decoration: BoxDecoration(
-        color: _red.withOpacity(0.15),
+        color: _red.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Icon(Icons.menu_book_rounded, color: _red, size: 28),

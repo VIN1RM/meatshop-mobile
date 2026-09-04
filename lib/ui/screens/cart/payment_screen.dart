@@ -136,7 +136,7 @@ class _PaymentScreenState extends State<PaymentScreen>
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -353,7 +353,7 @@ class _PaymentScreenState extends State<PaymentScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00B5A5).withOpacity(0.12),
+                  color: const Color(0xFF00B5A5).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -427,7 +427,7 @@ class _PaymentScreenState extends State<PaymentScreen>
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: selected ? _red.withOpacity(0.12) : _surface,
+          color: selected ? _red.withValues(alpha: 0.12) : _surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected ? _red : const Color(0xFF555555),
@@ -868,7 +868,7 @@ class _PaymentScreenState extends State<PaymentScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: _red.withOpacity(0.12),
+                  color: _red.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.point_of_sale, color: _red, size: 28),
@@ -978,7 +978,9 @@ class _PaymentScreenState extends State<PaymentScreen>
       decoration: BoxDecoration(
         color: const Color(0xFF3A3020),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF7A6030).withOpacity(0.5)),
+        border: Border.all(
+          color: const Color(0xFF7A6030).withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

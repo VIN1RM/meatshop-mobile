@@ -34,7 +34,7 @@ class ProfilePhotoViewerScreen extends StatelessWidget {
                     child: CircularProgressIndicator(color: Colors.white),
                   );
                 },
-                errorBuilder: (_, __, ___) => const Center(
+                errorBuilder: (_, _, _) => const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

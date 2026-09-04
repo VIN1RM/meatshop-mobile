@@ -95,7 +95,7 @@ class _RecipeAppBar extends StatelessWidget {
                 ? Image.network(
                     recipe.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _ImageFallback(),
+                    errorBuilder: (_, _, _) => _ImageFallback(),
                   )
                 : _ImageFallback(),
             DecoratedBox(
@@ -142,7 +142,7 @@ class _TagAndTitle extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: _red.withOpacity(0.2),
+            color: _red.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -206,7 +206,7 @@ class _VideoButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF3A3A3A),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _red.withOpacity(0.4)),
+          border: Border.all(color: _red.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -287,12 +287,12 @@ class _FeaturedProductBanner extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_red.withOpacity(0.25), _red.withOpacity(0.08)],
+          colors: [_red.withValues(alpha: 0.25), _red.withValues(alpha: 0.08)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _red.withOpacity(0.35)),
+        border: Border.all(color: _red.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -305,7 +305,7 @@ class _FeaturedProductBanner extends StatelessWidget {
                   ? Image.network(
                       product.productImageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _productIconFallback(),
+                      errorBuilder: (_, _, _) => _productIconFallback(),
                     )
                   : _productIconFallback(),
             ),
@@ -552,7 +552,7 @@ class _StepTile extends StatelessWidget {
                   height: 40,
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
-                    color: _red.withOpacity(0.3),
+                    color: _red.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),

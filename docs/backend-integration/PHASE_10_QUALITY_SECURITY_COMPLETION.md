@@ -33,19 +33,22 @@ Concluída em 4 de setembro de 2026.
 ```text
 flutter pub get
 flutter test
-flutter analyze --no-fatal-infos --no-fatal-warnings
+flutter analyze
 flutter build apk --debug
-flutter build apk --release --dart-define=APP_ENV=production --dart-define=API_BASE_URL=https://api.meatshop.example
+flutter build apk --release --dart-define=MEATSHOP_ENV=production --dart-define=MEATSHOP_API_URL=https://api.meatshop.example
 npm run typecheck
 npm run build
+npm run lint
 npm test -- --runInBand
+npm run test:e2e
+npm audit --omit=dev --audit-level=high
 ```
 
-O analyzer terminou sem erros nem warnings; permanecem 248 diagnósticos de nível `info` herdados (principalmente APIs visuais depreciadas e regras de estilo), que não bloqueiam o artefato. O APK release foi produzido com uma URL HTTPS reservada para validação de composição; a distribuição deve usar a URL real do ambiente.
+O analyzer termina sem erros, warnings ou diagnósticos de nível info. Os 47 testes mobile, 77 testes unitários e 3 E2E do backend e 3 testes do painel passam. O APK release usa uma URL HTTPS reservada apenas para validar a composição; a distribuição deve usar a URL real do ambiente.
 
 O build iOS exige macOS/Xcode e deve ser executado no CI macOS com `flutter build ios --release --no-codesign`. Homologações com FCM/APNs, App Check real e Mercado Pago sandbox exigem as credenciais dos respectivos ambientes.
 
-O comando global `npm run lint` possui dívida histórica fora do escopo do corte (centenas de ocorrências já existentes); os arquivos alterados nesta fase são formatados e validados isoladamente. Os E2E legados de health/metrics/app requerem correção do harness SQLite/JWT; os testes unitários e o build NestJS permanecem autoritativos nesta execução.
+Os lints globais do backend e do painel estão limpos. Os E2E de health, metrics e app usam PostgreSQL real no CI e foram separados dos testes unitários. O CI também constrói a stack Docker, executa as migrations e mede 100 chamadas de health com limite de p95.
 
 ## Homologação conjunta
 

@@ -251,10 +251,10 @@ class _RegisterPageState extends State<RegisterPage> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFC0392B).withOpacity(0.15),
+                      color: const Color(0xFFC0392B).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFFC0392B).withOpacity(0.4),
+                        color: const Color(0xFFC0392B).withValues(alpha: 0.4),
                       ),
                     ),
                     child: Icon(
@@ -354,8 +354,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         inputFormatters: [CpfInputFormatter()],
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Informe o CPF';
-                          if (v.replaceAll(RegExp(r'\D'), '').length < 11)
+                          if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
                             return 'CPF inválido';
+                          }
                           return null;
                         },
                       ),
@@ -370,8 +371,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         keyboardType: TextInputType.phone,
                         inputFormatters: [PhoneInputFormatter()],
                         validator: (v) {
-                          if (v == null || v.isEmpty)
+                          if (v == null || v.isEmpty) {
                             return 'Informe o celular';
+                          }
                           if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
                             return 'Celular inválido';
                           }
@@ -603,7 +605,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   color: selected
                                       ? const Color(
                                           0xFFC0392B,
-                                        ).withOpacity(0.15)
+                                        ).withValues(alpha: 0.15)
                                       : const Color(0xFF525252),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(

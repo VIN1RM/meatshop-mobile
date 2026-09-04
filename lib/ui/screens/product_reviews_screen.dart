@@ -67,7 +67,7 @@ class _ProductReviewsScreenState extends State<ProductReviewsScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(color: _red),
+                errorBuilder: (_, _, _) => Container(color: _red),
               ),
             ),
           ),

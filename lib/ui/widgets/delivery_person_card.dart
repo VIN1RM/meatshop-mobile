@@ -292,7 +292,7 @@ class _Avatar extends StatelessWidget {
     return Image.network(
       photoUrl,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _fallback(initials, red),
+      errorBuilder: (_, _, _) => _fallback(initials, red),
     );
   }
 
@@ -336,7 +336,7 @@ class _VehiclePhoto extends StatelessWidget {
       width: double.infinity,
       height: 160,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => _placeholder(),
+      errorBuilder: (_, _, _) => _placeholder(),
     );
   }
 

@@ -31,7 +31,7 @@ class DeliveriesTab extends StatelessWidget {
                   child: Image.asset(
                     'assets/images/background.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _, _) =>
                         Container(color: const Color(0xFF1A1A1A)),
                   ),
                 ),
@@ -115,7 +115,7 @@ class DeliveriesTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             physics: const BouncingScrollPhysics(),
             itemCount: provider.pendingOrders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (_, i) {
               final order = provider.pendingOrders[i];
               return OrderCardWidget(

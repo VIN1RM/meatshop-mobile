@@ -38,7 +38,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                   child: Image.asset(
                     'assets/images/background.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _, _) =>
                         Container(color: const Color(0xFF1A1A1A)),
                   ),
                 ),
@@ -206,7 +206,7 @@ class _HistoryList extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (_, index) => _HistoryCard(order: orders[index]),
     );
   }
@@ -290,7 +290,7 @@ class _StatusIcon extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: const Color(0xFF2ECC71).withOpacity(0.12),
+        color: const Color(0xFF2ECC71).withValues(alpha: 0.12),
         shape: BoxShape.circle,
       ),
       child: const Icon(

@@ -121,7 +121,7 @@ class _WelcomePageState extends State<WelcomePage> {
       item.path,
       fit: BoxFit.cover,
       alignment: item.alignment,
-      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF2A2A2A)),
+      errorBuilder: (_, _, _) => Container(color: const Color(0xFF2A2A2A)),
     );
   }
 
