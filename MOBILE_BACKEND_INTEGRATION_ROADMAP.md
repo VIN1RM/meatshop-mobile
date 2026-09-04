@@ -256,19 +256,21 @@ Como não existem dados reais, não será realizada migração de legado.
 
 ### Entregas
 
-- [ ] Parar os ambientes antes do reset.
-- [ ] Resetar o PostgreSQL de desenvolvimento de forma controlada.
-- [ ] Executar todas as migrations do backend desde uma base vazia.
-- [ ] Executar seed mínimo coerente para unidade, catálogo e contas de teste.
-- [ ] Limpar as coleções operacionais do Firestore.
-- [ ] Preservar apenas os usuários Firebase necessários ao teste ou recriá-los.
-- [ ] Remover seeds Firestore e código de compatibilidade temporária.
-- [ ] Validar relacionamentos e jornadas completas após o reseed.
-- [ ] Documentar contas, cenários e comandos de preparação do ambiente.
+- [x] Parar os ambientes antes do reset.
+- [x] Resetar o PostgreSQL de desenvolvimento de forma controlada.
+- [x] Executar todas as migrations do backend desde uma base vazia.
+- [x] Executar seed mínimo coerente para unidade, catálogo e contas de teste.
+- [x] Limpar as coleções operacionais do Firestore.
+- [x] Preservar apenas os usuários Firebase necessários ao teste ou recriá-los.
+- [x] Remover seeds Firestore e código de compatibilidade temporária.
+- [x] Validar relacionamentos e jornadas completas após o reseed.
+- [x] Documentar contas, cenários e comandos de preparação do ambiente.
 
 ### Critério de aceite
 
 Uma instalação limpa sobe com backend e PostgreSQL, o mobile executa todas as jornadas e nenhuma coleção Firestore operacional é recriada.
+
+Concluída em 3 de setembro de 2026. O PostgreSQL foi recriado por 46 migrations, o seed sintético foi validado como idempotente e o Firestore de desenvolvimento foi esvaziado. As flags temporárias não controlam mais o runtime: todos os domínios migrados usam o backend. Regras publicadas no Firebase negam qualquer leitura ou escrita no Firestore; Firebase Auth, FCM, App Check e observabilidade permanecem.
 
 ## Fase 10 — Qualidade, segurança e conclusão
 

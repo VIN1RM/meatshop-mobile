@@ -8,6 +8,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
+- **Dados Oficiais em um Só Lugar:** Perfil, catálogo, pedidos, entregas, conversas e notificações agora usam o sistema MeatShop como fonte única; o antigo banco operacional do aplicativo foi desativado.
+- **Ambiente de Testes Reproduzível:** A equipe pode preparar novamente unidade, produtos e contas de demonstração de forma segura e consistente.
 - **Notificações mais confiáveis:** Alertas de pedidos, entregas e conversas agora chegam pelo backend e abrem sempre informações atualizadas.
 - **Proteção do aplicativo:** O App Check ajuda a impedir acessos feitos por cópias não autorizadas do app.
 - **Mais estabilidade:** Crashlytics e monitoramento de desempenho ajudam a identificar falhas, sem enviar seus dados operacionais.

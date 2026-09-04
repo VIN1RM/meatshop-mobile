@@ -15,6 +15,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Preparação reproduzível da Fase 9 com seed PostgreSQL idempotente, contas e cenários sintéticos documentados.
+- Configuração Firebase versionada com regras que bloqueiam toda leitura e escrita no Firestore após o corte.
 - Push FCM sob `FEATURE_BACKEND_FIREBASE_SERVICES`, com registro Android/iOS no PostgreSQL, renovação de token e remoção no logout.
 - App Check em todas as chamadas mobile, Crashlytics para falhas fatais, Analytics somente com consentimento e Performance Monitoring configurável.
 - Repositório HTTP de notificações e testes de contrato para registro, remoção, atestação e revalidação antes da navegação.
@@ -53,6 +55,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
 
 ### Changed
+- Todos os domínios migrados passam a usar obrigatoriamente o backend; defines antigos não reativam fallbacks Firestore.
+- Seed operacional do Firestore removido e coleções de desenvolvimento apagadas, preservando Firebase Authentication.
 - Abertura de push passa a consultar a notificação atual na API e marcar sua leitura, sem confiar no payload recebido.
 - Reconexão Socket.IO renova a sessão também quando o servidor encerra a conexão e restaura todas as inscrições.
 - Encerrar o acompanhamento de uma entrega agora abandona explicitamente a sala do pedido no backend.
@@ -74,6 +78,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
 
 ### Security
+- Regras Firestore `deny all` impedem recriação de dados operacionais e mantêm o Firebase restrito à identidade e serviços complementares.
 - App Check pode ser imposto gradualmente no backend; payloads de push contêm somente contexto mínimo e nunca códigos de entrega, conversa, token ou dados pessoais.
 - Salas de chat e tracking revalidam usuário ativo e participação no pedido; token em query string deixou de ser aceito e eventos abusivos são limitados.
 - Ofertas são visíveis apenas para entregadores vinculados à unidade e não expõem endereço exato ou coordenadas do cliente antes do aceite.

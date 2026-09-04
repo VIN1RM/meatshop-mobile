@@ -39,10 +39,10 @@ Resultado esperado:
 - backend saudável em `:3001`;
 - frontend saudável em `:3000`.
 
-Exemplo de execução do mobile no emulador Android com as Fases 1 a 4 ativas:
+Exemplo de execução do mobile no emulador Android após o corte definitivo:
 
 ```powershell
-flutter run --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001 --dart-define=MEATSHOP_ENV=development --dart-define=FEATURE_BACKEND_AUTH=true --dart-define=FEATURE_BACKEND_MARKETPLACE=true --dart-define=FEATURE_BACKEND_PROFILE_CART=true
+flutter run --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001 --dart-define=MEATSHOP_ENV=development
 ```
 
 Para desktop ou Web, use `http://localhost:3001`; em dispositivo físico, use o IP local da máquina. Homologação e produção aceitam apenas HTTPS. A aplicação não assume uma URL padrão quando a fundação do backend é ativada.
@@ -52,16 +52,14 @@ Para desktop ou Web, use `http://localhost:3001`; em dispositivo físico, use o 
 > Destrutivo: execute somente no Compose local e depois de confirmar o diretório e o projeto Docker (`name: meatshop`).
 
 ```powershell
-docker compose down -v
-docker compose up -d --build
-docker compose ps
+.\scripts\reset-development.ps1 -ConfirmProject meatshop
 ```
 
-Esse fluxo remove volumes locais, recria o banco e executa migrations. Atualmente `SEED_ENABLED` está `false`; portanto, o banco volta vazio até que o seed mínimo seja habilitado ou as contas de teste sejam cadastradas.
+O script interrompe o stack, valida e remove somente o volume `meatshop_pgdata`, reconstrói as imagens, executa todas as migrations, aplica o seed e sobe backend e frontend. O seed recusa `NODE_ENV=production` e só executa com `SEED_ENABLED=true`.
 
 ## Dataset mínimo esperado
 
-O seed definitivo deverá ser idempotente e conter apenas dados sintéticos:
+O seed é idempotente e contém apenas dados sintéticos:
 
 - uma unidade ativa com endereço, coordenadas e horários;
 - um proprietário/administrador da unidade;
@@ -71,7 +69,9 @@ O seed definitivo deverá ser idempotente e conter apenas dados sintéticos:
 - cliente Firebase vinculado a usuário PostgreSQL;
 - entregador pendente e entregador aprovado com veículo ativo;
 - endereços de cliente;
-- pedidos representando os principais estados, quando isso não violar invariantes.
+- cupom vigente `DEV10` e cenário expirado `EXPIRADO10`.
+
+Todas as contas locais usam, exclusivamente em desenvolvimento, a senha `MeatshopDev123!`: `admin@meatshop.local`, `owner@meatshop.local`, `client@meatshop.local`, `delivery@meatshop.local` e `delivery.pending@meatshop.local`. Para federar uma conta Firebase preservada, informe seu UID na variável `SEED_*_FIREBASE_UID` correspondente antes do reset; sem UID, o primeiro vínculo por e-mail exige a senha local.
 
 Credenciais de demonstração não devem ser reutilizadas em homologação ou produção.
 
@@ -95,12 +95,15 @@ Também é possível excluir coleções pelo Console Firebase. A exclusão de do
 
 ## Usuários Firebase
 
-Na Fase 9 será tomada uma destas ações:
-
-- preservar poucas contas de desenvolvimento e vinculá-las novamente ao PostgreSQL; ou
-- excluir as contas no Console Firebase Authentication e recriar o conjunto de testes.
+As contas do Firebase Authentication foram preservadas. A limpeza atingiu somente as coleções do Firestore no projeto de desenvolvimento `meatshop-3c78f`.
 
 Não é necessário exportar senhas ou migrar hashes porque Firebase Auth continuará sendo o provedor de identidade do mobile.
+
+As regras versionadas em `firestore.rules` negam toda leitura e escrita. Para reaplicar conscientemente no projeto de desenvolvimento:
+
+```powershell
+firebase deploy --only firestore:rules --project meatshop-3c78f
+```
 
 ## Verificação pós-reset
 

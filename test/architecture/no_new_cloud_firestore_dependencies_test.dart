@@ -9,7 +9,6 @@ const _cloudFirestoreImport = "package:cloud_firestore/cloud_firestore.dart";
 // Esta lista só pode diminuir. Ao migrar um arquivo, remova o import e a entrada
 // correspondente no mesmo commit. Não adicione exceções para código novo.
 const _legacyCloudFirestoreFiles = <String>{
-  'lib/firestore_seed.dart',
   'lib/models/active_order_model.dart',
   'lib/models/category_model.dart',
   'lib/models/chat_model.dart',

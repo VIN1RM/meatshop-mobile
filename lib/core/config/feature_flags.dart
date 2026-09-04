@@ -11,15 +11,13 @@ final class FeatureFlags {
 
   factory FeatureFlags.fromEnvironment() {
     return const FeatureFlags(
-      backendAuth: bool.fromEnvironment('FEATURE_BACKEND_AUTH'),
-      backendMarketplace: bool.fromEnvironment('FEATURE_BACKEND_MARKETPLACE'),
-      backendProfileCart: bool.fromEnvironment('FEATURE_BACKEND_PROFILE_CART'),
-      backendCheckout: bool.fromEnvironment('FEATURE_BACKEND_CHECKOUT'),
-      backendDelivery: bool.fromEnvironment('FEATURE_BACKEND_DELIVERY'),
-      backendRealtime: bool.fromEnvironment('FEATURE_BACKEND_REALTIME'),
-      backendFirebaseServices: bool.fromEnvironment(
-        'FEATURE_BACKEND_FIREBASE_SERVICES',
-      ),
+      backendAuth: true,
+      backendMarketplace: true,
+      backendProfileCart: true,
+      backendCheckout: true,
+      backendDelivery: true,
+      backendRealtime: true,
+      backendFirebaseServices: true,
     );
   }
 

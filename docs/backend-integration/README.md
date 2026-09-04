@@ -17,6 +17,7 @@ Branch de trabalho: `refactor/mobile-with-backend`.
 - Fase 6 — fluxo do entregador: implementada, testada e protegida por feature flag, com consentimento explícito para localização durante a entrega ativa.
 - Fase 7 — chat e tempo real: implementada sob feature flag com histórico REST, Socket.IO autenticado e reconciliação após reconexão.
 - Fase 8 — push e Firebase complementar: implementada sob feature flag com tokens FCM no PostgreSQL, App Check e observabilidade consentida.
+- Fase 9 — reset, seed e corte definitivo: concluída com banco recriado por migrations, dataset sintético idempotente e Firestore bloqueado.
 
 Artefatos:
 
@@ -33,6 +34,7 @@ Artefatos:
 - [Fluxo completo do entregador](PHASE_6_DELIVERY_FLOW.md): aprovação, veículos, disponibilidade, ofertas, códigos, histórico, avaliações, ganhos, metas e política de localização.
 - [Chat e tempo real](PHASE_7_REALTIME_CHAT.md): canais por pedido, leitura, digitação, tracking, reconexão e segurança dos sockets.
 - [Push e Firebase complementar](PHASE_8_FIREBASE_COMPLEMENTARY.md): ciclo de tokens FCM, navegação revalidada, App Check, Crashlytics, Analytics e Performance.
+- [Reset, seed e corte do Firestore](PHASE_9_RESET_SEED_FIRESTORE_CUTOVER.md): preparação reproduzível, contas, cenários e evidências do corte definitivo.
 
 ## Decisões registradas
 
