@@ -63,7 +63,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
         resultado.sort((a, b) => a.averageRating.compareTo(b.averageRating));
       case AcougueOrdem.precoMaior:
       case AcougueOrdem.precoMenor:
-        break; 
+        break;
     }
 
     return resultado;
@@ -114,7 +114,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -343,7 +343,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                         width: 52,
                         height: 52,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _logoFallback(),
+                        errorBuilder: (_, _, _) => _logoFallback(),
                       )
                     : _logoFallback(),
               ),

@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class CategoryModel {
   final String id;
   final String name;
@@ -16,16 +14,4 @@ class CategoryModel {
     required this.unitId,
     this.createdAt,
   });
-
-  factory CategoryModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-    return CategoryModel(
-      id: doc.id,
-      name: (data['name'] as String?) ?? '',
-      description: (data['description'] as String?) ?? '',
-      active: (data['active'] as bool?) ?? true,
-      unitId: (data['unit_id'] as String?) ?? '',
-      createdAt: (data['created_at'] as Timestamp?)?.toDate(),
-    );
-  }
 }

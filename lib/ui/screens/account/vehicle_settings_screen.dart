@@ -44,7 +44,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -77,9 +77,9 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                                   style: TextStyle(color: Colors.white38),
                                 )
                               else
-                                ...provider.vehicles
-                                    .map((v) => _buildVehicleCard(context, v))
-                                    .toList(),
+                                ...provider.vehicles.map(
+                                  (v) => _buildVehicleCard(context, v),
+                                ),
                               const SizedBox(height: 24),
                             ],
                           ),
@@ -173,10 +173,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                     const SizedBox(height: 2),
                     const Text(
                       'Veículo principal',
-                      style: TextStyle(
-                        color: const Color(0xFF888888),
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: Color(0xFF888888), fontSize: 12),
                     ),
                   ],
                 ),
@@ -194,6 +191,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
 
           GestureDetector(
             onTap: () async {
+              context.read<VehicleProvider>().selectVehicle(vehicle);
               await showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
@@ -225,6 +223,45 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              if (vehicle['is_active'] != true)
+                TextButton.icon(
+                  onPressed: () async {
+                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    final id = (vehicle['id'] as num?)?.toInt();
+                    if (uid != null && id != null) {
+                      await context.read<VehicleProvider>().activateVehicle(
+                        uid,
+                        id,
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Tornar principal'),
+                ),
+              const Spacer(),
+              if (vehicle['is_active'] != true)
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red.shade700,
+                  ),
+                  onPressed: () async {
+                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    final id = (vehicle['id'] as num?)?.toInt();
+                    if (uid != null && id != null) {
+                      await context.read<VehicleProvider>().deleteVehicle(
+                        uid,
+                        id,
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Excluir'),
+                ),
+            ],
+          ),
         ],
       ),
     );
@@ -233,7 +270,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
   Widget _infoRow(String label, String value) {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 13, color: const Color(0xFF555555)),
+        style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
         children: [
           TextSpan(
             text: '$label ',

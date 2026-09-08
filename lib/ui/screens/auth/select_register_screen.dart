@@ -273,7 +273,7 @@ class _SelectRegisterPageState extends State<SelectRegisterPage>
                         foregroundColor: Colors.white,
                         disabledBackgroundColor: const Color(
                           0xFFC0392B,
-                        ).withOpacity(0.4),
+                        ).withValues(alpha: 0.4),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -329,7 +329,7 @@ class _TypeCard extends StatelessWidget {
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFC0392B).withOpacity(0.15)
+              ? const Color(0xFFC0392B).withValues(alpha: 0.15)
               : const Color(0xFF525252),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
@@ -348,7 +348,7 @@ class _TypeCard extends StatelessWidget {
                 height: 110,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (_, _, _) => Container(
                   height: 110,
                   decoration: BoxDecoration(
                     color: const Color(0xFF3A3A3A),

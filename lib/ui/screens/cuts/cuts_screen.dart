@@ -6,6 +6,10 @@ import 'package:meatshop_mobile/ui/components/sheets/cuts_filter_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/providers/product_provider.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
+import '../../../data/repositories/marketplace_context.dart';
+import '../../../services/category_service.dart';
+import '../../../services/product_service.dart';
+import '../../../services/unit_service.dart';
 
 class CutsScreen extends StatelessWidget {
   final String title;
@@ -19,9 +23,14 @@ class CutsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final marketplace = context.read<MarketplaceContext>().repository;
     return ChangeNotifierProvider(
-      create: (_) =>
-          ProductsProvider(categoryName: categoryName)..loadFirstPage(),
+      create: (_) => ProductsProvider(
+        categoryName: categoryName,
+        service: ProductService(marketplace: marketplace),
+        categoryService: CategoryService(marketplace: marketplace),
+        unitService: UnitService(marketplace: marketplace),
+      )..loadFirstPage(),
       child: _CutsView(title: title),
     );
   }
@@ -129,7 +138,7 @@ class _CutsViewState extends State<_CutsView> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -139,7 +148,7 @@ class _CutsViewState extends State<_CutsView> {
               children: [
                 const AppHeader(),
                 Consumer<ProductsProvider>(
-                  builder: (_, provider, __) => SearchWidget(
+                  builder: (_, provider, _) => SearchWidget(
                     controller: _searchController,
                     hintText: 'Procure por um corte específico',
                     showBackButton: true,
@@ -148,7 +157,7 @@ class _CutsViewState extends State<_CutsView> {
                 ),
                 Expanded(
                   child: Consumer<ProductsProvider>(
-                    builder: (_, provider, __) {
+                    builder: (_, provider, _) {
                       final filterActive = _isFilterActive(provider);
 
                       return Column(
@@ -452,7 +461,7 @@ class _CutsViewState extends State<_CutsView> {
           if (progress == null) return child;
           return _imagePlaceholder(showLoader: true);
         },
-        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+        errorBuilder: (_, _, _) => _imagePlaceholder(),
       );
     }
     return _imagePlaceholder();

@@ -22,14 +22,14 @@ class ButcherProvider extends ChangeNotifier {
 
   ButcherProvider({
     required this.unitId,
-    ProductService? productService,
-    ReviewService? reviewService,
-    PromotionService? promotionService,
-    BusinessHoursService? hoursService,
-  }) : _productService = productService ?? ProductService(),
-       _promotionService = promotionService ?? PromotionService(),
-       _hoursService = hoursService ?? BusinessHoursService(),
-       _reviewService = reviewService ?? ReviewService();
+    required ProductService productService,
+    required ReviewService reviewService,
+    required PromotionService promotionService,
+    required BusinessHoursService hoursService,
+  }) : _productService = productService,
+       _promotionService = promotionService,
+       _hoursService = hoursService,
+       _reviewService = reviewService;
 
   List<ProductModel> _items = [];
   List<ProductModel> get items => _items;

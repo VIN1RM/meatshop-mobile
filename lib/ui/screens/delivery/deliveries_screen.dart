@@ -31,7 +31,7 @@ class DeliveriesTab extends StatelessWidget {
                   child: Image.asset(
                     'assets/images/background.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _, _) =>
                         Container(color: const Color(0xFF1A1A1A)),
                   ),
                 ),
@@ -115,13 +115,41 @@ class DeliveriesTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             physics: const BouncingScrollPhysics(),
             itemCount: provider.pendingOrders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (_, i) {
               final order = provider.pendingOrders[i];
               return OrderCardWidget(
                 order: order,
                 isLoading: provider.isLoading,
-                onAccept: () => provider.acceptOrder(order),
+                onAccept: () async {
+                  await provider.acceptOrder(order);
+                  if (!context.mounted || !provider.hasActiveOrder) {
+                    return;
+                  }
+                  final consent = await showDialog<bool>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (dialogContext) => AlertDialog(
+                      title: const Text('Compartilhar localização?'),
+                      content: const Text(
+                        'Durante esta entrega, sua localização precisa poderá ser acompanhada pelo cliente e pela unidade. O envio termina ao concluir ou sair da entrega.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialogContext, false),
+                          child: const Text('Agora não'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(dialogContext, true),
+                          child: const Text('Permitir durante a entrega'),
+                        ),
+                      ],
+                    ),
+                  );
+                  await provider.startLocationSharing(
+                    consent: consent ?? false,
+                  );
+                },
                 onReject: () async {
                   final reasons = await RejectOrderDialog.show(context);
                   if (reasons != null && reasons.isNotEmpty) {

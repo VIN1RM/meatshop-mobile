@@ -11,6 +11,106 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.0.0] - Em desenvolvimento
+### Integração Mobile com Backend e PostgreSQL
+
+### Added
+- Configuração local via `.env` nativo do Flutter e perfil do VS Code para iniciar o aplicativo apontando ao backend Docker sem expor dados específicos da máquina.
+- CI mobile para análise estática, testes com cobertura, APK release, build iOS sem assinatura, teste de integração em emulador Android e revisão de dependências.
+- Teste de integração do login e teste unitário para push data-only em segundo plano.
+- Gate final da Fase 10 com teste arquitetural de ausência total do Firestore, setup reproduzível, roteiro de homologação e matriz de evidências de qualidade/segurança.
+- Consulta autorizada do perfil público do entregador atribuído e estado consolidado de avaliações do pedido.
+- Exclusão de conta com revogação de sessões/dispositivos e anonimização transacional dos dados pessoais no PostgreSQL.
+- Preparação reproduzível da Fase 9 com seed PostgreSQL idempotente, contas e cenários sintéticos documentados.
+- Configuração Firebase versionada com regras que bloqueiam toda leitura e escrita no Firestore após o corte.
+- Push FCM sob `FEATURE_BACKEND_FIREBASE_SERVICES`, com registro Android/iOS no PostgreSQL, renovação de token e remoção no logout.
+- App Check em todas as chamadas mobile, Crashlytics para falhas fatais, Analytics somente com consentimento e Performance Monitoring configurável.
+- Repositório HTTP de notificações e testes de contrato para registro, remoção, atestação e revalidação antes da navegação.
+- Seletor de contato no pedido do cliente para iniciar o canal autorizado com o açougue ou, quando atribuído, com o entregador.
+- Chat REST e Socket.IO sob `FEATURE_BACKEND_REALTIME`, com três canais por pedido, caixa de entrada, não lidas, leitura, digitação e reconciliação após reconexão.
+- Atualizações de status e localização da entrega por salas autorizadas do backend, eliminando polling no fluxo novo.
+- Distinção entre entregador autônomo ativo e entregador vinculado sujeito à aprovação da unidade.
+- Upload autenticado e validado de até quatro fotos por veículo.
+- Fluxo REST do entregador sob `FEATURE_BACKEND_DELIVERY`, cobrindo cadastro, aprovação, veículos, disponibilidade, ofertas, aceite/rejeição, entrega ativa, códigos, histórico, avaliações, ganhos e metas.
+- Persistência PostgreSQL de disponibilidade, rejeições individuais de ofertas e metas diária, semanal e mensal, com exclusão lógica de veículos.
+- Testes de contrato da Fase 6 para ofertas, disponibilidade e rejeição sem Firestore ou dados pessoais no payload.
+- Checkout HTTP completo sob `FEATURE_BACKEND_CHECKOUT`, com cotação autoritativa, criação multiunidade, histórico, detalhe, cancelamento, agendamento e recompra.
+- Repositórios de pedidos e pagamentos com `Idempotency-Key`, checkout agregado do Mercado Pago e métodos de pagamento tokenizados.
+- Testes de contrato da Fase 5 para checkout com duas unidades, repetição idempotente, pagamento por lote e metadados seguros de cartão.
+- Documentação operacional da Fase 5, incluindo ativação, contratos, consistência, segurança e homologação sandbox.
+- Repositórios HTTP de perfil, endereços e carrinho, injetados por contratos e ativados por `FEATURE_BACKEND_PROFILE_CART`.
+- Upload autenticado de avatar por `multipart/form-data`, com timeout, cancelamento, renovação de sessão e URL resolvida por ambiente.
+- Geocodificação de endereço pelo backend a partir do CEP, sem entrada manual de latitude ou longitude.
+- Suporte a carrinho único com produtos de múltiplas unidades, quantidades fracionadas e agrupamento por açougue.
+- Testes de contratos de perfil, CEP e carrinho, incluindo persistência da limpeza e cenário multiunidade.
+- Marketplace público alimentado pelo PostgreSQL, com unidades, detalhes, horários, avaliações e paginação.
+- Busca combinada de açougues, categorias e produtos, incluindo filtros de unidade, categoria e preço.
+- Repositório mobile de marketplace e testes de contratos públicos e catálogo vendável.
+- Federação do Firebase Authentication com `POST /auth/firebase/exchange`, validação de expiração/revogação e sessão MeatShop.
+- Identidade Firebase única e opcional no PostgreSQL, perfil incompleto explícito e conclusão cadastral pela API.
+- Vínculo inicial de conta local protegido pela senha atual e por e-mail Firebase verificado.
+- Repositório Flutter de autenticação federada, restauração da sessão e testes automatizados de troca e vínculo.
+- Roadmap completo em 10 fases para tornar o backend NestJS e o PostgreSQL a fonte única dos dados operacionais do aplicativo.
+- Inventário rastreável dos acessos Firebase, contratos de API, ambientes, reset seguro e linha de base de qualidade.
+- Cliente REST central com URL por ambiente, métodos HTTP, headers JSON, timeout e cancelamento real de requisições.
+- Erros tipados para rede, timeout, cancelamento, autenticação, autorização, validação, conflito, limite de requisições, servidor e contrato inválido.
+- Sessão MeatShop com access/refresh token, renovação única para chamadas concorrentes e armazenamento seguro no sistema operacional.
+- Contrato de repositório para validar os endpoints público `/health` e protegido `/users/me` sem expor infraestrutura à UI.
+- Suporte comum a paginação e compatibilidade temporária entre `total_pages` e `totalPages` na borda remota.
+- Feature flags de autenticação e marketplace, desativadas por padrão para controlar o corte gradual.
+- Testes automatizados da fundação HTTP, sessão, armazenamento seguro, paginação e fronteiras arquiteturais.
+
+### Changed
+- Analyzer regularizado sem erros, warnings ou infos; APIs visuais depreciadas, parâmetros wildcard e usos assíncronos de BuildContext foram corrigidos.
+- Exclusão de conta delega a remoção da identidade Firebase ao backend transacional, evitando execução duplicada no cliente.
+- Notificações data-only agora inicializam o canal local e exibem conteúdo seguro também em segundo plano.
+- Dependências `cloud_firestore` e `firebase_storage`, adaptadores legados, serializadores de snapshots e todos os fallbacks operacionais foram removidos fisicamente.
+- Firebase fica restrito a identidade primária, push, App Check, Crashlytics, Analytics consentido e Performance; toda persistência operacional passa obrigatoriamente pela API.
+- Frete exibido no checkout passa a vir exclusivamente da cotação autoritativa do backend.
+- Todos os domínios migrados passam a usar obrigatoriamente o backend; defines antigos não reativam fallbacks Firestore.
+- Seed operacional do Firestore removido e coleções de desenvolvimento apagadas, preservando Firebase Authentication.
+- Abertura de push passa a consultar a notificação atual na API e marcar sua leitura, sem confiar no payload recebido.
+- Reconexão Socket.IO renova a sessão também quando o servidor encerra a conexão e restaura todas as inscrições.
+- Encerrar o acompanhamento de uma entrega agora abandona explicitamente a sala do pedido no backend.
+- Contas criadas pela unidade também são provisionadas no Firebase Authentication para acesso ao aplicativo com a mesma credencial.
+- Aceite e rejeição de ofertas agora validam vínculo, disponibilidade e estado atual de forma concorrente; consultas de itens foram consolidadas para evitar N+1.
+- Cadastro de entregador/veículo e operação diária passam a usar o backend quando a flag da Fase 6 está ativa, preservando o fluxo legado com a flag desligada.
+- Ganhos passam a ser derivados de pedidos efetivamente entregues, eliminando lançamento operacional duplicado pelo aplicativo.
+- Revisão do pedido passa a usar preços, descontos, cupons e frete calculados pelo servidor quando a Fase 5 está ativa.
+- Histórico, rastreamento e recompra do cliente passam a consumir o PostgreSQL por meio da API, sem escrita dupla no Firestore.
+- Pagamentos online abrem uma única preferência Mercado Pago para todos os pedidos do mesmo checkout.
+- Perfil, endereços e carrinho passam a usar o PostgreSQL por meio da API quando `FEATURE_BACKEND_PROFILE_CART` está ativa, sem escrita dupla no Firestore.
+- Carrinho substitui snapshots locais pela resposta revalidada do servidor após cada mutação.
+- Consulta de horários e serviços legados deixam de inicializar Firestore quando uma implementação backend foi injetada.
+- Unidades passam a aparecer no marketplace imediatamente após a criação.
+- Catálogo mobile passa a oferecer somente produtos e categorias ativos com estoque positivo e promoções vigentes quando `FEATURE_BACKEND_MARKETPLACE` está ativa.
+- Login por e-mail, Google e Apple passa a usar access/refresh tokens MeatShop quando `FEATURE_BACKEND_AUTH` está ativa, preservando o fluxo anterior com a flag desligada.
+- Firebase Admin centralizado e compartilhado entre autenticação e FCM.
+- Versão do aplicativo iniciada em `3.0.0+1` durante todo o plano de refatoração.
+- Lockfile de dependências normalizado para o SDK do projeto (Flutter 3.35.5 e Dart 3.9.2).
+
+### Security
+- Perfil público do entregador só é retornado ao cliente que possui pedido atribuído a ele.
+- Exclusão de conta autentica novamente no Firebase antes de anonimizar o PostgreSQL e somente então remove a identidade primária, evitando exclusão parcial iniciada sem prova de senha.
+- Regras Firestore `deny all` impedem recriação de dados operacionais e mantêm o Firebase restrito à identidade e serviços complementares.
+- App Check pode ser imposto gradualmente no backend; payloads de push contêm somente contexto mínimo e nunca códigos de entrega, conversa, token ou dados pessoais.
+- Salas de chat e tracking revalidam usuário ativo e participação no pedido; token em query string deixou de ser aceito e eventos abusivos são limitados.
+- Ofertas são visíveis apenas para entregadores vinculados à unidade e não expõem endereço exato ou coordenadas do cliente antes do aceite.
+- Disponibilidade exige aprovação e veículo ativo; atualização de localização é limitada à entrega atribuída, com frequência mínima, precisão opcional e retenção de 30 dias.
+- Criação de pedidos exige UUID v4 idempotente; estoque e cancelamento são protegidos por transações e bloqueios PostgreSQL.
+- Webhook Mercado Pago valida assinatura, tolerância temporal, consulta oficial, moeda e valor antes de confirmar pagamentos.
+- Código de entrega é exibido somente ao cliente proprietário, preservado criptografado e verificado por hash.
+- Cartões persistem apenas identificadores tokenizados, bandeira e últimos quatro dígitos; número completo e CVV não são armazenados.
+- Endereços vinculados a pedidos são preservados, e avatar deixa de ser armazenado como Base64 em documentos operacionais.
+- Produto, categoria, preço e estoque são revalidados pelo backend antes de incluir ou alterar itens no carrinho.
+- Firebase ID Tokens são verificados com checagem de revogação; tokens e senhas não são registrados em logs.
+- Perfil, papel, bloqueio e estado da conta autenticada pelo mobile passam a ser autorizados pelo PostgreSQL no novo fluxo.
+- Backup Android desativado para impedir restauração inconsistente de credenciais criptografadas.
+- Refresh token só é descartado em falha definitiva de autorização; indisponibilidade temporária de rede não encerra a sessão.
+- UI e Providers são impedidos por teste de importar HTTP, armazenamento seguro ou implementações de infraestrutura.
+
+---
+
 ## [2.15.0] - 2026-08-20
 ### Vinculação de Contas Sociais, Segurança de Login e Conclusão de Perfil
 

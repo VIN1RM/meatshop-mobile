@@ -127,7 +127,7 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(color: _bg),
+                errorBuilder: (_, _, _) => Container(color: _bg),
               ),
             ),
           ),
@@ -179,7 +179,7 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
                         ),
                         const SizedBox(height: 24),
                         Consumer<ProductReviewProvider>(
-                          builder: (_, provider, __) => SizedBox(
+                          builder: (_, provider, _) => SizedBox(
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
@@ -275,7 +275,7 @@ class _ProductReviewCard extends StatelessWidget {
                       ? Image.network(
                           item.productImageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          errorBuilder: (_, _, _) => Container(
                             color: const Color(0xFF3A3A3A),
                             child: const Icon(
                               Icons.image_outlined,

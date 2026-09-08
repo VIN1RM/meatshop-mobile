@@ -192,7 +192,7 @@ class _HalfPanel extends StatelessWidget {
                 Image.asset(
                   imagePath,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _, _) => Container(
                     color: _isClient
                         ? const Color(0xFF2C2C2C)
                         : const Color(0xFF1A1A1A),
@@ -217,7 +217,7 @@ class _HalfPanel extends StatelessWidget {
                           : Alignment.topCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.55),
+                        Colors.black.withValues(alpha: 0.55),
                       ],
                       stops: const [0.3, 1.0],
                     ),
@@ -283,12 +283,15 @@ class _CenterDivider extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 28),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF424242).withOpacity(0.92),
+            color: const Color(0xFF424242).withValues(alpha: 0.92),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 blurRadius: 20,
                 spreadRadius: 2,
               ),

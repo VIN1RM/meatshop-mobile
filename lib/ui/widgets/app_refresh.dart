@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppRefresh extends StatelessWidget {
-  const AppRefresh({
-    super.key,
-    required this.onRefresh,
-    required this.child,
-  });
+  const AppRefresh({super.key, required this.onRefresh, required this.child});
 
   final Future<void> Function() onRefresh;
   final Widget child;

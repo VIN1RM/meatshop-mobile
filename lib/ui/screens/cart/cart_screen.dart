@@ -13,7 +13,7 @@ import 'package:meatshop_mobile/ui/widgets/swipe_to_delete.dart';
 import 'package:meatshop_mobile/ui/widgets/swipe_tooltip.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../data/repositories/marketplace_context.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -52,7 +52,7 @@ class _CartScreenState extends State<CartScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -63,7 +63,7 @@ class _CartScreenState extends State<CartScreen> {
                 const AppHeader(),
                 Expanded(
                   child: Consumer<CartProvider>(
-                    builder: (_, provider, __) {
+                    builder: (_, provider, _) {
                       if (provider.isLoading) {
                         return const Center(
                           child: CircularProgressIndicator(
@@ -169,10 +169,13 @@ class _CartScreenState extends State<CartScreen> {
         children: [
           GestureDetector(
             onTap: () async {
-              final unit = await UnitService().getUnitById(unitId);
-              if (!context.mounted) return;
-              Navigator.pushNamed(
-                context,
+              final navigator = Navigator.of(context);
+              final marketplace = context.read<MarketplaceContext>().repository;
+              final unit = await UnitService(
+                marketplace: marketplace,
+              ).getUnitById(unitId);
+              if (!mounted) return;
+              navigator.pushNamed(
                 AppRoutes.butcherDetail,
                 arguments:
                     unit ??
@@ -209,7 +212,7 @@ class _CartScreenState extends State<CartScreen> {
                           ? Image.network(
                               itens.first.unitImageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
+                              errorBuilder: (_, _, _) => const Icon(
                                 Icons.storefront_outlined,
                                 color: Color(0xFF888888),
                                 size: 22,
@@ -245,7 +248,7 @@ class _CartScreenState extends State<CartScreen> {
                 color: const Color(0xFFFDECEC),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: const Color(0xFFC0392B).withOpacity(0.3),
+                  color: const Color(0xFFC0392B).withValues(alpha: 0.3),
                 ),
               ),
               child: const Row(
@@ -311,6 +314,7 @@ class _CartScreenState extends State<CartScreen> {
               context: context,
               productName: item.productName,
             ).then((confirmed) {
+              if (!mounted) return false;
               if (confirmed) {
                 provider.removeItem(item.productId);
                 CustomSnackBar.success(
@@ -323,23 +327,18 @@ class _CartScreenState extends State<CartScreen> {
             }),
         child: GestureDetector(
           onTap: () async {
-            final doc = await FirebaseFirestore.instance
-                .collection('products')
-                .doc(item.productId)
-                .get();
+            final navigator = Navigator.of(context);
+            final marketplace = context.read<MarketplaceContext>().repository;
+            final page = await marketplace.listProducts(
+              unitId: item.unitId,
+              limit: 100,
+            );
 
-            final unitDoc = await FirebaseFirestore.instance
-                .collection('units')
-                .doc(item.unitId)
-                .get();
+            if (!mounted) return;
 
-            if (!context.mounted) return;
-
-            final product = doc.exists
-                ? ProductModel.fromFirestore(doc).copyWith(
-                    unitName:
-                        unitDoc.data()?['name'] as String? ?? item.unitName,
-                  )
+            final remote = page.items.where((p) => p.id == item.productId);
+            final product = remote.isNotEmpty
+                ? remote.first.copyWith(unitName: item.unitName)
                 : ProductModel(
                     id: item.productId,
                     name: item.productName,
@@ -355,8 +354,7 @@ class _CartScreenState extends State<CartScreen> {
                     stockQuantity: 999,
                   );
 
-            Navigator.pushNamed(
-              context,
+            navigator.pushNamed(
               AppRoutes.productDetail,
               arguments: {'product': product, 'cartItem': item},
             );
@@ -377,7 +375,7 @@ class _CartScreenState extends State<CartScreen> {
                             ? Image.network(
                                 item.productImageUrl,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _imageFallback(),
+                                errorBuilder: (_, _, _) => _imageFallback(),
                               )
                             : _imageFallback(),
                       ),
@@ -436,6 +434,7 @@ class _CartScreenState extends State<CartScreen> {
                                 context: context,
                                 productName: item.productName,
                               );
+                          if (!mounted) return;
                           if (confirmed) {
                             provider.removeItem(item.productId);
                             CustomSnackBar.success(
@@ -505,7 +504,7 @@ class _CartScreenState extends State<CartScreen> {
                 color: const Color(0xFFFDECEC),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: const Color(0xFFC0392B).withOpacity(0.3),
+                  color: const Color(0xFFC0392B).withValues(alpha: 0.3),
                 ),
               ),
               child: const Row(

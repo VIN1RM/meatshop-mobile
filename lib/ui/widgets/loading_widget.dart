@@ -60,7 +60,7 @@ class _MeatShopLoaderState extends State<MeatShopLoader>
                   width: widget.dotSize,
                   height: widget.dotSize,
                   decoration: BoxDecoration(
-                    color: widget.color.withOpacity(0.4 + 0.6 * scale),
+                    color: widget.color.withValues(alpha: 0.4 + 0.6 * scale),
                     shape: BoxShape.circle,
                   ),
                 ),

@@ -29,7 +29,9 @@ class ConfirmDeliveryDialog extends StatelessWidget {
             : 'Confirme apenas após entregar o pedido ao cliente.',
         confirmLabel: isPickup ? 'Confirmar retirada' : 'Confirmar entrega',
         icon: isPickup ? Icons.storefront_outlined : Icons.check_circle_outline,
-        accentColor: isPickup ? const Color(0xFFC0392B) : const Color(0xFF27AE60),
+        accentColor: isPickup
+            ? const Color(0xFFC0392B)
+            : const Color(0xFF27AE60),
       ),
     );
     return result ?? false;

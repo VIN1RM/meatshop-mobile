@@ -36,7 +36,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
                   child: Image.asset(
                     'assets/images/background.png',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _, _) =>
                         Container(color: const Color(0xFF1A1A1A)),
                   ),
                 ),
@@ -97,6 +97,44 @@ class ActiveDeliveryScreen extends StatelessWidget {
                             ),
 
                             const SizedBox(height: 24),
+
+                            if (isPickup && provider.pickupCode != null) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'CÓDIGO DE RETIRADA',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      provider.pickupCode!,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 8,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    const Text(
+                                      'Apresente este código à unidade',
+                                      style: TextStyle(color: Colors.white54),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
 
                             if (isPickup)
                               PrimaryButton(
@@ -175,11 +213,38 @@ class ActiveDeliveryScreen extends StatelessWidget {
     BuildContext context,
     DeliveryProvider provider,
   ) async {
-    final confirmed = await ConfirmDeliveryDialog.show(
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
       context: context,
-      isPickup: false,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Código do cliente'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '000000'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = controller.text.trim();
+              if (RegExp(r'^\d{6}$').hasMatch(value)) {
+                Navigator.pop(dialogContext, value);
+              }
+            },
+            child: const Text('Confirmar entrega'),
+          ),
+        ],
+      ),
     );
-    if (confirmed) await provider.confirmDelivery();
+    controller.dispose();
+    if (code != null) await provider.confirmDelivery(code);
   }
 }
 
@@ -187,7 +252,7 @@ Future<void> _onOpenChat(BuildContext context, order) async {
   final participant = await ChatParticipantDialog.show(
     context: context,
     unitName: order.unitName,
-    clientName: order.clientName,
+    secondaryName: order.clientName,
   );
 
   if (participant == null || !context.mounted) return;
@@ -201,7 +266,7 @@ Future<void> _onOpenChat(BuildContext context, order) async {
     AppRoutes.chat,
     arguments: ChatArgs(
       currentUserId: currentUser.uid,
-      currentUserName: 'Você', 
+      currentUserName: 'Você',
       currentUserType: ChatParticipantType.delivery,
       otherUserId: participant == ChatParticipantType.unit
           ? order.unitId
@@ -210,6 +275,7 @@ Future<void> _onOpenChat(BuildContext context, order) async {
           ? order.unitName
           : order.clientName,
       otherUserType: participant,
+      orderId: order.id,
     ),
   );
 }

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
@@ -130,7 +130,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -185,8 +185,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             hint: 'seu@email.com',
                             icon: Icons.email_outlined,
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty)
+                              if (v == null || v.trim().isEmpty) {
                                 return 'Informe o e-mail';
+                              }
                               if (!v.contains('@')) return 'E-mail inválido';
                               return null;
                             },
@@ -213,8 +214,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Informe a senha atual';
+                              }
                               return null;
                             },
                           ),
@@ -263,10 +265,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Confirme a nova senha';
-                              if (v != _newPasswordController.text)
+                              }
+                              if (v != _newPasswordController.text) {
                                 return 'As senhas não coincidem';
+                              }
                               return null;
                             },
                           ),

@@ -1,11 +1,10 @@
 import 'package:flutter/foundation.dart';
-import 'package:meatshop_mobile/services/review_service.dart';
+import '../data/repositories/review_repository.dart';
 
 class ReviewProvider extends ChangeNotifier {
-  ReviewProvider({ReviewService? service})
-    : _service = service ?? ReviewService();
-
-  final ReviewService _service;
+  ReviewProvider({required ReviewRepository repository})
+    : _repository = repository;
+  final ReviewRepository _repository;
 
   bool _isLoading = false;
   String? _error;
@@ -15,7 +14,8 @@ class ReviewProvider extends ChangeNotifier {
   String? get error => _error;
   bool get submitted => _submitted;
 
-  Future<bool> hasReviewed(String orderId) => _service.hasReviewed(orderId);
+  Future<bool> hasReviewed(String orderId) async =>
+      (await _repository.getOrderStatus(orderId)).unitReviewed;
 
   Future<bool> submit({
     required String orderId,
@@ -31,15 +31,14 @@ class ReviewProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _service.submitReviews(
-        orderId: orderId,
-        unitId: unitId,
-        unitRating: unitRating,
-        unitComment: unitComment,
-        deliveryPersonId: deliveryPersonId,
-        deliveryRating: deliveryRating,
-        deliveryComment: deliveryComment,
-      );
+      await _repository.reviewUnit(orderId, unitRating, unitComment);
+      if (deliveryPersonId != null && deliveryRating != null) {
+        await _repository.reviewDelivery(
+          orderId,
+          deliveryRating,
+          deliveryComment ?? '',
+        );
+      }
       _submitted = true;
       return true;
     } catch (e) {

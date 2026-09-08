@@ -143,7 +143,10 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                 gradient: RadialGradient(
                   center: const Alignment(0, -0.3),
                   radius: 1.2,
-                  colors: [_red.withOpacity(0.06), const Color(0xFFF5F2EF)],
+                  colors: [
+                    _red.withValues(alpha: 0.06),
+                    const Color(0xFFF5F2EF),
+                  ],
                 ),
               ),
             ),
@@ -152,7 +155,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
           if (_isSuccess)
             AnimatedBuilder(
               animation: _particleAnim,
-              builder: (_, __) => _buildParticles(context),
+              builder: (_, _) => _buildParticles(context),
             ),
 
           SafeArea(
@@ -182,10 +185,13 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: _surface,
-                  border: Border.all(color: _red.withOpacity(0.4), width: 2),
+                  border: Border.all(
+                    color: _red.withValues(alpha: 0.4),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: _red.withOpacity(0.15),
+                      color: _red.withValues(alpha: 0.15),
                       blurRadius: 30,
                       spreadRadius: 4,
                     ),
@@ -227,7 +233,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
 
             AnimatedBuilder(
               animation: _progressAnim,
-              builder: (_, __) {
+              builder: (_, _) {
                 return Column(
                   children: [
                     ClipRRect(
@@ -290,7 +296,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                   color: done
                       ? _red
                       : active
-                      ? _red.withOpacity(0.5)
+                      ? _red.withValues(alpha: 0.5)
                       : const Color(0xFFCCC8C2),
                   width: 1.5,
                 ),
@@ -333,7 +339,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
           children: [
             AnimatedBuilder(
               animation: _successController,
-              builder: (_, __) => Opacity(
+              builder: (_, _) => Opacity(
                 opacity: _successOpacityAnim.value,
                 child: Transform.scale(
                   scale: _successScaleAnim.value,
@@ -342,11 +348,11 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                     height: 110,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _red.withOpacity(0.12),
+                      color: _red.withValues(alpha: 0.12),
                       border: Border.all(color: _red, width: 2.5),
                       boxShadow: [
                         BoxShadow(
-                          color: _red.withOpacity(0.3),
+                          color: _red.withValues(alpha: 0.3),
                           blurRadius: 40,
                           spreadRadius: 8,
                         ),

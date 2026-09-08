@@ -62,7 +62,7 @@ class _ReleaseNotesDialogState extends State<ReleaseNotesDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _red.withOpacity(0.15),
+              color: _red.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(

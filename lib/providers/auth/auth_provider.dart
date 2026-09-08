@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
@@ -9,27 +8,38 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
+import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/ui/dialogs/link_social_account_dialog.dart';
 import 'package:meatshop_mobile/providers/user/user_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:meatshop_mobile/services/order_status_notification_service.dart';
 import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
-import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
+import 'package:meatshop_mobile/core/network/api_failure.dart';
+import 'package:meatshop_mobile/data/repositories/federated_auth_repository.dart';
+import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
+  AuthProvider({
+    required FederatedAuthRepository federatedAuth,
+    required DeliveryRepository delivery,
+  }) : _federatedAuth = federatedAuth,
+       _delivery = delivery;
+
+  final FederatedAuthRepository _federatedAuth;
+  final DeliveryRepository _delivery;
   bool _isAuthenticated = false;
   AppProfile? _appProfile;
   AppProfile? _activeProfile;
   String? _errorMessage;
+  int? _backendUserId;
 
   bool get isAuthenticated => _isAuthenticated;
   AppProfile? get appProfile => _appProfile;
   AppProfile? get activeProfile => _activeProfile;
   String? get errorMessage => _errorMessage;
+  int? get backendUserId => _backendUserId;
 
   bool get isClient => _activeProfile == AppProfile.client;
   bool get isDelivery => _activeProfile == AppProfile.delivery;
@@ -46,38 +56,14 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      final profileFromFirestore = await AuthService.instance.login(
+      await AuthService.instance.login(
         email: email,
         password: password,
-      );
-
-      _isAuthenticated = true;
-      _appProfile = AppProfile.fromString(profileFromFirestore);
-      notifyListeners();
-
-      if (context.mounted) {
-        await context.read<UserProvider>().loadUser(
-          AuthService.instance.currentUser!.uid,
-        );
-      }
-
-      if (context.mounted) {
-        await context.read<UserPreferencesProvider>().loadForUser(
-          AuthService.instance.currentUser!.uid,
-        );
-      }
-
-      if (context.mounted) {
-        context.read<PaymentProvider>().init();
-      }
-
-      OrderStatusNotificationWatcher.instance.start(
-        userId: AuthService.instance.currentUser!.uid,
-        navigatorKey: NotificationService.instance.navigatorKey!,
+        loadFirestoreProfile: false,
       );
 
       if (!context.mounted) return;
-      _redirectAfterLogin(context);
+      await _finishBackendLogin(context);
     } on LoginBlockedException catch (e) {
       if (context.mounted) {
         Navigator.of(
@@ -95,7 +81,20 @@ class AuthProvider extends ChangeNotifier {
           message: _errorMessage!,
         );
       }
-    } catch (e) {
+    } on ApiFailure catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
+
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Erro ao entrar',
+          message: _errorMessage!,
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('EMAIL LOGIN FAILURE: $e');
+      debugPrintStack(stackTrace: stackTrace);
       _errorMessage = 'Erro inesperado. Tente novamente.';
       notifyListeners();
 
@@ -112,9 +111,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> loginWithGoogle(BuildContext context) async {
     _errorMessage = null;
     try {
-      final profile = await AuthService.instance.loginWithGoogle();
+      await AuthService.instance.loginWithGoogle(useBackendProfile: true);
       if (!context.mounted) return;
-      await _afterSocialLogin(context, profile);
+      await _finishBackendLogin(context);
     } on SocialAccountLinkRequiredException catch (e) {
       if (!context.mounted) return;
       await _linkExistingSocialAccount(context, e);
@@ -145,9 +144,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> loginWithApple(BuildContext context) async {
     _errorMessage = null;
     try {
-      final profile = await AuthService.instance.loginWithApple();
+      await AuthService.instance.loginWithApple(useBackendProfile: true);
       if (!context.mounted) return;
-      await _afterSocialLogin(context, profile);
+      await _finishBackendLogin(context);
     } on SocialAccountLinkRequiredException catch (e) {
       if (!context.mounted) return;
       await _linkExistingSocialAccount(context, e);
@@ -187,29 +186,19 @@ class AuthProvider extends ChangeNotifier {
     try {
       final uid = AuthService.instance.currentUser!.uid;
 
-      if (profile == AppProfile.delivery || profile == AppProfile.both) {
-        await AuthService.instance.completeSocialProfileWithVehicle(
-          uid: uid,
-          name: name,
-          cpf: cpf,
-          phone: phone,
-          appProfile: profile,
-          vehicleType: vehicleType!,
-          vehicleData: vehicleData!,
-        );
-      } else {
-        await AuthService.instance.completeSocialProfile(
-          uid: uid,
-          name: name,
-          cpf: cpf,
-          phone: phone,
-        );
+      final user = await _requireFederatedAuth().completeProfile(
+        name: name,
+        cpf: cpf,
+        phone: phone,
+        appProfile: profile,
+      );
+      _appProfile = user.appProfile;
+      _needsProfileCompletion = !user.profileComplete;
 
-        if (profile == AppProfile.client) {
-          await FirebaseFirestore.instance.collection('users').doc(uid).update({
-            'app_profile': 'CLIENT',
-          });
-        }
+      if ((profile == AppProfile.delivery || profile == AppProfile.both) &&
+          vehicleType != null &&
+          vehicleData != null) {
+        await _registerBackendVehicle(vehicleType, vehicleData);
       }
 
       if ((profile == AppProfile.client || profile == AppProfile.both) &&
@@ -233,87 +222,9 @@ class AuthProvider extends ChangeNotifier {
         CustomDialog.showError(
           context: context,
           title: 'Erro ao salvar dados',
-          message: e is ApiException
-              ? e.message
-              : 'Não foi possível salvar seus dados. Tente novamente.',
+          message: _completionErrorMessage(e),
         );
       }
-    }
-  }
-
-  Future<void> _afterSocialLogin(BuildContext context, String profile) async {
-    final uid = AuthService.instance.currentUser!.uid;
-
-    _isAuthenticated = true;
-    _appProfile = AppProfile.fromString(profile);
-    notifyListeners();
-
-    final isComplete = await AuthService.instance.isSocialProfileComplete(uid);
-    _needsProfileCompletion = !isComplete;
-
-    if (context.mounted) {
-      await context.read<UserProvider>().loadUser(uid);
-    }
-    if (context.mounted) {
-      await context.read<UserPreferencesProvider>().loadForUser(uid);
-    }
-    if (context.mounted) {
-      context.read<PaymentProvider>().init();
-    }
-
-    OrderStatusNotificationWatcher.instance.start(
-      userId: uid,
-      navigatorKey: NotificationService.instance.navigatorKey!,
-    );
-
-    if (!context.mounted) return;
-
-    if (_needsProfileCompletion) {
-      final hasChosenProfile = await AuthService.instance.hasChosenProfile(uid);
-      if (!context.mounted) return;
-
-      AddressModel? existingAddress;
-      Map<String, dynamic>? existingVehicle;
-
-      if (hasChosenProfile &&
-          (_appProfile == AppProfile.client ||
-              _appProfile == AppProfile.both)) {
-        final addressProvider = context.read<AddressProvider>();
-        await addressProvider.load(uid);
-        if (!context.mounted) return;
-        final addresses = addressProvider.addresses;
-        if (addresses.isNotEmpty) {
-          existingAddress = addresses.firstWhere(
-            (address) => address.isDefault,
-            orElse: () => addresses.first,
-          );
-        }
-      }
-
-      if (hasChosenProfile &&
-          (_appProfile == AppProfile.delivery ||
-              _appProfile == AppProfile.both)) {
-        final vehicleProvider = context.read<VehicleProvider>();
-        await vehicleProvider.loadVehicle(uid);
-        if (!context.mounted) return;
-        if (vehicleProvider.vehicles.isNotEmpty) {
-          existingVehicle = Map<String, dynamic>.from(
-            vehicleProvider.vehicleInfo,
-          );
-        }
-      }
-
-      Navigator.of(context).pushReplacementNamed(
-        AppRoutes.completeProfile,
-        arguments: CompleteProfileArgs(
-          lockedProfile: hasChosenProfile ? _appProfile : null,
-          existingUser: context.read<UserProvider>().user,
-          existingAddress: existingAddress,
-          existingVehicle: existingVehicle,
-        ),
-      );
-    } else {
-      _redirectAfterLogin(context);
     }
   }
 
@@ -330,13 +241,14 @@ class AuthProvider extends ChangeNotifier {
     if (password == null || !context.mounted) return;
 
     try {
-      final profile = await AuthService.instance.linkSocialAccount(
+      await AuthService.instance.linkSocialAccount(
         email: linkRequest.email,
         password: password,
         pendingCredential: linkRequest.pendingCredential,
+        useBackendProfile: true,
       );
       if (context.mounted) {
-        await _afterSocialLogin(context, profile);
+        await _finishBackendLogin(context, accountPassword: password);
       }
     } on LoginBlockedException catch (error) {
       if (context.mounted) {
@@ -374,14 +286,14 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
   }) async {
     try {
-      final uid = AuthService.instance.currentUser!.uid;
-      await AuthService.instance.completeSocialProfile(
-        uid: uid,
+      final user = await _requireFederatedAuth().completeProfile(
         name: name,
         cpf: cpf,
         phone: phone,
+        appProfile: _appProfile ?? AppProfile.client,
       );
-      _needsProfileCompletion = false;
+      _appProfile = user.appProfile;
+      _needsProfileCompletion = !user.profileComplete;
       notifyListeners();
 
       if (context.mounted) {
@@ -392,9 +304,7 @@ class AuthProvider extends ChangeNotifier {
         CustomDialog.showError(
           context: context,
           title: 'Erro ao salvar dados',
-          message: e is ApiException
-              ? e.message
-              : 'Não foi possível salvar seus dados. Tente novamente.',
+          message: _completionErrorMessage(e),
         );
       }
     }
@@ -412,24 +322,15 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      await AuthService.instance.registerClient(
+      return await _registerWithBackend(
+        context: context,
         name: name,
         email: email,
         password: password,
         cpf: cpf,
         phone: phone,
+        profile: AppProfile.client,
       );
-
-      if (context.mounted) {
-        CustomDialog.showSuccess(
-          context: context,
-          title: 'Cadastro realizado!',
-          message: 'Faça login para continuar.',
-          onDismiss: () =>
-              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
-        );
-      }
-      return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         onEmailExists?.call();
@@ -477,26 +378,17 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      await AuthService.instance.registerDelivery(
+      return await _registerWithBackend(
+        context: context,
         name: name,
         email: email,
         password: password,
         cpf: cpf,
         phone: phone,
+        profile: AppProfile.delivery,
         vehicleType: vehicleType,
         vehicleData: vehicleData,
       );
-
-      if (context.mounted) {
-        CustomDialog.showSuccess(
-          context: context,
-          title: 'Cadastro realizado!',
-          message: 'Faça login para continuar.',
-          onDismiss: () =>
-              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
-        );
-      }
-      return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         onEmailExists?.call();
@@ -544,26 +436,17 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
 
     try {
-      await AuthService.instance.registerBoth(
+      return await _registerWithBackend(
+        context: context,
         name: name,
         email: email,
         password: password,
         cpf: cpf,
         phone: phone,
+        profile: AppProfile.both,
         vehicleType: vehicleType,
         vehicleData: vehicleData,
       );
-
-      if (context.mounted) {
-        CustomDialog.showSuccess(
-          context: context,
-          title: 'Cadastro realizado!',
-          message: 'Faça login para continuar.',
-          onDismiss: () =>
-              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
-        );
-      }
-      return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         onEmailExists?.call();
@@ -609,12 +492,13 @@ class AuthProvider extends ChangeNotifier {
     try {
       final uid = AuthService.instance.currentUser!.uid;
 
-      await AuthService.instance.completePendingUserData(
-        uid: uid,
+      final user = await _requireFederatedAuth().completeProfile(
         name: name,
         cpf: cpf,
         phone: phone,
+        appProfile: _appProfile ?? AppProfile.client,
       );
+      _appProfile = user.appProfile;
 
       if (addressData != null && context.mounted) {
         await context.read<AddressProvider>().add(
@@ -624,11 +508,7 @@ class AuthProvider extends ChangeNotifier {
       }
 
       if (vehicleType != null && vehicleData != null) {
-        await AuthService.instance.addVehicleForDeliveryPerson(
-          uid: uid,
-          vehicleType: vehicleType,
-          vehicleData: vehicleData,
-        );
+        await _registerBackendVehicle(vehicleType, vehicleData);
       }
 
       if (context.mounted) {
@@ -640,9 +520,7 @@ class AuthProvider extends ChangeNotifier {
         CustomDialog.showError(
           context: context,
           title: 'Erro ao salvar dados',
-          message: e is ApiException
-              ? e.message
-              : 'Não foi possível salvar seus dados. Tente novamente.',
+          message: _completionErrorMessage(e),
         );
       }
       return false;
@@ -668,19 +546,23 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout(BuildContext context) async {
-    OrderStatusNotificationWatcher.instance.stop();
-
     final uid = AuthService.instance.currentUser?.uid;
     if (uid != null) {
       await NotificationService.instance.clearTokenForUser(uid);
     }
 
+    try {
+      await _requireFederatedAuth().logout();
+    } catch (_) {
+      // Logout local e Firebase deve prosseguir mesmo se a API estiver indisponível.
+    }
     await AuthService.instance.logout();
 
     _isAuthenticated = false;
     _appProfile = null;
     _activeProfile = null;
     _errorMessage = null;
+    _backendUserId = null;
     notifyListeners();
 
     if (context.mounted) {
@@ -694,40 +576,11 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> restoreSession(BuildContext context, User firebaseUser) async {
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .get();
-
-      final profileString = doc.data()?['app_profile'] as String? ?? 'CLIENT';
-
-      _isAuthenticated = true;
-      _appProfile = AppProfile.fromString(profileString);
-      notifyListeners();
-
-      if (context.mounted) {
-        await context.read<UserProvider>().loadUser(firebaseUser.uid);
-      }
-
-      if (context.mounted) {
-        await context.read<UserPreferencesProvider>().loadForUser(
-          firebaseUser.uid,
-        );
-      }
-
-      if (context.mounted) {
-        context.read<PaymentProvider>().init();
-      }
-
-      await NotificationService.instance.saveTokenForUser(firebaseUser.uid);
-
-      OrderStatusNotificationWatcher.instance.start(
-        userId: firebaseUser.uid,
-        navigatorKey: NotificationService.instance.navigatorKey!,
-      );
-
+      final idToken = await firebaseUser.getIdToken(true);
+      if (idToken == null) throw StateError('Firebase ID token unavailable');
+      final user = await _requireFederatedAuth().restore(idToken);
       if (!context.mounted) return;
-      _redirectAfterLogin(context);
+      await _applyBackendUser(context, user);
     } catch (_) {
       _isAuthenticated = false;
       notifyListeners();
@@ -735,6 +588,192 @@ class AuthProvider extends ChangeNotifier {
         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
     }
+  }
+
+  FederatedAuthRepository _requireFederatedAuth() {
+    return _federatedAuth;
+  }
+
+  Future<bool> _registerWithBackend({
+    required BuildContext context,
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+    required String phone,
+    required AppProfile profile,
+    String? vehicleType,
+    Map<String, dynamic>? vehicleData,
+  }) async {
+    final firebaseUser = await AuthService.instance.registerFirebaseIdentity(
+      name: name,
+      email: email,
+      password: password,
+    );
+
+    // Password identities are unverified when Firebase creates them. The
+    // backend intentionally rejects such tokens, so defer profile creation
+    // until the user verifies the address and signs in for the first time.
+    if (!firebaseUser.emailVerified) {
+      await AuthService.instance.logout();
+      if (context.mounted) {
+        CustomDialog.showSuccess(
+          context: context,
+          title: 'Verifique seu e-mail',
+          message:
+              'Enviamos um link de verificação. Confirme seu e-mail e faça login para concluir o cadastro.',
+          onDismiss: () =>
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+        );
+      }
+      return true;
+    }
+
+    final idToken = await firebaseUser.getIdToken(true);
+    if (idToken == null) throw StateError('Firebase ID token unavailable');
+
+    final repository = _requireFederatedAuth();
+    try {
+      await repository.exchangeFirebaseToken(idToken);
+      await repository.completeProfile(
+        name: name,
+        cpf: cpf,
+        phone: phone,
+        appProfile: profile,
+      );
+
+      if ((profile == AppProfile.delivery || profile == AppProfile.both) &&
+          vehicleType != null &&
+          vehicleData != null) {
+        await _registerBackendVehicle(vehicleType, vehicleData);
+      }
+    } catch (_) {
+      try {
+        await repository.logout();
+      } catch (_) {
+        // Preserve the registration failure; local Firebase logout still runs.
+      }
+      await AuthService.instance.logout();
+      rethrow;
+    }
+
+    await repository.logout();
+    await AuthService.instance.logout();
+    if (context.mounted) {
+      CustomDialog.showSuccess(
+        context: context,
+        title: 'Cadastro realizado!',
+        message: 'Faça login para continuar.',
+        onDismiss: () =>
+            Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+      );
+    }
+    return true;
+  }
+
+  String _backendVehicleType(String value) {
+    final normalized = value.toUpperCase();
+    if (normalized.contains('BIKE') || normalized.contains('BICI')) {
+      return 'BIKE';
+    }
+    if (normalized.contains('CAR')) return 'CAR';
+    if (normalized.contains('SCOOTER')) return 'SCOOTER';
+    return 'MOTORCYCLE';
+  }
+
+  Future<void> _registerBackendVehicle(
+    String vehicleType,
+    Map<String, dynamic> vehicleData,
+  ) async {
+    final delivery = _delivery;
+    final type = _backendVehicleType(vehicleType);
+    await delivery.register(type == 'SCOOTER' ? 'MOTORCYCLE' : type);
+    final normalizedPlate = '${vehicleData['plate'] ?? ''}'
+        .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+        .toUpperCase();
+    final vehicles = await delivery.vehicles();
+    final alreadyCreated = vehicles.any(
+      (vehicle) =>
+          '${vehicle['plate'] ?? ''}'
+              .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
+              .toUpperCase() ==
+          normalizedPlate,
+    );
+    if (alreadyCreated) return;
+
+    await delivery.createVehicle({
+      'type': type,
+      'model': '${vehicleData['model'] ?? ''}',
+      'plate': normalizedPlate,
+      'color': '${vehicleData['color'] ?? ''}',
+      'year':
+          int.tryParse('${vehicleData['year'] ?? ''}') ?? DateTime.now().year,
+    });
+  }
+
+  String _completionErrorMessage(Object error) {
+    if (error is ApiFailure) return error.message;
+    if (error is ApiException) return error.message;
+    return 'Não foi possível salvar seus dados. Tente novamente.';
+  }
+
+  Future<void> _finishBackendLogin(
+    BuildContext context, {
+    String? accountPassword,
+  }) async {
+    final firebaseUser = AuthService.instance.currentUser!;
+    final idToken = await firebaseUser.getIdToken(true);
+    if (idToken == null) throw StateError('Firebase ID token unavailable');
+
+    try {
+      final user = await _requireFederatedAuth().exchangeFirebaseToken(
+        idToken,
+        accountPassword: accountPassword,
+      );
+      if (context.mounted) await _applyBackendUser(context, user);
+    } on ApiFailure catch (failure) {
+      if (failure.code != 'ACCOUNT_LINK_REQUIRED' || !context.mounted) rethrow;
+      final password = await LinkSocialAccountDialog.show(
+        context,
+        email: firebaseUser.email ?? '',
+      );
+      if (password == null || !context.mounted) return;
+      final user = await _requireFederatedAuth().exchangeFirebaseToken(
+        idToken,
+        accountPassword: password,
+      );
+      if (context.mounted) await _applyBackendUser(context, user);
+    }
+  }
+
+  Future<void> _applyBackendUser(
+    BuildContext context,
+    BackendAuthUser user,
+  ) async {
+    _isAuthenticated = true;
+    _backendUserId = user.id;
+    _appProfile = user.appProfile;
+    _needsProfileCompletion = !user.profileComplete;
+    notifyListeners();
+
+    // O primeiro login cria um perfil incompleto no backend. Completar esse
+    // perfil é a continuação da autenticação, então efeitos protegidos ficam
+    // para depois do preenchimento obrigatório.
+    if (_needsProfileCompletion) {
+      Navigator.of(context).pushReplacementNamed(
+        AppRoutes.completeProfile,
+        arguments: const CompleteProfileArgs(),
+      );
+      return;
+    }
+
+    final uid = AuthService.instance.currentUser!.uid;
+    await NotificationService.instance.saveTokenForUser(uid);
+    if (!context.mounted) return;
+    await context.read<UserPreferencesProvider>().loadForUser(uid);
+    if (!context.mounted) return;
+    context.read<PaymentProvider>().init();
+    _redirectAfterLogin(context);
   }
 
   void switchToDeliveryMode(BuildContext context) {
@@ -753,7 +792,8 @@ class AuthProvider extends ChangeNotifier {
     required String password,
   }) async {
     try {
-      await AuthService.instance.deleteAccount(password: password);
+      await AuthService.instance.reauthenticate(password: password);
+      await _federatedAuth.deleteAccount();
 
       _isAuthenticated = false;
       _appProfile = null;

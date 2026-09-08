@@ -4,7 +4,6 @@ import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_version_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -113,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                             width: 190,
                             height: 190,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Icon(
+                            errorBuilder: (_, _, _) => const Icon(
                               Icons.storefront_outlined,
                               color: Color(0xFFC0392B),
                               size: 48,

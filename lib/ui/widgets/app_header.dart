@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class AppHeader extends StatelessWidget {
   final bool showBack;
 
-  const AppHeader({
-    super.key,
-    this.showBack = false,
-  });
+  const AppHeader({super.key, this.showBack = false});
 
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
@@ -31,11 +28,7 @@ class AppHeader extends StatelessWidget {
                     border: Border.all(color: _white, width: 1.5),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: _white,
-                    size: 20,
-                  ),
+                  child: const Icon(Icons.arrow_back, color: _white, size: 20),
                 ),
               ),
             ),
@@ -45,11 +38,8 @@ class AppHeader extends StatelessWidget {
             width: 64,
             height: 64,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(
-              Icons.storefront_outlined,
-              color: _red,
-              size: 30,
-            ),
+            errorBuilder: (_, _, _) =>
+                const Icon(Icons.storefront_outlined, color: _red, size: 30),
           ),
         ],
       ),

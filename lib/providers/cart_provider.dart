@@ -1,155 +1,128 @@
 import 'package:flutter/foundation.dart';
-import 'package:meatshop_mobile/models/cart_item_model.dart';
-import 'package:meatshop_mobile/services/cart_service.dart';
-import 'package:meatshop_mobile/services/business_hours_service.dart';
+
+import '../data/repositories/cart_repository.dart';
+import '../models/cart_item_model.dart';
+import '../services/business_hours_service.dart';
 
 class CartProvider extends ChangeNotifier {
-  final CartService _service;
+  CartProvider({
+    required this.uid,
+    required CartRepository repository,
+    BusinessHoursService? hoursService,
+  }) : _repository = repository,
+       _hoursService = hoursService;
+
   final String uid;
-
-  CartProvider({required this.uid, CartService? service})
-    : _service = service ?? CartService();
-
-  List<CartItemModel> _items = [];
-  List<CartItemModel> get items => _items;
-
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
-
-  String? _error;
-  String? get error => _error;
-
-  Map<String, List<CartItemModel>> get itemsByUnit {
-    final map = <String, List<CartItemModel>>{};
-    for (final item in _items) {
-      map.putIfAbsent(item.unitId, () => []).add(item);
-    }
-    return map;
-  }
-
-  double get total => _items.fold(0, (sum, item) => sum + item.subtotal);
-
-  final BusinessHoursService _hoursService = BusinessHoursService();
+  final CartRepository _repository;
+  final BusinessHoursService? _hoursService;
   final Map<String, bool> _unitOpenStatus = {};
 
+  List<CartItemModel> _items = [];
+  bool _isLoading = false;
+  String? _error;
+
+  List<CartItemModel> get items => List.unmodifiable(_items);
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  double get total => _items.fold(0, (sum, item) => sum + item.subtotal);
   Map<String, bool> get unitOpenStatus => Map.unmodifiable(_unitOpenStatus);
+
+  Map<String, List<CartItemModel>> get itemsByUnit {
+    final grouped = <String, List<CartItemModel>>{};
+    for (final item in _items) {
+      grouped.putIfAbsent(item.unitId, () => []).add(item);
+    }
+    return grouped;
+  }
 
   bool isUnitOpen(String unitId) => _unitOpenStatus[unitId] ?? true;
 
   Future<void> loadCart() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
+    _setLoading(true);
     try {
-      final raw = await _service.fetchItems(uid);
-      _items = await Future.wait(
-        raw.map((item) async {
-          CartItemModel resolved = item;
-
-          if (item.unitName.isEmpty) {
-            final name = await _service.fetchUnitName(item.unitId);
-            if (name.isNotEmpty) {
-              await _service.patchUnitName(uid, item.productId, name);
-            }
-            resolved = resolved.copyWith(unitName: name);
-          }
-
-          if (item.unitImageUrl.isEmpty) {
-            final unitImageUrl = await _service.fetchUnitImageUrl(item.unitId);
-            if (unitImageUrl.isNotEmpty) {
-              await _service.patchUnitImageUrl(
-                uid,
-                item.productId,
-                unitImageUrl,
-              );
-            }
-            resolved = resolved.copyWith(unitImageUrl: unitImageUrl);
-          }
-
-          if (item.productImageUrl.isEmpty) {
-            final imageUrl = await _service.fetchProductImageUrl(
-              item.productId,
-            );
-            if (imageUrl.isNotEmpty) {
-              await _service.patchProductSnapshot(
-                uid,
-                item.productId,
-                imageUrl,
-              );
-            }
-            resolved = resolved.copyWith(productImageUrl: imageUrl);
-          }
-
-          return resolved;
-        }),
-      );
-    } catch (e) {
+      _items = await _repository.getCart();
+      await _checkUnitsOpen();
+    } catch (error) {
       _error = 'Não foi possível carregar o carrinho.';
-      debugPrint('[CartProvider] erro: $e');
-    }
-
-    await _checkUnitsOpen();
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> _checkUnitsOpen() async {
-    final unitIds = _items.map((i) => i.unitId).toSet();
-    for (final unitId in unitIds) {
-      final hours = await _hoursService.fetchToday(unitId);
-      _unitOpenStatus[unitId] = hours?.isOpenNow ?? true;
+      debugPrint('[CartProvider] load error: $error');
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<void> addItem(CartItemModel item) async {
-    try {
-      final existing = _items.indexWhere((i) => i.productId == item.productId);
-      if (existing != -1) {
-        final updated = _items[existing].copyWith(
-          quantity: _items[existing].quantity + item.quantity,
-        );
-        await _service.updateQuantity(uid, item.productId, updated.quantity);
-        _items[existing] = updated;
-      } else {
-        await _service.addItem(uid, item);
-        _items.add(item);
-      }
-      notifyListeners();
-    } catch (e) {
-      debugPrint('[CartProvider] addItem error: $e');
-    }
+    await _mutate(() async {
+      _items = await _repository.addItem(item.productId, item.quantity);
+    });
   }
 
   Future<void> updateQuantity(String productId, double quantity) async {
-    if (quantity <= 0) {
-      await removeItem(productId);
-      return;
-    }
-    try {
-      await _service.updateQuantity(uid, productId, quantity);
-      final index = _items.indexWhere((i) => i.productId == productId);
-      if (index != -1) {
-        _items[index] = _items[index].copyWith(quantity: quantity);
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint('[CartProvider] erro ao atualizar: $e');
-    }
+    if (quantity <= 0) return removeItem(productId);
+    await _mutate(() async {
+      final index = _items.indexWhere((item) => item.productId == productId);
+      if (index == -1) return;
+      _items = await _repository.updateItem(
+        _requiredCartItemId(_items[index]),
+        quantity,
+      );
+    });
   }
 
   Future<void> removeItem(String productId) async {
-    try {
-      await _service.removeItem(uid, productId);
-      _items.removeWhere((i) => i.productId == productId);
-      notifyListeners();
-    } catch (e) {
-      debugPrint('[CartProvider] erro ao remover: $e');
-    }
+    await _mutate(() async {
+      final item = _findByProductId(productId);
+      if (item == null) return;
+      _items = await _repository.removeItem(_requiredCartItemId(item));
+    });
   }
 
   Future<void> clearCart() async {
-    _items.clear();
+    await _mutate(() async {
+      _items = await _repository.clear();
+      _unitOpenStatus.clear();
+    });
+  }
+
+  String _requiredCartItemId(CartItemModel item) {
+    if (item.cartItemId.isNotEmpty) return item.cartItemId;
+    throw StateError('O item do carrinho não possui identificador remoto.');
+  }
+
+  CartItemModel? _findByProductId(String productId) {
+    for (final item in _items) {
+      if (item.productId == productId) return item;
+    }
+    return null;
+  }
+
+  Future<void> _mutate(Future<void> Function() operation) async {
+    _error = null;
+    try {
+      await operation();
+      notifyListeners();
+    } catch (error) {
+      _error = 'Não foi possível atualizar o carrinho.';
+      debugPrint('[CartProvider] mutation error: $error');
+      notifyListeners();
+    }
+  }
+
+  Future<void> _checkUnitsOpen() async {
+    _unitOpenStatus.clear();
+    for (final unitId in _items.map((item) => item.unitId).toSet()) {
+      try {
+        final hours = await _hoursService?.fetchToday(unitId);
+        _unitOpenStatus[unitId] = hours?.isOpenNow ?? true;
+      } catch (error) {
+        _unitOpenStatus[unitId] = true;
+        debugPrint('[CartProvider] business hours error: $error');
+      }
+    }
+  }
+
+  void _setLoading(bool value) {
+    _isLoading = value;
+    if (value) _error = null;
     notifyListeners();
   }
 }

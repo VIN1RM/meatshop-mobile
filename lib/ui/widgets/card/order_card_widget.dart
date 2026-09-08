@@ -54,7 +54,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         'Pedido #${order.id}',
                         style: const TextStyle(
-                          color: const Color(0xFF1A1A1A),
+                          color: Color(0xFF1A1A1A),
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
@@ -62,7 +62,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         order.clientName,
                         style: const TextStyle(
-                          color: const Color(0xFF555555),
+                          color: Color(0xFF555555),
                           fontSize: 13,
                         ),
                       ),
@@ -141,7 +141,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         order.unitName,
                         style: const TextStyle(
-                          color: const Color(0xFF1A1A1A),
+                          color: Color(0xFF1A1A1A),
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -149,7 +149,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         '${order.unitAddress.street}, ${order.unitAddress.number} · ${order.unitAddress.neighborhood}',
                         style: const TextStyle(
-                          color: const Color(0xFF888888),
+                          color: Color(0xFF888888),
                           fontSize: 12,
                         ),
                       ),
@@ -158,7 +158,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         order.clientName,
                         style: const TextStyle(
-                          color: const Color(0xFF1A1A1A),
+                          color: Color(0xFF1A1A1A),
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -166,7 +166,7 @@ class OrderCardWidget extends StatelessWidget {
                       Text(
                         '${order.address.street}, ${order.address.number} · ${order.address.neighborhood}',
                         style: const TextStyle(
-                          color: const Color(0xFF888888),
+                          color: Color(0xFF888888),
                           fontSize: 12,
                         ),
                       ),
@@ -184,7 +184,7 @@ class OrderCardWidget extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.fastfood_outlined,
-                  color: const Color(0xFFBDBDBD),
+                  color: Color(0xFFBDBDBD),
                   size: 15,
                 ),
                 const SizedBox(width: 6),
@@ -192,7 +192,7 @@ class OrderCardWidget extends StatelessWidget {
                   child: Text(
                     order.items,
                     style: const TextStyle(
-                      color: const Color(0xFF888888),
+                      color: Color(0xFF888888),
                       fontSize: 12,
                     ),
                   ),

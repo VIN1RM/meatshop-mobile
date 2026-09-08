@@ -57,7 +57,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickAvatar() async {
-    final userPhotoUrl = context.read<UserProvider>().user?.photoUrl;
+    final userProvider = context.read<UserProvider>();
+    final userPhotoUrl = userProvider.user?.photoUrl;
     final hasPhoto = _avatarFile != null || (userPhotoUrl?.isNotEmpty ?? false);
     final String? currentPhotoUrl = _avatarFile != null ? null : userPhotoUrl;
 
@@ -68,11 +69,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       onRemove: () async {
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
-          await context.read<UserProvider>().updateAvatar(uid, null);
+          await userProvider.updateAvatar(uid, null);
         }
+        if (!mounted) return;
         setState(() => _avatarFile = null);
       },
     );
+    if (!mounted) return;
     if (file != null) setState(() => _avatarFile = file);
   }
 
@@ -89,19 +92,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
     setState(() => _isSaving = true);
+    final userProvider = context.read<UserProvider>();
 
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid == null) return;
 
-      await context.read<UserProvider>().updateUser(
+      await userProvider.updateUser(
         uid: uid,
         name: _nameController.text,
         email: _emailController.text,
         phone: _phoneController.text,
       );
       if (_avatarFile != null) {
-        await context.read<UserProvider>().updateAvatar(uid, _avatarFile!);
+        await userProvider.updateAvatar(uid, _avatarFile!);
       }
       if (!mounted) return;
       CustomSnackBar.success(
@@ -140,7 +144,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -192,8 +196,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             icon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty)
+                              if (v == null || v.trim().isEmpty) {
                                 return 'Informe o e-mail';
+                              }
                               if (!v.contains('@')) return 'E-mail inválido';
                               return null;
                             },
@@ -209,8 +214,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             keyboardType: TextInputType.phone,
                             inputFormatters: [_PhoneFormatter()],
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Informe o celular';
+                              }
                               if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
                                 return 'Celular inválido';
                               }
@@ -238,7 +244,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _red,
                                 foregroundColor: Colors.white,
-                                disabledBackgroundColor: _red.withOpacity(0.4),
+                                disabledBackgroundColor: _red.withValues(
+                                  alpha: 0.4,
+                                ),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),

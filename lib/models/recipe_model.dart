@@ -41,29 +41,28 @@ class RecipeModel {
           .map((e) => RecipeStepModel.fromMap(e as Map<String, dynamic>))
           .toList(),
       ingredients: (map['ingredients'] as List<dynamic>? ?? [])
-          .map((e) =>
-              RecipeIngredientModel.fromMap(e as Map<String, dynamic>))
+          .map((e) => RecipeIngredientModel.fromMap(e as Map<String, dynamic>))
           .toList(),
       featuredProduct: map['featuredProduct'] != null
           ? RecipeFeaturedProduct.fromMap(
-              map['featuredProduct'] as Map<String, dynamic>)
+              map['featuredProduct'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
 
   Map<String, dynamic> toMap() => {
-        'unitId': unitId,
-        'title': title,
-        'description': description,
-        'tag': tag,
-        'imageUrl': imageUrl,
-        'videoUrl': videoUrl,
-        'displayOrder': displayOrder,
-        'steps': steps.map((s) => s.toMap()).toList(),
-        'ingredients': ingredients.map((i) => i.toMap()).toList(),
-        if (featuredProduct != null)
-          'featuredProduct': featuredProduct!.toMap(),
-      };
+    'unitId': unitId,
+    'title': title,
+    'description': description,
+    'tag': tag,
+    'imageUrl': imageUrl,
+    'videoUrl': videoUrl,
+    'displayOrder': displayOrder,
+    'steps': steps.map((s) => s.toMap()).toList(),
+    'ingredients': ingredients.map((i) => i.toMap()).toList(),
+    if (featuredProduct != null) 'featuredProduct': featuredProduct!.toMap(),
+  };
 }
 
 class RecipeStepModel {
@@ -78,16 +77,16 @@ class RecipeStepModel {
   final String? spiceTip;
 
   factory RecipeStepModel.fromMap(Map<String, dynamic> map) => RecipeStepModel(
-        stepNumber: map['stepNumber'] as int? ?? 0,
-        description: map['description'] as String? ?? '',
-        spiceTip: map['spiceTip'] as String?,
-      );
+    stepNumber: map['stepNumber'] as int? ?? 0,
+    description: map['description'] as String? ?? '',
+    spiceTip: map['spiceTip'] as String?,
+  );
 
   Map<String, dynamic> toMap() => {
-        'stepNumber': stepNumber,
-        'description': description,
-        if (spiceTip != null) 'spiceTip': spiceTip,
-      };
+    'stepNumber': stepNumber,
+    'description': description,
+    if (spiceTip != null) 'spiceTip': spiceTip,
+  };
 }
 
 class RecipeIngredientModel {
@@ -110,10 +109,10 @@ class RecipeIngredientModel {
       );
 
   Map<String, dynamic> toMap() => {
-        'name': name,
-        'quantity': quantity,
-        if (tip != null) 'tip': tip,
-      };
+    'name': name,
+    'quantity': quantity,
+    if (tip != null) 'tip': tip,
+  };
 }
 
 class RecipeFeaturedProduct {
@@ -135,17 +134,18 @@ class RecipeFeaturedProduct {
       RecipeFeaturedProduct(
         productId: map['productId'] as String? ?? '',
         productName: map['productName'] as String? ?? '',
-        callToAction: map['callToAction'] as String? ??
+        callToAction:
+            map['callToAction'] as String? ??
             'Adquira esse corte em nossa loja',
         productImageUrl: map['productImageUrl'] as String?,
         price: (map['price'] as num?)?.toDouble(),
       );
 
   Map<String, dynamic> toMap() => {
-        'productId': productId,
-        'productName': productName,
-        'callToAction': callToAction,
-        if (productImageUrl != null) 'productImageUrl': productImageUrl,
-        if (price != null) 'price': price,
-      };
+    'productId': productId,
+    'productName': productName,
+    'callToAction': callToAction,
+    if (productImageUrl != null) 'productImageUrl': productImageUrl,
+    if (price != null) 'price': price,
+  };
 }

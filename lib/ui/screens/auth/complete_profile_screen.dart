@@ -8,7 +8,6 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/ui/components/sheets/address_form_sheet.dart';
-import 'package:meatshop_mobile/services/auth_service.dart';
 import 'package:meatshop_mobile/models/user_model.dart';
 import 'package:flutter/services.dart';
 
@@ -155,35 +154,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
     setState(() => _isLoading = true);
 
-    if (_cpfWasMissing && _cpfController.text.isNotEmpty) {
-      final cpfOk = await AuthService.instance.isCpfAvailable(
-        _cpfController.text,
-      );
-      if (!mounted) return;
-      if (!cpfOk) {
-        setState(() => _isLoading = false);
-        CustomSnackBar.warning(
-          'Este CPF já está sendo utilizado por outra conta.',
-          context: context,
-        );
-        return;
-      }
-    }
-    if (_phoneWasMissing && _phoneController.text.isNotEmpty) {
-      final phoneOk = await AuthService.instance.isPhoneAvailable(
-        _phoneController.text,
-      );
-      if (!mounted) return;
-      if (!phoneOk) {
-        setState(() => _isLoading = false);
-        CustomSnackBar.warning(
-          'Este celular já está sendo utilizado por outra conta.',
-          context: context,
-        );
-        return;
-      }
-    }
-
     if (!mounted) return;
     try {
       if (isPendingFlow) {
@@ -277,10 +247,10 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFC0392B).withOpacity(0.15),
+              color: const Color(0xFFC0392B).withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFFC0392B).withOpacity(0.3),
+                color: const Color(0xFFC0392B).withValues(alpha: 0.3),
               ),
             ),
             child: const Icon(
@@ -414,7 +384,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFC0392B).withOpacity(0.08),
+        color: const Color(0xFFC0392B).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
         border: const Border(
           left: BorderSide(color: Color(0xFFC0392B), width: 2),
@@ -512,7 +482,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFC0392B).withOpacity(0.15)
+              ? const Color(0xFFC0392B).withValues(alpha: 0.15)
               : const Color(0xFF525252),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -527,7 +497,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               height: 40,
               decoration: BoxDecoration(
                 color: selected
-                    ? const Color(0xFFC0392B).withOpacity(0.2)
+                    ? const Color(0xFFC0392B).withValues(alpha: 0.2)
                     : const Color(0xFF3A3A3A),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -613,7 +583,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: selected
-                  ? const Color(0xFFC0392B).withOpacity(0.15)
+                  ? const Color(0xFFC0392B).withValues(alpha: 0.15)
                   : const Color(0xFF525252),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
@@ -742,7 +712,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
             hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
             prefixIcon: Icon(icon, color: Colors.white30, size: 18),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.07),
+            fillColor: Colors.white.withValues(alpha: 0.07),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 14,
               vertical: 12,

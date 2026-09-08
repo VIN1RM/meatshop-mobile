@@ -4,6 +4,7 @@ import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/payment_card_form_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 
 PaymentMethodModel _buildModel(
   PaymentCardData data, {
@@ -69,7 +70,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (context, error, stackTrace) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),
@@ -171,7 +172,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
         color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(16),
         border: card.isDefault
-            ? Border.all(color: _red.withOpacity(0.4), width: 1.5)
+            ? Border.all(color: _red.withValues(alpha: 0.4), width: 1.5)
             : null,
       ),
       child: Row(
@@ -216,7 +217,7 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: _red.withOpacity(0.1),
+                          color: _red.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
@@ -420,6 +421,13 @@ class _SavedPaymentsScreenState extends State<SavedPaymentsScreen> {
 
   void _openCardSheet(BuildContext context) {
     final provider = context.read<PaymentProvider>();
+    if (provider.requiresTokenizedCard) {
+      CustomSnackBar.info(
+        'Novos cartões são cadastrados com segurança durante o checkout do Mercado Pago.',
+        context: context,
+      );
+      return;
+    }
 
     showModalBottomSheet(
       context: context,

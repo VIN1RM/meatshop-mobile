@@ -1,5 +1,5 @@
 name: meatshop_mobile
-description: "A new Flutter project."
+description: "Aplicativo oficial MeatShop para clientes e entregadores."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.15.0+1
+version: 3.0.0+1
 
 environment:
   sdk: ^3.9.2
@@ -35,6 +35,7 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   http: ^1.2.1
+  http_parser: ^4.1.2
   package_info_plus: ^8.0.0
   provider: ^6.0.5
   geolocator: ^13.0.2
@@ -48,20 +49,26 @@ dependencies:
   share_plus: ^10.0.0
   path_provider: ^2.1.0 
   firebase_core: ^3.6.0
-  cloud_firestore: ^5.4.0
   firebase_auth: ^5.3.0
-  firebase_storage: ^12.3.0
   shared_preferences: ^2.3.0
   firebase_messaging: ^15.1.3
+  firebase_app_check: ^0.3.1+3
+  firebase_crashlytics: ^4.1.3
+  firebase_analytics: ^11.3.3
+  firebase_performance: ^0.10.0+8
   flutter_local_notifications: ^18.0.1
   shimmer: ^3.0.0
   intl: ^0.20.2
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^6.1.0
   crypto: ^3.0.5
+  flutter_secure_storage: 10.3.1
+  socket_io_client: ^3.1.6
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
 # For information on the generic Dart part of this file, see the

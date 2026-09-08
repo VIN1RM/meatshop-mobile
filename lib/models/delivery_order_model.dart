@@ -64,4 +64,38 @@ class DeliveryOrder {
       ),
     );
   }
+
+  factory DeliveryOrder.fromApi(Map<String, Object?> data) {
+    final id = (data['id'] as num).toInt();
+    final deliveryStatus = '${data['delivery_status'] ?? ''}';
+    return DeliveryOrder(
+      id: id,
+      clientId: '${data['client_id'] ?? ''}',
+      clientName: '${data['client_name'] ?? 'Cliente'}',
+      unitId: '${data['unit_id'] ?? ''}',
+      unitName: '${data['unit_name'] ?? 'Unidade'}',
+      unitLat: (data['unit_lat'] as num?)?.toDouble(),
+      unitLng: (data['unit_lng'] as num?)?.toDouble(),
+      destLat: (data['dest_lat'] as num?)?.toDouble(),
+      destLng: (data['dest_lng'] as num?)?.toDouble(),
+      items: '${data['items'] ?? ''}',
+      total: (data['total_amount'] as num?)?.toDouble() ?? 0,
+      deliveryFee: (data['delivery_fee'] as num?)?.toDouble() ?? 0,
+      status: switch (deliveryStatus) {
+        'PICKUP' => DeliveryOrderStatus.onTheWay,
+        'ON_THE_WAY' => DeliveryOrderStatus.onTheWay,
+        'DELIVERED' => DeliveryOrderStatus.delivered,
+        _ => DeliveryOrderStatus.waiting,
+      },
+      step: '${data['delivery_step']}' == 'DELIVERING'
+          ? DeliveryStep.delivering
+          : DeliveryStep.pickup,
+      unitAddress: AddressModel.fromMap(
+        Map<String, dynamic>.from(data['unit_address'] as Map? ?? {}),
+      ),
+      address: AddressModel.fromMap(
+        Map<String, dynamic>.from(data['delivery_address'] as Map? ?? {}),
+      ),
+    );
+  }
 }

@@ -1,4 +1,5 @@
 class CartItemModel {
+  final String cartItemId;
   final String productId;
   final String productName;
   final String productImageUrl;
@@ -8,8 +9,10 @@ class CartItemModel {
   final String unitId;
   final String unitName;
   final String unitImageUrl;
+  final double? availableStock;
 
   const CartItemModel({
+    this.cartItemId = '',
     required this.productId,
     required this.productName,
     required this.productImageUrl,
@@ -19,6 +22,7 @@ class CartItemModel {
     required this.unitId,
     required this.unitName,
     this.unitImageUrl = '',
+    this.availableStock,
   });
 
   double get subtotal => unitPrice * quantity;
@@ -30,9 +34,9 @@ class CartItemModel {
       'R\$${subtotal.toStringAsFixed(2).replaceAll('.', ',')}';
 
   factory CartItemModel.fromMap(Map<String, dynamic> map) {
-  
     final snapshot = map['product_snapshot'] as Map<String, dynamic>? ?? {};
     return CartItemModel(
+      cartItemId: map['id']?.toString() ?? '',
       productId: (map['product_id'] as String?) ?? '',
       productName: (snapshot['name'] as String?) ?? '',
       productImageUrl: (snapshot['image_url'] as String?) ?? '',
@@ -42,6 +46,29 @@ class CartItemModel {
       unitId: (map['unit_id'] as String?) ?? '',
       unitName: (map['unit_name'] as String?) ?? '',
       unitImageUrl: (map['unit_image_url'] as String?) ?? '',
+    );
+  }
+
+  factory CartItemModel.fromApi(Map<String, Object?> map) {
+    double number(String key) {
+      final value = map[key];
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0;
+      return 0;
+    }
+
+    return CartItemModel(
+      cartItemId: '${map['id'] ?? ''}',
+      productId: '${map['product_id'] ?? ''}',
+      productName: map['product_name'] as String? ?? '',
+      productImageUrl: map['product_image_url'] as String? ?? '',
+      unitOfMeasure: map['unit_of_measure'] as String? ?? '',
+      unitPrice: number('unit_price'),
+      quantity: number('quantity'),
+      unitId: '${map['unit_id'] ?? ''}',
+      unitName: map['unit_name'] as String? ?? '',
+      unitImageUrl: map['unit_image_url'] as String? ?? '',
+      availableStock: number('available_stock'),
     );
   }
 
@@ -64,7 +91,9 @@ class CartItemModel {
     String? unitName,
     String? unitImageUrl,
     String? productImageUrl,
+    double? availableStock,
   }) => CartItemModel(
+    cartItemId: cartItemId,
     productId: productId,
     productName: productName,
     productImageUrl: productImageUrl ?? this.productImageUrl,
@@ -74,5 +103,6 @@ class CartItemModel {
     unitId: unitId,
     unitName: unitName ?? this.unitName,
     unitImageUrl: unitImageUrl ?? this.unitImageUrl,
+    availableStock: availableStock ?? this.availableStock,
   );
 }

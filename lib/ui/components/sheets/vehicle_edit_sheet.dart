@@ -310,7 +310,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   const Text(
                     'EDITAR VEÍCULO',
                     style: TextStyle(
-                      color: const Color(0xFF1A1A1A),
+                      color: Color(0xFF1A1A1A),
 
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -322,7 +322,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   const Text(
                     'Tipo de veículo',
                     style: TextStyle(
-                      color: const Color(0xFF1A1A1A),
+                      color: Color(0xFF1A1A1A),
 
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -413,7 +413,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                             child: Text(
                               _selectedVehicleType!.description,
                               style: const TextStyle(
-                                color: const Color(0xFF666666),
+                                color: Color(0xFF666666),
 
                                 fontSize: 12,
                                 height: 1.4,
@@ -429,7 +429,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                       const Text(
                         'Dados do veículo',
                         style: TextStyle(
-                          color: const Color(0xFF1A1A1A),
+                          color: Color(0xFF1A1A1A),
 
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -545,7 +545,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const Text(
           'Fotos do veículo',
           style: TextStyle(
-            color: const Color(0xFF1A1A1A),
+            color: Color(0xFF1A1A1A),
 
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -554,7 +554,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const SizedBox(height: 4),
         const Text(
           'Adicione ao menos 3 fotos do seu veículo.',
-          style: TextStyle(color: const Color(0xFF888888), fontSize: 11),
+          style: TextStyle(color: Color(0xFF888888), fontSize: 11),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -617,7 +617,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   ),
                   child: const Icon(
                     Icons.image_outlined,
-                    color: const Color(0xFFDDDDDD),
+                    color: Color(0xFFDDDDDD),
                     size: 32,
                   ),
                 );

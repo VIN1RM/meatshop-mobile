@@ -12,9 +12,7 @@ class BusinessHoursBanner extends StatelessWidget {
 
     final open = hours!.isOpenNow;
     final color = open ? const Color(0xFF27AE60) : const Color(0xFFC0392B);
-    final bg = open
-        ? const Color(0xFFEAF7EE)
-        : const Color(0xFFFDECEC);
+    final bg = open ? const Color(0xFFEAF7EE) : const Color(0xFFFDECEC);
     final label = open ? 'Aberto agora' : 'Fechado agora';
     final hours_ = '${hours!.openingTime} – ${hours!.closingTime}';
     final closedMsg = hours!.isOpen
@@ -27,7 +25,7 @@ class BusinessHoursBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -64,7 +62,7 @@ class BusinessHoursBanner extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

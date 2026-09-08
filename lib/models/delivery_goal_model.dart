@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 enum GoalPeriod { daily, weekly, monthly }
 
 class DeliveryGoalModel {
@@ -27,15 +25,13 @@ class DeliveryGoalModel {
     GoalPeriod.monthly => 'monthly',
   };
 
-  factory DeliveryGoalModel.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return DeliveryGoalModel(
-      id: doc.id,
-      deliveryPersonId: data['delivery_person_id'] as String? ?? '',
-      period: _parsePeriod(data['period'] as String? ?? 'daily'),
-      target: (data['target'] as num?)?.toDouble() ?? 0.0,
-    );
-  }
+  factory DeliveryGoalModel.fromApi(Map<String, Object?> data) =>
+      DeliveryGoalModel(
+        id: '${data['id'] ?? ''}',
+        deliveryPersonId: '${data['delivery_person_id'] ?? ''}',
+        period: _parsePeriod('${data['period'] ?? 'daily'}'),
+        target: (data['target'] as num?)?.toDouble() ?? 0,
+      );
 
   Map<String, dynamic> toMap() => {
     'delivery_person_id': deliveryPersonId,

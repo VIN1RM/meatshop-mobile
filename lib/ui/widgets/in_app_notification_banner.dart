@@ -181,12 +181,12 @@ class _InAppNotificationBannerWidgetState
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: _typeColor.withOpacity(0.18),
+                      color: _typeColor.withValues(alpha: 0.18),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.16),
+                        color: Colors.black.withValues(alpha: 0.16),
                         blurRadius: 22,
                         offset: const Offset(0, 8),
                       ),
@@ -218,7 +218,7 @@ class _InAppNotificationBannerWidgetState
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: _typeColor.withOpacity(0.08),
+                                color: _typeColor.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Text(
@@ -269,7 +269,7 @@ class _InAppNotificationBannerWidgetState
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            color: AppColors.grey100.withOpacity(0.18),
+                            color: AppColors.grey100.withValues(alpha: 0.18),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

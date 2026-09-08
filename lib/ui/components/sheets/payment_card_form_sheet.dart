@@ -80,7 +80,7 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
       ),
 
       decoration: const BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: Color(0xFFF5F5F5),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + bottomInset),
@@ -101,7 +101,7 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
                     const Text(
                       'Os dados são tokenizados com segurança pelo Mercado Pago.',
                       style: TextStyle(
-                        color: const Color(0xFF888888),
+                        color: Color(0xFF888888),
                         fontSize: 11,
                         height: 1.4,
                       ),
@@ -250,7 +250,7 @@ class _PaymentCardFormSheetState extends State<PaymentCardFormSheet> {
     return const Text(
       'Adicionar cartão',
       style: TextStyle(
-        color: const Color(0xFF1A1A1A),
+        color: Color(0xFF1A1A1A),
         fontSize: 18,
         fontWeight: FontWeight.w800,
       ),
@@ -377,7 +377,7 @@ class _DefaultToggle extends StatelessWidget {
           const Expanded(
             child: Text(
               'Definir como cartão padrão',
-              style: TextStyle(color: const Color(0xFF555555), fontSize: 14),
+              style: TextStyle(color: Color(0xFF555555), fontSize: 14),
             ),
           ),
         ],

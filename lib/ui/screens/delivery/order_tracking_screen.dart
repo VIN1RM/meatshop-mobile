@@ -6,9 +6,9 @@ import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/chat_service.dart';
-import 'package:meatshop_mobile/services/order_service.dart';
+import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/cancel_order_sheet.dart';
+import 'package:meatshop_mobile/ui/components/sheets/chat_participant_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/widgets/delivery_person_card.dart';
 import 'package:provider/provider.dart';
@@ -24,8 +24,6 @@ class DeliveriesScreen extends StatefulWidget {
 class _DeliveriesScreenState extends State<DeliveriesScreen> {
   static const Color _red = Color(0xFFBE2C1B);
   static const Color _pageBg = Color(0xFF2E2E2E);
-
-  final OrderService _service = OrderService();
 
   late String _currentUserId;
   late String _currentUserName;
@@ -50,7 +48,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         child: CancelOrderDialog(
           onConfirm: (reason) async {
             try {
-              await _service.cancelOrder(
+              await context.read<OrderProvider>().cancelOrder(
                 orderId: order.id,
                 reason: reason.label,
               );
@@ -75,17 +73,21 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   }
 
   void _onContactTap(OrderModel order) async {
-    final service = ChatService();
-    await service.getOrCreateConversation(
-      currentUserId: _currentUserId,
-      currentUserName: _currentUserName,
-      currentUserType: ChatParticipantType.client,
-      otherUserId: order.deliveryPersonId ?? '',
-      otherUserName:
-          'Entregador #${order.deliveryPersonId?.substring(0, 8) ?? ''}',
-      otherUserType: ChatParticipantType.delivery,
+    final deliveryId = order.deliveryPersonId;
+    final participant = await ChatParticipantDialog.show(
+      context: context,
+      unitName: order.unitName,
+      secondaryName: deliveryId == null
+          ? null
+          : 'Entregador #${_shortId(deliveryId)}',
+      secondaryType: ChatParticipantType.delivery,
     );
-
+    if (participant == null || !mounted) return;
+    final isUnit = participant == ChatParticipantType.unit;
+    final receiverId = isUnit ? order.unitId : deliveryId!;
+    final receiverName = isUnit
+        ? order.unitName
+        : 'Entregador #${_shortId(deliveryId)}';
     if (!mounted) return;
     Navigator.pushNamed(
       context,
@@ -94,13 +96,18 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         currentUserId: _currentUserId,
         currentUserName: _currentUserName,
         currentUserType: ChatParticipantType.client,
-        otherUserId: order.deliveryPersonId ?? '',
-        otherUserName:
-            'Entregador #${order.deliveryPersonId?.substring(0, 8) ?? ''}',
-        otherUserType: ChatParticipantType.delivery,
+        otherUserId: receiverId,
+        otherUserName: receiverName,
+        otherUserType: participant,
         otherUserPhoto: null,
+        orderId: int.tryParse(order.id),
       ),
     );
+  }
+
+  String _shortId(String? value) {
+    if (value == null || value.isEmpty) return '';
+    return value.length <= 8 ? value : value.substring(0, 8);
   }
 
   @override
@@ -112,7 +119,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
           _buildHeader(),
           Expanded(
             child: StreamBuilder<List<OrderModel>>(
-              stream: _service.activeOrdersStream(),
+              stream: context.read<OrderProvider>().activeOrdersStream(),
               builder: (context, snap) {
                 if (snap.connectionState == ConnectionState.waiting) {
                   return const _DeliveriesShimmer();
@@ -675,7 +682,7 @@ class _UnitAvatar extends StatelessWidget {
             ? Image.network(
                 logoUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (context, error, stackTrace) =>
                     const Icon(Icons.store, color: Colors.white, size: 20),
               )
             : const Icon(Icons.store, color: Colors.white, size: 20),

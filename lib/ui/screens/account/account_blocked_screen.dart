@@ -227,7 +227,7 @@ class _AppLogo extends StatelessWidget {
       width: 150,
       height: 150,
       fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) {
+      errorBuilder: (_, _, _) {
         return Container(
           width: 104,
           height: 104,

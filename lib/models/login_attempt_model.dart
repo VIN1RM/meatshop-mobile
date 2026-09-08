@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class LoginAttemptModel {
   const LoginAttemptModel({
     required this.attempts,
@@ -26,18 +24,18 @@ class LoginAttemptModel {
     return LoginAttemptModel(
       attempts: (map['attempts'] as num?)?.toInt() ?? 0,
       lastAttempt:
-          (map['last_attempt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      blockedUntil: (map['blocked_until'] as Timestamp?)?.toDate(),
+          DateTime.tryParse('${map['last_attempt'] ?? ''}') ?? DateTime.now(),
+      blockedUntil: map['blocked_until'] == null
+          ? null
+          : DateTime.tryParse('${map['blocked_until']}'),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'attempts': attempts,
-      'last_attempt': Timestamp.fromDate(lastAttempt),
-      'blocked_until': blockedUntil != null
-          ? Timestamp.fromDate(blockedUntil!)
-          : null,
+      'last_attempt': lastAttempt.toIso8601String(),
+      'blocked_until': blockedUntil?.toIso8601String(),
     };
   }
 }
