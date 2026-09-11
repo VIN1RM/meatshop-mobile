@@ -8,7 +8,7 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 
 void main() {
   group('JsonHttpTransport', () {
-    test('consulta endpoint público e decodifica JSON', () async {
+    test('requests a public endpoint and decodes JSON', () async {
       final transport = _transport(
         MockClient((request) async {
           expect(request.url.path, '/health');
@@ -22,7 +22,7 @@ void main() {
       });
     });
 
-    test('normaliza erro NestJS e respeita Retry-After', () async {
+    test('normalizes NestJS errors and respects Retry-After', () async {
       final transport = _transport(
         MockClient(
           (_) async => http.Response(
@@ -52,7 +52,7 @@ void main() {
       );
     });
 
-    test('distingue cancelamento de timeout', () async {
+    test('distinguishes cancellation from timeout', () async {
       final cancellation = CancellationToken();
       final cancelledTransport = _transport(_AbortAwareClient());
       final pending = cancelledTransport.send(

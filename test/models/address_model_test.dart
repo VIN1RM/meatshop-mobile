@@ -15,7 +15,7 @@ void main() {
     isDefault: true,
   );
 
-  test('normaliza os apelidos aceitos pelo contrato da API', () {
+  test('normalizes aliases accepted by the API contract', () {
     expect(address('casa').toApi()['label'], 'Casa');
     expect(address('TRABALHO').toApi()['label'], 'Trabalho');
     expect(address('Minha chácara').toApi()['label'], 'Outro');

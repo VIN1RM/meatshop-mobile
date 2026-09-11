@@ -30,7 +30,7 @@ class _HomeBodyState extends State<HomeBody> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
 
-  final List<Map<String, dynamic>> _cortes = const [
+  final List<Map<String, dynamic>> _cuts = const [
     {'label': 'Bovino', 'icon': Icons.looks_one},
     {'label': 'Suíno', 'icon': Icons.looks_two},
     {'label': 'Frango', 'icon': Icons.looks_3},
@@ -146,7 +146,7 @@ class _HomeBodyState extends State<HomeBody> {
                           const SizedBox(height: 20),
                           _sectionTitle('CORTES'),
                           const SizedBox(height: 12),
-                          _buildCortes(),
+                          _buildCuts(),
                           const SizedBox(height: 24),
                           _sectionTitle('PROMOÇÕES'),
                           const SizedBox(height: 12),
@@ -154,7 +154,7 @@ class _HomeBodyState extends State<HomeBody> {
                           const SizedBox(height: 24),
                           _sectionTitle('AÇOUGUES'),
                           const SizedBox(height: 12),
-                          _buildAcougues(),
+                          _buildButchers(),
                           const SizedBox(height: 16),
                           Padding(
                             padding: const EdgeInsets.only(
@@ -166,7 +166,7 @@ class _HomeBodyState extends State<HomeBody> {
                               child: GestureDetector(
                                 onTap: () => Navigator.pushNamed(
                                   context,
-                                  AppRoutes.acougues,
+                                  AppRoutes.butchers,
                                 ),
                                 child: const Text(
                                   'Ver mais...',
@@ -208,7 +208,7 @@ class _HomeBodyState extends State<HomeBody> {
     );
   }
 
-  Widget _buildCortes() {
+  Widget _buildCuts() {
     final imagens = [
       'assets/images/vaca.png',
       'assets/images/porco.png',
@@ -217,17 +217,17 @@ class _HomeBodyState extends State<HomeBody> {
     ];
 
     final rotas = [
-      AppRoutes.cortesBovinos,
-      AppRoutes.cortesSuinos,
-      AppRoutes.cortesAves,
-      AppRoutes.cortesPeixes,
+      AppRoutes.beefCuts,
+      AppRoutes.porkCuts,
+      AppRoutes.poultryCuts,
+      AppRoutes.fishCuts,
     ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(_cortes.length, (i) {
+        children: List.generate(_cuts.length, (i) {
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -416,7 +416,7 @@ class _HomeBodyState extends State<HomeBody> {
                                   text: TextSpan(
                                     children: [
                                       TextSpan(
-                                        text: promo.precoFormatado,
+                                        text: promo.formattedPrice,
                                         style: const TextStyle(
                                           color: Color(0xFFC0392B),
                                           fontSize: 15,
@@ -449,7 +449,7 @@ class _HomeBodyState extends State<HomeBody> {
     );
   }
 
-  Widget _buildAcougues() {
+  Widget _buildButchers() {
     return Consumer<UnitProvider>(
       builder: (context, provider, _) {
         if (provider.loading) {
@@ -468,18 +468,23 @@ class _HomeBodyState extends State<HomeBody> {
           );
         }
 
-        final lista = provider.units.take(3).toList();
+        final units = provider.units.take(3).toList();
         return Column(
-          children: lista.map((u) => _buildAcougueItemFromUnit(u)).toList(),
+          children: units
+              .map((unit) => _buildButcherItemFromUnit(unit))
+              .toList(),
         );
       },
     );
   }
 
-  Widget _buildAcougueItemFromUnit(UnitModel u) {
+  Widget _buildButcherItemFromUnit(UnitModel unit) {
     return GestureDetector(
-      onTap: () =>
-          Navigator.pushNamed(context, AppRoutes.butcherDetail, arguments: u),
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.butcherDetail,
+        arguments: unit,
+      ),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -491,9 +496,9 @@ class _HomeBodyState extends State<HomeBody> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: u.imageUrl.isNotEmpty
+              child: unit.imageUrl.isNotEmpty
                   ? Image.network(
-                      u.imageUrl,
+                      unit.imageUrl,
                       width: 44,
                       height: 44,
                       fit: BoxFit.cover,
@@ -504,7 +509,7 @@ class _HomeBodyState extends State<HomeBody> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                u.name,
+                unit.name,
                 style: const TextStyle(
                   color: _white,
                   fontSize: 15,
@@ -523,8 +528,8 @@ class _HomeBodyState extends State<HomeBody> {
                 ),
                 const SizedBox(width: 3),
                 Text(
-                  u.averageRating > 0
-                      ? u.averageRating.toStringAsFixed(1)
+                  unit.averageRating > 0
+                      ? unit.averageRating.toStringAsFixed(1)
                       : '–',
                   style: const TextStyle(
                     color: Color(0xFFFFB800),
@@ -556,7 +561,7 @@ class _HomeBodyState extends State<HomeBody> {
     );
   }
 
-  Widget _placeholderCard(String nome) {
+  Widget _placeholderCard(String name) {
     return Container(
       width: double.infinity,
       color: const Color(0xFF555555),
@@ -570,7 +575,7 @@ class _HomeBodyState extends State<HomeBody> {
           ),
           const SizedBox(height: 8),
           Text(
-            nome,
+            name,
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white24, fontSize: 12),
           ),

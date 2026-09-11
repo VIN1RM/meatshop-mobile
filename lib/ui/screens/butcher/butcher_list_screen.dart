@@ -8,20 +8,20 @@ import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
 
-class AcouguesScreen extends StatefulWidget {
-  const AcouguesScreen({super.key});
+class ButcherListScreen extends StatefulWidget {
+  const ButcherListScreen({super.key});
 
   @override
-  State<AcouguesScreen> createState() => _AcouguesScreenState();
+  State<ButcherListScreen> createState() => _ButcherListScreenState();
 }
 
-class _AcouguesScreenState extends State<AcouguesScreen> {
+class _ButcherListScreenState extends State<ButcherListScreen> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _surface = Color(0xFF3A3A3A);
   static const Color _bg = Color(0xFF2E2E2E);
   static const Color _white = Colors.white;
 
-  AcougueFilter _filtro = const AcougueFilter();
+  ButcherFilter _filter = const ButcherFilter();
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -38,64 +38,71 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
     super.dispose();
   }
 
-  List<UnitModel> _aplicarFiltro(List<UnitModel> lista, UnitProvider provider) {
-    var resultado = List<UnitModel>.from(lista);
+  List<UnitModel> _applyFilter(List<UnitModel> units, UnitProvider provider) {
+    var filteredUnits = List<UnitModel>.from(units);
 
     final query = _searchController.text.trim().toLowerCase();
     if (query.isNotEmpty) {
-      resultado = resultado
+      filteredUnits = filteredUnits
           .where((u) => u.name.toLowerCase().contains(query))
           .toList();
     }
 
-    if (_filtro.apenasAbertos) {
-      resultado = resultado.where((u) => provider.isOpenNow(u.id)).toList();
+    if (_filter.openNowOnly) {
+      filteredUnits = filteredUnits
+          .where((unit) => provider.isOpenNow(unit.id))
+          .toList();
     }
 
-    switch (_filtro.ordem) {
-      case AcougueOrdem.nomeAZ:
-        resultado.sort((a, b) => a.name.compareTo(b.name));
-      case AcougueOrdem.nomeZA:
-        resultado.sort((a, b) => b.name.compareTo(a.name));
-      case AcougueOrdem.avaliacaoMaior:
-        resultado.sort((a, b) => b.averageRating.compareTo(a.averageRating));
-      case AcougueOrdem.avaliacaoMenor:
-        resultado.sort((a, b) => a.averageRating.compareTo(b.averageRating));
-      case AcougueOrdem.precoMaior:
-      case AcougueOrdem.precoMenor:
+    switch (_filter.sortOrder) {
+      case ButcherSortOrder.nameAscending:
+        filteredUnits.sort((a, b) => a.name.compareTo(b.name));
+      case ButcherSortOrder.nameDescending:
+        filteredUnits.sort((a, b) => b.name.compareTo(a.name));
+      case ButcherSortOrder.ratingDescending:
+        filteredUnits.sort(
+          (a, b) => b.averageRating.compareTo(a.averageRating),
+        );
+      case ButcherSortOrder.ratingAscending:
+        filteredUnits.sort(
+          (a, b) => a.averageRating.compareTo(b.averageRating),
+        );
+      case ButcherSortOrder.priceDescending:
+      case ButcherSortOrder.priceAscending:
         break;
     }
 
-    return resultado;
+    return filteredUnits;
   }
 
-  String get _filtroLabel {
+  String get _filterLabel {
     final parts = <String>[];
-    if (_filtro.apenasAbertos) parts.add('Abertos agora');
-    switch (_filtro.ordem) {
-      case AcougueOrdem.nomeAZ:
+    if (_filter.openNowOnly) parts.add('Abertos agora');
+    switch (_filter.sortOrder) {
+      case ButcherSortOrder.nameAscending:
         parts.add('A → Z');
-      case AcougueOrdem.nomeZA:
+      case ButcherSortOrder.nameDescending:
         parts.add('Z → A');
-      case AcougueOrdem.avaliacaoMaior:
+      case ButcherSortOrder.ratingDescending:
         parts.add('Maior avaliação');
-      case AcougueOrdem.avaliacaoMenor:
+      case ButcherSortOrder.ratingAscending:
         parts.add('Menor avaliação');
-      case AcougueOrdem.precoMaior:
+      case ButcherSortOrder.priceDescending:
         parts.add('Maior preço');
-      case AcougueOrdem.precoMenor:
+      case ButcherSortOrder.priceAscending:
         parts.add('Menor preço');
     }
     return parts.join(' · ');
   }
 
-  bool get _filtroAtivo =>
-      _filtro.apenasAbertos || _filtro.ordem != AcougueOrdem.avaliacaoMaior;
+  bool get _filterActive =>
+      _filter.openNowOnly ||
+      _filter.sortOrder != ButcherSortOrder.ratingDescending;
 
-  Future<void> _abrirFiltro() async {
-    final resultado = await AcougueFilterSheet.show(context, _filtro);
-    if (resultado != null && resultado != _filtro) {
-      setState(() => _filtro = resultado);
+  Future<void> _openFilter() async {
+    final selectedFilter = await ButcherFilterSheet.show(context, _filter);
+    if (selectedFilter != null && selectedFilter != _filter) {
+      setState(() => _filter = selectedFilter);
     }
   }
 
@@ -159,11 +166,11 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                             ),
                             const Spacer(),
                             GestureDetector(
-                              onTap: _abrirFiltro,
+                              onTap: _openFilter,
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: _filtroAtivo ? _red : _surface,
+                                  color: _filterActive ? _red : _surface,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Stack(
@@ -174,7 +181,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                                       color: _white,
                                       size: 22,
                                     ),
-                                    if (_filtroAtivo)
+                                    if (_filterActive)
                                       Positioned(
                                         top: -4,
                                         right: -4,
@@ -212,7 +219,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                               ),
                             ),
                             child: Text(
-                              _filtroLabel,
+                              _filterLabel,
                               style: const TextStyle(
                                 color: _red,
                                 fontSize: 12,
@@ -239,11 +246,11 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                                 ),
                               );
                             }
-                            final lista = _aplicarFiltro(
+                            final filteredUnits = _applyFilter(
                               provider.units,
                               provider,
                             );
-                            if (lista.isEmpty) {
+                            if (filteredUnits.isEmpty) {
                               return Center(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -255,7 +262,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
-                                      _filtro.apenasAbertos
+                                      _filter.openNowOnly
                                           ? 'Nenhum açougue aberto agora.'
                                           : 'Nenhum resultado encontrado.',
                                       style: const TextStyle(
@@ -263,11 +270,11 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                                         fontSize: 14,
                                       ),
                                     ),
-                                    if (_filtroAtivo) ...[
+                                    if (_filterActive) ...[
                                       const SizedBox(height: 8),
                                       GestureDetector(
                                         onTap: () => setState(
-                                          () => _filtro = const AcougueFilter(),
+                                          () => _filter = const ButcherFilter(),
                                         ),
                                         child: const Text(
                                           'Limpar filtros',
@@ -289,9 +296,9 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                             return ListView.builder(
                               physics: const BouncingScrollPhysics(),
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                              itemCount: lista.length,
+                              itemCount: filteredUnits.length,
                               itemBuilder: (_, i) =>
-                                  _buildAcougueItem(lista[i], provider),
+                                  _buildButcherItem(filteredUnits[i], provider),
                             );
                           },
                         ),
@@ -307,14 +314,17 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
     );
   }
 
-  Widget _buildAcougueItem(UnitModel u, UnitProvider provider) {
-    final hours = provider.hoursFor(u.id);
-    final isOpen = provider.isOpenNow(u.id);
+  Widget _buildButcherItem(UnitModel unit, UnitProvider provider) {
+    final hours = provider.hoursFor(unit.id);
+    final isOpen = provider.isOpenNow(unit.id);
     final hasHours = hours != null;
 
     return GestureDetector(
-      onTap: () =>
-          Navigator.pushNamed(context, AppRoutes.butcherDetail, arguments: u),
+      onTap: () => Navigator.pushNamed(
+        context,
+        AppRoutes.butcherDetail,
+        arguments: unit,
+      ),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
@@ -337,9 +347,9 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: u.imageUrl.isNotEmpty
+                child: unit.imageUrl.isNotEmpty
                     ? Image.network(
-                        u.imageUrl,
+                        unit.imageUrl,
                         width: 52,
                         height: 52,
                         fit: BoxFit.cover,
@@ -353,7 +363,7 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      u.name,
+                      unit.name,
                       style: const TextStyle(
                         color: _white,
                         fontSize: 15,
@@ -362,10 +372,10 @@ class _AcouguesScreenState extends State<AcouguesScreen> {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
-                    if (u.city.isNotEmpty) ...[
+                    if (unit.city.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
-                        u.city,
+                        unit.city,
                         style: const TextStyle(
                           color: Colors.white38,
                           fontSize: 12,

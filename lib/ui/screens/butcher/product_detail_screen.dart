@@ -303,7 +303,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: product.precoFormatado,
+                      text: product.formattedPrice,
                       style: const TextStyle(
                         color: _red,
                         fontSize: 20,
@@ -636,7 +636,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final inputVal = double.tryParse(_qtyController.text) ?? 0;
     final qtyKg = _isGrams ? inputVal / 1000.0 : inputVal;
     final total = product.price * qtyKg;
-    final totalFormatado =
+    final formattedTotal =
         'R\$${total.toStringAsFixed(2).replaceAll('.', ',')}';
     final qty = _qtyController.text.isEmpty ? '0' : _qtyController.text;
     final unit = _isGrams ? 'g' : 'kg';
@@ -665,13 +665,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                '$qty$unit × ${product.precoFormatado}/${product.unitOfMeasure}',
+                '$qty$unit × ${product.formattedPrice}/${product.unitOfMeasure}',
                 style: const TextStyle(fontSize: 11, color: _textGray),
               ),
             ],
           ),
           Text(
-            totalFormatado,
+            formattedTotal,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,

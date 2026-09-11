@@ -92,7 +92,7 @@ class DeliveryProvider extends ChangeNotifier {
       _activeOrder = order;
     } catch (e) {
       _lastError = 'Não foi possível aceitar esta entrega.';
-      debugPrint('Erro ao aceitar pedido: $e');
+      debugPrint('Order acceptance error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -113,7 +113,7 @@ class DeliveryProvider extends ChangeNotifier {
       _pendingOrders.removeWhere((o) => o.id == orderId);
     } catch (e) {
       _lastError = 'Não foi possível rejeitar esta oferta.';
-      debugPrint('Erro ao rejeitar pedido: $e');
+      debugPrint('Order rejection error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -132,7 +132,7 @@ class DeliveryProvider extends ChangeNotifier {
       _activeOrder = await repository.activeOrder();
     } catch (e) {
       _lastError = 'Não foi possível confirmar a retirada.';
-      debugPrint('Erro ao confirmar retirada: $e');
+      debugPrint('Pickup confirmation error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -149,7 +149,7 @@ class DeliveryProvider extends ChangeNotifier {
     try {
       _lastError = null;
       if (customerCode == null || customerCode.length != 6) {
-        throw ArgumentError('Código do cliente obrigatório');
+        throw ArgumentError('Customer code is required');
       }
       await repository.finish(_activeOrder!.id, customerCode);
       _activeOrder!.status = DeliveryOrderStatus.delivered;
@@ -158,7 +158,7 @@ class DeliveryProvider extends ChangeNotifier {
       stopLocationSharing();
     } catch (e) {
       _lastError = 'Não foi possível concluir a entrega.';
-      debugPrint('Erro ao confirmar entrega: $e');
+      debugPrint('Delivery confirmation error: $e');
       rethrow;
     } finally {
       _isLoading = false;
@@ -237,7 +237,7 @@ class DeliveryProvider extends ChangeNotifier {
         ..addAll(orders);
     } catch (e) {
       _historyError = 'Erro ao carregar histórico';
-      debugPrint('Erro ao carregar histórico: $e');
+      debugPrint('Delivery history load error: $e');
     } finally {
       _isLoadingHistory = false;
       notifyListeners();
@@ -337,7 +337,7 @@ class DeliveryProvider extends ChangeNotifier {
               )
               .catchError((error) {
                 _lastError = 'Falha temporária ao enviar localização.';
-                debugPrint('Erro ao enviar localização: $error');
+                debugPrint('Location update error: $error');
               });
         });
     return true;

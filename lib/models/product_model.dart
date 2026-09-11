@@ -29,7 +29,7 @@ class ProductModel {
     this.createdAt,
   });
 
-  String get precoFormatado =>
+  String get formattedPrice =>
       'R\$${price.toStringAsFixed(2).replaceAll('.', ',')}';
 
   factory ProductModel.fromMap(Map<String, dynamic> data, String id) {

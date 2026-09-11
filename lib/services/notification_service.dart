@@ -225,7 +225,7 @@ class NotificationService {
         return;
 
       case 'PROMOTION':
-        nav.pushNamed(AppRoutes.acougues);
+        nav.pushNamed(AppRoutes.butchers);
         return;
 
       case 'SYSTEM':
@@ -249,9 +249,7 @@ class NotificationService {
     if (token != null) {
       try {
         await _backend!.unregisterDeviceToken(token);
-      } catch (_) {
-        // O logout local deve prosseguir mesmo sem rede.
-      }
+      } catch (_) {}
     }
     _registeredToken = null;
     await _messaging.deleteToken();

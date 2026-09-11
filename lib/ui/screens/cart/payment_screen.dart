@@ -111,8 +111,8 @@ class _PaymentScreenState extends State<PaymentScreen>
     );
   }
 
-  String _fmt(double valor) {
-    final s = valor.toStringAsFixed(2).replaceAll('.', ',');
+  String _fmt(double value) {
+    final s = value.toStringAsFixed(2).replaceAll('.', ',');
     final parts = s.split(',');
     final inteiro = parts[0].replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+(?!\d))'),

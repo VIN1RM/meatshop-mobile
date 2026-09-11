@@ -9,33 +9,30 @@ import 'package:meatshop_mobile/core/network/api_failure.dart';
 
 void main() {
   group('SessionCoordinator', () {
-    test(
-      'compartilha uma única renovação entre chamadas concorrentes',
-      () async {
-        final store = _MemorySessionStore(
-          const SessionTokens(accessToken: 'old', refreshToken: 'refresh-old'),
-        );
-        final refresher = _ControlledRefresher();
-        final coordinator = SessionCoordinator(
-          store: store,
-          refresher: refresher,
-        );
+    test('shares a single renewal across concurrent calls', () async {
+      final store = _MemorySessionStore(
+        const SessionTokens(accessToken: 'old', refreshToken: 'refresh-old'),
+      );
+      final refresher = _ControlledRefresher();
+      final coordinator = SessionCoordinator(
+        store: store,
+        refresher: refresher,
+      );
 
-        final first = coordinator.refresh();
-        final second = coordinator.refresh();
-        await Future<void>.delayed(Duration.zero);
+      final first = coordinator.refresh();
+      final second = coordinator.refresh();
+      await Future<void>.delayed(Duration.zero);
 
-        expect(refresher.calls, 1);
-        refresher.complete(
-          const SessionTokens(accessToken: 'new', refreshToken: 'refresh-new'),
-        );
+      expect(refresher.calls, 1);
+      refresher.complete(
+        const SessionTokens(accessToken: 'new', refreshToken: 'refresh-new'),
+      );
 
-        expect(await first, same(await second));
-        expect(store.tokens?.accessToken, 'new');
-      },
-    );
+      expect(await first, same(await second));
+      expect(store.tokens?.accessToken, 'new');
+    });
 
-    test('limpa a sessão quando a renovação falha definitivamente', () async {
+    test('clears the session when renewal fails definitively', () async {
       final store = _MemorySessionStore(
         const SessionTokens(accessToken: 'old', refreshToken: 'invalid'),
       );
@@ -51,7 +48,7 @@ void main() {
     });
 
     test(
-      'preserva refresh token durante uma falha temporária de rede',
+      'preserves the refresh token during a temporary network failure',
       () async {
         final store = _MemorySessionStore(
           const SessionTokens(accessToken: 'old', refreshToken: 'still-valid'),

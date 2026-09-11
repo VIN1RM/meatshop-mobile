@@ -7,7 +7,7 @@ const _cloudFirestoreImport = "package:cloud_firestore/cloud_firestore.dart";
 const _legacyCloudFirestoreFiles = <String>{};
 
 void main() {
-  test('não permite novos imports do Cloud Firestore', () {
+  test('does not allow new Cloud Firestore imports', () {
     final actualFiles = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()

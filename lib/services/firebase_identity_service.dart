@@ -8,7 +8,6 @@ import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/social_account_link_required_exception.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
-/// Firebase adapter restricted to primary identity operations.
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();

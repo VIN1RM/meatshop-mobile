@@ -1,8 +1,6 @@
 import '../data/repositories/marketplace_repository.dart';
 import '../models/review_model.dart';
 
-/// Adaptador de apresentação para telas que consomem avaliações como stream.
-/// A fonte é exclusivamente a API MeatShop.
 final class ReviewService {
   ReviewService({required MarketplaceRepository marketplace})
     : _marketplace = marketplace;

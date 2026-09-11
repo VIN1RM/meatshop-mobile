@@ -156,8 +156,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   }
 
   Future<void> _pickImage() async {
-    final totalFotos = _existingUrls.length + _newImages.length;
-    if (totalFotos >= 3) {
+    final totalPhotos = _existingUrls.length + _newImages.length;
+    if (totalPhotos >= 3) {
       CustomSnackBar.warning('Máximo de 3 fotos permitidas.', context: context);
       return;
     }
@@ -197,8 +197,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       if (!_formKey.currentState!.validate()) return;
     }
 
-    final totalFotos = _existingUrls.length + _newImages.length;
-    if (totalFotos < 3) {
+    final totalPhotos = _existingUrls.length + _newImages.length;
+    if (totalPhotos < 3) {
       CustomSnackBar.warning(
         'Adicione ao menos 3 fotos do veículo.',
         context: context,
@@ -536,7 +536,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   }
 
   Widget _buildPhotoSection() {
-    final totalFotos = _existingUrls.length + _newImages.length;
+    final totalPhotos = _existingUrls.length + _newImages.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -575,7 +575,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               );
             }),
 
-            if (totalFotos < 3)
+            if (totalPhotos < 3)
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
@@ -605,7 +605,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               ),
 
             ...List.generate(
-              (3 - totalFotos - (totalFotos < 3 ? 1 : 0)).clamp(0, 3),
+              (3 - totalPhotos - (totalPhotos < 3 ? 1 : 0)).clamp(0, 3),
               (_) {
                 return Container(
                   width: 80,
@@ -628,7 +628,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const SizedBox(height: 10),
         Row(
           children: List.generate(3, (i) {
-            final filled = i < totalFotos;
+            final filled = i < totalPhotos;
             return Container(
               margin: const EdgeInsets.only(right: 4),
               width: 24,

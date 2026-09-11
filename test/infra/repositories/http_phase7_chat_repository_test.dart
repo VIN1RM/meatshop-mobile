@@ -14,50 +14,53 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_chat_repository.dart';
 
 void main() {
-  test('lista conversas e preserva pedido, canal e não lidas', () async {
-    final repository = HttpChatRepository(
-      _client(
-        MockClient((request) async {
-          expect(request.url.path, '/chats');
-          expect(request.url.queryParameters, {'page': '1', 'limit': '50'});
-          expect(request.headers['authorization'], 'Bearer access');
-          return _json({
-            'items': [
-              {
-                'id': '42:DELIVERY_PERSON',
-                'order_id': 42,
-                'participant_type': 'DELIVERY_PERSON',
-                'participant': {'id': 9, 'name': 'João', 'avatar_url': null},
-                'last_message': 'Estou chegando',
-                'last_message_at': '2026-09-03T12:00:00.000Z',
-                'unread_count': 2,
-                'closed': false,
-              },
-            ],
-            'page': 1,
-            'limit': 50,
-            'total': 1,
-          });
-        }),
-      ),
-    );
+  test(
+    'lists conversations and preserves order, channel, and unread count',
+    () async {
+      final repository = HttpChatRepository(
+        _client(
+          MockClient((request) async {
+            expect(request.url.path, '/chats');
+            expect(request.url.queryParameters, {'page': '1', 'limit': '50'});
+            expect(request.headers['authorization'], 'Bearer access');
+            return _json({
+              'items': [
+                {
+                  'id': '42:DELIVERY_PERSON',
+                  'order_id': 42,
+                  'participant_type': 'DELIVERY_PERSON',
+                  'participant': {'id': 9, 'name': 'João', 'avatar_url': null},
+                  'last_message': 'Estou chegando',
+                  'last_message_at': '2026-09-03T12:00:00.000Z',
+                  'unread_count': 2,
+                  'closed': false,
+                },
+              ],
+              'page': 1,
+              'limit': 50,
+              'total': 1,
+            });
+          }),
+        ),
+      );
 
-    final conversations = await repository.conversations(
-      currentUserId: 7,
-      currentUserType: ChatParticipantType.client,
-    );
+      final conversations = await repository.conversations(
+        currentUserId: 7,
+        currentUserType: ChatParticipantType.client,
+      );
 
-    expect(conversations.single.orderId, 42);
-    expect(conversations.single.channel, ChatChannel.deliveryPerson);
-    expect(conversations.single.unreadFor('7'), 2);
-    expect(
-      conversations.single.otherParticipant('7')?.type,
-      ChatParticipantType.delivery,
-    );
-  });
+      expect(conversations.single.orderId, 42);
+      expect(conversations.single.channel, ChatChannel.deliveryPerson);
+      expect(conversations.single.unreadFor('7'), 2);
+      expect(
+        conversations.single.otherParticipant('7')?.type,
+        ChatParticipantType.delivery,
+      );
+    },
+  );
 
   test(
-    'carrega histórico, envia e marca leitura no canal autorizado',
+    'loads history, sends messages, and marks the authorized channel as read',
     () async {
       var call = 0;
       final repository = HttpChatRepository(

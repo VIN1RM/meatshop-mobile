@@ -3,7 +3,7 @@ import 'package:meatshop_mobile/core/config/api_config.dart';
 
 void main() {
   group('ApiConfig', () {
-    test('resolve caminhos e query parameters', () {
+    test('resolves paths and query parameters', () {
       final config = ApiConfig(
         baseUrl: Uri.parse('http://10.0.2.2:3001/'),
         environment: AppEnvironment.development,
@@ -18,7 +18,7 @@ void main() {
       );
     });
 
-    test('exige HTTPS fora de desenvolvimento', () {
+    test('requires HTTPS outside development', () {
       expect(
         () => ApiConfig(
           baseUrl: Uri.parse('http://api.meatshop.dev'),

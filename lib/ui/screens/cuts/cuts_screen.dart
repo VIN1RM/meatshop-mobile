@@ -426,7 +426,7 @@ class _CutsViewState extends State<_CutsView> {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: product.precoFormatado,
+                      text: product.formattedPrice,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,

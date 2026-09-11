@@ -3,7 +3,7 @@ import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/core/network/page.dart';
 
 void main() {
-  test('converte página e encapsula compatibilidade com totalPages', () {
+  test('converts pages and encapsulates totalPages compatibility', () {
     final page = Page<int>.fromJson({
       'data': [
         {'id': 10},
@@ -16,7 +16,7 @@ void main() {
     expect(page.meta.hasNextPage, isTrue);
   });
 
-  test('rejeita resposta de paginação malformada', () {
+  test('rejects malformed pagination responses', () {
     expect(
       () => Page<int>.fromJson({'data': []}, (_) => 0),
       throwsA(

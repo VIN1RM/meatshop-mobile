@@ -18,17 +18,17 @@ class SummaryGrid extends StatelessWidget {
       _SummaryItem(
         icon: Icons.delivery_dining_outlined,
         label: 'Entregas',
-        value: data['entregas']!,
+        value: data['deliveries']!,
       ),
       _SummaryItem(
         icon: Icons.trending_up,
         label: 'Ticket médio',
-        value: data['media']!,
+        value: data['average']!,
       ),
       _SummaryItem(
         icon: Icons.emoji_events_outlined,
         label: 'Melhor período',
-        value: data['melhorDia']!,
+        value: data['bestDay']!,
       ),
     ];
 

@@ -45,7 +45,7 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Erro ao carregar reviews: $e');
+      debugPrint('Review load error: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }

@@ -28,9 +28,9 @@ class ReportsTab extends StatelessWidget {
 
     return {
       'total': fmt(total),
-      'entregas': '$deliveries',
-      'media': fmt(avg),
-      'melhorDia': period == 'Mensal' ? '—' : '—',
+      'deliveries': '$deliveries',
+      'average': fmt(avg),
+      'bestDay': period == 'Mensal' ? '—' : '—',
     };
   }
 

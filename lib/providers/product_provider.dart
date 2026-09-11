@@ -99,7 +99,7 @@ class ProductsProvider extends ChangeNotifier {
       );
     } catch (e) {
       _error = 'Não foi possível carregar as categorias. Tente novamente.';
-      debugPrint('[ProductsProvider] erro ao buscar categorias: $e');
+      debugPrint('[ProductsProvider] category load error: $e');
       _isLoading = false;
       _safeNotify();
       return;
@@ -146,7 +146,7 @@ class ProductsProvider extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = 'Não foi possível carregar os produtos. Tente novamente.';
-      debugPrint('[ProductsProvider] erro: $e');
+      debugPrint('[ProductsProvider] load error: $e');
     }
   }
 

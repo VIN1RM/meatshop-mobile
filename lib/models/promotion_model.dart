@@ -31,7 +31,7 @@ class PromotionModel {
     this.unitName = '',
   });
 
-  String get precoFormatado =>
+  String get formattedPrice =>
       'R\$${promotionalPrice.toStringAsFixed(2).replaceAll('.', ',')}';
 
   String get descontoLabel => '${discountPercentage.toStringAsFixed(0)}% OFF';

@@ -1,5 +1,3 @@
-/// Centraliza as mensagens da API que podem ser exibidas pela interface.
-/// O backend pode responder em inglês; o aplicativo traduz pelo código estável.
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
     'PROFILE_INCOMPLETE': 'Complete seu cadastro para continuar.',

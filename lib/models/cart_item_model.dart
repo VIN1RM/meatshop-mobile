@@ -27,10 +27,10 @@ class CartItemModel {
 
   double get subtotal => unitPrice * quantity;
 
-  String get precoFormatado =>
+  String get formattedPrice =>
       'R\$${unitPrice.toStringAsFixed(2).replaceAll('.', ',')}';
 
-  String get subtotalFormatado =>
+  String get formattedSubtotal =>
       'R\$${subtotal.toStringAsFixed(2).replaceAll('.', ',')}';
 
   factory CartItemModel.fromMap(Map<String, dynamic> map) {

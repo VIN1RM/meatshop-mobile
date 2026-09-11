@@ -47,7 +47,7 @@ class _ProductReviewsScreenState extends State<ProductReviewsScreen> {
         });
       }
     } catch (e) {
-      debugPrint('Erro ao carregar reviews do produto: $e');
+      debugPrint('Product review load error: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }

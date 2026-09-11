@@ -45,7 +45,7 @@ class GeocodingService {
 
       return (lat: lat, lng: lng);
     } catch (e) {
-      debugPrint('GeocodingService erro: $e');
+      debugPrint('GeocodingService error: $e');
       return null;
     }
   }

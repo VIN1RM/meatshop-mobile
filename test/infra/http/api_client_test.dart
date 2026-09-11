@@ -12,7 +12,7 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 
 void main() {
   group('ApiClient', () {
-    test('não exige sessão em endpoint público', () async {
+    test('does not require a session for public endpoints', () async {
       final fixture = _fixture(
         MockClient((_) async => http.Response('{"ok":true}', 200)),
       );
@@ -26,7 +26,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('envia Bearer token em endpoint protegido', () async {
+    test('sends a bearer token to protected endpoints', () async {
       final fixture = _fixture(
         MockClient((request) async {
           expect(request.headers['authorization'], 'Bearer access-token');
@@ -41,7 +41,7 @@ void main() {
       await fixture.client.get<void>('/users/me', decode: (_) {});
     });
 
-    test('uma única renovação atende requisições 401 concorrentes', () async {
+    test('a single renewal handles concurrent 401 responses', () async {
       final refresher = _DelayedRefresher();
       final fixture = _fixture(
         MockClient((request) async {
@@ -74,7 +74,7 @@ void main() {
       expect(refresher.calls, 1);
     });
 
-    test('falha protegida sem sessão não chega à rede', () async {
+    test('does not send protected requests without a session', () async {
       var networkCalls = 0;
       final fixture = _fixture(
         MockClient((_) async {

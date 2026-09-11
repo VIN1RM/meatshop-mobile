@@ -85,7 +85,7 @@ void main() {
   );
 
   test(
-    'envia foto do veículo e resolve a URL retornada pelo backend',
+    'uploads a vehicle photo and resolves the URL returned by the backend',
     () async {
       final repository = HttpDeliveryRepository(
         _client(
@@ -115,7 +115,7 @@ void main() {
     },
   );
 
-  test('reconcilia a última localização autorizada via REST', () async {
+  test('reconciles the last authorized location through REST', () async {
     final repository = HttpDeliveryRepository(
       _client(
         MockClient((request) async {
@@ -138,26 +138,29 @@ void main() {
     expect(point?.accuracy, 8.25);
   });
 
-  test('carrega o perfil público do entregador pela API autorizada', () async {
-    final repository = HttpDeliveryRepository(
-      _client(
-        MockClient((request) async {
-          expect(request.url.path, '/delivery/7/public-profile');
-          expect(request.headers['authorization'], 'Bearer access');
-          return _json({
-            'id': 7,
-            'name': 'Carlos',
-            'photo_url': '/uploads/avatar.jpg',
-            'vehicle': {'type': 'MOTORCYCLE', 'plate': 'ABC1D23'},
-          });
-        }),
-      ),
-    );
+  test(
+    'loads the delivery person public profile through the authorized API',
+    () async {
+      final repository = HttpDeliveryRepository(
+        _client(
+          MockClient((request) async {
+            expect(request.url.path, '/delivery/7/public-profile');
+            expect(request.headers['authorization'], 'Bearer access');
+            return _json({
+              'id': 7,
+              'name': 'Carlos',
+              'photo_url': '/uploads/avatar.jpg',
+              'vehicle': {'type': 'MOTORCYCLE', 'plate': 'ABC1D23'},
+            });
+          }),
+        ),
+      );
 
-    final profile = await repository.publicProfile(7);
-    expect(profile['name'], 'Carlos');
-    expect((profile['vehicle']! as Map)['plate'], 'ABC1D23');
-  });
+      final profile = await repository.publicProfile(7);
+      expect(profile['name'], 'Carlos');
+      expect((profile['vehicle']! as Map)['plate'], 'ABC1D23');
+    },
+  );
 }
 
 const _order = <String, Object?>{

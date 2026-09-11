@@ -1,15 +1,15 @@
 class ButcherProduct {
-  final String nome;
-  final String preco;
-  final String unidade;
+  final String name;
+  final String price;
+  final String unit;
   final String imageAsset;
-  final String descricao;
+  final String description;
 
   const ButcherProduct({
-    required this.nome,
-    required this.preco,
-    required this.unidade,
+    required this.name,
+    required this.price,
+    required this.unit,
     this.imageAsset = '',
-    this.descricao = '',
+    this.description = '',
   });
 }

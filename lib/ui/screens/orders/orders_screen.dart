@@ -23,11 +23,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Future<void> _onReorder(BuildContext context, OrderModel order) async {
     final confirmed = await ReorderConfirmDialog.show(
       context,
-      acougueNome: order.unitName,
-      itens: order.items
+      butcherName: order.unitName,
+      items: order.items
           .map(
-            (i) =>
-                ReorderItem(nome: i.productName, quantidade: i.quantityLabel),
+            (i) => ReorderItem(name: i.productName, quantity: i.quantityLabel),
           )
           .toList(),
       total: order.formattedTotal,

@@ -397,7 +397,7 @@ class _ButcherDetailView extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Text(
-                              promo.precoFormatado,
+                              promo.formattedPrice,
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -683,7 +683,7 @@ class _ButcherDetailView extends StatelessWidget {
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: product.precoFormatado,
+                    text: product.formattedPrice,
                     style: const TextStyle(
                       color: _textDark,
                       fontSize: 15,

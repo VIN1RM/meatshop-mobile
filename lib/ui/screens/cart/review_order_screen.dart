@@ -120,7 +120,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
 
                         _buildTotals(cart.total, grandTotal),
                         const SizedBox(height: 32),
-                        _buildConfirmarButton(context, grandTotal),
+                        _buildConfirmButton(context, grandTotal),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -537,7 +537,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildConfirmarButton(BuildContext context, double grandTotal) {
+  Widget _buildConfirmButton(BuildContext context, double grandTotal) {
     final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
     final canConfirm = !_calculatingFees && !orderProvider.isLoading;
@@ -619,8 +619,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     child: const Icon(Icons.image_outlined, color: Color(0xFFBDBDBD), size: 26),
   );
 
-  String _fmt(double valor) {
-    final s = valor.toStringAsFixed(2).replaceAll('.', ',');
+  String _fmt(double value) {
+    final s = value.toStringAsFixed(2).replaceAll('.', ',');
     final parts = s.split(',');
     final inteiro = parts[0].replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+(?!\d))'),

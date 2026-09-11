@@ -107,7 +107,7 @@ class _ModeSelectionPageState extends State<ModeSelectionPage>
               height: halfH,
               child: _HalfPanel(
                 profile: AppProfile.delivery,
-                imagePath: 'assets/images/entregador_bg.png',
+                imagePath: 'assets/images/delivery_person_bg.png',
                 label: 'QUERO\nENTREGAR',
                 zoomController: _deliveryZoom,
                 dimmed: _tapped == AppProfile.client,

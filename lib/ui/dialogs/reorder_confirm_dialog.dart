@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 class ReorderItem {
-  final String nome;
-  final String quantidade;
-  const ReorderItem({required this.nome, required this.quantidade});
+  final String name;
+  final String quantity;
+  const ReorderItem({required this.name, required this.quantity});
 }
 
 class ReorderConfirmDialog extends StatelessWidget {
-  final String acougueNome;
-  final List<ReorderItem> itens;
+  final String butcherName;
+  final List<ReorderItem> items;
   final String total;
 
   const ReorderConfirmDialog({
     super.key,
-    required this.acougueNome,
-    required this.itens,
+    required this.butcherName,
+    required this.items,
     required this.total,
   });
 
@@ -22,16 +22,16 @@ class ReorderConfirmDialog extends StatelessWidget {
 
   static Future<bool?> show(
     BuildContext context, {
-    required String acougueNome,
-    required List<ReorderItem> itens,
+    required String butcherName,
+    required List<ReorderItem> items,
     required String total,
   }) {
     return showDialog<bool>(
       context: context,
       barrierColor: Colors.black54,
       builder: (_) => ReorderConfirmDialog(
-        acougueNome: acougueNome,
-        itens: itens,
+        butcherName: butcherName,
+        items: items,
         total: total,
       ),
     );
@@ -92,7 +92,7 @@ class ReorderConfirmDialog extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          acougueNome,
+          butcherName,
           style: const TextStyle(color: Color(0xFF555555), fontSize: 13),
         ),
       ],
@@ -108,8 +108,8 @@ class ReorderConfirmDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        children: itens.map((item) {
-          final isLast = item == itens.last;
+        children: items.map((item) {
+          final isLast = item == items.last;
           return Padding(
             padding: EdgeInsets.only(bottom: isLast ? 0 : 8),
             child: Row(
@@ -117,7 +117,7 @@ class ReorderConfirmDialog extends StatelessWidget {
                 SizedBox(
                   width: 52,
                   child: Text(
-                    item.quantidade,
+                    item.quantity,
                     style: const TextStyle(
                       color: Color(0xFF555555),
                       fontSize: 12,
@@ -126,7 +126,7 @@ class ReorderConfirmDialog extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    item.nome,
+                    item.name,
                     style: const TextStyle(
                       color: Color(0xFF1A1A1A),
                       fontSize: 13,

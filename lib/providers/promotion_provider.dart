@@ -33,7 +33,7 @@ class PromotionProvider extends ChangeNotifier {
       _promotions = await _resolveUnitNames(raw);
     } catch (e) {
       _error = 'Não foi possível carregar as promoções.';
-      debugPrint('[PromotionProvider] erro: $e');
+      debugPrint('[PromotionProvider] load error: $e');
     }
 
     _isLoading = false;

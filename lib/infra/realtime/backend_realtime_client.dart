@@ -119,7 +119,6 @@ final class BackendRealtimeClient implements RealtimeRepository {
       if (!(_chatSocket?.connected ?? false)) _chatSocket?.connect();
       if (!(_deliverySocket?.connected ?? false)) _deliverySocket?.connect();
     } catch (_) {
-      // SessionCoordinator classifies and clears only definitive auth failures.
     } finally {
       _refreshing = false;
     }

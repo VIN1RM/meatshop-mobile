@@ -442,7 +442,7 @@ class _StepCard extends StatelessWidget {
       }
       await launchUrl(mapsUri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      debugPrint('Erro ao abrir navegação: $e');
+      debugPrint('Navigation launch error: $e');
     }
   }
 }

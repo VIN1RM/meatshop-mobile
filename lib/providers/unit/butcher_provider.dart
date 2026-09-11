@@ -62,7 +62,7 @@ class ButcherProvider extends ChangeNotifier {
       _reviews = results[3] as List<ReviewModel>;
     } catch (e) {
       _error = 'Não foi possível carregar os produtos.';
-      debugPrint('[ButcherProvider] erro: $e');
+      debugPrint('[ButcherProvider] load error: $e');
     }
 
     _isLoading = false;

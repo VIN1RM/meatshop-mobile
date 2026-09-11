@@ -553,9 +553,7 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _requireFederatedAuth().logout();
-    } catch (_) {
-      // Logout local e Firebase deve prosseguir mesmo se a API estiver indisponível.
-    }
+    } catch (_) {}
     await AuthService.instance.logout();
 
     _isAuthenticated = false;
@@ -611,9 +609,6 @@ class AuthProvider extends ChangeNotifier {
       password: password,
     );
 
-    // Password identities are unverified when Firebase creates them. The
-    // backend intentionally rejects such tokens, so defer profile creation
-    // until the user verifies the address and signs in for the first time.
     if (!firebaseUser.emailVerified) {
       await AuthService.instance.logout();
       if (context.mounted) {
@@ -650,9 +645,7 @@ class AuthProvider extends ChangeNotifier {
     } catch (_) {
       try {
         await repository.logout();
-      } catch (_) {
-        // Preserve the registration failure; local Firebase logout still runs.
-      }
+      } catch (_) {}
       await AuthService.instance.logout();
       rethrow;
     }
@@ -756,9 +749,6 @@ class AuthProvider extends ChangeNotifier {
     _needsProfileCompletion = !user.profileComplete;
     notifyListeners();
 
-    // O primeiro login cria um perfil incompleto no backend. Completar esse
-    // perfil é a continuação da autenticação, então efeitos protegidos ficam
-    // para depois do preenchimento obrigatório.
     if (_needsProfileCompletion) {
       Navigator.of(context).pushReplacementNamed(
         AppRoutes.completeProfile,

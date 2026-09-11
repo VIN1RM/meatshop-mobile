@@ -135,10 +135,10 @@ class CartBagSheet extends StatelessWidget {
     BuildContext context,
     CartProvider provider,
     String unitId,
-    List<CartItemModel> itens,
+    List<CartItemModel> items,
   ) {
-    final unitName = itens.first.unitName.isNotEmpty
-        ? itens.first.unitName
+    final unitName = items.first.unitName.isNotEmpty
+        ? items.first.unitName
         : 'Açougue';
 
     return Container(
@@ -172,7 +172,7 @@ class CartBagSheet extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
-          ...itens.map((item) => _buildItem(context, provider, item)),
+          ...items.map((item) => _buildItem(context, provider, item)),
         ],
       ),
     );
@@ -254,7 +254,7 @@ class CartBagSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  item.subtotalFormatado,
+                  item.formattedSubtotal,
                   style: const TextStyle(
                     color: _red,
                     fontSize: 14,

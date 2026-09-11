@@ -117,7 +117,7 @@ class _CartScreenState extends State<CartScreen> {
                                   _buildUnitSection(provider, e.key, e.value),
                             ),
                             const SizedBox(height: 24),
-                            _buildFinalizarButton(provider),
+                            _buildCheckoutButton(provider),
                             const SizedBox(height: 24),
                           ],
                         ),
@@ -151,12 +151,12 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildUnitSection(
     CartProvider provider,
     String unitId,
-    List<CartItemModel> itens,
+    List<CartItemModel> items,
   ) {
-    final unitName = itens.first.unitName.isNotEmpty
-        ? itens.first.unitName
+    final unitName = items.first.unitName.isNotEmpty
+        ? items.first.unitName
         : 'Açougue';
-    final subtotal = itens.fold<double>(0, (s, i) => s + i.subtotal);
+    final subtotal = items.fold<double>(0, (sum, item) => sum + item.subtotal);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -190,7 +190,7 @@ class _CartScreenState extends State<CartScreen> {
                       state: '',
                       zipCode: '',
                       adminId: '',
-                      imageUrl: itens.first.unitImageUrl,
+                      imageUrl: items.first.unitImageUrl,
                       createdAt: DateTime.now(),
                     ),
               );
@@ -208,9 +208,9 @@ class _CartScreenState extends State<CartScreen> {
                       border: Border.all(color: _red, width: 1.5),
                     ),
                     child: ClipOval(
-                      child: itens.first.unitImageUrl.isNotEmpty
+                      child: items.first.unitImageUrl.isNotEmpty
                           ? Image.network(
-                              itens.first.unitImageUrl,
+                              items.first.unitImageUrl,
                               fit: BoxFit.cover,
                               errorBuilder: (_, _, _) => const Icon(
                                 Icons.storefront_outlined,
@@ -265,8 +265,8 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ),
           const Divider(color: Color(0xFFE0E0E0), height: 1),
-          ...itens.asMap().entries.map((entry) {
-            final isLast = entry.key == itens.length - 1;
+          ...items.asMap().entries.map((entry) {
+            final isLast = entry.key == items.length - 1;
             return Column(
               children: [
                 _buildCartItem(provider, entry.value),
@@ -398,7 +398,7 @@ class _CartScreenState extends State<CartScreen> {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: item.precoFormatado,
+                                  text: item.formattedPrice,
                                   style: const TextStyle(
                                     color: _red,
                                     fontSize: 14,
@@ -487,7 +487,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildFinalizarButton(CartProvider provider) {
+  Widget _buildCheckoutButton(CartProvider provider) {
     final hasClosedUnit = provider.itemsByUnit.keys.any(
       (unitId) => !provider.isUnitOpen(unitId),
     );

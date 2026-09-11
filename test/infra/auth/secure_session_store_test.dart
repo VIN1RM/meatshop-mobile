@@ -5,7 +5,7 @@ import 'package:meatshop_mobile/infra/auth/secure_session_store.dart';
 
 void main() {
   group('SecureSessionStore', () {
-    test('persiste, restaura e remove os dois tokens', () async {
+    test('persists, restores, and removes both tokens', () async {
       final storage = _MemorySecureStore();
       final store = SecureSessionStore(storage);
       const tokens = SessionTokens(
@@ -24,7 +24,7 @@ void main() {
     });
 
     test(
-      'descarta sessão parcial em vez de usar credencial inconsistente',
+      'discards a partial session instead of using inconsistent credentials',
       () async {
         final storage = _MemorySecureStore()
           ..values['meatshop.auth.access_token.v1'] = 'orphan';
