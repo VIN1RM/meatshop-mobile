@@ -24,6 +24,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array><string>location</string><string>remote-notification</string></array>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Durante uma entrega e após sua autorização, compartilhamos sua posição com o cliente e a unidade, inclusive com a tela bloqueada. Você pode pausar no aplicativo.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>O MeatShop usa sua localização somente durante uma entrega ativa e com seu consentimento para que o cliente e a unidade acompanhem o trajeto.</string>
 	<key>UILaunchStoryboardName</key>

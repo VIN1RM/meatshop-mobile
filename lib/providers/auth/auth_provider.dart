@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../delivery/delivery_provider.dart';
+import '../../data/repositories/realtime_repository.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/login_blocked_exception.dart';
@@ -546,6 +548,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout(BuildContext context) async {
+    final deliveryProvider = context.read<DeliveryProvider>();
+    await deliveryProvider.locationSharing.stop();
+    deliveryProvider.stopListeningOrders();
+    if (context.mounted) {
+      context.read<BackendRealtimeAccess>().realtime?.disconnect();
+    }
     final uid = AuthService.instance.currentUser?.uid;
     if (uid != null) {
       await NotificationService.instance.clearTokenForUser(uid);

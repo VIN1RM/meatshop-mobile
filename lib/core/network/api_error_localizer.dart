@@ -1,5 +1,15 @@
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
+    'DELIVERY_LOCATION_REQUIRED':
+        'Confirme o ponto do endereço e da unidade no mapa para solicitar entrega.',
+    'DELIVERY_LOCATION_CONFIRMATION_REQUIRED':
+        'Confirme a entrada no mapa antes de solicitar entrega. A unidade também precisa ter seu ponto confirmado.',
+    'OUTSIDE_DELIVERY_AREA':
+        'Este endereço está fora da área de entrega da unidade.',
+    'PIN_TOO_FAR':
+        'O ponto escolhido está distante do CEP. Confira o endereço e marque novamente.',
+    'TRACKING_ENDED': 'Esta entrega não permite mais compartilhar localização.',
+    'TRACKING_CONSENT_REQUIRED': 'Ative o compartilhamento para esta entrega.',
     'PROFILE_INCOMPLETE': 'Complete seu cadastro para continuar.',
     'EMAIL_ALREADY_EXISTS': 'Este e-mail já está cadastrado.',
     'CPF_ALREADY_EXISTS': 'Este CPF já está cadastrado.',

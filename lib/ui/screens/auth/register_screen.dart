@@ -7,7 +7,6 @@ import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/screens/auth/select_register_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:meatshop_mobile/services/cep_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/user_exists_dialog.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -27,17 +26,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
-  final _zipController = TextEditingController();
-  final _streetController = TextEditingController();
-  final _numberController = TextEditingController();
-  final _complementController = TextEditingController();
-  final _neighborhoodController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _stateController = TextEditingController();
-
-  bool _isLoadingCep = false;
-  String? _cepError;
 
   Map<String, dynamic>? _vehicleData;
 
@@ -86,13 +74,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _zipController.dispose();
-    _streetController.dispose();
-    _numberController.dispose();
-    _complementController.dispose();
-    _neighborhoodController.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
     super.dispose();
   }
 
@@ -114,38 +95,6 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_hasNumber) return 'Adicione um número';
     if (!_hasSpecialChar) return 'Adicione um caractere especial';
     return null;
-  }
-
-  Future<void> _fetchCep(String raw) async {
-    final digits = raw.replaceAll(RegExp(r'\D'), '');
-    if (digits.length != 8) return;
-
-    setState(() {
-      _isLoadingCep = true;
-      _cepError = null;
-    });
-
-    final result = await CepService.fetch(digits);
-
-    if (!mounted) return;
-
-    result.fold(
-      onSuccess: (data) {
-        _streetController.text = data.street;
-        _neighborhoodController.text = data.neighborhood;
-        _cityController.text = data.city;
-        _stateController.text = data.state;
-
-        FocusScope.of(context).nextFocus();
-      },
-      onFailure: (message) {
-        setState(() => _cepError = message);
-      },
-    );
-
-    if (mounted) {
-      setState(() => _isLoadingCep = false);
-    }
   }
 
   void _onRegister() async {
@@ -440,132 +389,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       SizedBox(height: sh * 0.03),
 
-                      if (isClient) ...[
-                        _sectionTitle('Endereço'),
-                        SizedBox(height: sh * 0.015),
-
-                        _buildTextField(
-                          controller: _zipController,
-                          label: 'CEP',
-                          hint: '00000-000',
-                          icon: Icons.location_on_outlined,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(8),
-                          ],
-                          onChanged: (v) {
-                            if (v.length == 8) _fetchCep(v);
-                          },
-                          suffixIcon: _isLoadingCep
-                              ? const Padding(
-                                  padding: EdgeInsets.all(12),
-                                  child: SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Color(0xFFC0392B),
-                                    ),
-                                  ),
-                                )
-                              : null,
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Informe o CEP';
-                            if (v.length < 8) return 'CEP inválido';
-                            if (_cepError != null) return _cepError;
-                            return null;
-                          },
+                      if (isClient)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 16),
+                          child: Text(
+                            'Após confirmar seu e-mail, cadastre seu endereço e marque a entrada no mapa.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
                         ),
-
-                        SizedBox(height: sh * 0.018),
-
-                        _buildTextField(
-                          controller: _streetController,
-                          label: 'Rua',
-                          hint: 'Rua das Flores',
-                          icon: Icons.signpost_outlined,
-                          validator: (v) =>
-                              v == null || v.isEmpty ? 'Informe a rua' : null,
-                        ),
-
-                        SizedBox(height: sh * 0.018),
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: sw * 0.25,
-                              child: _buildTextField(
-                                controller: _numberController,
-                                label: 'Número',
-                                hint: '123',
-                                icon: Icons.tag,
-                                keyboardType: TextInputType.number,
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'Obrigatório'
-                                    : null,
-                              ),
-                            ),
-                            SizedBox(width: sw * 0.04),
-                            Expanded(
-                              child: _buildTextField(
-                                controller: _neighborhoodController,
-                                label: 'Bairro',
-                                hint: 'Centro',
-                                icon: Icons.map_outlined,
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'Informe o bairro'
-                                    : null,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: sh * 0.018),
-
-                        _buildTextField(
-                          controller: _complementController,
-                          label: 'Complemento',
-                          hint: 'Apto 12, Bloco B (opcional)',
-                          icon: Icons.home_outlined,
-                          validator: null,
-                        ),
-
-                        SizedBox(height: sh * 0.018),
-
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildTextField(
-                                controller: _cityController,
-                                label: 'Cidade',
-                                hint: 'São Paulo',
-                                icon: Icons.location_city_outlined,
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'Informe a cidade'
-                                    : null,
-                              ),
-                            ),
-                            SizedBox(width: sw * 0.04),
-                            SizedBox(
-                              width: sw * 0.22,
-                              child: _buildTextField(
-                                controller: _stateController,
-                                label: 'UF',
-                                hint: 'SP',
-                                icon: Icons.flag_outlined,
-                                inputFormatters: [
-                                  LengthLimitingTextInputFormatter(2),
-                                  UpperCaseTextFormatter(),
-                                ],
-                                validator: (v) =>
-                                    v == null || v.isEmpty ? 'UF' : null,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: sh * 0.03),
-                      ],
 
                       if (!isClient || isBoth) ...[
                         _sectionTitle('Tipo de Veículo'),

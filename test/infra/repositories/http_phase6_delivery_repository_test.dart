@@ -72,6 +72,10 @@ void main() {
               'latitude': -23.55,
               'longitude': -46.63,
               'accuracy': 12.5,
+              'captured_at': '2026-09-11T12:00:00.000Z',
+              'session_id': '00000000-0000-4000-8000-000000000001',
+              'sample_id': '00000000-0000-4000-8000-000000000002',
+              'is_mocked': false,
             });
             return _json({});
           }),
@@ -79,7 +83,9 @@ void main() {
       );
 
       expect(await repository.accept(42), '482193');
-      await repository.sendLocation(42, -23.55, -46.63, accuracy: 12.5);
+      await repository.sendLocation(42, -23.55, -46.63, accuracy: 12.5,
+        capturedAt: DateTime.utc(2026,9,11,12), sessionId:'00000000-0000-4000-8000-000000000001',
+        sampleId:'00000000-0000-4000-8000-000000000002');
       expect(call, 2);
     },
   );

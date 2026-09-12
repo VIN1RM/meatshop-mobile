@@ -6,6 +6,8 @@ import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:latlong2/latlong.dart';
+import '../maps/address_pin_picker.dart';
 
 class AddressFormSheet extends StatefulWidget {
   const AddressFormSheet({super.key, this.address, required this.onSave});
@@ -32,6 +34,13 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
   bool _isSaving = false;
   bool _isLoadingCep = false;
   String? _cepError;
+  LatLng? _approximate;
+  LatLng? _pin;
+  int _cepRequest = 0;
+
+  void _invalidatePin() {
+    if (_pin != null && mounted) setState(() => _pin = null);
+  }
 
   @override
   void initState() {
@@ -46,6 +55,23 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
     _cityCtrl = TextEditingController(text: a?.city ?? '');
     _stateCtrl = TextEditingController(text: a?.state ?? '');
     _isDefault = a?.isDefault ?? false;
+    _zipCtrl.addListener(() {
+      _approximate = null;
+    });
+    if (a?.lat != null && a?.lng != null) {
+      _approximate = LatLng(a!.lat!, a.lng!);
+      if (a.coordinateSource == 'USER_PIN') _pin = _approximate;
+    }
+    for (final controller in [
+      _zipCtrl,
+      _streetCtrl,
+      _numberCtrl,
+      _cityCtrl,
+      _stateCtrl,
+      _neighborhoodCtrl,
+    ]) {
+      controller.addListener(_invalidatePin);
+    }
   }
 
   @override
@@ -62,6 +88,7 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
   }
 
   Future<void> _fetchCep(String raw) async {
+    final request = ++_cepRequest;
     final digits = raw.replaceAll(RegExp(r'\D'), '');
     if (digits.length != 8) return;
 
@@ -74,16 +101,27 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
       final address = await context.read<AddressProvider>().resolveZipCode(
         digits,
       );
-      if (!mounted) return;
+      if (!mounted ||
+          request != _cepRequest ||
+          _zipCtrl.text.replaceAll(RegExp(r'\D'), '') != digits) {
+        return;
+      }
+      _approximate = address.lat != null && address.lng != null
+          ? LatLng(address.lat!, address.lng!)
+          : null;
       _streetCtrl.text = address.street;
       _neighborhoodCtrl.text = address.neighborhood;
       _cityCtrl.text = address.city;
       _stateCtrl.text = address.state;
       FocusScope.of(context).nextFocus();
     } catch (error) {
-      if (mounted) setState(() => _cepError = _cepMessage(error));
+      if (mounted && request == _cepRequest) {
+        setState(() => _cepError = _cepMessage(error));
+      }
     } finally {
-      if (mounted) setState(() => _isLoadingCep = false);
+      if (mounted && request == _cepRequest) {
+        setState(() => _isLoadingCep = false);
+      }
     }
   }
 
@@ -110,6 +148,9 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
           state: _stateCtrl.text.trim().toUpperCase(),
           zipCode: _zipCtrl.text.trim(),
           isDefault: _isDefault,
+          lat: _pin?.latitude,
+          lng: _pin?.longitude,
+          coordinateSource: _pin == null ? 'UNRESOLVED' : 'USER_PIN',
         ),
       );
 
@@ -175,6 +216,33 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                       isLoading: _isLoadingCep,
                       externalError: _cepError,
                       onCompleted: _fetchCep,
+                    ),
+                    OutlinedButton.icon(
+                      icon: Icon(
+                        _pin == null
+                            ? Icons.add_location_alt_outlined
+                            : Icons.location_on,
+                      ),
+                      label: Text(
+                        _pin == null
+                            ? 'Marcar entrada no mapa'
+                            : 'Ponto confirmado · alterar',
+                      ),
+                      onPressed: _isLoadingCep
+                          ? null
+                          : () async {
+                              final point = await AddressPinPicker.show(
+                                context,
+                                initial: _pin ?? _approximate,
+                              );
+                              if (point != null && mounted) {
+                                setState(() => _pin = point);
+                              }
+                            },
+                    ),
+                    const Text(
+                      'Preencha o endereço e confirme o ponto no mapa para uma entrega mais precisa.',
+                      style: TextStyle(fontSize: 12),
                     ),
                     const SizedBox(height: 12),
 
@@ -340,13 +408,14 @@ class _CepField extends StatelessWidget {
         if (v == null || v.replaceAll(RegExp(r'\D'), '').length < 8) {
           return 'CEP inválido';
         }
-        if (externalError != null) {
-          return externalError;
-        }
         return null;
       },
       decoration: InputDecoration(
         labelText: 'CEP',
+        helperText: externalError == null
+            ? null
+            : '$externalError Preencha o endereço manualmente.',
+        helperMaxLines: 3,
         labelStyle: const TextStyle(color: Color(0xFF888888), fontSize: 13),
         prefixIcon: const Icon(
           Icons.pin_drop_outlined,

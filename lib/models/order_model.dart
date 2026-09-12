@@ -1,3 +1,5 @@
+import 'address_model.dart';
+
 class OrderItemModel {
   final String productId;
   final String productName;
@@ -25,6 +27,7 @@ class OrderItemModel {
 }
 
 class OrderModel {
+  final AddressModel? destination;
   final String id;
   final String clientId;
   final String unitId;
@@ -52,6 +55,7 @@ class OrderModel {
   final String? deliveryCode;
 
   const OrderModel({
+    this.destination,
     required this.id,
     required this.clientId,
     required this.unitId,
@@ -93,6 +97,7 @@ class OrderModel {
     bool? productsReviewed,
     String? deliveryCode,
   }) => OrderModel(
+    destination: destination,
     id: id,
     clientId: clientId,
     unitId: unitId,
@@ -160,6 +165,9 @@ class OrderModel {
               .toList(growable: false)
         : const <OrderItemModel>[];
     return OrderModel(
+      destination: data['destination'] is Map<String, Object?>
+          ? AddressModel.fromApi(data['destination'] as Map<String, Object?>)
+          : null,
       id: '${data['id'] ?? ''}',
       clientId: '${data['client_id'] ?? ''}',
       unitId: '${data['unit_id'] ?? ''}',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'order_tracking_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
@@ -387,8 +388,9 @@ class _ActiveOrderCard extends StatelessWidget {
               width: double.infinity,
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.deliveries),
+                onPressed: order.deliveryType != 'DELIVERY' ? null : () =>
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) =>
+                      OrderTrackingScreen(orderId: int.parse(order.id)))),
                 icon: Icon(Icons.location_on_rounded, size: 16, color: red),
                 label: Text(
                   'Acompanhar entrega',

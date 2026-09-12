@@ -60,6 +60,8 @@ class ProvidersConfig {
       backendFirebaseServices: false,
     ),
   }) => [
+    Provider<DeliveryRepository>.value(value: delivery!),
+    Provider<OrderRepository>.value(value: orders!),
     Provider<BackendRealtimeAccess>.value(
       value: BackendRealtimeAccess(
         chat: flags.backendRealtime ? chat : null,
@@ -69,23 +71,30 @@ class ProvidersConfig {
     Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace!)),
     ChangeNotifierProvider<AuthProvider>(
       create: (_) =>
-          AuthProvider(federatedAuth: federatedAuth!, delivery: delivery!),
+          AuthProvider(federatedAuth: federatedAuth!, delivery: delivery),
     ),
     ChangeNotifierProvider<DeliveryProvider>(
-      create: (_) => DeliveryProvider(repository: delivery!),
+      create: (_) => DeliveryProvider(repository: delivery),
     ),
     ChangeNotifierProvider(create: (_) => UserProvider(repository: profile!)),
     ChangeNotifierProvider(
-      create: (_) => VehicleProvider(repository: delivery!),
+      create: (_) => VehicleProvider(repository: delivery),
     ),
     ChangeNotifierProvider(
+      create: (_) => AddressProvider(repository: addresses!),
+    ),
+    ChangeNotifierProxyProvider<AddressProvider, UnitProvider>(
       create: (_) => UnitProvider(
         unitService: UnitService(marketplace: marketplace),
         hoursService: BusinessHoursService(marketplace: marketplace),
       ),
-    ),
-    ChangeNotifierProvider(
-      create: (_) => AddressProvider(repository: addresses!),
+      update: (_, addressProvider, units) {
+        final address = addressProvider.addresses
+            .where((a) => a.isDefault)
+            .firstOrNull;
+        units!.setDeliveryAddress(address?.lat, address?.lng);
+        return units;
+      },
     ),
     ChangeNotifierProvider(
       create: (_) =>
@@ -102,7 +111,7 @@ class ProvidersConfig {
     ),
     ChangeNotifierProvider(
       create: (_) => OrderProvider(
-        repository: orders!,
+        repository: orders,
         realtime: flags.backendRealtime ? realtime : null,
       ),
     ),
@@ -115,7 +124,7 @@ class ProvidersConfig {
     ChangeNotifierProvider(
       create: (_) => DeliveryEarningsProvider(
         deliveryPersonId: AuthService.instance.currentUser?.uid ?? '',
-        repository: delivery!,
+        repository: delivery,
       ),
     ),
     ChangeNotifierProvider(

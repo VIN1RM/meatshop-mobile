@@ -14,6 +14,20 @@ class UnitProvider extends ChangeNotifier {
   }) : _unitService = unitService,
        _hoursService = hoursService;
 
+  double? _latitude;
+  double? _longitude;
+  int _loadVersion = 0;
+  bool _disposed = false;
+  bool get hasDeliveryLocation => _latitude != null && _longitude != null;
+  void setDeliveryAddress(double? lat, double? lng) {
+    if (_latitude == lat && _longitude == lng) return;
+    _latitude = lat;
+    _longitude = lng;
+    Future.microtask(() {
+      if (!_disposed) return loadUnits();
+    });
+  }
+
   List<UnitModel> _units = [];
   Map<String, BusinessHoursModel?> _hoursMap = {};
   bool _loading = false;
@@ -32,24 +46,38 @@ class UnitProvider extends ChangeNotifier {
     double? longitude,
     double? radiusKm,
   }) async {
+    if (_disposed) return;
+    final version = ++_loadVersion;
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _units = await _unitService.getAllUnits(
-        latitude: latitude,
-        longitude: longitude,
+      final units = await _unitService.getAllUnits(
+        latitude: latitude ?? _latitude,
+        longitude: longitude ?? _longitude,
         radiusKm: radiusKm,
       );
-      _hoursMap = await _hoursService.fetchAllToday(
-        _units.map((u) => u.id).toList(),
+      if (version != _loadVersion) return;
+      _units = units;
+      final hours = await _hoursService.fetchAllToday(
+        units.map((u) => u.id).toList(),
       );
+      if (version == _loadVersion) _hoursMap = hours;
     } catch (e) {
-      _error = e.toString();
+      if (version == _loadVersion) _error = e.toString();
     } finally {
-      _loading = false;
-      notifyListeners();
+      if (version == _loadVersion) {
+        _loading = false;
+        notifyListeners();
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    ++_loadVersion;
+    super.dispose();
   }
 }
