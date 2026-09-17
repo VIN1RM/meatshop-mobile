@@ -1,26 +1,24 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/unit_model.dart';
+import '../data/repositories/marketplace_repository.dart';
 
 class UnitService {
-  final CollectionReference _unitsRef = FirebaseFirestore.instance.collection(
-    'units',
-  );
+  UnitService({required MarketplaceRepository marketplace})
+    : _marketplace = marketplace;
+  final MarketplaceRepository _marketplace;
 
   Future<UnitModel?> getUnitById(String unitId) async {
-    final doc = await _unitsRef.doc(unitId).get();
-    if (!doc.exists) return null;
-    return UnitModel.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+    return _marketplace.getUnit(unitId);
   }
 
-  Future<List<UnitModel>> getAllUnits() async {
-    final snapshot = await _unitsRef
-        .orderBy('average_rating', descending: true)
-        .get();
-    return snapshot.docs
-        .map(
-          (doc) =>
-              UnitModel.fromMap(doc.id, doc.data() as Map<String, dynamic>),
-        )
-        .toList();
+  Future<List<UnitModel>> getAllUnits({
+    double? latitude,
+    double? longitude,
+    double? radiusKm,
+  }) async {
+    return (await _marketplace.listUnits(
+      latitude: latitude,
+      longitude: longitude,
+      radiusKm: radiusKm,
+    )).items;
   }
 }

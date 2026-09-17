@@ -70,7 +70,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
             const Text(
               'Excluir conta',
               style: TextStyle(
-                color: const Color(0xFF1A1A1A),
+                color: Color(0xFF1A1A1A),
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
               ),
@@ -80,7 +80,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               'Esta ação é permanente e não pode ser desfeita. Digite sua senha para confirmar.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: const Color(0xFF555555),
+                color: Color(0xFF555555),
                 fontSize: 13,
                 height: 1.5,
               ),

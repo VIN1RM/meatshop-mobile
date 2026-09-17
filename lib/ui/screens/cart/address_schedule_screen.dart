@@ -149,7 +149,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                 child: Image.asset(
                   'assets/images/background.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
+                  errorBuilder: (_, _, _) =>
                       Container(color: const Color(0xFF1A1A1A)),
                 ),
               ),
@@ -328,7 +328,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                     ),
                     decoration: BoxDecoration(
                       color: selected
-                          ? _white.withOpacity(0.25)
+                          ? _white.withValues(alpha: 0.25)
                           : const Color(0xFFDDDDDD),
                       borderRadius: BorderRadius.circular(6),
                     ),
@@ -355,7 +355,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                       address.complement,
                       style: TextStyle(
                         color: selected
-                            ? _white.withOpacity(0.75)
+                            ? _white.withValues(alpha: 0.75)
                             : const Color(0xFF777777),
                         fontSize: 12,
                       ),
@@ -364,7 +364,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                     '${address.neighborhood} · ${address.city}, ${address.state}',
                     style: TextStyle(
                       color: selected
-                          ? _white.withOpacity(0.75)
+                          ? _white.withValues(alpha: 0.75)
                           : const Color(0xFF777777),
                       fontSize: 12,
                     ),
@@ -379,7 +379,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                 child: Icon(
                   Icons.edit_outlined,
                   color: selected
-                      ? _white.withOpacity(0.6)
+                      ? _white.withValues(alpha: 0.6)
                       : const Color(0xFFBDBDBD),
                   size: 18,
                 ),
@@ -399,21 +399,21 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         decoration: BoxDecoration(
           color: _surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _red.withOpacity(0.35)),
+          border: Border.all(color: _red.withValues(alpha: 0.35)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.add_location_alt_outlined,
-              color: _red.withOpacity(0.7),
+              color: _red.withValues(alpha: 0.7),
               size: 20,
             ),
             const SizedBox(width: 8),
             Text(
               'Adicionar novo endereço',
               style: TextStyle(
-                color: _red.withOpacity(0.8),
+                color: _red.withValues(alpha: 0.8),
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -658,7 +658,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                         Text(
                           'Toque para alterar',
                           style: TextStyle(
-                            color: _white.withOpacity(0.7),
+                            color: _white.withValues(alpha: 0.7),
                             fontSize: 11,
                           ),
                         ),
@@ -673,7 +673,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                 }),
                 child: Icon(
                   Icons.close,
-                  color: _white.withOpacity(0.7),
+                  color: _white.withValues(alpha: 0.7),
                   size: 18,
                 ),
               ),
@@ -759,7 +759,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         onPressed: canGo ? _proceed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
-          disabledBackgroundColor: _red.withOpacity(0.4),
+          disabledBackgroundColor: _red.withValues(alpha: 0.4),
           foregroundColor: _white,
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(

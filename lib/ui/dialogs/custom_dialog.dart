@@ -26,7 +26,7 @@ class CustomDialog {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: _red.withOpacity(0.10),
+                  color: _red.withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.error_outline, color: _red, size: 30),
@@ -106,7 +106,7 @@ class CustomDialog {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF22C55E).withOpacity(0.10),
+                  color: const Color(0xFF22C55E).withValues(alpha: 0.10),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

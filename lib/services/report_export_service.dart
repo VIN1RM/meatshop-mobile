@@ -69,11 +69,11 @@ class ReportExportService {
             children: [
               _summaryBox('Total ganho', summary['total'] ?? '—'),
               pw.SizedBox(width: 12),
-              _summaryBox('Entregas', summary['entregas'] ?? '—'),
+              _summaryBox('Entregas', summary['deliveries'] ?? '—'),
               pw.SizedBox(width: 12),
-              _summaryBox('Ticket médio', summary['media'] ?? '—'),
+              _summaryBox('Ticket médio', summary['average'] ?? '—'),
               pw.SizedBox(width: 12),
-              _summaryBox('Melhor período', summary['melhorDia'] ?? '—'),
+              _summaryBox('Melhor período', summary['bestDay'] ?? '—'),
             ],
           ),
           pw.SizedBox(height: 24),
@@ -137,7 +137,7 @@ class ReportExportService {
     );
 
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/relatorio_meatshop_$period.pdf');
+    final file = File('${dir.path}/meatshop_report_$period.pdf');
     await file.writeAsBytes(await pdf.save());
 
     await Share.shareXFiles([
@@ -156,9 +156,9 @@ class ReportExportService {
       [],
       ['RESUMO'],
       ['Total ganho', summary['total'] ?? '—'],
-      ['Entregas', summary['entregas'] ?? '—'],
-      ['Ticket médio', summary['media'] ?? '—'],
-      ['Melhor período', summary['melhorDia'] ?? '—'],
+      ['Entregas', summary['deliveries'] ?? '—'],
+      ['Ticket médio', summary['average'] ?? '—'],
+      ['Melhor período', summary['bestDay'] ?? '—'],
       [],
       ['ENTREGAS'],
       ['Pedido', 'Valor (R\$)', 'Horário'],
@@ -174,7 +174,7 @@ class ReportExportService {
     final csvString = const ListToCsvConverter().convert(rows);
 
     final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/relatorio_meatshop_$period.csv');
+    final file = File('${dir.path}/meatshop_report_$period.csv');
     await file.writeAsString(csvString);
 
     await Share.shareXFiles([

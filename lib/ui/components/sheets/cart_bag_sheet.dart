@@ -9,8 +9,7 @@ class CartBagSheet extends StatelessWidget {
   const CartBagSheet({super.key});
 
   static const Color _red = Color(0xFFC0392B);
-static const Color _bg = Color(0xFFF5F5F5);
-
+  static const Color _bg = Color(0xFFF5F5F5);
 
   static void show(BuildContext context) {
     showModalBottomSheet(
@@ -51,7 +50,8 @@ static const Color _bg = Color(0xFFF5F5F5);
                   child: Column(
                     children: [
                       ...provider.itemsByUnit.entries.map(
-                        (e) => _buildUnitGroup(context, provider, e.key, e.value),
+                        (e) =>
+                            _buildUnitGroup(context, provider, e.key, e.value),
                       ),
                       const SizedBox(height: 16),
                       _buildTotal(provider.total),
@@ -135,9 +135,11 @@ static const Color _bg = Color(0xFFF5F5F5);
     BuildContext context,
     CartProvider provider,
     String unitId,
-    List<CartItemModel> itens,
+    List<CartItemModel> items,
   ) {
-    final unitName = itens.first.unitName.isNotEmpty ? itens.first.unitName : 'Açougue';
+    final unitName = items.first.unitName.isNotEmpty
+        ? items.first.unitName
+        : 'Açougue';
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -152,7 +154,11 @@ static const Color _bg = Color(0xFFF5F5F5);
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             child: Row(
               children: [
-                const Icon(Icons.storefront_outlined, color: Color(0xFF888888), size: 16),
+                const Icon(
+                  Icons.storefront_outlined,
+                  color: Color(0xFF888888),
+                  size: 16,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   unitName,
@@ -166,13 +172,17 @@ static const Color _bg = Color(0xFFF5F5F5);
             ),
           ),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
-          ...itens.map((item) => _buildItem(context, provider, item)),
+          ...items.map((item) => _buildItem(context, provider, item)),
         ],
       ),
     );
   }
 
-  Widget _buildItem(BuildContext context, CartProvider provider, CartItemModel item) {
+  Widget _buildItem(
+    BuildContext context,
+    CartProvider provider,
+    CartItemModel item,
+  ) {
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
@@ -211,7 +221,7 @@ static const Color _bg = Color(0xFFF5F5F5);
                     ? Image.network(
                         item.productImageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _imageFallback(),
+                        errorBuilder: (_, _, _) => _imageFallback(),
                       )
                     : _imageFallback(),
               ),
@@ -232,7 +242,10 @@ static const Color _bg = Color(0xFFF5F5F5);
                   const SizedBox(height: 2),
                   Text(
                     '${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity.toStringAsFixed(1)} ${item.unitOfMeasure.toUpperCase()}',
-                    style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
+                    style: const TextStyle(
+                      color: Color(0xFF888888),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -241,7 +254,7 @@ static const Color _bg = Color(0xFFF5F5F5);
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  item.subtotalFormatado,
+                  item.formattedSubtotal,
                   style: const TextStyle(
                     color: _red,
                     fontSize: 14,
@@ -320,12 +333,22 @@ static const Color _bg = Color(0xFFF5F5F5);
         style: ElevatedButton.styleFrom(
           backgroundColor: _red,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
-        icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 20),
+        icon: const Icon(
+          Icons.shopping_cart_outlined,
+          color: Colors.white,
+          size: 20,
+        ),
         label: const Text(
           'Ver carrinho completo',
-          style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );

@@ -33,6 +33,12 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Local environment (never commit machine-specific endpoints)
+.env
+.env.*
+!.env.example
+!.env.render.example
+
 # Symbolication related
 app.*.symbols
 

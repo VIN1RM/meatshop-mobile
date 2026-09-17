@@ -2,7 +2,7 @@
 
 > Conectando clientes, açougues e entregadores em uma plataforma prática e segura.
 
-**Versão:** 2.15.0
+**Versão:** 3.0.0 (em desenvolvimento)
 **Data:** Agosto 2026  
 **Autor:** Vinícius Rodrigues  
 **Plataforma:** Android & iOS  
@@ -56,3 +56,12 @@ O MeatShop resolve isso ao digitalizar toda a cadeia:
 | **Clean Architecture em camadas** | Separação do projeto em `core`, `data`, `infra`, `models`, `providers`, `services` e `ui` |
 | **Widgets reutilizáveis** | Componentes compartilhados entre telas |
 | **Responsive layout** | Tamanhos e espaçamentos relativos ao tamanho da tela via `MediaQuery` |
+
+## Refatoração de integração
+
+A integração do aplicativo com o backend NestJS e o PostgreSQL está sendo conduzida na branch `refactor/mobile-with-backend`.
+
+- [Roadmap completo](MOBILE_BACKEND_INTEGRATION_ROADMAP.md)
+- [Decisões e contratos da integração](docs/backend-integration/README.md)
+- [Preparação completa do ambiente](SETUP.md)
+- [Evidências da Fase 10](docs/backend-integration/PHASE_10_QUALITY_SECURITY_COMPLETION.md)

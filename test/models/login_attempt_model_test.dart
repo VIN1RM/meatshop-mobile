@@ -6,7 +6,7 @@ void main() {
   group('LoginAttemptModel', () {
     final now = DateTime.utc(2026, 8, 20, 12);
 
-    test('mantem as tentativas dentro da janela configurada', () {
+    test('keeps attempts within the configured time window', () {
       final model = LoginAttemptModel(
         attempts: 4,
         lastAttempt: now.subtract(const Duration(minutes: 4)),
@@ -21,7 +21,7 @@ void main() {
       );
     });
 
-    test('zera as tentativas quando a janela expira', () {
+    test('resets attempts when the time window expires', () {
       final model = LoginAttemptModel(
         attempts: 5,
         lastAttempt: now.subtract(LoginAttemptsConstants.attemptsResetDuration),
@@ -38,7 +38,7 @@ void main() {
       expect(model.isBlockedAt(now), isFalse);
     });
 
-    test('considera o bloqueio ativo antes do prazo final', () {
+    test('considers the lock active before the deadline', () {
       final model = LoginAttemptModel(
         attempts: 5,
         lastAttempt: now,

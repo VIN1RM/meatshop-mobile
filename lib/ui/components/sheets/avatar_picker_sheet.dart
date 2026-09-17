@@ -83,13 +83,13 @@ class AvatarPickerSheet extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF1A1A1A),
+              color: Color(0xFF1A1A1A),
             ),
           ),
           const SizedBox(height: 6),
           const Text(
             'Escolha como deseja adicionar sua foto',
-            style: TextStyle(fontSize: 13, color: const Color(0xFF888888)),
+            style: TextStyle(fontSize: 13, color: Color(0xFF888888)),
           ),
           const SizedBox(height: 24),
 
@@ -197,7 +197,7 @@ class _OptionButton extends StatelessWidget {
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF555555),
+              color: Color(0xFF555555),
             ),
           ),
         ],

@@ -17,7 +17,11 @@ class MissingProfileData {
   });
 
   bool get hasPending =>
-      missingName || missingCpf || missingPhone || missingVehicle || missingAddress;
+      missingName ||
+      missingCpf ||
+      missingPhone ||
+      missingVehicle ||
+      missingAddress;
 }
 
 class PendingProfileChecker {
@@ -31,8 +35,10 @@ class PendingProfileChecker {
   }) {
     if (user == null) return const MissingProfileData();
 
-    final needsVehicle = profile == AppProfile.delivery || profile == AppProfile.both;
-    final needsAddress = profile == AppProfile.client || profile == AppProfile.both;
+    final needsVehicle =
+        profile == AppProfile.delivery || profile == AppProfile.both;
+    final needsAddress =
+        profile == AppProfile.client || profile == AppProfile.both;
 
     return MissingProfileData(
       missingName: user.name.trim().isEmpty,

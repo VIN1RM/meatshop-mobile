@@ -74,7 +74,7 @@ class _ModeSwitchScreenState extends State<ModeSwitchScreen>
                     images[0],
                     fit: BoxFit.cover,
                     alignment: Alignment.topCenter,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _, _) =>
                         Container(color: const Color(0xFF2A2A2A)),
                   ),
                 ),
@@ -108,7 +108,7 @@ class _ModeSwitchScreenState extends State<ModeSwitchScreen>
                         width: 100,
                         height: 100,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
+                        errorBuilder: (_, _, _) => const Icon(
                           Icons.storefront_outlined,
                           color: _red,
                           size: 36,

@@ -86,7 +86,7 @@ class _SheetHeader extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF2ECC71).withOpacity(0.12),
+            color: const Color(0xFF2ECC71).withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: const Icon(
@@ -102,7 +102,7 @@ class _SheetHeader extends StatelessWidget {
             Text(
               'Pedido #${order.id}',
               style: const TextStyle(
-                color: const Color(0xFF1A1A1A),
+                color: Color(0xFF1A1A1A),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -199,7 +199,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: const TextStyle(
-        color: const Color(0xFF888888),
+        color: Color(0xFF888888),
         fontSize: 10,
         fontWeight: FontWeight.w700,
         letterSpacing: 1.2,
@@ -232,18 +232,12 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: const Color(0xFF888888),
-                  fontSize: 11,
-                ),
+                style: const TextStyle(color: Color(0xFF888888), fontSize: 11),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
-                  color: const Color(0xFF1A1A1A),
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 14),
               ),
             ],
           ),

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:meatshop_mobile/data/repositories/marketplace_context.dart';
+import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 
 class RecipeDetailsScreen extends StatelessWidget {
@@ -94,7 +95,7 @@ class _RecipeAppBar extends StatelessWidget {
                 ? Image.network(
                     recipe.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _ImageFallback(),
+                    errorBuilder: (_, _, _) => _ImageFallback(),
                   )
                 : _ImageFallback(),
             DecoratedBox(
@@ -141,7 +142,7 @@ class _TagAndTitle extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: _red.withOpacity(0.2),
+            color: _red.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(
@@ -205,7 +206,7 @@ class _VideoButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF3A3A3A),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _red.withOpacity(0.4)),
+          border: Border.all(color: _red.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -263,12 +264,13 @@ class _FeaturedProductBanner extends StatelessWidget {
   Future<void> _navigateToProduct(BuildContext context) async {
     if (product.productId.isEmpty) return;
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('products')
-          .doc(product.productId)
-          .get();
-      if (!doc.exists || !context.mounted) return;
-      final productModel = ProductModel.fromFirestore(doc);
+      final repository = context.read<MarketplaceContext>().repository;
+      final results = await repository.search(product.productName, limit: 20);
+      final match = results.items.where(
+        (item) => item.id == product.productId && item.payload is ProductModel,
+      );
+      if (match.isEmpty || !context.mounted) return;
+      final productModel = match.first.payload! as ProductModel;
       Navigator.pushNamed(
         context,
         AppRoutes.productDetail,
@@ -285,12 +287,12 @@ class _FeaturedProductBanner extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_red.withOpacity(0.25), _red.withOpacity(0.08)],
+          colors: [_red.withValues(alpha: 0.25), _red.withValues(alpha: 0.08)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _red.withOpacity(0.35)),
+        border: Border.all(color: _red.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
@@ -303,7 +305,7 @@ class _FeaturedProductBanner extends StatelessWidget {
                   ? Image.network(
                       product.productImageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _productIconFallback(),
+                      errorBuilder: (_, _, _) => _productIconFallback(),
                     )
                   : _productIconFallback(),
             ),
@@ -550,7 +552,7 @@ class _StepTile extends StatelessWidget {
                   height: 40,
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   decoration: BoxDecoration(
-                    color: _red.withOpacity(0.3),
+                    color: _red.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),

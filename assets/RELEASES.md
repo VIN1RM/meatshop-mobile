@@ -4,6 +4,61 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [3.0.0] — Em desenvolvimento
+### Uma Nova Base para o MeatShop
+
+### ✨ Novidades
+- **Integração Concluída:** A base mobile agora usa exclusivamente o sistema oficial do MeatShop para todos os dados do negócio; o antigo Firestore foi removido do aplicativo.
+- **Exclusão de Conta com Privacidade:** Ao excluir sua conta, sessões são encerradas e dados pessoais são anonimizados com segurança.
+- **Dados Oficiais em um Só Lugar:** Perfil, catálogo, pedidos, entregas, conversas e notificações agora usam o sistema MeatShop como fonte única; o antigo banco operacional do aplicativo foi desativado.
+- **Ambiente de Testes Reproduzível:** A equipe pode preparar novamente unidade, produtos e contas de demonstração de forma segura e consistente.
+- **Notificações mais confiáveis:** Alertas de pedidos, entregas e conversas agora chegam pelo backend e abrem sempre informações atualizadas.
+- **Proteção do aplicativo:** O App Check ajuda a impedir acessos feitos por cópias não autorizadas do app.
+- **Mais estabilidade:** Crashlytics e monitoramento de desempenho ajudam a identificar falhas, sem enviar seus dados operacionais.
+- **Contato pelo Pedido:** O cliente escolhe falar com o açougue ou com o entregador diretamente no acompanhamento do pedido.
+- **Entregador Autônomo ou da Unidade:** Quem se cadastra pelo app pode trabalhar como autônomo, enquanto contas criadas pelo açougue continuam sob aprovação da unidade.
+- **Chat em Tempo Real:** Cliente, açougue e entregador conversam nos canais corretos de cada pedido, com mensagens não lidas, confirmação de leitura e indicação de digitação.
+- **Atualizações ao Vivo:** Mudanças da entrega chegam imediatamente e o aplicativo recupera o estado correto depois de uma oscilação de internet.
+- **Fotos do Veículo:** O entregador pode manter fotos reais do veículo no cadastro integrado.
+- **Área do Entregador Integrada:** Cadastro, aprovação, veículos, disponibilidade, ofertas, entregas, histórico, avaliações, ganhos e metas agora podem acompanhar o sistema oficial do MeatShop.
+- **Códigos Protegidos na Entrega:** O entregador apresenta o código de retirada à unidade e conclui a entrega somente com o código informado pelo cliente.
+- **Mais Privacidade nas Ofertas:** O endereço exato do cliente só fica disponível depois que o entregador aceita a entrega.
+- **Checkout Integrado:** Seus pedidos agora são criados no mesmo sistema usado pelo açougue, aparecendo no painel da unidade logo após a confirmação.
+- **Pagamento por Carrinho:** Quando houver produtos de vários açougues, você realiza um único fluxo de pagamento e recebe pedidos separados e organizados.
+- **Acompanhe e Repita:** Histórico, detalhes, cancelamento, agendamento e recompra passam a acompanhar o estado oficial do pedido.
+- **Código de Entrega Protegido:** O código necessário para receber o pedido fica disponível somente para você enquanto ainda for válido.
+- **Um Carrinho, Vários Açougues:** Você pode adicionar produtos de unidades diferentes no mesmo carrinho. Os itens ficam organizados por açougue e, no checkout, serão preparados como pedidos separados.
+- **Perfil e Endereços Sincronizados:** Seus dados, foto e endereços agora podem acompanhar sua conta pelo sistema MeatShop, inclusive ao trocar de aparelho.
+- **Endereço pelo CEP:** Informe o CEP para preencher rua, bairro, cidade e estado e localizar o endereço sem digitar coordenadas.
+- **Marketplace Integrado:** Açougues, produtos, promoções, horários e avaliações agora podem ser carregados diretamente do sistema MeatShop.
+- **Busca Unificada:** A busca encontra açougues, categorias e produtos em uma única consulta.
+- **Login Conectado ao MeatShop:** O login por e-mail, Google ou Apple agora pode criar uma sessão segura no mesmo sistema usado pelo painel e pelo banco de dados principal.
+- **Vínculo Protegido:** Quando já existir uma conta com o mesmo e-mail, a senha atual será solicitada uma única vez antes de vincular o login.
+- **Integração em Andamento:** Começamos a evolução que conectará o aplicativo ao mesmo backend e banco de dados usados pelo painel do açougue.
+- **Conexões Mais Confiáveis:** A nova base já diferencia falta de internet, demora do servidor, sessão expirada e cancelamento de uma operação.
+- **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
+
+### 📈 Melhorias
+- **Qualidade sem Pendências:** A análise estática do aplicativo está limpa e os testes automatizados passam em todas as plataformas cobertas pelo CI.
+- **Alertas em Segundo Plano:** Notificações enviadas apenas com dados agora também aparecem corretamente quando o aplicativo não está aberto.
+- **Exclusão Mais Confiável:** O servidor coordena a remoção da conta e da identidade de login em uma única operação.
+- **Mais Leve e Previsível:** Dependências e caminhos antigos foram removidos, reduzindo risco de informações diferentes entre aplicativo e painel.
+- **Qualidade Final Automatizada:** Testes cobrem conexão lenta, falta de rede, sessão expirada, reconexão, checkout, entregas, conversas e notificações.
+- **Valores Conferidos no Servidor:** Preços, descontos, cupons e taxa de entrega são recalculados antes da confirmação.
+- **Pedido sem Duplicidade:** Se a conexão oscilar durante a finalização, o sistema reconhece a tentativa anterior e evita cobrar ou criar o pedido novamente.
+- **Estoque Consistente:** Produtos de diferentes açougues são reservados com segurança; uma falha não deixa apenas parte do carrinho confirmada.
+- **Estoque e Preço Conferidos:** O sistema confere novamente disponibilidade, categoria, preço e quantidade sempre que o carrinho muda.
+- **Produtos por Peso:** O carrinho aceita quantidades fracionadas com precisão adequada para carnes vendidas por quilo.
+- **Limpeza Real do Carrinho:** Ao esvaziar a sacola, os itens também são removidos do servidor e não reaparecem em outro acesso.
+- **Disponibilidade Confiável:** Produtos inativos, categorias inativas ou itens sem estoque deixam de ser oferecidos no novo catálogo.
+- **Perfil Consistente:** Tipo de perfil e conclusão do cadastro passam a vir do sistema MeatShop durante o novo fluxo, evitando divergências entre aplicativo e painel.
+- **Preparado para a Migração Gradual:** As próximas funcionalidades poderão ser transferidas uma por vez, sem trocar todos os fluxos de uma só vez.
+- **Qualidade Automatizada:** Novos testes protegem a arquitetura e os comportamentos essenciais de conexão e sessão.
+
+> A versão 3.0.0 permanece em desenvolvimento. Estas notas serão incrementadas a cada fase do plano de integração.
+
+---
+
 ## [2.15.0] — 20 de Agosto de 2026
 ### 🔐 Login Mais Seguro e Cadastro sem Repetição
 

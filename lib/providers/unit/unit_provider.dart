@@ -8,9 +8,11 @@ class UnitProvider extends ChangeNotifier {
   final UnitService _unitService;
   final BusinessHoursService _hoursService;
 
-  UnitProvider({UnitService? unitService, BusinessHoursService? hoursService})
-    : _unitService = unitService ?? UnitService(),
-      _hoursService = hoursService ?? BusinessHoursService();
+  UnitProvider({
+    required UnitService unitService,
+    required BusinessHoursService hoursService,
+  }) : _unitService = unitService,
+       _hoursService = hoursService;
 
   List<UnitModel> _units = [];
   Map<String, BusinessHoursModel?> _hoursMap = {};
@@ -25,13 +27,21 @@ class UnitProvider extends ChangeNotifier {
 
   bool isOpenNow(String unitId) => _hoursMap[unitId]?.isOpenNow ?? false;
 
-  Future<void> loadUnits() async {
+  Future<void> loadUnits({
+    double? latitude,
+    double? longitude,
+    double? radiusKm,
+  }) async {
     _loading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _units = await _unitService.getAllUnits();
+      _units = await _unitService.getAllUnits(
+        latitude: latitude,
+        longitude: longitude,
+        radiusKm: radiusKm,
+      );
       _hoursMap = await _hoursService.fetchAllToday(
         _units.map((u) => u.id).toList(),
       );

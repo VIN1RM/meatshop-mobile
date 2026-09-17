@@ -22,14 +22,14 @@ class ButcherProvider extends ChangeNotifier {
 
   ButcherProvider({
     required this.unitId,
-    ProductService? productService,
-    ReviewService? reviewService,
-    PromotionService? promotionService,
-    BusinessHoursService? hoursService,
-  }) : _productService = productService ?? ProductService(),
-       _promotionService = promotionService ?? PromotionService(),
-       _hoursService = hoursService ?? BusinessHoursService(),
-       _reviewService = reviewService ?? ReviewService();
+    required ProductService productService,
+    required ReviewService reviewService,
+    required PromotionService promotionService,
+    required BusinessHoursService hoursService,
+  }) : _productService = productService,
+       _promotionService = promotionService,
+       _hoursService = hoursService,
+       _reviewService = reviewService;
 
   List<ProductModel> _items = [];
   List<ProductModel> get items => _items;
@@ -62,7 +62,7 @@ class ButcherProvider extends ChangeNotifier {
       _reviews = results[3] as List<ReviewModel>;
     } catch (e) {
       _error = 'Não foi possível carregar os produtos.';
-      debugPrint('[ButcherProvider] erro: $e');
+      debugPrint('[ButcherProvider] load error: $e');
     }
 
     _isLoading = false;

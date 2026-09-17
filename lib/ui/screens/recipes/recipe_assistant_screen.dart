@@ -153,7 +153,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
         ),
         decoration: BoxDecoration(
           color: msg.isError
-              ? Colors.red.shade900.withOpacity(0.6)
+              ? Colors.red.shade900.withValues(alpha: 0.6)
               : msg.isUser
               ? _red
               : _cardDark,
@@ -285,7 +285,7 @@ class _Dot extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: controller,
-      builder: (_, __) {
+      builder: (_, _) {
         final offset = (controller.value - index * 0.15).clamp(0.0, 1.0);
         final dy = -4.0 * (1 - (2 * offset - 1).abs().clamp(0.0, 1.0));
         return Transform.translate(

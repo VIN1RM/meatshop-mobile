@@ -1,81 +1,81 @@
 import 'package:flutter/material.dart';
 
-enum AcougueOrdem {
-  nomeAZ,
-  nomeZA,
-  avaliacaoMaior,
-  avaliacaoMenor,
-  precoMaior,
-  precoMenor,
+enum ButcherSortOrder {
+  nameAscending,
+  nameDescending,
+  ratingDescending,
+  ratingAscending,
+  priceDescending,
+  priceAscending,
 }
 
-class AcougueFilter {
-  final AcougueOrdem ordem;
-  final bool apenasAbertos;
+class ButcherFilter {
+  final ButcherSortOrder sortOrder;
+  final bool openNowOnly;
 
-  const AcougueFilter({
-    this.ordem = AcougueOrdem.avaliacaoMaior,
-    this.apenasAbertos = false,
+  const ButcherFilter({
+    this.sortOrder = ButcherSortOrder.ratingDescending,
+    this.openNowOnly = false,
   });
 
-  AcougueFilter copyWith({AcougueOrdem? ordem, bool? apenasAbertos}) {
-    return AcougueFilter(
-      ordem: ordem ?? this.ordem,
-      apenasAbertos: apenasAbertos ?? this.apenasAbertos,
+  ButcherFilter copyWith({ButcherSortOrder? sortOrder, bool? openNowOnly}) {
+    return ButcherFilter(
+      sortOrder: sortOrder ?? this.sortOrder,
+      openNowOnly: openNowOnly ?? this.openNowOnly,
     );
   }
 
   @override
   bool operator ==(Object other) =>
-      other is AcougueFilter &&
-      other.ordem == ordem &&
-      other.apenasAbertos == apenasAbertos;
+      other is ButcherFilter &&
+      other.sortOrder == sortOrder &&
+      other.openNowOnly == openNowOnly;
 
   @override
-  int get hashCode => Object.hash(ordem, apenasAbertos);
+  int get hashCode => Object.hash(sortOrder, openNowOnly);
 }
 
-class AcougueFilterSheet extends StatefulWidget {
-  final AcougueFilter filtroAtual;
-  final ValueChanged<AcougueFilter> onAplicar;
+class ButcherFilterSheet extends StatefulWidget {
+  final ButcherFilter currentFilter;
+  final ValueChanged<ButcherFilter> onApply;
 
-  const AcougueFilterSheet({
+  const ButcherFilterSheet({
     super.key,
-    required this.filtroAtual,
-    required this.onAplicar,
+    required this.currentFilter,
+    required this.onApply,
   });
 
-  static Future<AcougueFilter?> show(
+  static Future<ButcherFilter?> show(
     BuildContext context,
-    AcougueFilter filtroAtual,
+    ButcherFilter currentFilter,
   ) {
-    return showModalBottomSheet<AcougueFilter>(
+    return showModalBottomSheet<ButcherFilter>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => AcougueFilterSheet(
-        filtroAtual: filtroAtual,
-        onAplicar: (f) => Navigator.pop(context, f),
+      builder: (_) => ButcherFilterSheet(
+        currentFilter: currentFilter,
+        onApply: (filter) => Navigator.pop(context, filter),
       ),
     );
   }
 
   @override
-  State<AcougueFilterSheet> createState() => _AcougueFilterSheetState();
+  State<ButcherFilterSheet> createState() => _ButcherFilterSheetState();
 }
 
-class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
+class _ButcherFilterSheetState extends State<ButcherFilterSheet> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _bg = Color(0xFFF5F5F5);
   static const Color _surface = Color(0xFFEAEAEA);
   static const Color _white = Colors.white;
 
-  late AcougueFilter _filtro;
+  late ButcherFilter _filter;
 
   @override
   void initState() {
     super.initState();
-    _filtro = widget.filtroAtual;
+    _filter = widget.currentFilter;
   }
 
   @override
@@ -138,8 +138,8 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
               const SizedBox(height: 10),
               GestureDetector(
                 onTap: () => setState(
-                  () => _filtro = _filtro.copyWith(
-                    apenasAbertos: !_filtro.apenasAbertos,
+                  () => _filter = _filter.copyWith(
+                    openNowOnly: !_filter.openNowOnly,
                   ),
                 ),
                 child: AnimatedContainer(
@@ -149,12 +149,12 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: _filtro.apenasAbertos
+                    color: _filter.openNowOnly
                         ? const Color(0xFF27AE60).withValues(alpha: 0.1)
                         : _surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _filtro.apenasAbertos
+                      color: _filter.openNowOnly
                           ? const Color(0xFF27AE60)
                           : const Color(0xFFCCCCCC),
                       width: 1.5,
@@ -166,7 +166,7 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                         width: 10,
                         height: 10,
                         decoration: BoxDecoration(
-                          color: _filtro.apenasAbertos
+                          color: _filter.openNowOnly
                               ? const Color(0xFF27AE60)
                               : const Color(0xFFAAAAAA),
                           shape: BoxShape.circle,
@@ -177,11 +177,11 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                         child: Text(
                           'Apenas abertos agora',
                           style: TextStyle(
-                            color: _filtro.apenasAbertos
+                            color: _filter.openNowOnly
                                 ? const Color(0xFF1E7E46)
                                 : const Color(0xFF555555),
                             fontSize: 14,
-                            fontWeight: _filtro.apenasAbertos
+                            fontWeight: _filter.openNowOnly
                                 ? FontWeight.w700
                                 : FontWeight.w500,
                           ),
@@ -189,7 +189,7 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                       ),
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 180),
-                        child: _filtro.apenasAbertos
+                        child: _filter.openNowOnly
                             ? const Icon(
                                 Icons.check_circle_rounded,
                                 color: Color(0xFF27AE60),
@@ -216,13 +216,13 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                   _optionChip(
                     label: 'A → Z',
                     icon: Icons.sort_by_alpha_rounded,
-                    valor: AcougueOrdem.nomeAZ,
+                    value: ButcherSortOrder.nameAscending,
                   ),
                   const SizedBox(width: 10),
                   _optionChip(
                     label: 'Z → A',
                     icon: Icons.sort_by_alpha_rounded,
-                    valor: AcougueOrdem.nomeZA,
+                    value: ButcherSortOrder.nameDescending,
                     iconFlipped: true,
                   ),
                 ],
@@ -236,13 +236,13 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                   _optionChip(
                     label: 'Maior ★',
                     icon: Icons.star_rounded,
-                    valor: AcougueOrdem.avaliacaoMaior,
+                    value: ButcherSortOrder.ratingDescending,
                   ),
                   const SizedBox(width: 10),
                   _optionChip(
                     label: 'Menor ★',
                     icon: Icons.star_outline_rounded,
-                    valor: AcougueOrdem.avaliacaoMenor,
+                    value: ButcherSortOrder.ratingAscending,
                   ),
                 ],
               ),
@@ -255,13 +255,13 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                   _optionChip(
                     label: 'Maior \$\$',
                     icon: Icons.attach_money_rounded,
-                    valor: AcougueOrdem.precoMaior,
+                    value: ButcherSortOrder.priceDescending,
                   ),
                   const SizedBox(width: 10),
                   _optionChip(
                     label: 'Menor \$',
                     icon: Icons.money_off_rounded,
-                    valor: AcougueOrdem.precoMenor,
+                    value: ButcherSortOrder.priceAscending,
                   ),
                 ],
               ),
@@ -273,7 +273,7 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                     child: GestureDetector(
                       onTap: () {
                         setState(() {
-                          _filtro = const AcougueFilter();
+                          _filter = const ButcherFilter();
                         });
                       },
                       child: Container(
@@ -302,7 +302,7 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
                     child: SizedBox(
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () => widget.onAplicar(_filtro),
+                        onPressed: () => widget.onApply(_filter),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _red,
                           foregroundColor: _white,
@@ -345,13 +345,14 @@ class _AcougueFilterSheetState extends State<AcougueFilterSheet> {
   Widget _optionChip({
     required String label,
     required IconData icon,
-    required AcougueOrdem valor,
+    required ButcherSortOrder value,
     bool iconFlipped = false,
   }) {
-    final selected = _filtro.ordem == valor;
+    final selected = _filter.sortOrder == value;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _filtro = _filtro.copyWith(ordem: valor)),
+        onTap: () =>
+            setState(() => _filter = _filter.copyWith(sortOrder: value)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),

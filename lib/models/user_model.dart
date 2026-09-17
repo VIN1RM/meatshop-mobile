@@ -26,6 +26,17 @@ class UserModel {
     );
   }
 
+  factory UserModel.fromApi(Map<String, Object?> data, String photoUrl) {
+    return UserModel(
+      uid: '${data['id'] ?? ''}',
+      name: data['name'] as String? ?? '',
+      email: data['email'] as String? ?? '',
+      cpf: data['cpf'] as String? ?? '',
+      phone: data['phone'] as String? ?? '',
+      photoUrl: photoUrl,
+    );
+  }
+
   Map<String, dynamic> toMap() => {
     'name': name,
     'email': email,

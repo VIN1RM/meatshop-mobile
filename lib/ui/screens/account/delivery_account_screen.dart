@@ -33,7 +33,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
             child: Image.asset(
               'assets/images/background.png',
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
+              errorBuilder: (_, _, _) =>
                   Container(color: const Color(0xFF2E2E2E)),
             ),
           ),
@@ -294,7 +294,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
             : () async {
                 setState(() => _isLoggingOut = true);
                 await Future.delayed(const Duration(milliseconds: 600));
-                if (!mounted) return;
+                if (!context.mounted) return;
                 provider.logout(context);
               },
         child: Row(

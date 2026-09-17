@@ -56,14 +56,14 @@ Map<String, WidgetBuilder> buildRoutes() {
         ),
       ),
     ),
-    AppRoutes.acougues: (_) => const AcouguesScreen(),
-    AppRoutes.cortesBovinos: (_) =>
+    AppRoutes.butchers: (_) => const ButcherListScreen(),
+    AppRoutes.beefCuts: (_) =>
         const CutsScreen(title: 'CORTES BOVINOS', categoryName: 'Bovinos'),
-    AppRoutes.cortesSuinos: (_) =>
+    AppRoutes.porkCuts: (_) =>
         const CutsScreen(title: 'CORTES SUÍNOS', categoryName: 'Suínos'),
-    AppRoutes.cortesAves: (_) =>
+    AppRoutes.poultryCuts: (_) =>
         const CutsScreen(title: 'CORTES DE AVES', categoryName: 'Aves'),
-    AppRoutes.cortesPeixes: (_) =>
+    AppRoutes.fishCuts: (_) =>
         const CutsScreen(title: 'CORTES DE PEIXE', categoryName: 'Peixes'),
     AppRoutes.deliveries: (_) => const DeliveriesScreen(),
     AppRoutes.chat: (_) => const ChatScreen(),

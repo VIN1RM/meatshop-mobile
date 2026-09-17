@@ -1,4 +1,3 @@
-
 enum AppProfile {
   client,
   delivery,

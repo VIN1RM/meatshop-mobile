@@ -28,7 +28,7 @@ class ReviewCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(darkMode ? 0.25 : 0.06),
+            color: Colors.black.withValues(alpha: darkMode ? 0.25 : 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -87,9 +87,9 @@ class ReviewCard extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: _red.withOpacity(0.12),
+        color: _red.withValues(alpha: 0.12),
         shape: BoxShape.circle,
-        border: Border.all(color: _red.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: _red.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Center(
         child: Text(

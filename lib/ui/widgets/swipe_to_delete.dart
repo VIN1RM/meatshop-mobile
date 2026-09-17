@@ -4,11 +4,7 @@ class SwipeToDelete extends StatelessWidget {
   final Widget child;
   final Future<bool> Function() onSwipe;
 
-  const SwipeToDelete({
-    super.key,
-    required this.child,
-    required this.onSwipe,
-  });
+  const SwipeToDelete({super.key, required this.child, required this.onSwipe});
 
   @override
   Widget build(BuildContext context) {

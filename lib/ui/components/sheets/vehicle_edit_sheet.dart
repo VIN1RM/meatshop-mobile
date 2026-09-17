@@ -156,8 +156,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   }
 
   Future<void> _pickImage() async {
-    final totalFotos = _existingUrls.length + _newImages.length;
-    if (totalFotos >= 3) {
+    final totalPhotos = _existingUrls.length + _newImages.length;
+    if (totalPhotos >= 3) {
       CustomSnackBar.warning('Máximo de 3 fotos permitidas.', context: context);
       return;
     }
@@ -197,8 +197,8 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       if (!_formKey.currentState!.validate()) return;
     }
 
-    final totalFotos = _existingUrls.length + _newImages.length;
-    if (totalFotos < 3) {
+    final totalPhotos = _existingUrls.length + _newImages.length;
+    if (totalPhotos < 3) {
       CustomSnackBar.warning(
         'Adicione ao menos 3 fotos do veículo.',
         context: context,
@@ -310,7 +310,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   const Text(
                     'EDITAR VEÍCULO',
                     style: TextStyle(
-                      color: const Color(0xFF1A1A1A),
+                      color: Color(0xFF1A1A1A),
 
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -322,7 +322,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   const Text(
                     'Tipo de veículo',
                     style: TextStyle(
-                      color: const Color(0xFF1A1A1A),
+                      color: Color(0xFF1A1A1A),
 
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -413,7 +413,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                             child: Text(
                               _selectedVehicleType!.description,
                               style: const TextStyle(
-                                color: const Color(0xFF666666),
+                                color: Color(0xFF666666),
 
                                 fontSize: 12,
                                 height: 1.4,
@@ -429,7 +429,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                       const Text(
                         'Dados do veículo',
                         style: TextStyle(
-                          color: const Color(0xFF1A1A1A),
+                          color: Color(0xFF1A1A1A),
 
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -536,7 +536,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
   }
 
   Widget _buildPhotoSection() {
-    final totalFotos = _existingUrls.length + _newImages.length;
+    final totalPhotos = _existingUrls.length + _newImages.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,7 +545,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const Text(
           'Fotos do veículo',
           style: TextStyle(
-            color: const Color(0xFF1A1A1A),
+            color: Color(0xFF1A1A1A),
 
             fontSize: 13,
             fontWeight: FontWeight.w700,
@@ -554,7 +554,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const SizedBox(height: 4),
         const Text(
           'Adicione ao menos 3 fotos do seu veículo.',
-          style: TextStyle(color: const Color(0xFF888888), fontSize: 11),
+          style: TextStyle(color: Color(0xFF888888), fontSize: 11),
         ),
         const SizedBox(height: 12),
         Wrap(
@@ -575,7 +575,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               );
             }),
 
-            if (totalFotos < 3)
+            if (totalPhotos < 3)
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
@@ -605,7 +605,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               ),
 
             ...List.generate(
-              (3 - totalFotos - (totalFotos < 3 ? 1 : 0)).clamp(0, 3),
+              (3 - totalPhotos - (totalPhotos < 3 ? 1 : 0)).clamp(0, 3),
               (_) {
                 return Container(
                   width: 80,
@@ -617,7 +617,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   ),
                   child: const Icon(
                     Icons.image_outlined,
-                    color: const Color(0xFFDDDDDD),
+                    color: Color(0xFFDDDDDD),
                     size: 32,
                   ),
                 );
@@ -628,7 +628,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         const SizedBox(height: 10),
         Row(
           children: List.generate(3, (i) {
-            final filled = i < totalFotos;
+            final filled = i < totalPhotos;
             return Container(
               margin: const EdgeInsets.only(right: 4),
               width: 24,

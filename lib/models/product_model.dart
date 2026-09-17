@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class ProductModel {
   final String id;
   final String name;
@@ -31,7 +29,7 @@ class ProductModel {
     this.createdAt,
   });
 
-  String get precoFormatado =>
+  String get formattedPrice =>
       'R\$${price.toStringAsFixed(2).replaceAll('.', ',')}';
 
   factory ProductModel.fromMap(Map<String, dynamic> data, String id) {
@@ -54,12 +52,9 @@ class ProductModel {
       unitName: '',
       categoryId: (data['category_id'] as String?) ?? '',
       stockQuantity: qty,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate(),
+      createdAt: DateTime.tryParse('${data['created_at'] ?? ''}'),
     );
   }
-
-  factory ProductModel.fromFirestore(DocumentSnapshot doc) =>
-      ProductModel.fromMap(doc.data() as Map<String, dynamic>? ?? {}, doc.id);
 
   ProductModel copyWith({
     String? unitName,

@@ -97,7 +97,7 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
               child: Image.asset(
                 'assets/images/background.png',
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
+                errorBuilder: (_, _, _) =>
                     Container(color: const Color(0xFF1A1A1A)),
               ),
             ),

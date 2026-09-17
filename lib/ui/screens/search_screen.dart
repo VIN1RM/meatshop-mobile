@@ -7,6 +7,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/models/search_model.dart';
 import 'package:meatshop_mobile/core/enums/search_type_enum.dart';
+import 'cuts/cuts_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -51,7 +52,25 @@ class _SearchScreenState extends State<SearchScreen> {
           arguments: result.payload as UnitModel,
         );
       case SearchResultType.category:
-        Navigator.pushNamed(context, result.payload as String);
+        final normalized = result.title.toLowerCase();
+        final categoryName = normalized.contains('bovin')
+            ? 'Bovinos'
+            : normalized.contains('suí') || normalized.contains('sui')
+            ? 'Suínos'
+            : normalized.contains('ave') || normalized.contains('frango')
+            ? 'Aves'
+            : normalized.contains('peixe')
+            ? 'Peixes'
+            : result.title;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CutsScreen(
+              title: categoryName.toUpperCase(),
+              categoryName: categoryName,
+            ),
+          ),
+        );
       case SearchResultType.product:
         Navigator.pushNamed(
           context,
@@ -162,7 +181,7 @@ class _SearchScreenState extends State<SearchScreen> {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: const Color(0xFFC0392B).withOpacity(0.15),
+          color: const Color(0xFFC0392B).withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(10),
         ),
         child: const Icon(
@@ -181,7 +200,8 @@ class _SearchScreenState extends State<SearchScreen> {
           width: 44,
           height: 44,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _iconFallback(result.type),
+          errorBuilder: (context, error, stackTrace) =>
+              _iconFallback(result.type),
         ),
       );
     }

@@ -7,9 +7,11 @@ class PromotionProvider extends ChangeNotifier {
   final PromotionService _service;
   final UnitService _unitService;
 
-  PromotionProvider({PromotionService? service, UnitService? unitService})
-    : _service = service ?? PromotionService(),
-      _unitService = unitService ?? UnitService();
+  PromotionProvider({
+    required PromotionService service,
+    required UnitService unitService,
+  }) : _service = service,
+       _unitService = unitService;
 
   List<PromotionModel> _promotions = [];
   List<PromotionModel> get promotions => _promotions;
@@ -31,7 +33,7 @@ class PromotionProvider extends ChangeNotifier {
       _promotions = await _resolveUnitNames(raw);
     } catch (e) {
       _error = 'Não foi possível carregar as promoções.';
-      debugPrint('[PromotionProvider] erro: $e');
+      debugPrint('[PromotionProvider] load error: $e');
     }
 
     _isLoading = false;

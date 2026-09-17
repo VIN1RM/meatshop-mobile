@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 
 class ChatParticipant {
@@ -35,6 +34,9 @@ class ChatParticipant {
 
 class ChatConversation {
   final String id;
+  final int? orderId;
+  final ChatChannel? channel;
+  final bool closed;
 
   final List<String> participantIds;
   final Map<String, ChatParticipant> participants;
@@ -47,6 +49,9 @@ class ChatConversation {
 
   const ChatConversation({
     required this.id,
+    this.orderId,
+    this.channel,
+    this.closed = false,
     required this.participantIds,
     required this.participants,
     this.lastMessage,
@@ -56,32 +61,51 @@ class ChatConversation {
     required this.createdAt,
   });
 
-  factory ChatConversation.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-
-    final rawParticipants =
-        (data['participants'] as Map<String, dynamic>?) ?? {};
-    final participants = rawParticipants.map(
-      (userId, pMap) => MapEntry(
-        userId,
-        ChatParticipant.fromMap(userId, pMap as Map<String, dynamic>),
-      ),
+  factory ChatConversation.fromApi(
+    Map<String, Object?> data, {
+    required int currentUserId,
+    required ChatParticipantType currentUserType,
+  }) {
+    final participant = data['participant'];
+    if (participant is! Map<String, Object?>) {
+      throw const FormatException('Participante do chat inválido');
+    }
+    final participantId = (participant['id'] as num).toInt();
+    final channel = ChatChannel.fromApi(data['participant_type'] as String);
+    final participantType = switch (channel) {
+      ChatChannel.unit =>
+        currentUserType == ChatParticipantType.client
+            ? ChatParticipantType.unit
+            : ChatParticipantType.client,
+      ChatChannel.deliveryPerson =>
+        currentUserType == ChatParticipantType.client
+            ? ChatParticipantType.delivery
+            : ChatParticipantType.client,
+      ChatChannel.unitDeliveryPerson =>
+        currentUserType == ChatParticipantType.delivery
+            ? ChatParticipantType.unit
+            : ChatParticipantType.delivery,
+    };
+    final other = ChatParticipant(
+      userId: '$participantId',
+      name: participant['name'] as String? ?? '',
+      photoUrl: participant['avatar_url'] as String?,
+      type: participantType,
     );
-
-    final rawUnread = (data['unread_count'] as Map<String, dynamic>?) ?? {};
-    final unreadCount = rawUnread.map(
-      (k, v) => MapEntry(k, (v as num).toInt()),
-    );
-
+    final lastMessageAt = DateTime.parse(data['last_message_at'] as String);
     return ChatConversation(
-      id: doc.id,
-      participantIds: List<String>.from(data['participant_ids'] ?? []),
-      participants: participants,
+      id: data['id'] as String,
+      orderId: (data['order_id'] as num).toInt(),
+      channel: channel,
+      closed: data['closed'] as bool? ?? false,
+      participantIds: ['$currentUserId', '$participantId'],
+      participants: {'$participantId': other},
       lastMessage: data['last_message'] as String?,
-      lastMessageAt: (data['last_message_at'] as Timestamp?)?.toDate(),
-      lastMessageSenderId: data['last_message_sender_id'] as String?,
-      unreadCount: unreadCount,
-      createdAt: (data['created_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      lastMessageAt: lastMessageAt,
+      unreadCount: {
+        '$currentUserId': (data['unread_count'] as num?)?.toInt() ?? 0,
+      },
+      createdAt: lastMessageAt,
     );
   }
 
@@ -138,6 +162,9 @@ class ChatMessage {
   final String text;
   final DateTime sentAt;
   final bool read;
+  final bool mine;
+  final int? orderId;
+  final ChatChannel? channel;
 
   final String? attachmentUrl;
   final String? attachmentType;
@@ -148,20 +175,29 @@ class ChatMessage {
     required this.text,
     required this.sentAt,
     required this.read,
+    this.mine = false,
+    this.orderId,
+    this.channel,
     this.attachmentUrl,
     this.attachmentType,
   });
 
-  factory ChatMessage.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  factory ChatMessage.fromApi(
+    Map<String, Object?> data, {
+    int? currentUserId,
+    bool? isMine,
+  }) {
+    final senderId = (data['sender_id'] as num).toInt();
+    final participantType = data['participant_type'] as String;
     return ChatMessage(
-      id: doc.id,
-      senderId: data['sender_id'] as String? ?? '',
-      text: data['text'] as String? ?? '',
-      sentAt: (data['sent_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      read: data['read'] as bool? ?? false,
-      attachmentUrl: data['attachment_url'] as String?,
-      attachmentType: data['attachment_type'] as String?,
+      id: '${data['id']}',
+      senderId: '$senderId',
+      text: data['message'] as String,
+      sentAt: DateTime.parse(data['sent_at'] as String),
+      read: data['read_at'] != null,
+      mine: isMine ?? senderId == currentUserId,
+      orderId: (data['order_id'] as num).toInt(),
+      channel: ChatChannel.fromApi(participantType),
     );
   }
 
