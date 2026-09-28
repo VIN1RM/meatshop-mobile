@@ -37,6 +37,33 @@ class OrderModel {
   final String deliveryType;
   final String paymentStatus;
   final String paymentMethod;
+  final String? checkoutId;
+  final DateTime? paymentDueAt;
+  final String? refundStatus;
+  final double refundedAmount;
+  final double? changeFor;
+  bool get isOfflinePayment =>
+      const {'Cash', 'Card on Delivery'}.contains(paymentMethod);
+  bool get canPay =>
+      status == 'PENDING' &&
+      const {'PENDING', 'REJECTED'}.contains(paymentStatus) &&
+      !isOfflinePayment &&
+      paymentDueAt != null &&
+      paymentDueAt!.isAfter(DateTime.now());
+  String get paymentStatusLabel {
+    if (refundStatus == 'PENDING') return 'Estorno solicitado';
+    if (refundStatus == 'FAILED') return 'Estorno precisa de atendimento';
+    return switch (paymentStatus) {
+      'PAID' => 'Pago',
+      'REJECTED' => 'Pagamento recusado',
+      'REFUNDED' => 'Reembolsado',
+      'PARTIALLY_REFUNDED' => 'Reembolsado parcialmente',
+      'CHARGED_BACK' => 'Pagamento contestado',
+      'CANCELLED' => 'Pagamento cancelado',
+      _ => isOfflinePayment ? 'A pagar na entrega' : 'Aguardando pagamento',
+    };
+  }
+
   final double subtotal;
   final double deliveryFee;
   final double discountAmount;
@@ -64,6 +91,11 @@ class OrderModel {
     required this.deliveryType,
     required this.paymentStatus,
     required this.paymentMethod,
+    this.checkoutId,
+    this.paymentDueAt,
+    this.refundStatus,
+    this.refundedAmount = 0,
+    this.changeFor,
     required this.subtotal,
     required this.deliveryFee,
     required this.discountAmount,
@@ -105,6 +137,11 @@ class OrderModel {
     deliveryType: deliveryType,
     paymentStatus: paymentStatus,
     paymentMethod: paymentMethod,
+    checkoutId: checkoutId,
+    paymentDueAt: paymentDueAt,
+    refundStatus: refundStatus,
+    refundedAmount: refundedAmount,
+    changeFor: changeFor,
     subtotal: subtotal,
     deliveryFee: deliveryFee,
     discountAmount: discountAmount,
@@ -163,7 +200,7 @@ class OrderModel {
       id: '${data['id'] ?? ''}',
       clientId: '${data['client_id'] ?? ''}',
       unitId: '${data['unit_id'] ?? ''}',
-      unitName: data['unit_name'] as String? ?? 'Açougue',
+      unitName: data['unit_name'] as String? ?? 'AÃ§ougue',
       unitLogoUrl: data['unit_logo_url'] as String? ?? '',
       addressId: '${data['address_id'] ?? ''}',
       status: data['status'] as String? ?? 'PENDING',
@@ -172,6 +209,11 @@ class OrderModel {
       deliveryType: data['delivery_type'] as String? ?? 'DELIVERY',
       paymentStatus: data['payment_status'] as String? ?? 'PENDING',
       paymentMethod: payment['method'] as String? ?? '',
+      checkoutId: data['checkout_id'] as String?,
+      paymentDueAt: date('payment_due_at'),
+      refundStatus: payment['refund_status'] as String?,
+      refundedAmount: double.tryParse('${payment['refunded_amount']}') ?? 0,
+      changeFor: double.tryParse('${data['change_for']}'),
       subtotal: number('subtotal'),
       deliveryFee: number('delivery_fee'),
       discountAmount: number('discount_amount'),

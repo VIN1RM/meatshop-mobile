@@ -25,6 +25,20 @@ class OrderProvider extends ChangeNotifier {
   String? _lastCheckoutId;
   String? _paymentCheckoutUrl;
   String? _pendingIdempotencyKey;
+  List<OrderModel> lastCheckoutOrders = [];
+  Future<bool> onlinePaymentsAvailable() =>
+      _repository.onlinePaymentsAvailable();
+  Future<String> payOrder(String id) => _repository.createPayment(id);
+  Future<OrderModel> refreshPayment(String id) async {
+    try {
+      await _repository.reconcilePayment(id);
+    } catch (_) {
+      /* The local state remains available during provider outages. */
+    }
+    return _repository.get(id);
+  }
+
+  Future<OrderModel> getOrder(String id) => _repository.get(id);
 
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -43,6 +57,7 @@ class OrderProvider extends ChangeNotifier {
     required CartProvider cartProvider,
     Map<String, double> feeByUnit = const {},
   }) async {
+    if (_isLoading) return false;
     _isLoading = true;
     _error = null;
     _paymentCheckoutUrl = null;
@@ -51,16 +66,15 @@ class OrderProvider extends ChangeNotifier {
     try {
       final key = _pendingIdempotencyKey ?? IdempotencyKey.generate();
       _pendingIdempotencyKey = key;
-      final checkout = await _repository.create(summary, idempotencyKey: key);
+      final checkout = await _repository.create(
+        summary.withExpectedTotal(total),
+        idempotencyKey: key,
+      );
       _lastCheckoutId = checkout.checkoutId;
       _lastOrderId = checkout.orders.firstOrNull?.id;
-      if (_isOnlinePayment(summary.paymentMethod)) {
-        _paymentCheckoutUrl = await _repository.createPayment(
-          checkout.checkoutId,
-        );
-      }
+      lastCheckoutOrders = checkout.orders;
       _pendingIdempotencyKey = null;
-      await cartProvider.clearCart();
+      cartProvider.checkoutCompleted();
       return true;
     } catch (error) {
       _error = _message(error);
@@ -105,7 +119,7 @@ class OrderProvider extends ChangeNotifier {
     await _repository.cancel(orderId, reason);
   }
 
-  Future<CheckoutResult?> repeatOrder(String orderId) async {
+  Future<List<String>> repeatOrder(String orderId) async {
     return _repository.repeat(orderId);
   }
 
@@ -124,8 +138,12 @@ class OrderProvider extends ChangeNotifier {
     StreamSubscription<Map<String, Object?>>? statusSubscription;
     StreamSubscription<RealtimeConnectionState>? connectionSubscription;
     final subscribedOrderIds = <int>{};
+    Timer? refreshTimer;
+    var refreshing = false;
 
     Future<void> refresh() async {
+      if (refreshing || controller.isClosed) return;
+      refreshing = true;
       try {
         final orders = await repository.list();
         final activeOrders = orders
@@ -140,6 +158,7 @@ class OrderProvider extends ChangeNotifier {
             await _realtime!.subscribeDelivery(orderId);
           }
         }
+        if (controller.isClosed) return;
         if (active) {
           controller.add(activeOrders);
         } else {
@@ -155,13 +174,19 @@ class OrderProvider extends ChangeNotifier {
           );
         }
       } catch (error, stackTrace) {
-        controller.addError(error, stackTrace);
+        if (!controller.isClosed) controller.addError(error, stackTrace);
+      } finally {
+        refreshing = false;
       }
     }
 
     controller = StreamController<List<OrderModel>>(
       onListen: () {
         refresh();
+        refreshTimer = Timer.periodic(
+          const Duration(seconds: 10),
+          (_) => refresh(),
+        );
         _realtime!.connect();
         statusSubscription = _realtime.statuses.listen((_) => refresh());
         connectionSubscription = _realtime.connection.listen((state) {
@@ -169,6 +194,7 @@ class OrderProvider extends ChangeNotifier {
         });
       },
       onCancel: () async {
+        refreshTimer?.cancel();
         await statusSubscription?.cancel();
         await connectionSubscription?.cancel();
         for (final orderId in subscribedOrderIds) {
@@ -180,9 +206,6 @@ class OrderProvider extends ChangeNotifier {
     return controller.stream;
   }
 
-  bool _isOnlinePayment(String method) =>
-      const {'pix', 'credit', 'debit'}.contains(method);
-
   String _message(Object error) {
     final text = error.toString();
     return text.isEmpty
@@ -191,6 +214,7 @@ class OrderProvider extends ChangeNotifier {
   }
 
   void clear() {
+    lastCheckoutOrders = [];
     _lastOrderId = null;
     _lastCheckoutId = null;
     _paymentCheckoutUrl = null;

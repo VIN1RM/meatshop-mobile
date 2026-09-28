@@ -4,8 +4,8 @@ class CheckoutSummaryModel {
   final DateTime? scheduledDate;
   final String? scheduledTime;
   final String paymentMethod;
-  final String? savedCardId;
-  final String? cardBrand;
+  final double? changeFor;
+  final double? expectedTotal;
 
   const CheckoutSummaryModel({
     required this.addressId,
@@ -13,7 +13,16 @@ class CheckoutSummaryModel {
     this.scheduledDate,
     this.scheduledTime,
     required this.paymentMethod,
-    this.savedCardId,
-    this.cardBrand,
+    this.changeFor,
+    this.expectedTotal,
   });
+  CheckoutSummaryModel withExpectedTotal(double total) => CheckoutSummaryModel(
+    addressId: addressId,
+    isScheduled: isScheduled,
+    scheduledDate: scheduledDate,
+    scheduledTime: scheduledTime,
+    paymentMethod: paymentMethod,
+    changeFor: changeFor,
+    expectedTotal: total,
+  );
 }

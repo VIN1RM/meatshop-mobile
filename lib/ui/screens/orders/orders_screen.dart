@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/providers/cart_provider.dart';
+import '../fallback/order_processing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
@@ -33,25 +35,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
     if (confirmed != true || !context.mounted) return;
     try {
-      final result = await context.read<OrderProvider>().repeatOrder(order.id);
+      final skipped = await context.read<OrderProvider>().repeatOrder(order.id);
       if (!context.mounted) return;
-      if (result == null) {
+      await context.read<CartProvider>().loadCart();
+      if (!context.mounted) return;
+      if (skipped.isNotEmpty) {
         CustomSnackBar.info(
-          'Os itens foram enviados ao fluxo de recompra.',
+          'Itens indisponíveis: ${skipped.join(', ')}',
           context: context,
         );
-        return;
       }
-      CustomSnackBar.success(
-        result.orders.length > 1
-            ? '${result.orders.length} pedidos criados com sucesso.'
-            : 'Pedido criado com sucesso.',
-        context: context,
-      );
+      Navigator.pushNamed(context, AppRoutes.cart);
     } catch (error) {
       if (!context.mounted) return;
       CustomSnackBar.error(
-        'Não foi possível repetir o pedido: §error',
+        'Não foi possível repetir o pedido: $error',
         context: context,
       );
     }
@@ -100,7 +98,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       _groupTitle('Finalizados'),
                       const SizedBox(height: 4),
                       _groupSubtitle(
-                        'Últimos 3 meses · Concluídos e Cancelados',
+                        'Ãšltimos 3 meses Â· ConcluÃ­dos e Cancelados',
                       ),
                       const SizedBox(height: 10),
                       _FinishedOrdersSection(
@@ -218,7 +216,7 @@ class _FinishedOrdersSection extends StatelessWidget {
         final orders = snap.data ?? [];
         if (orders.isEmpty) {
           return const _EmptyTile(
-            message: 'Nenhum pedido finalizado nos últimos 3 meses.',
+            message: 'Nenhum pedido finalizado nos Ãºltimos 3 meses.',
           );
         }
         return Column(
@@ -552,7 +550,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                               color: statusColor,
                             ),
                             Text(
-                              isCancelled ? 'Cancelado' : 'Concluído',
+                              isCancelled ? 'Cancelado' : 'ConcluÃ­do',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: statusColor,
@@ -561,7 +559,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                             ),
                             if (formattedDate != null)
                               Text(
-                                '· $formattedDate',
+                                'Â· $formattedDate',
                                 style: const TextStyle(
                                   color: Color(0xFF888888),
                                   fontSize: 11,
@@ -598,6 +596,16 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                 ],
               ),
 
+              TextButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OrderProcessingScreen(orderIds: [order.id]),
+                  ),
+                ),
+                icon: const Icon(Icons.payments_outlined),
+                label: Text(order.canPay ? 'Pagar pedido' : 'Ver pagamento'),
+              ),
               const SizedBox(height: 10),
               ...order.items
                   .take(_expanded ? 999 : 2)
@@ -655,7 +663,8 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                           child: _DetailItem(
                             icon: Icons.payments_outlined,
                             label: 'Pagamento',
-                            value: _paymentLabel(order.paymentMethod),
+                            value:
+                                '${_paymentLabel(order.paymentMethod)} · ${order.paymentStatusLabel}',
                           ),
                         ),
                         Expanded(
@@ -780,7 +789,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                             ),
                             SizedBox(width: 4),
                             Text(
-                              'Açougue',
+                              'AÃ§ougue',
                               style: TextStyle(
                                 color: Color(0xFFE6A000),
                                 fontSize: 11,
@@ -877,14 +886,16 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
     switch (method.toUpperCase()) {
       case 'PIX':
         return 'Pix';
+      case 'CREDIT':
       case 'CREDIT_CARD':
-        return 'Cartão de crédito';
+        return 'CartÃ£o de crÃ©dito';
+      case 'DEBIT':
       case 'DEBIT_CARD':
-        return 'Cartão de débito';
+        return 'CartÃ£o de dÃ©bito';
       case 'CASH':
         return 'Dinheiro';
       default:
-        return method.isEmpty ? '—' : method;
+        return method.isEmpty ? 'â€”' : method;
     }
   }
 }

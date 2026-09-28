@@ -5,6 +5,7 @@ class DeliveryEarningModel {
   final String label;
   final double amount;
   final DateTime createdAt;
+  final DateTime? paidAt;
 
   const DeliveryEarningModel({
     required this.id,
@@ -13,18 +14,22 @@ class DeliveryEarningModel {
     required this.label,
     required this.amount,
     required this.createdAt,
+    this.paidAt,
   });
 
-  factory DeliveryEarningModel.fromApi(Map<String, Object?> data) =>
-      DeliveryEarningModel(
-        id: '${data['id'] ?? ''}',
-        deliveryPersonId: '${data['delivery_person_id'] ?? ''}',
-        orderId: '${data['order_id'] ?? ''}',
-        label: '${data['label'] ?? 'Entrega'}',
-        amount: (data['amount'] as num?)?.toDouble() ?? 0,
-        createdAt:
-            DateTime.tryParse('${data['created_at'] ?? ''}') ?? DateTime.now(),
-      );
+  factory DeliveryEarningModel.fromApi(
+    Map<String, Object?> data,
+  ) => DeliveryEarningModel(
+    id: '${data['id'] ?? ''}',
+    paidAt: DateTime.tryParse('${data['paid_at'] ?? ''}'),
+    deliveryPersonId: '${data['delivery_person_id'] ?? ''}',
+    orderId: '${data['order_id'] ?? ''}',
+    label:
+        '${data['label'] ?? 'Entrega'} · ${data['paid_at'] == null ? 'A receber' : 'Recebido'}',
+    amount: (data['amount'] as num?)?.toDouble() ?? 0,
+    createdAt:
+        DateTime.tryParse('${data['created_at'] ?? ''}') ?? DateTime.now(),
+  );
 
   Map<String, dynamic> toMap() => {
     'delivery_person_id': deliveryPersonId,

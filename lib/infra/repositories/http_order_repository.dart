@@ -27,8 +27,8 @@ final class HttpOrderRepository implements OrderRepository {
   );
 
   @override
-  Future<String> createPayment(String checkoutId) => _client.post(
-    '/mercadopago/checkouts/$checkoutId/checkout',
+  Future<String> createPayment(String orderId) => _client.post(
+    '/mercadopago/orders/$orderId/checkout',
     decode: (value) {
       final map = _map(value);
       final url = map['checkoutUrl'] ?? map['checkout_url'];
@@ -38,6 +38,17 @@ final class HttpOrderRepository implements OrderRepository {
       return url;
     },
   );
+
+  @override
+  Future<bool> onlinePaymentsAvailable() => _client.get(
+    '/mercadopago/capabilities',
+    authenticated: false,
+    decode: (value) => _map(value)['online'] == true,
+  );
+
+  @override
+  Future<void> reconcilePayment(String orderId) =>
+      _client.post('/payments/orders/$orderId/reconcile', decode: (_) {});
 
   @override
   Future<List<OrderModel>> list() async {
@@ -82,35 +93,27 @@ final class HttpOrderRepository implements OrderRepository {
   }
 
   @override
-  Future<CheckoutResult> repeat(String orderId) => _client.post(
+  Future<List<String>> repeat(String orderId) => _client.post(
     '/orders/$orderId/repeat',
-    decode: (value) {
-      final map = _map(value);
-      final orders = _list(map['orders']);
-      return CheckoutResult(
-        checkoutId: '${map['checkout_id'] ?? ''}',
-        orders: orders
-            .map((item) => OrderModel.fromApi(_map(item)))
-            .toList(growable: false),
-        totalAmount: orders.fold(
-          0,
-          (sum, item) => sum + _number(_map(item)['total_amount']),
-        ),
-      );
-    },
+    decode: (value) =>
+        _list(_map(value)['skippedItems']).map((item) => '$item').toList(),
   );
 
   static Map<String, Object?> _checkoutBody(CheckoutSummaryModel summary) {
     final scheduled = _scheduledDate(summary);
     final paymentMethod = switch (summary.paymentMethod) {
       'pix' => 'Pix',
-      'credit' => 'Crédito',
-      'debit' => 'Débito',
-      'cash' => 'Dinheiro',
+      'credit' => 'Credit',
+      'debit' => 'Debit',
+      'cash' => 'Cash',
+      'machine' => 'Card on Delivery',
       _ => null,
     };
     final body = <String, Object?>{
       'delivery_type': 'DELIVERY',
+      if (summary.changeFor != null) 'change_for': summary.changeFor,
+      if (summary.expectedTotal != null)
+        'expected_total': summary.expectedTotal,
       'address_id': int.parse(summary.addressId),
       if (scheduled != null)
         'scheduled_delivery_date': scheduled.toUtc().toIso8601String(),

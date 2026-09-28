@@ -1,3 +1,6 @@
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
+import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -103,6 +106,18 @@ class _MeatShopAppState extends State<MeatShopApp> {
         ),
         initialRoute: AppRoutes.splash,
         routes: buildRoutes(),
+        onGenerateRoute: (settings) {
+          final uri = Uri.tryParse(settings.name ?? '');
+          if (uri?.scheme == 'meatshop' && uri?.host == 'payments' ||
+              settings.name == '/payments') {
+            return MaterialPageRoute(
+              builder: (context) => context.read<AuthProvider>().isAuthenticated
+                  ? const Scaffold(body: OrdersScreen())
+                  : const SplashPage(),
+            );
+          }
+          return null;
+        },
       ),
     );
   }

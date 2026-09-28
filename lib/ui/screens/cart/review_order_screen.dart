@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
-import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
 import 'package:meatshop_mobile/ui/screens/fallback/order_processing_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:meatshop_mobile/data/repositories/order_repository.dart';
 
 class ReviewOrderScreen extends StatefulWidget {
   final CheckoutSummaryModel summary;
@@ -24,6 +23,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
 
   Map<String, double> _feeByUnit = {};
   bool _calculatingFees = false;
+  CheckoutQuote? _quote;
+  String? _quoteError;
 
   @override
   void initState() {
@@ -32,16 +33,28 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   }
 
   Future<void> _calculateFees() async {
-    setState(() => _calculatingFees = true);
+    setState(() {
+      _calculatingFees = true;
+      _quoteError = null;
+    });
     final orderProvider = context.read<OrderProvider>();
     try {
       final quote = await orderProvider.quote(widget.summary);
       if (mounted && quote != null) {
+        _quote = quote;
         setState(
           () => _feeByUnit = {
             for (final group in quote.groups) group.unitId: group.deliveryFee,
           },
         );
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _quote = null;
+          _quoteError =
+              'Não foi possível calcular o pedido. Verifique o endereço, o pagamento e tente novamente.';
+        });
       }
     } finally {
       if (mounted) setState(() => _calculatingFees = false);
@@ -54,21 +67,13 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     final addressProvider = context.watch<AddressProvider>();
-    final paymentProvider = context.watch<PaymentProvider>();
 
     final address = addressProvider.addresses.cast<dynamic>().firstWhere(
       (a) => a.id == widget.summary.addressId,
       orElse: () => null,
     );
 
-    final savedCard = widget.summary.savedCardId != null
-        ? paymentProvider.cards.cast<dynamic>().firstWhere(
-            (c) => c.id == widget.summary.savedCardId,
-            orElse: () => null,
-          )
-        : null;
-
-    final grandTotal = cart.total + _totalDeliveryFee;
+    final grandTotal = _quote?.totalAmount ?? 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFF2E2E2E),
@@ -115,10 +120,33 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                           (e) => _buildUnitGroup(e.key, e.value, cart),
                         ),
 
-                        _buildPaymentCard(savedCard),
+                        _buildPaymentCard(),
                         const SizedBox(height: 16),
 
-                        _buildTotals(cart.total, grandTotal),
+                        if (_quoteError != null)
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                Text(
+                                  _quoteError!,
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                                TextButton(
+                                  onPressed: _calculateFees,
+                                  child: const Text('Tentar novamente'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        _buildTotals(
+                          _quote?.groups.fold<double>(
+                                0,
+                                (sum, g) => sum + g.subtotal - g.discountAmount,
+                              ) ??
+                              0,
+                          grandTotal,
+                        ),
                         const SizedBox(height: 32),
                         _buildConfirmButton(context, grandTotal),
                         const SizedBox(height: 32),
@@ -162,7 +190,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Endereço de entrega',
+            'EndereÃ§o de entrega',
             style: TextStyle(
               color: Color(0xFF1A1A1A),
               fontSize: 15,
@@ -172,8 +200,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           const SizedBox(height: 6),
           Text(
             '${address.street}, ${address.number}'
-            '${address.complement.isNotEmpty ? ' – ${address.complement}' : ''}\n'
-            '${address.neighborhood} · ${address.city}, ${address.state}',
+            '${address.complement.isNotEmpty ? ' â€“ ${address.complement}' : ''}\n'
+            '${address.neighborhood} Â· ${address.city}, ${address.state}',
             style: const TextStyle(
               color: Color(0xFF555555),
               fontSize: 13,
@@ -190,7 +218,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       '',
       'janeiro',
       'fevereiro',
-      'março',
+      'marÃ§o',
       'abril',
       'maio',
       'junho',
@@ -225,7 +253,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 ),
               ),
               Text(
-                '${d.day} de ${months[d.month]} · ${widget.summary.scheduledTime ?? ''}',
+                '${d.day} de ${months[d.month]} Â· ${widget.summary.scheduledTime ?? ''}',
                 style: const TextStyle(color: Color(0xFF555555), fontSize: 12),
               ),
             ],
@@ -238,7 +266,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   Widget _buildUnitGroup(String unitId, List items, CartProvider cart) {
     final unitName = items.isNotEmpty && items.first.unitName.isNotEmpty
         ? items.first.unitName
-        : 'Açougue';
+        : 'AÃ§ougue';
     final subtotal = items.fold<double>(0, (s, i) => s + i.subtotal);
     final fee = _feeByUnit[unitId];
 
@@ -376,7 +404,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                             ),
                           )
                         : Text(
-                            fee != null ? _fmt(fee) : 'Indisponível',
+                            fee != null ? _fmt(fee) : 'IndisponÃ­vel',
                             style: TextStyle(
                               color: fee != null
                                   ? const Color(0xFF1A1A1A)
@@ -395,7 +423,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildPaymentCard(dynamic savedCard) {
+  Widget _buildPaymentCard() {
     String label;
     IconData icon;
 
@@ -405,15 +433,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         icon = Icons.pix;
         break;
       case 'credit':
-        label = savedCard != null
-            ? '${savedCard.brand.toUpperCase()} •••• ${savedCard.lastFour}'
-            : 'Cartão de crédito';
+        label = 'Cartão de crédito no Mercado Pago';
         icon = Icons.credit_card;
         break;
       case 'debit':
-        label = savedCard != null
-            ? '${savedCard.brand.toUpperCase()} •••• ${savedCard.lastFour}'
-            : 'Cartão de débito';
+        label = 'Cartão de débito no Mercado Pago';
         icon = Icons.credit_card_outlined;
         break;
       case 'cash':
@@ -421,9 +445,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         icon = Icons.money;
         break;
       case 'machine':
-        label = widget.summary.cardBrand != null
-            ? 'Maquininha · ${widget.summary.cardBrand}'
-            : 'Maquininha na entrega';
+        label = 'Maquininha na entrega';
         icon = Icons.point_of_sale;
         break;
       default:
@@ -540,7 +562,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   Widget _buildConfirmButton(BuildContext context, double grandTotal) {
     final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
-    final canConfirm = !_calculatingFees && !orderProvider.isLoading;
+    final canConfirm =
+        _quote != null &&
+        _quoteError == null &&
+        !_calculatingFees &&
+        !orderProvider.isLoading;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -558,21 +584,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 if (!context.mounted) return;
 
                 if (success) {
-                  final checkoutUrl = orderProvider.paymentCheckoutUrl;
-                  if (checkoutUrl != null) {
-                    final opened = await launchUrl(
-                      Uri.parse(checkoutUrl),
-                      mode: LaunchMode.externalApplication,
-                    );
-                    if (!opened && context.mounted) {
-                      CustomSnackBar.error(
-                        'Não foi possível abrir o pagamento seguro.',
-                        context: context,
-                      );
-                      return;
-                    }
-                  }
-                  if (!context.mounted) return;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -584,6 +595,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                     orderProvider.error ?? 'Erro ao confirmar pedido',
                     context: context,
                   );
+                  await _calculateFees();
                 }
               }
             : null,

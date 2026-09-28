@@ -40,10 +40,12 @@ abstract interface class OrderRepository {
     CheckoutSummaryModel summary, {
     required String idempotencyKey,
   });
-  Future<String> createPayment(String checkoutId);
+  Future<String> createPayment(String orderId);
+  Future<bool> onlinePaymentsAvailable();
+  Future<void> reconcilePayment(String orderId);
   Future<List<OrderModel>> list();
   Future<OrderModel> get(String orderId);
   Future<OrderModel> cancel(String orderId, String reason);
   Future<OrderModel> schedule(String orderId, DateTime date);
-  Future<CheckoutResult> repeat(String orderId);
+  Future<List<String>> repeat(String orderId);
 }
