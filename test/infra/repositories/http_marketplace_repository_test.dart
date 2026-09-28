@@ -16,6 +16,9 @@ void main() {
     final repository = _repository(
       MockClient((request) async {
         expect(request.url.path, '/units');
+        expect(request.url.queryParameters['lat'], '-8.05');
+        expect(request.url.queryParameters['lng'], '-34.9');
+        expect(request.url.queryParameters['radius_km'], '25.0');
         expect(request.headers.containsKey('authorization'), isFalse);
         return http.Response(
           jsonEncode({
@@ -23,6 +26,9 @@ void main() {
               {
                 'id': 3,
                 'name': 'Carnes Centro',
+                'latitude': '-8.05',
+                'longitude': -34.9,
+                'distance_km': 1.25,
                 'city': 'Recife',
                 'state': 'PE',
                 'zip_code': '50000000',
@@ -40,9 +46,17 @@ void main() {
         );
       }),
     );
-    final page = await repository.listUnits();
+    final page = await repository.listUnits(
+      latitude: -8.05,
+      longitude: -34.9,
+      radiusKm: 25,
+    );
     expect(page.items.single.id, '3');
     expect(page.items.single.name, 'Carnes Centro');
+    expect(page.items.single.latitude, -8.05);
+    expect(page.items.single.longitude, -34.9);
+    expect(page.items.single.distanceKm, 1.25);
+    expect(page.items.single.distanceLabel, '1,3 km de distância');
   });
 
   test('requests only sellable products and parses stock pagination', () async {

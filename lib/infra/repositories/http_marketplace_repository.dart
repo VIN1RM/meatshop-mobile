@@ -154,6 +154,9 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     coverUrl: _nullableString(json['cover_url']),
     createdAt: DateTime.fromMillisecondsSinceEpoch(0),
     averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0,
+    latitude: double.tryParse('${json['latitude']}'),
+    longitude: double.tryParse('${json['longitude']}'),
+    distanceKm: double.tryParse('${json['distance_km']}'),
   );
   static CategoryModel _category(Map<String, Object?> json) => CategoryModel(
     id: '${json['id']}',

@@ -45,9 +45,13 @@ class FakeDelivery extends Fake implements DeliveryRepository {
   final consents = <bool>[];
   final sent = <Map<String, Object?>>[];
   ApiFailure? failure;
+  Completer<String?>? enableResponse;
+  bool failRevocation = false;
   @override
   Future<String?> setLocationSharing(int id, bool enabled) async {
     consents.add(enabled);
+    if (!enabled && failRevocation) throw StateError('offline');
+    if (enabled && enableResponse != null) return enableResponse!.future;
     return enabled ? '00000000-0000-4000-8000-000000000001' : null;
   }
 
@@ -142,6 +146,27 @@ void main() {
     expect(controller.sharing, false);
     expect(repository.consents, [true, false]);
   });
+  testWidgets(
+    'retries revocation when enable completes after stopping offline',
+    (tester) async {
+      repository.enableResponse = Completer<String?>();
+      final starting = controller.start(42);
+      await tester.pump();
+      expect(repository.consents, [true]);
+      await controller.stop();
+      repository.failRevocation = true;
+      repository.enableResponse!.complete(
+        '00000000-0000-4000-8000-000000000001',
+      );
+      expect(await starting, false);
+      expect(repository.consents, [true, false]);
+      expect(repository.sent, isEmpty);
+      repository.failRevocation = false;
+      await tester.pump(const Duration(seconds: 10));
+      expect(repository.consents, [true, false, false]);
+      expect(controller.sharing, false);
+    },
+  );
   test('ends sharing after a definitive remote rejection', () async {
     repository.failure = const ApiFailure(
       kind: ApiFailureKind.conflict,

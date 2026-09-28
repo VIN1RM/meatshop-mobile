@@ -41,7 +41,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     _started = true;
     _realtime = context.read<BackendRealtimeAccess>().realtime;
     _positions = _realtime?.deliveryLocations.listen((event) {
-      if (event['orderId'] != widget.orderId || _ended) return;
+      if (event['orderId'] != widget.orderId ||
+          _ended ||
+          _order == null ||
+          '${event['deliveryPersonId']}' != _order!.deliveryPersonId) {
+        return;
+      }
       final lat = event['latitude'], lng = event['longitude'];
       final captured = DateTime.tryParse(
         '${event['capturedAt'] ?? event['recordedAt']}',

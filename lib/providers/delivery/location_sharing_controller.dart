@@ -73,7 +73,8 @@ class LocationSharingController extends ChangeNotifier {
       if (generation != _generation || _disposed) return false;
       final session = await repository.setLocationSharing(orderId, true);
       if (generation != _generation || _disposed) {
-        await repository.setLocationSharing(orderId, false);
+        _pendingRevocations.add(orderId);
+        await _flushRevocations();
         return false;
       }
       if (session == null || session.isEmpty) {
@@ -118,7 +119,9 @@ class LocationSharingController extends ChangeNotifier {
     if (_acquiring || !sharing || generation != _generation) return;
     _acquiring = true;
     try {
-      if (!await source.enabled()) {
+      final enabled = await source.enabled();
+      if (generation != _generation || !sharing) return;
+      if (!enabled) {
         message = 'GPS desligado. Ative-o e retome o compartilhamento.';
         await stop();
         return;

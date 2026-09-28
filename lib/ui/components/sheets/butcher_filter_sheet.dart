@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum ButcherSortOrder {
+  distanceAscending,
   nameAscending,
   nameDescending,
   ratingDescending,
@@ -14,7 +15,7 @@ class ButcherFilter {
   final bool openNowOnly;
 
   const ButcherFilter({
-    this.sortOrder = ButcherSortOrder.ratingDescending,
+    this.sortOrder = ButcherSortOrder.distanceAscending,
     this.openNowOnly = false,
   });
 
@@ -209,6 +210,12 @@ class _ButcherFilterSheetState extends State<ButcherFilterSheet> {
               ),
 
               const SizedBox(height: 24),
+              _optionChip(
+                label: 'Mais próximos',
+                icon: Icons.near_me_outlined,
+                value: ButcherSortOrder.distanceAscending,
+              ),
+              const SizedBox(height: 16),
               _sectionLabel('Ordem Alfabética'),
               const SizedBox(height: 10),
               Row(

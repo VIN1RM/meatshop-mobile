@@ -15,6 +15,7 @@ class DeliveryProvider extends ChangeNotifier {
   late final LocationSharingController locationSharing;
   Timer? _refreshTimer;
   bool _refreshing = false;
+  int _listeningVersion = 0;
   void _locationChanged() => notifyListeners();
   final DeliveryRepository repository;
 
@@ -58,6 +59,7 @@ class DeliveryProvider extends ChangeNotifier {
   bool get isReloading => _isReloading;
 
   void startListeningOrders(String uid) {
+    ++_listeningVersion;
     _deliveryPersonUid = uid;
     unawaited(_refreshBackendState().catchError((Object _) {}));
     _refreshTimer?.cancel();
@@ -67,6 +69,8 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   void stopListeningOrders() {
+    ++_listeningVersion;
+    _deliveryPersonUid = null;
     _refreshTimer?.cancel();
     _refreshTimer = null;
     stopLocationSharing();
@@ -330,25 +334,28 @@ class DeliveryProvider extends ChangeNotifier {
     if (_refreshing || _deliveryPersonUid == null) return;
     _refreshing = true;
     final uid = _deliveryPersonUid;
+    final version = _listeningVersion;
     try {
       final results = await Future.wait<Object?>([
         repository.availableOrders(),
         repository.activeOrder(),
         repository.profile(),
       ]);
+      if (uid != _deliveryPersonUid || version != _listeningVersion) return;
       _pendingOrders
         ..clear()
         ..addAll(results[0] as List<DeliveryOrder>);
-      if (uid != _deliveryPersonUid) return;
       final nextOrder = results[1] as DeliveryOrder?;
       if (nextOrder?.sharingEnabled == true &&
-          !locationSharing.sharing && !locationSharing.starting) {
+          !locationSharing.sharing &&
+          !locationSharing.starting) {
         // Reopening the app never silently restores a previous consent session.
         await repository.setLocationSharing(nextOrder!.id, false);
       }
       if (nextOrder?.id != _activeOrder?.id || nextOrder?.isTrackable != true) {
         await locationSharing.stop();
       }
+      if (uid != _deliveryPersonUid || version != _listeningVersion) return;
       _activeOrder = nextOrder?.isTrackable == true ? nextOrder : null;
       final profile = results[2] as Map<String, Object?>;
       _availability = profile['is_online'] == true
@@ -357,6 +364,7 @@ class DeliveryProvider extends ChangeNotifier {
       _averageRating = (profile['average_rating'] as num?)?.toDouble() ?? 0;
       _deliveryPersonId = (profile['id'] as num?)?.toInt();
       if (!isAvailable) await locationSharing.stop();
+      if (uid != _deliveryPersonUid || version != _listeningVersion) return;
       notifyListeners();
     } finally {
       _refreshing = false;
@@ -365,6 +373,7 @@ class DeliveryProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    ++_listeningVersion;
     _deliveryPersonUid = null;
     _refreshTimer?.cancel();
     locationSharing.removeListener(_locationChanged);
