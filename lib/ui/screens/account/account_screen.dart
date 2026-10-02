@@ -20,6 +20,16 @@ class _AccountScreenState extends State<AccountScreen> {
   static const Color _red = Color(0xFFC0392B);
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || context.read<UserProvider>().user != null) return;
+      final uid = context.read<AuthProvider>().currentUser?.uid;
+      if (uid != null) await context.read<UserProvider>().loadUser(uid);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -277,7 +287,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 setState(() => _isLoggingOut = true);
                 await Future.delayed(const Duration(milliseconds: 600));
                 if (!context.mounted) return;
-                context.read<AuthProvider>().logout(context);
+                await context.read<AuthProvider>().logout(context);
               },
         child: Row(
           children: [

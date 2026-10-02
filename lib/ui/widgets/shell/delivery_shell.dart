@@ -14,6 +14,7 @@ import 'package:meatshop_mobile/ui/dialogs/pending_profile_dialog.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:meatshop_mobile/providers/user/address_provider.dart';
+import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 
 class DeliveryShell extends StatefulWidget {
   const DeliveryShell({super.key});
@@ -39,6 +40,7 @@ class _DeliveryShellState extends State<DeliveryShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().currentUser?.uid ?? '';
       _deliveryProvider.startListeningOrders(uid);
+      context.read<DeliveryEarningsProvider>().load();
       _checkPendingProfile();
     });
   }

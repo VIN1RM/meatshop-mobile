@@ -210,19 +210,29 @@ class DeliveryProvider extends ChangeNotifier {
     }
   }
 
-  void logout(BuildContext context) {
-    stopListeningOrders();
+  Future<void> clearSession() async {
+    ++_listeningVersion;
+    _deliveryPersonUid = null;
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+    try {
+      await locationSharing.stop();
+    } catch (_) {}
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
     _pickupCode = null;
-    _deliveryPersonUid = null;
+    _vehicleInfo = {};
+    _deliveryPersonId = null;
+    _pendingOrders.clear();
+    _historyOrders.clear();
+    _isLoading = false;
+    _isLoadingHistory = false;
+    _historyError = null;
+    _lastError = null;
     _averageRating = 0.0;
     _reviewCount = 0;
+    _isReloading = false;
     notifyListeners();
-
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
   }
 
   void switchToClientMode(BuildContext context) {

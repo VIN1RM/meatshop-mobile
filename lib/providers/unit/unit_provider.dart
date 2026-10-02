@@ -148,6 +148,23 @@ class UnitProvider extends ChangeNotifier {
     }
   }
 
+  void clearSession() {
+    ++_selectionVersion;
+    ++_loadVersion;
+    locating = false;
+    locationError = null;
+    locationMode = UnitLocationMode.savedAddress;
+    _latitude = null;
+    _longitude = null;
+    _savedLatitude = null;
+    _savedLongitude = null;
+    _units = [];
+    _hoursMap = {};
+    _loading = false;
+    _error = null;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _disposed = true;

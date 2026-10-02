@@ -122,10 +122,7 @@ class ProvidersConfig {
       create: (_) => ProductReviewProvider(repository: reviews!),
     ),
     ChangeNotifierProvider(
-      create: (_) => DeliveryEarningsProvider(
-        deliveryPersonId: AuthService.instance.currentUser?.uid ?? '',
-        repository: delivery,
-      ),
+      create: (_) => DeliveryEarningsProvider(repository: delivery),
     ),
     ChangeNotifierProvider(
       create: (_) => CartProvider(

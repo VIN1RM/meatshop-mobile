@@ -13,20 +13,26 @@ class UserProvider extends ChangeNotifier {
   UserModel? _user;
   bool _isLoading = false;
   String? _error;
+  int _generation = 0;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
   Future<void> loadUser(String uid) async {
+    final generation = ++_generation;
     _setLoading(true);
     try {
-      _user = await _repository.getProfile();
+      final user = await _repository.getProfile();
+      if (generation != _generation) return;
+      _user = user;
     } catch (error) {
+      if (generation != _generation) return;
+      _user = null;
       _error = 'Não foi possível carregar seu perfil.';
       debugPrint('[UserProvider] load error: $error');
     } finally {
-      _setLoading(false);
+      if (generation == _generation) _setLoading(false);
     }
   }
 
@@ -36,13 +42,16 @@ class UserProvider extends ChangeNotifier {
     required String email,
     required String phone,
   }) async {
+    final generation = _generation;
     _error = null;
     try {
-      _user = await _repository.updateProfile(
+      final user = await _repository.updateProfile(
         name: name,
         email: email,
         phone: phone,
       );
+      if (generation != _generation) return;
+      _user = user;
       notifyListeners();
     } catch (error) {
       _error = 'Não foi possível atualizar seu perfil.';
@@ -52,11 +61,13 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<void> updateAvatar(String uid, File? file) async {
+    final generation = _generation;
     _error = null;
     try {
       final photoUrl = file == null
           ? await _clearAvatar(uid)
           : await _uploadAvatar(uid, file);
+      if (generation != _generation) return;
       _user = _user?.copyWith(photoUrl: photoUrl);
       notifyListeners();
     } catch (error) {
@@ -96,7 +107,9 @@ class UserProvider extends ChangeNotifier {
   }
 
   void clear() {
+    ++_generation;
     _user = null;
+    _isLoading = false;
     _error = null;
     notifyListeners();
   }

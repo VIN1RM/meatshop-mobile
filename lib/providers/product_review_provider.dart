@@ -70,4 +70,10 @@ class ProductReviewProvider extends ChangeNotifier {
 
   Stream<List<ProductReviewModel>> watchProductReviews(String productId) =>
       Stream.fromFuture(_repository.listProductReviews(productId));
+
+  void reset() {
+    _isLoading = false;
+    _error = null;
+    notifyListeners();
+  }
 }

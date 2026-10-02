@@ -20,6 +20,7 @@ class CartProvider extends ChangeNotifier {
   List<CartItemModel> _items = [];
   bool _isLoading = false;
   String? _error;
+  int _generation = 0;
 
   List<CartItemModel> get items => List.unmodifiable(_items);
   bool get isLoading => _isLoading;
@@ -38,15 +39,19 @@ class CartProvider extends ChangeNotifier {
   bool isUnitOpen(String unitId) => _unitOpenStatus[unitId] ?? true;
 
   Future<void> loadCart() async {
+    final generation = ++_generation;
     _setLoading(true);
     try {
-      _items = await _repository.getCart();
+      final items = await _repository.getCart();
+      if (generation != _generation) return;
+      _items = items;
       await _checkUnitsOpen();
     } catch (error) {
+      if (generation != _generation) return;
       _error = 'Não foi possível carregar o carrinho.';
       debugPrint('[CartProvider] load error: $error');
     } finally {
-      _setLoading(false);
+      if (generation == _generation) _setLoading(false);
     }
   }
 
@@ -83,6 +88,15 @@ class CartProvider extends ChangeNotifier {
     });
   }
 
+  void clearLocal() {
+    ++_generation;
+    _items = [];
+    _unitOpenStatus.clear();
+    _isLoading = false;
+    _error = null;
+    notifyListeners();
+  }
+
   String _requiredCartItemId(CartItemModel item) {
     if (item.cartItemId.isNotEmpty) return item.cartItemId;
     throw StateError('O item do carrinho não possui identificador remoto.');
@@ -96,9 +110,15 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> _mutate(Future<void> Function() operation) async {
+    final generation = _generation;
     _error = null;
     try {
       await operation();
+      if (generation != _generation) {
+        _items = [];
+        _unitOpenStatus.clear();
+        return;
+      }
       notifyListeners();
     } catch (error) {
       _error = 'Não foi possível atualizar o carrinho.';
