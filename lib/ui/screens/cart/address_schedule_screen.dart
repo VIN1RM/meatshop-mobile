@@ -77,6 +77,25 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   void _proceed() {
+    final address = context
+        .read<AddressProvider>()
+        .addresses
+        .where((a) => a.id == _selectedAddressId)
+        .firstOrNull;
+    if (address == null) return;
+    if (address.coordinateSource != 'USER_PIN' ||
+        address.lat == null ||
+        address.lng == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Confirme a entrada no mapa para receber a entrega neste endereço.',
+          ),
+        ),
+      );
+      _openAddressSheet(address: address);
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -342,6 +361,14 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
+                  if (address.coordinateSource != 'USER_PIN')
+                    Text(
+                      'Confirme o ponto no mapa',
+                      style: TextStyle(
+                        color: selected ? _white : _red,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   Text(
                     '${address.street}, ${address.number}',
                     style: TextStyle(

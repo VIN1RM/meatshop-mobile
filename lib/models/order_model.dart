@@ -1,3 +1,5 @@
+import 'address_model.dart';
+
 class OrderItemModel {
   final String productId;
   final String productName;
@@ -16,15 +18,21 @@ class OrderItemModel {
   });
 
   String get quantityLabel {
-    if (unitOfMeasure == 'kg' || unitOfMeasure == 'g') {
-      final grams = (quantity * 1000).round();
-      return grams >= 1000 ? '${quantity.toStringAsFixed(0)} kg' : '$grams g';
+    final unit = unitOfMeasure.trim().toLowerCase();
+    if (unit == 'kg' && quantity > 0 && quantity < 1) {
+      return '${_formatQuantity(quantity * 1000)} g';
     }
-    return '${quantity.toStringAsFixed(0)} $unitOfMeasure';
+    return '${_formatQuantity(quantity)} $unit';
   }
+
+  static String _formatQuantity(double value) => value
+      .toStringAsFixed(3)
+      .replaceFirst(RegExp(r'\.?0+$'), '')
+      .replaceAll('.', ',');
 }
 
 class OrderModel {
+  final AddressModel? destination;
   final String id;
   final String clientId;
   final String unitId;
@@ -52,6 +60,7 @@ class OrderModel {
   final String? deliveryCode;
 
   const OrderModel({
+    this.destination,
     required this.id,
     required this.clientId,
     required this.unitId,
@@ -93,6 +102,7 @@ class OrderModel {
     bool? productsReviewed,
     String? deliveryCode,
   }) => OrderModel(
+    destination: destination,
     id: id,
     clientId: clientId,
     unitId: unitId,
@@ -160,6 +170,9 @@ class OrderModel {
               .toList(growable: false)
         : const <OrderItemModel>[];
     return OrderModel(
+      destination: data['destination'] is Map<String, Object?>
+          ? AddressModel.fromApi(data['destination'] as Map<String, Object?>)
+          : null,
       id: '${data['id'] ?? ''}',
       clientId: '${data['client_id'] ?? ''}',
       unitId: '${data['unit_id'] ?? ''}',

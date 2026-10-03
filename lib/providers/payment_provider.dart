@@ -14,6 +14,7 @@ class PaymentProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   StreamSubscription<List<PaymentMethodModel>>? _sub;
+  int _generation = 0;
 
   List<PaymentMethodModel> get cards => _cards;
   bool get isLoading => _isLoading;
@@ -21,21 +22,27 @@ class PaymentProvider extends ChangeNotifier {
   bool get requiresTokenizedCard => true;
 
   void init() {
+    final generation = ++_generation;
     _sub?.cancel();
     _isLoading = true;
     _error = null;
     notifyListeners();
-    unawaited(_load(_repository));
+    unawaited(_load(_repository, generation));
   }
 
-  Future<void> _load(PaymentRepository repository) async {
+  Future<void> _load(PaymentRepository repository, int generation) async {
     try {
-      _cards = await repository.list();
+      final cards = await repository.list();
+      if (generation != _generation) return;
+      _cards = cards;
     } catch (error) {
+      if (generation != _generation) return;
       _error = 'Erro ao carregar cartões: $error';
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (generation == _generation) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -82,6 +89,7 @@ class PaymentProvider extends ChangeNotifier {
   }
 
   void clear() {
+    ++_generation;
     _sub?.cancel();
     _cards = [];
     _isLoading = false;

@@ -5,23 +5,17 @@ import 'package:meatshop_mobile/models/delivery_goal_model.dart';
 import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class DeliveryEarningsProvider extends ChangeNotifier {
-  final String deliveryPersonId;
-
-  DeliveryEarningsProvider({
-    required this.deliveryPersonId,
-    required this.repository,
-  }) {
-    _init();
-  }
+  DeliveryEarningsProvider({required this.repository});
   final DeliveryRepository repository;
 
   List<DeliveryEarningModel> _earnings = [];
   List<DeliveryGoalModel> _goals = [];
-  bool _loadingEarnings = true;
-  bool _loadingGoals = true;
+  bool _loadingEarnings = false;
+  bool _loadingGoals = false;
 
   StreamSubscription<List<DeliveryEarningModel>>? _earningsSub;
   StreamSubscription<List<DeliveryGoalModel>>? _goalsSub;
+  int _generation = 0;
 
   List<DeliveryEarningModel> get earnings => _earnings;
   List<DeliveryGoalModel> get goals => _goals;
@@ -84,19 +78,41 @@ class DeliveryEarningsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _init() async {
+  Future<void> load() async {
+    if (loading) return;
+    final generation = ++_generation;
+    _loadingEarnings = true;
+    _loadingGoals = true;
+    notifyListeners();
     try {
       final values = await Future.wait([
         repository.earnings(),
         repository.goals(),
       ]);
+      if (generation != _generation) return;
       _earnings = values[0] as List<DeliveryEarningModel>;
       _goals = values[1] as List<DeliveryGoalModel>;
+    } catch (error) {
+      if (generation != _generation) return;
+      debugPrint('[DeliveryEarningsProvider] load error: $error');
     } finally {
-      _loadingEarnings = false;
-      _loadingGoals = false;
-      notifyListeners();
+      if (generation == _generation) {
+        _loadingEarnings = false;
+        _loadingGoals = false;
+        notifyListeners();
+      }
     }
+  }
+
+  void clear() {
+    ++_generation;
+    _earningsSub?.cancel();
+    _goalsSub?.cancel();
+    _earnings = [];
+    _goals = [];
+    _loadingEarnings = false;
+    _loadingGoals = false;
+    notifyListeners();
   }
 
   double _earnedForPeriod(GoalPeriod period) {

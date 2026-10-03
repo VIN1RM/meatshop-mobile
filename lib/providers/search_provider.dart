@@ -12,6 +12,7 @@ class SearchProvider extends ChangeNotifier {
   bool _isLoading = false;
   List<SearchResultModel> _results = [];
   Timer? _debounce;
+  int _generation = 0;
 
   String get query => _query;
   bool get isLoading => _isLoading;
@@ -27,6 +28,7 @@ class SearchProvider extends ChangeNotifier {
   bool get isEmpty => _query.isNotEmpty && !_isLoading && _results.isEmpty;
 
   void onQueryChanged(String value) {
+    final generation = ++_generation;
     _query = value;
     _debounce?.cancel();
 
@@ -42,6 +44,7 @@ class SearchProvider extends ChangeNotifier {
 
     _debounce = Timer(const Duration(milliseconds: 400), () async {
       final results = await _service.search(value);
+      if (generation != _generation) return;
       _results = results;
       _isLoading = false;
       notifyListeners();
@@ -49,6 +52,7 @@ class SearchProvider extends ChangeNotifier {
   }
 
   void clear({bool notify = true}) {
+    ++_generation;
     _query = '';
     _results = [];
     _isLoading = false;

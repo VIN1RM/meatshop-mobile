@@ -14,6 +14,10 @@ final class HttpDeliveryRepository implements DeliveryRepository {
   final ApiConfig? _config;
 
   @override
+  Future<Map<String, Object?>> trackingPolicy() =>
+      _client.get('/delivery/tracking-policy', decode: _map);
+
+  @override
   Future<Map<String, Object?>> profile() => _client.get(
     '/delivery/me',
     decode: (value) {
@@ -119,14 +123,31 @@ final class HttpDeliveryRepository implements DeliveryRepository {
     decode: (_) {},
   );
   @override
+  Future<String?> setLocationSharing(int orderId, bool enabled) =>
+      _client.patch(
+        '/delivery/orders/$orderId/sharing',
+        body: {'enabled': enabled},
+        decode: (value) => _map(value)['session_id'] as String?,
+      );
+  @override
   Future<void> sendLocation(
     int orderId,
     double latitude,
     double longitude, {
     double? accuracy,
+    required DateTime capturedAt,
+    required String sessionId,
+    required String sampleId,
+    bool isMocked = false,
   }) => _client.post(
     '/delivery/orders/$orderId/location',
-    body: _locationBody(latitude, longitude, accuracy),
+    body: {
+      ..._locationBody(latitude, longitude, accuracy),
+      'captured_at': capturedAt.toUtc().toIso8601String(),
+      'session_id': sessionId,
+      'sample_id': sampleId,
+      'is_mocked': isMocked,
+    },
     decode: (_) {},
   );
   @override
@@ -141,7 +162,9 @@ final class HttpDeliveryRepository implements DeliveryRepository {
         latitude: _number(point['latitude']),
         longitude: _number(point['longitude']),
         accuracy: point['accuracy'] == null ? null : _number(point['accuracy']),
-        recordedAt: DateTime.parse(point['created_at'] as String),
+        recordedAt: DateTime.parse(
+          (point['captured_at'] ?? point['created_at']) as String,
+        ),
       );
     },
   );

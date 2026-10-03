@@ -71,16 +71,19 @@ final class HttpFederatedAuthRepository implements FederatedAuthRepository {
 
   @override
   Future<void> logout() async {
-    final refreshToken = _session.current?.refreshToken;
-    if (refreshToken != null) {
-      await _client.post(
-        '/auth/logout',
-        authenticated: false,
-        body: {'refresh_token': refreshToken},
-        decode: (_) {},
-      );
+    try {
+      final refreshToken = _session.current?.refreshToken;
+      if (refreshToken != null) {
+        await _client.post(
+          '/auth/logout',
+          authenticated: false,
+          body: {'refresh_token': refreshToken},
+          decode: (_) {},
+        );
+      }
+    } finally {
+      await _session.clear();
     }
-    await _session.clear();
   }
 
   @override

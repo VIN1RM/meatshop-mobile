@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../components/maps/unit_location_selector.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/components/sheets/butcher_filter_sheet.dart';
@@ -55,6 +56,12 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
     }
 
     switch (_filter.sortOrder) {
+      case ButcherSortOrder.distanceAscending:
+        filteredUnits.sort(
+          (a, b) => (a.distanceKm ?? double.infinity).compareTo(
+            b.distanceKm ?? double.infinity,
+          ),
+        );
       case ButcherSortOrder.nameAscending:
         filteredUnits.sort((a, b) => a.name.compareTo(b.name));
       case ButcherSortOrder.nameDescending:
@@ -79,6 +86,8 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
     final parts = <String>[];
     if (_filter.openNowOnly) parts.add('Abertos agora');
     switch (_filter.sortOrder) {
+      case ButcherSortOrder.distanceAscending:
+        parts.add('Mais próximos');
       case ButcherSortOrder.nameAscending:
         parts.add('A → Z');
       case ButcherSortOrder.nameDescending:
@@ -97,7 +106,7 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
 
   bool get _filterActive =>
       _filter.openNowOnly ||
-      _filter.sortOrder != ButcherSortOrder.ratingDescending;
+      _filter.sortOrder != ButcherSortOrder.distanceAscending;
 
   Future<void> _openFilter() async {
     final selectedFilter = await ButcherFilterSheet.show(context, _filter);
@@ -148,6 +157,7 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
                   showBackButton: true,
                   onChanged: (_) => setState(() {}),
                 ),
+                const UnitLocationSelector(),
                 Expanded(
                   child: Column(
                     children: [
@@ -372,6 +382,14 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
+                    if (unit.distanceLabel != null)
+                      Text(
+                        unit.distanceLabel!,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
                     if (unit.city.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(

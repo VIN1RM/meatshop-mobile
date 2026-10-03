@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 enum ButcherSortOrder {
+  distanceAscending,
   nameAscending,
   nameDescending,
   ratingDescending,
@@ -14,7 +15,7 @@ class ButcherFilter {
   final bool openNowOnly;
 
   const ButcherFilter({
-    this.sortOrder = ButcherSortOrder.ratingDescending,
+    this.sortOrder = ButcherSortOrder.distanceAscending,
     this.openNowOnly = false,
   });
 
@@ -112,16 +113,17 @@ class _ButcherFilterSheetState extends State<ButcherFilterSheet> {
                 children: [
                   const Icon(Icons.filter_list_rounded, color: _red, size: 22),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Filtrar Açougues',
-                    style: TextStyle(
-                      color: Color(0xFF1A1A1A),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
+                  Expanded(
+                    child: const Text(
+                      'Filtrar Açougues',
+                      style: TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: const Icon(
@@ -209,6 +211,16 @@ class _ButcherFilterSheetState extends State<ButcherFilterSheet> {
               ),
 
               const SizedBox(height: 24),
+              Row(
+                children: [
+                  _optionChip(
+                    label: 'Mais próximos',
+                    icon: Icons.near_me_outlined,
+                    value: ButcherSortOrder.distanceAscending,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               _sectionLabel('Ordem Alfabética'),
               const SizedBox(height: 10),
               Row(

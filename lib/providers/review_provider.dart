@@ -26,13 +26,19 @@ class ReviewProvider extends ChangeNotifier {
     int? deliveryRating,
     String? deliveryComment,
   }) async {
+    if (_isLoading) return false;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      await _repository.reviewUnit(orderId, unitRating, unitComment);
-      if (deliveryPersonId != null && deliveryRating != null) {
+      final status = await _repository.getOrderStatus(orderId);
+      if (!status.unitReviewed) {
+        await _repository.reviewUnit(orderId, unitRating, unitComment);
+      }
+      if (deliveryPersonId != null &&
+          deliveryRating != null &&
+          !status.deliveryReviewed) {
         await _repository.reviewDelivery(
           orderId,
           deliveryRating,

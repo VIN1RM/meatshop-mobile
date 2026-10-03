@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meatshop_mobile/data/repositories/cart_repository.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
@@ -18,6 +20,27 @@ void main() {
     expect(repository.clearCalls, 1);
     expect(provider.items, isEmpty);
   });
+
+  test(
+    'ignores a cart response completed after local session cleanup',
+    () async {
+      final repository = _FakeCartRepository();
+      final provider = CartProvider(
+        uid: 'firebase-user',
+        repository: repository,
+      );
+      final pending = Completer<List<CartItemModel>>();
+      repository.pendingCart = pending;
+
+      final loading = provider.loadCart();
+      provider.clearLocal();
+      pending.complete([_item(productId: 'old', unitId: '10')]);
+      await loading;
+
+      expect(provider.items, isEmpty);
+      expect(provider.isLoading, isFalse);
+    },
+  );
 }
 
 CartItemModel _item({required String productId, required String unitId}) =>
@@ -35,6 +58,7 @@ CartItemModel _item({required String productId, required String unitId}) =>
 
 final class _FakeCartRepository implements CartRepository {
   int clearCalls = 0;
+  Completer<List<CartItemModel>>? pendingCart;
 
   @override
   Future<List<CartItemModel>> addItem(
@@ -52,7 +76,7 @@ final class _FakeCartRepository implements CartRepository {
   }
 
   @override
-  Future<List<CartItemModel>> getCart() async => [];
+  Future<List<CartItemModel>> getCart() async => pendingCart?.future ?? [];
 
   @override
   Future<List<CartItemModel>> removeItem(String itemId) async => [];

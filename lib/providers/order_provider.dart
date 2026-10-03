@@ -124,8 +124,13 @@ class OrderProvider extends ChangeNotifier {
     StreamSubscription<Map<String, Object?>>? statusSubscription;
     StreamSubscription<RealtimeConnectionState>? connectionSubscription;
     final subscribedOrderIds = <int>{};
+    Timer? fallback;
+    bool refreshing = false;
+    bool closed = false;
 
     Future<void> refresh() async {
+      if (refreshing || closed) return;
+      refreshing = true;
       try {
         final orders = await repository.list();
         final activeOrders = orders
@@ -134,6 +139,15 @@ class OrderProvider extends ChangeNotifier {
                   !const {'DELIVERED', 'CANCELLED'}.contains(order.status),
             )
             .toList(growable: false);
+        if (closed) return;
+        final ids = activeOrders
+            .map((o) => int.tryParse(o.id))
+            .whereType<int>()
+            .toSet();
+        for (final id in subscribedOrderIds.difference(ids).toList()) {
+          _realtime!.unsubscribeDelivery(id);
+          subscribedOrderIds.remove(id);
+        }
         for (final order in activeOrders) {
           final orderId = int.tryParse(order.id);
           if (orderId != null && subscribedOrderIds.add(orderId)) {
@@ -155,7 +169,9 @@ class OrderProvider extends ChangeNotifier {
           );
         }
       } catch (error, stackTrace) {
-        controller.addError(error, stackTrace);
+        if (!closed) controller.addError(error, stackTrace);
+      } finally {
+        refreshing = false;
       }
     }
 
@@ -163,12 +179,18 @@ class OrderProvider extends ChangeNotifier {
       onListen: () {
         refresh();
         _realtime!.connect();
+        fallback = Timer.periodic(
+          const Duration(seconds: 15),
+          (_) => refresh(),
+        );
         statusSubscription = _realtime.statuses.listen((_) => refresh());
         connectionSubscription = _realtime.connection.listen((state) {
           if (state == RealtimeConnectionState.connected) refresh();
         });
       },
       onCancel: () async {
+        closed = true;
+        fallback?.cancel();
         await statusSubscription?.cancel();
         await connectionSubscription?.cancel();
         for (final orderId in subscribedOrderIds) {

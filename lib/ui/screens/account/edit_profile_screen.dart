@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,7 +37,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _nameController.text = user.name;
         _emailController.text = user.email;
         _cpfController.text = _maskCpf(user.cpf);
-        _phoneController.text = user.phone;
+        _phoneController.text = InputMasks.phone(user.phone);
       }
     });
   }
@@ -209,10 +210,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           _buildTextField(
                             controller: _phoneController,
                             label: 'Celular',
-                            hint: '(00) 0 0000-0000',
+                            hint: '(00) 00000-0000',
                             icon: Icons.phone_outlined,
                             keyboardType: TextInputType.phone,
-                            inputFormatters: [_PhoneFormatter()],
+                            inputFormatters: [PhoneInputFormatter()],
                             validator: (v) {
                               if (v == null || v.isEmpty) {
                                 return 'Informe o celular';
@@ -461,28 +462,6 @@ class _AvatarSection extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _PhoneFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-    final buffer = StringBuffer();
-    for (int i = 0; i < digits.length && i < 11; i++) {
-      if (i == 0) buffer.write('(');
-      if (i == 2) buffer.write(') ');
-      if (i == 7) buffer.write('-');
-      buffer.write(digits[i]);
-    }
-    final text = buffer.toString();
-    return newValue.copyWith(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
     );
   }
 }

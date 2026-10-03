@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'location_sharing_controls.dart';
 import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -51,6 +52,8 @@ class ActiveDeliveryScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
+                            const LocationSharingControls(),
+                            const SizedBox(height: 12),
                             _StepCard(
                               stepNumber: 1,
                               label: 'RETIRADA',

@@ -12,6 +12,9 @@ class ProductReviewProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  Future<Set<String>> reviewedProductIds(String orderId) async =>
+      (await _repository.getOrderStatus(orderId)).reviewedProductIds;
+
   Future<bool> hasReviewedProduct({
     required String orderId,
     required String productId,
@@ -28,11 +31,15 @@ class ProductReviewProvider extends ChangeNotifier {
     required int rating,
     required String comment,
   }) async {
+    if (_isLoading) return false;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
+      if (await hasReviewedProduct(orderId: orderId, productId: productId)) {
+        return true;
+      }
       await _repository.reviewProduct(orderId, productId, rating, comment);
       return true;
     } catch (e) {
@@ -45,18 +52,25 @@ class ProductReviewProvider extends ChangeNotifier {
   }
 
   Future<bool> submitMultiple(List<ProductReviewModel> reviews) async {
+    if (_isLoading) return false;
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
+      final reviewedByOrder = <String, Set<String>>{};
       for (final review in reviews) {
+        final reviewed = reviewedByOrder[review.orderId] ??= Set.of(
+          (await _repository.getOrderStatus(review.orderId)).reviewedProductIds,
+        );
+        if (reviewed.contains(review.productId)) continue;
         await _repository.reviewProduct(
           review.orderId,
           review.productId,
           review.rating,
           review.comment,
         );
+        reviewed.add(review.productId);
       }
       return true;
     } catch (e) {
@@ -70,4 +84,10 @@ class ProductReviewProvider extends ChangeNotifier {
 
   Stream<List<ProductReviewModel>> watchProductReviews(String productId) =>
       Stream.fromFuture(_repository.listProductReviews(productId));
+
+  void reset() {
+    _isLoading = false;
+    _error = null;
+    notifyListeners();
+  }
 }

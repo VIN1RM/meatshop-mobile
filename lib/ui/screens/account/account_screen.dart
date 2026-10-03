@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -18,6 +19,16 @@ class _AccountScreenState extends State<AccountScreen> {
   bool _isLoggingOut = false;
 
   static const Color _red = Color(0xFFC0392B);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || context.read<UserProvider>().user != null) return;
+      final uid = context.read<AuthProvider>().currentUser?.uid;
+      if (uid != null) await context.read<UserProvider>().loadUser(uid);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +149,12 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 16),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 14),
-          _infoRow('Telefone:', user?.phone ?? '—'),
+          _infoRow(
+            'Telefone:',
+            user == null || user.phone.trim().isEmpty
+                ? '—'
+                : InputMasks.phone(user.phone),
+          ),
           const SizedBox(height: 10),
           _infoRow('E-mail:', user?.email ?? '—'),
 
@@ -277,7 +293,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 setState(() => _isLoggingOut = true);
                 await Future.delayed(const Duration(milliseconds: 600));
                 if (!context.mounted) return;
-                context.read<AuthProvider>().logout(context);
+                await context.read<AuthProvider>().logout(context);
               },
         child: Row(
           children: [

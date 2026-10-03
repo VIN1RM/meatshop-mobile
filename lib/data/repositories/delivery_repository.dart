@@ -21,6 +21,7 @@ final class DeliveryTrackingPoint {
 }
 
 abstract interface class DeliveryRepository {
+  Future<Map<String, Object?>> trackingPolicy();
   Future<Map<String, Object?>> profile();
   Future<Map<String, Object?>> publicProfile(int deliveryPersonId);
   Future<Map<String, Object?>> register(String vehicle);
@@ -43,11 +44,16 @@ abstract interface class DeliveryRepository {
   Future<String> accept(int orderId);
   Future<void> reject(int orderId, List<String> reasons);
   Future<void> finish(int orderId, String code);
+  Future<String?> setLocationSharing(int orderId, bool enabled);
   Future<void> sendLocation(
     int orderId,
     double latitude,
     double longitude, {
     double? accuracy,
+    required DateTime capturedAt,
+    required String sessionId,
+    required String sampleId,
+    bool isMocked = false,
   });
   Future<DeliveryTrackingPoint?> latestTracking(int orderId);
   Future<List<DeliveryEarningModel>> earnings();

@@ -50,8 +50,27 @@ final class HttpOrderRepository implements OrderRepository {
       summaries.map((value) {
         final id = _map(value)['id'];
         if (id is! num) throw _malformed('MALFORMED_ORDER_ID');
-        return get(id.toInt().toString());
+        return get(id.toInt().toString()).then(_withReviewStatus);
       }),
+    );
+  }
+
+  Future<OrderModel> _withReviewStatus(OrderModel order) async {
+    if (order.status != 'DELIVERED') return order;
+    return _client.get(
+      '/orders/${order.id}/reviews/status',
+      decode: (value) {
+        final status = _map(value);
+        final reviewedIds = _list(
+          status['reviewed_product_ids'],
+        ).map((id) => '$id').toSet();
+        return order.copyWith(
+          reviewed: status['unit_reviewed'] == true,
+          productsReviewed: order.items.every(
+            (item) => reviewedIds.contains(item.productId),
+          ),
+        );
+      },
     );
   }
 
@@ -104,9 +123,9 @@ final class HttpOrderRepository implements OrderRepository {
     final scheduled = _scheduledDate(summary);
     final paymentMethod = switch (summary.paymentMethod) {
       'pix' => 'Pix',
-      'credit' => 'Crédito',
-      'debit' => 'Débito',
-      'cash' => 'Dinheiro',
+      'credit' => 'Credit',
+      'debit' => 'Debit',
+      'cash' => 'Cash',
       _ => null,
     };
     final body = <String, Object?>{

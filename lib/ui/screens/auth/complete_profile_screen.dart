@@ -335,7 +335,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               visible: _phoneWasMissing,
               label: 'Celular',
               controller: _phoneController,
-              hint: '(00) 0 0000-0000',
+              hint: '(00) 00000-0000',
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               formatters: [PhoneInputFormatter()],
