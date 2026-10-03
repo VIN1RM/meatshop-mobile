@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,11 @@ import '../../../data/repositories/delivery_repository.dart';
 import '../../../data/repositories/order_repository.dart';
 import '../../../data/repositories/realtime_repository.dart';
 import '../../../models/order_model.dart';
+import '../../../models/unit_model.dart';
+import '../../../data/repositories/marketplace_context.dart';
 import '../../../core/network/api_failure.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/buttons_widget.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   const OrderTrackingScreen({super.key, required this.orderId});
@@ -26,6 +31,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   DeliveryTrackingPoint? _point;
   DateTime? _pointReceivedAt;
   OrderModel? _order;
+  UnitModel? _unit;
+  bool _loadingUnit = false;
+  String? _unitError;
   String? _error;
   bool _busy = false;
   bool _follow = true;
@@ -129,6 +137,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           }
         });
       }
+      if (_unit?.id != order.unitId && !_loadingUnit) {
+        unawaited(_loadUnit(order.unitId));
+      }
       if (_ended) {
         setState(() => _point = null);
         _timer?.cancel();
@@ -164,6 +175,56 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     }
   }
 
+  Future<void> _loadUnit(String unitId) async {
+    _loadingUnit = true;
+    try {
+      final unit = await context.read<MarketplaceContext>().repository.getUnit(
+        unitId,
+      );
+      if (!mounted || _order?.unitId != unitId) return;
+      final lat = unit.latitude;
+      final lng = unit.longitude;
+      final valid =
+          lat != null &&
+          lng != null &&
+          lat.isFinite &&
+          lng.isFinite &&
+          lat.abs() <= 90 &&
+          lng.abs() <= 180;
+      setState(() {
+        _unit = unit;
+        _unitError = valid ? null : 'Localização da unidade indisponível.';
+      });
+      if (valid && _follow) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_follow) return;
+          final destination = _order?.destination;
+          final points = <LatLng>[
+            LatLng(lat, lng),
+            if (destination?.lat != null && destination?.lng != null)
+              LatLng(destination!.lat!, destination.lng!),
+            if (_point != null) LatLng(_point!.latitude, _point!.longitude),
+          ];
+          _map.fitCamera(
+            CameraFit.bounds(
+              bounds: LatLngBounds.fromPoints(points),
+              padding: const EdgeInsets.all(48),
+              maxZoom: 16,
+            ),
+          );
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _unitError = 'Não foi possível carregar a unidade no mapa.',
+        );
+      }
+    } finally {
+      _loadingUnit = false;
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -194,105 +255,269 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         : age <= 30
         ? 'Posição atualizada'
         : 'Última posição há $age segundos';
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Entrega #${widget.orderId}'),
-        actions: [
-          IconButton(
-            onPressed: _refresh,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Atualizar',
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          ListTile(
-            title: Text(signal),
-            subtitle: Text(
-              _error ?? (destination?.fullAddress ?? 'Carregando destino…'),
-            ),
-          ),
-          if (_point?.accuracy != null)
-            Text('Precisão estimada: ${_point!.accuracy!.round()} m'),
-          Expanded(
-            child: FlutterMap(
-              mapController: _map,
-              options: MapOptions(
-                initialCenter: point ?? dest ?? const LatLng(-14.2, -51.9),
-                initialZoom: point == null && dest == null ? 4 : 16,
-                onPositionChanged: (_, gesture) {
-                  if (gesture && _follow) setState(() => _follow = false);
-                },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF2E2E2E),
+        body: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Image.asset(
+                'assets/images/background.png',
+                height: 130,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const SizedBox(height: 130),
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: const String.fromEnvironment(
-                    'MAP_TILE_URL',
-                    defaultValue:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  ),
-                  userAgentPackageName: 'com.meatshop.mobile',
-                ),
-                if (point != null && _point?.accuracy != null)
-                  CircleLayer(
-                    circles: [
-                      CircleMarker(
-                        point: point,
-                        radius: _point!.accuracy!,
-                        useRadiusInMeter: true,
-                        color: Colors.blue.withValues(alpha: 0.12),
-                      ),
-                    ],
-                  ),
-                MarkerLayer(
-                  markers: [
-                    if (dest != null)
-                      Marker(
-                        point: dest,
-                        width: 44,
-                        height: 44,
-                        child: const Tooltip(
-                          message: 'Destino',
-                          child: Icon(Icons.home, color: Colors.red, size: 36),
-                        ),
-                      ),
-                    if (point != null)
-                      Marker(
-                        point: point,
-                        width: 44,
-                        height: 44,
-                        child: const Tooltip(
-                          message: 'Entregador',
-                          child: Icon(
-                            Icons.delivery_dining,
-                            color: Colors.blue,
-                            size: 36,
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  const AppHeader(showBack: true),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 12, 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'ENTREGA #${widget.orderId}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
+                        IconButton(
+                          onPressed: _refresh,
+                          icon: const Icon(Icons.refresh_rounded),
+                          color: Colors.white,
+                          tooltip: 'Atualizar entrega',
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              _ended
+                                  ? Icons.check_circle_outline
+                                  : Icons.delivery_dining,
+                              color: AppColors.redPrimary,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                signal,
+                                style: const TextStyle(
+                                  color: AppColors.dark,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          destination?.fullAddress ?? 'Carregando destino…',
+                          style: const TextStyle(
+                            color: Color(0xFF555555),
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                        if (_point?.accuracy != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            'Precisão estimada: ${_point!.accuracy!.round()} m',
+                            style: const TextStyle(
+                              color: Color(0xFF777777),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        if (_unitError != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            _unitError!,
+                            style: const TextStyle(
+                              color: AppColors.redPrimary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        if (_error != null) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            _error!,
+                            style: const TextStyle(
+                              color: AppColors.redPrimary,
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
                       ),
-                  ],
-                ),
-                const SimpleAttributionWidget(
-                  source: Text('© OpenStreetMap contributors'),
-                ),
-              ],
+                      clipBehavior: Clip.antiAlias,
+                      child: FlutterMap(
+                        mapController: _map,
+                        options: MapOptions(
+                          initialCenter:
+                              point ?? dest ?? const LatLng(-14.2, -51.9),
+                          initialZoom: point == null && dest == null ? 4 : 16,
+                          onPositionChanged: (_, gesture) {
+                            if (gesture && _follow) {
+                              setState(() => _follow = false);
+                            }
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: const String.fromEnvironment(
+                              'MAP_TILE_URL',
+                              defaultValue:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            ),
+                            userAgentPackageName: 'com.meatshop.mobile',
+                          ),
+                          if (point != null && _point?.accuracy != null)
+                            CircleLayer(
+                              circles: [
+                                CircleMarker(
+                                  point: point,
+                                  radius: _point!.accuracy!,
+                                  useRadiusInMeter: true,
+                                  color: Colors.blue.withValues(alpha: 0.12),
+                                ),
+                              ],
+                            ),
+                          MarkerLayer(
+                            markers: [
+                              if (_unit != null &&
+                                  _unitError == null &&
+                                  _unit!.latitude != null &&
+                                  _unit!.longitude != null)
+                                Marker(
+                                  point: LatLng(
+                                    _unit!.latitude!,
+                                    _unit!.longitude!,
+                                  ),
+                                  width: 44,
+                                  height: 44,
+                                  child: Tooltip(
+                                    message: _unit!.name,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: AppColors.redPrimary,
+                                          width: 2,
+                                        ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 4,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.storefront_rounded,
+                                        color: AppColors.redPrimary,
+                                        size: 28,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (dest != null)
+                                Marker(
+                                  point: dest,
+                                  width: 44,
+                                  height: 44,
+                                  child: const Tooltip(
+                                    message: 'Destino',
+                                    child: Icon(
+                                      Icons.home,
+                                      color: AppColors.redPrimary,
+                                      size: 36,
+                                    ),
+                                  ),
+                                ),
+                              if (point != null)
+                                Marker(
+                                  point: point,
+                                  width: 44,
+                                  height: 44,
+                                  child: const Tooltip(
+                                    message: 'Entregador',
+                                    child: Icon(
+                                      Icons.delivery_dining,
+                                      color: Colors.blue,
+                                      size: 36,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SimpleAttributionWidget(
+                            source: Text('© OpenStreetMap contributors'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: PrimaryButton(
+                      label: 'Seguir entregador',
+                      icon: Icons.my_location_rounded,
+                      onPressed: point == null
+                          ? null
+                          : () {
+                              setState(() => _follow = true);
+                              _map.move(point, 16);
+                            },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SafeArea(
-            top: false,
-            child: TextButton.icon(
-              onPressed: point == null
-                  ? null
-                  : () {
-                      setState(() => _follow = true);
-                      _map.move(point, 16);
-                    },
-              icon: const Icon(Icons.my_location),
-              label: const Text('Seguir entregador'),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

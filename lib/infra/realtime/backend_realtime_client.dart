@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'web_socket_connector.dart';
 
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
@@ -61,6 +62,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
       '$_origin$namespace',
       io.OptionBuilder()
           .setTransports(['websocket'])
+          .setWebSocketConnector(connectRealtimeWebSocket)
           .disableAutoConnect()
           .enableReconnection()
           .setReconnectionAttempts(20)
@@ -96,7 +98,10 @@ final class BackendRealtimeClient implements RealtimeRepository {
   }
 
   void _configureDelivery(io.Socket socket) {
-    socket.on('delivery:access.revoked', (data) => _addMap(_deliveryStatuses, data));
+    socket.on(
+      'delivery:access.revoked',
+      (data) => _addMap(_deliveryStatuses, data),
+    );
     socket.on(
       'delivery:location.updated',
       (data) => _addMap(_deliveryLocations, data),
@@ -183,7 +188,10 @@ final class BackendRealtimeClient implements RealtimeRepository {
   @override
   void unsubscribeDelivery(int orderId) {
     final remaining = (_deliveryOrderIds[orderId] ?? 1) - 1;
-    if (remaining > 0) { _deliveryOrderIds[orderId] = remaining; return; }
+    if (remaining > 0) {
+      _deliveryOrderIds[orderId] = remaining;
+      return;
+    }
     _deliveryOrderIds.remove(orderId);
     _deliverySocket?.emit('delivery:unsubscribe-order', {'orderId': orderId});
   }
@@ -199,9 +207,13 @@ final class BackendRealtimeClient implements RealtimeRepository {
 
   @override
   void disconnect() {
-    _chatSocket?.dispose(); _deliverySocket?.dispose();
-    _chatSocket = null; _deliverySocket = null;
-    _deliveryOrderIds.clear(); _chatOrderId = null; _chatChannel = null;
+    _chatSocket?.dispose();
+    _deliverySocket?.dispose();
+    _chatSocket = null;
+    _deliverySocket = null;
+    _deliveryOrderIds.clear();
+    _chatOrderId = null;
+    _chatChannel = null;
   }
 
   void dispose() {

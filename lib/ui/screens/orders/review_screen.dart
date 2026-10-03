@@ -151,7 +151,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 const AppHeader(),
                 Expanded(
                   child: _step == 2
-                      ? _SuccessView(onDone: () => Navigator.of(context).pop())
+                      ? _SuccessView(
+                          onDone: () => Navigator.of(context).pop(true),
+                        )
                       : _FormView(
                           step: _step,
                           order: _args.order,

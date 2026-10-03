@@ -36,8 +36,8 @@ void main() {
                 'number': null,
                 'complement': null,
                 'neighborhood': null,
-                'image_url': null,
-                'cover_url': null,
+                'image_url': '/uploads/test.png',
+                'cover_url': 'https://cdn.example.com/cover.png',
               },
             ],
             'meta': {'page': 1, 'limit': 50, 'total': 1, 'totalPages': 1},
@@ -51,6 +51,8 @@ void main() {
       longitude: -34.9,
       radiusKm: 25,
     );
+    expect(page.items.single.imageUrl, 'http://10.0.2.2:3001/uploads/test.png');
+    expect(page.items.single.coverUrl, 'https://cdn.example.com/cover.png');
     expect(page.items.single.id, '3');
     expect(page.items.single.name, 'Carnes Centro');
     expect(page.items.single.latitude, -8.05);
@@ -75,7 +77,7 @@ void main() {
                 'unit_name': 'Loja',
                 'category_id': 2,
                 'brand': null,
-                'image_url': null,
+                'image_url': '/uploads/test.png',
                 'unit_of_measure': 'KG',
                 'price': 79.9,
                 'active': true,
@@ -89,25 +91,25 @@ void main() {
       }),
     );
     final page = await repository.listProducts(unitId: '7');
+    expect(page.items.single.imageUrl, 'http://10.0.2.2:3001/uploads/test.png');
     expect(page.items.single.stockQuantity, 4);
     expect(page.items.single.unitName, 'Loja');
   });
 }
 
 HttpMarketplaceRepository _repository(http.Client client) {
-  final transport = JsonHttpTransport(
-    config: ApiConfig(
-      baseUrl: Uri.parse('http://localhost:3001'),
-      environment: AppEnvironment.development,
-    ),
-    client: client,
+  final config = ApiConfig(
+    baseUrl: Uri.parse('http://10.0.2.2:3001'),
+    environment: AppEnvironment.development,
   );
+  final transport = JsonHttpTransport(config: config, client: client);
   final session = SessionCoordinator(
     store: _EmptyStore(),
     refresher: _NeverRefresh(),
   );
   return HttpMarketplaceRepository(
     ApiClient(transport: transport, session: session),
+    config,
   );
 }
 

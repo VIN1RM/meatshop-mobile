@@ -76,7 +76,7 @@ final class ApiFoundation {
         client: client,
         session: session,
       ),
-      marketplace: HttpMarketplaceRepository(client),
+      marketplace: HttpMarketplaceRepository(client, config),
       profile: HttpProfileRepository(client, config),
       addresses: HttpAddressRepository(client),
       cart: HttpCartRepository(client),
@@ -87,7 +87,10 @@ final class ApiFoundation {
       realtime: BackendRealtimeClient(config: config, session: session),
       notifications: HttpNotificationRepository(client),
       recipes: HttpRecipeRepository(client),
-      reviews: HttpReviewRepository(client, HttpMarketplaceRepository(client)),
+      reviews: HttpReviewRepository(
+        client,
+        HttpMarketplaceRepository(client, config),
+      ),
     );
   }
 

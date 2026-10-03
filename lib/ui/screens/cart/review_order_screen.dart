@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
@@ -23,7 +24,9 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   static const Color _white = Colors.white;
 
   Map<String, double> _feeByUnit = {};
-  bool _calculatingFees = false;
+  bool _calculatingFees = true;
+  bool _feesReady = false;
+  String? _feeError;
 
   @override
   void initState() {
@@ -32,17 +35,36 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   }
 
   Future<void> _calculateFees() async {
-    setState(() => _calculatingFees = true);
+    if (!mounted) return;
+    setState(() {
+      _calculatingFees = true;
+      _feesReady = false;
+      _feeError = null;
+      _feeByUnit = {};
+    });
     final orderProvider = context.read<OrderProvider>();
     try {
       final quote = await orderProvider.quote(widget.summary);
-      if (mounted && quote != null) {
-        setState(
-          () => _feeByUnit = {
-            for (final group in quote.groups) group.unitId: group.deliveryFee,
-          },
-        );
+      if (!mounted) return;
+      final unitIds = context.read<CartProvider>().itemsByUnit.keys;
+      if (quote == null ||
+          unitIds.isEmpty ||
+          !unitIds.every((id) => quote.groups.any((g) => g.unitId == id))) {
+        throw StateError('Incomplete delivery quote');
       }
+      setState(() {
+        _feeByUnit = {
+          for (final group in quote.groups) group.unitId: group.deliveryFee,
+        };
+        _feesReady = true;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _feeError = error is ApiFailure
+            ? error.message
+            : 'Não foi possível calcular a entrega. Tente novamente.';
+      });
     } finally {
       if (mounted) setState(() => _calculatingFees = false);
     }
@@ -118,6 +140,25 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         _buildPaymentCard(savedCard),
                         const SizedBox(height: 16),
 
+                        if (_feeError != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              children: [
+                                Text(
+                                  _feeError!,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                TextButton(
+                                  onPressed: _calculateFees,
+                                  child: const Text(
+                                    'Tentar calcular novamente',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         _buildTotals(cart.total, grandTotal),
                         const SizedBox(height: 32),
                         _buildConfirmButton(context, grandTotal),
@@ -500,7 +541,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                       ),
                     )
                   : Text(
-                      _fmt(_totalDeliveryFee),
+                      _feesReady ? _fmt(_totalDeliveryFee) : 'Indisponível',
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 15,
@@ -523,7 +564,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 ),
               ),
               Text(
-                _fmt(grandTotal),
+                _feesReady ? _fmt(grandTotal) : 'Aguardando entrega',
                 style: const TextStyle(
                   color: _white,
                   fontSize: 20,
@@ -540,7 +581,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   Widget _buildConfirmButton(BuildContext context, double grandTotal) {
     final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
-    final canConfirm = !_calculatingFees && !orderProvider.isLoading;
+    final canConfirm =
+        _feesReady && !_calculatingFees && !orderProvider.isLoading;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

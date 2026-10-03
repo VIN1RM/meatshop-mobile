@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -148,7 +149,12 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 16),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 14),
-          _infoRow('Telefone:', user?.phone ?? '—'),
+          _infoRow(
+            'Telefone:',
+            user == null || user.phone.trim().isEmpty
+                ? '—'
+                : InputMasks.phone(user.phone),
+          ),
           const SizedBox(height: 10),
           _infoRow('E-mail:', user?.email ?? '—'),
 

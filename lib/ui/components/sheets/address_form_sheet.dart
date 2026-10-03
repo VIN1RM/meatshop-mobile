@@ -217,11 +217,30 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                       externalError: _cepError,
                       onCompleted: _fetchCep,
                     ),
+                    const SizedBox(height: 12),
                     OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEAEAEA),
+                        foregroundColor: const Color(0xFF1A1A1A),
+                        disabledForegroundColor: const Color(0xFF888888),
+                        minimumSize: const Size(double.infinity, 48),
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: const TextStyle(fontSize: 14),
+                      ),
                       icon: Icon(
                         _pin == null
                             ? Icons.add_location_alt_outlined
                             : Icons.location_on,
+                        color: const Color(0xFFAAAAAA),
+                        size: 18,
                       ),
                       label: Text(
                         _pin == null
@@ -240,6 +259,7 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                               }
                             },
                     ),
+                    const SizedBox(height: 8),
                     const Text(
                       'Preencha o endereço e confirme o ponto no mapa para uma entrega mais precisa.',
                       style: TextStyle(fontSize: 12),

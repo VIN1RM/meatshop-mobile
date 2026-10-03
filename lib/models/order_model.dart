@@ -18,12 +18,17 @@ class OrderItemModel {
   });
 
   String get quantityLabel {
-    if (unitOfMeasure == 'kg' || unitOfMeasure == 'g') {
-      final grams = (quantity * 1000).round();
-      return grams >= 1000 ? '${quantity.toStringAsFixed(0)} kg' : '$grams g';
+    final unit = unitOfMeasure.trim().toLowerCase();
+    if (unit == 'kg' && quantity > 0 && quantity < 1) {
+      return '${_formatQuantity(quantity * 1000)} g';
     }
-    return '${quantity.toStringAsFixed(0)} $unitOfMeasure';
+    return '${_formatQuantity(quantity)} $unit';
   }
+
+  static String _formatQuantity(double value) => value
+      .toStringAsFixed(3)
+      .replaceFirst(RegExp(r'\.?0+$'), '')
+      .replaceAll('.', ',');
 }
 
 class OrderModel {

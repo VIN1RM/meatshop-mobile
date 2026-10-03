@@ -272,6 +272,7 @@ class _AddressPinPickerState extends State<AddressPinPicker> {
                           onPressed: _locating ? null : _locate,
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
+                            disabledForegroundColor: Colors.white,
                             side: const BorderSide(color: Colors.white70),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
@@ -291,7 +292,10 @@ class _AddressPinPickerState extends State<AddressPinPicker> {
                             _locating
                                 ? 'Obtendo localização...'
                                 : 'Usar minha localização',
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
