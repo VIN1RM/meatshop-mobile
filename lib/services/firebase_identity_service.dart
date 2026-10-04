@@ -112,6 +112,12 @@ class AuthService {
 
   Future<void> logout() => _auth.signOut();
 
+  Future<void> deleteCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) throw StateError('Usuário não autenticado.');
+    await user.delete();
+  }
+
   Future<void> sendPasswordResetEmail(String email) =>
       _auth.sendPasswordResetEmail(email: email.trim());
 

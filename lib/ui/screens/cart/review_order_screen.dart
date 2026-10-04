@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
@@ -22,9 +23,10 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   static const Color _white = Colors.white;
 
   Map<String, double> _feeByUnit = {};
-  bool _calculatingFees = false;
+  bool _calculatingFees = true;
+  bool _feesReady = false;
   CheckoutQuote? _quote;
-  String? _quoteError;
+  String? _feeError;
 
   @override
   void initState() {
@@ -33,29 +35,38 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   }
 
   Future<void> _calculateFees() async {
+    if (!mounted) return;
     setState(() {
       _calculatingFees = true;
-      _quoteError = null;
+      _feesReady = false;
+      _quote = null;
+      _feeError = null;
+      _feeByUnit = {};
     });
     final orderProvider = context.read<OrderProvider>();
     try {
       final quote = await orderProvider.quote(widget.summary);
-      if (mounted && quote != null) {
+      if (!mounted) return;
+      final unitIds = context.read<CartProvider>().itemsByUnit.keys;
+      if (quote == null ||
+          unitIds.isEmpty ||
+          !unitIds.every((id) => quote.groups.any((g) => g.unitId == id))) {
+        throw StateError('Incomplete delivery quote');
+      }
+      setState(() {
+        _feeByUnit = {
+          for (final group in quote.groups) group.unitId: group.deliveryFee,
+        };
         _quote = quote;
-        setState(
-          () => _feeByUnit = {
-            for (final group in quote.groups) group.unitId: group.deliveryFee,
-          },
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _quote = null;
-          _quoteError =
-              'Não foi possível calcular o pedido. Verifique o endereço, o pagamento e tente novamente.';
-        });
-      }
+        _feesReady = true;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _feeError = error is ApiFailure
+            ? error.message
+            : 'Não foi possível calcular a entrega. Tente novamente.';
+      });
     } finally {
       if (mounted) setState(() => _calculatingFees = false);
     }
@@ -123,18 +134,21 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         _buildPaymentCard(),
                         const SizedBox(height: 16),
 
-                        if (_quoteError != null)
+                        if (_feeError != null)
                           Padding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Column(
                               children: [
                                 Text(
-                                  _quoteError!,
-                                  style: const TextStyle(color: Colors.red),
+                                  _feeError!,
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                                 TextButton(
                                   onPressed: _calculateFees,
-                                  child: const Text('Tentar novamente'),
+                                  child: const Text(
+                                    'Tentar calcular novamente',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
                                 ),
                               ],
                             ),
@@ -144,7 +158,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                                 0,
                                 (sum, g) => sum + g.subtotal - g.discountAmount,
                               ) ??
-                              0,
+                              cart.total,
                           grandTotal,
                         ),
                         const SizedBox(height: 32),
@@ -522,7 +536,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                       ),
                     )
                   : Text(
-                      _fmt(_totalDeliveryFee),
+                      _feesReady ? _fmt(_totalDeliveryFee) : 'Indisponível',
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 15,
@@ -545,7 +559,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 ),
               ),
               Text(
-                _fmt(grandTotal),
+                _feesReady ? _fmt(grandTotal) : 'Aguardando entrega',
                 style: const TextStyle(
                   color: _white,
                   fontSize: 20,
@@ -563,10 +577,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
     final canConfirm =
-        _quote != null &&
-        _quoteError == null &&
-        !_calculatingFees &&
-        !orderProvider.isLoading;
+        _feesReady && !_calculatingFees && !orderProvider.isLoading;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

@@ -1,3 +1,4 @@
+import 'location_sharing_consent.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
@@ -126,29 +127,7 @@ class DeliveriesTab extends StatelessWidget {
                   if (!context.mounted || !provider.hasActiveOrder) {
                     return;
                   }
-                  final consent = await showDialog<bool>(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (dialogContext) => AlertDialog(
-                      title: const Text('Compartilhar localização?'),
-                      content: const Text(
-                        'Durante esta entrega, sua localização precisa poderá ser acompanhada pelo cliente e pela unidade. O envio termina ao concluir ou sair da entrega.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(dialogContext, false),
-                          child: const Text('Agora não'),
-                        ),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(dialogContext, true),
-                          child: const Text('Permitir durante a entrega'),
-                        ),
-                      ],
-                    ),
-                  );
-                  await provider.startLocationSharing(
-                    consent: consent ?? false,
-                  );
+                  await requestLocationSharing(context, provider);
                 },
                 onReject: () async {
                   final reasons = await RejectOrderDialog.show(context);

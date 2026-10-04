@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -266,10 +267,25 @@ class CartBagSheet extends StatelessWidget {
                   children: [
                     _MiniQtyButton(
                       icon: Icons.remove,
-                      onTap: () => provider.updateQuantity(
-                        item.productId,
-                        item.quantity - (item.unitOfMeasure == 'kg' ? 0.5 : 50),
-                      ),
+                      onTap: () async {
+                        final nextQuantity =
+                            item.quantity -
+                            (item.unitOfMeasure == 'kg' ? 0.5 : 50);
+                        if (nextQuantity <= 0) {
+                          final confirmed =
+                              await CustomDialog.showRemoveCartItem(
+                                context: context,
+                                productName: item.productName,
+                              );
+                          if (!context.mounted || !confirmed) return;
+                          await provider.removeItem(item.productId);
+                          return;
+                        }
+                        await provider.updateQuantity(
+                          item.productId,
+                          nextQuantity,
+                        );
+                      },
                     ),
                     const SizedBox(width: 6),
                     _MiniQtyButton(

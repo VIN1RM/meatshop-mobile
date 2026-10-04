@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../components/maps/unit_location_selector.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/providers/promotion_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/loading_widget.dart';
@@ -153,6 +154,7 @@ class _HomeBodyState extends State<HomeBody> {
                           _buildPromocoes(),
                           const SizedBox(height: 24),
                           _sectionTitle('AÇOUGUES'),
+                          const UnitLocationSelector(),
                           const SizedBox(height: 12),
                           _buildButchers(),
                           const SizedBox(height: 16),
@@ -509,7 +511,9 @@ class _HomeBodyState extends State<HomeBody> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                unit.name,
+                unit.distanceLabel == null
+                    ? unit.name
+                    : '${unit.name} · ${unit.distanceLabel}',
                 style: const TextStyle(
                   color: _white,
                   fontSize: 15,

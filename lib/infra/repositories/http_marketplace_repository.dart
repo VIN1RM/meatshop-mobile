@@ -1,3 +1,4 @@
+import '../../core/config/api_config.dart';
 import '../../core/enums/search_type_enum.dart';
 import '../../core/network/api_failure.dart';
 import '../../core/network/page.dart';
@@ -12,7 +13,8 @@ import '../../models/unit_model.dart';
 import '../http/api_client.dart';
 
 final class HttpMarketplaceRepository implements MarketplaceRepository {
-  HttpMarketplaceRepository(this._client);
+  HttpMarketplaceRepository(this._client, this._config);
+  final ApiConfig _config;
   final ApiClient _client;
 
   @override
@@ -138,7 +140,7 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     decode: (json) => Page.fromJson(json, _searchResult),
   );
 
-  static UnitModel _unit(Map<String, Object?> json) => UnitModel(
+  UnitModel _unit(Map<String, Object?> json) => UnitModel(
     id: '${json['id']}',
     name: _string(json, 'name'),
     cnpj: '',
@@ -150,10 +152,13 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     state: _string(json, 'state'),
     zipCode: _string(json, 'zip_code'),
     adminId: '',
-    imageUrl: _nullableString(json['image_url']),
-    coverUrl: _nullableString(json['cover_url']),
+    imageUrl: _config.resolveAsset(_nullableString(json['image_url'])),
+    coverUrl: _config.resolveAsset(_nullableString(json['cover_url'])),
     createdAt: DateTime.fromMillisecondsSinceEpoch(0),
     averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0,
+    latitude: double.tryParse('${json['latitude']}'),
+    longitude: double.tryParse('${json['longitude']}'),
+    distanceKm: double.tryParse('${json['distance_km']}'),
   );
   static CategoryModel _category(Map<String, Object?> json) => CategoryModel(
     id: '${json['id']}',
@@ -162,7 +167,7 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     active: json['active'] == true,
     unitId: '${json['unit_id']}',
   );
-  static ProductModel _product(Map<String, Object?> json) => ProductModel(
+  ProductModel _product(Map<String, Object?> json) => ProductModel(
     id: '${json['id']}',
     name: _string(json, 'name'),
     description: _nullableString(json['description']),
@@ -170,13 +175,13 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     unitOfMeasure: _string(json, 'unit_of_measure'),
     active: json['active'] == true,
     brand: _nullableString(json['brand']),
-    imageUrl: _nullableString(json['image_url']),
+    imageUrl: _config.resolveAsset(_nullableString(json['image_url'])),
     unitId: '${json['unit_id']}',
     unitName: _nullableString(json['unit_name']),
     categoryId: '${json['category_id']}',
     stockQuantity: (json['stock_quantity'] as num?)?.toInt() ?? 0,
   );
-  static PromotionModel _promotion(Map<String, Object?> json) {
+  PromotionModel _promotion(Map<String, Object?> json) {
     final product = json['product'] is Map<String, Object?>
         ? json['product'] as Map<String, Object?>
         : const <String, Object?>{};
@@ -200,7 +205,9 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       endsAt: DateTime.parse(_string(json, 'ends_at')),
       active: json['active'] == true,
       productName: _nullableString(product['name']),
-      productImageUrl: _nullableString(product['image_url']),
+      productImageUrl: _config.resolveAsset(
+        _nullableString(product['image_url']),
+      ),
       productUnitOfMeasure: _nullableString(product['unit_of_measure']).isEmpty
           ? 'kg'
           : _nullableString(product['unit_of_measure']),
@@ -218,7 +225,7 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     comment: _nullableString(json['comment']),
     createdAt: DateTime.parse(_string(json, 'created_at')),
   );
-  static SearchResultModel _searchResult(Map<String, Object?> json) {
+  SearchResultModel _searchResult(Map<String, Object?> json) {
     final type = _string(json, 'type');
     if (type == 'UNIT') {
       final unit = _unit(_map(json['unit']));

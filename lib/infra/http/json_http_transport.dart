@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 import '../../core/config/api_config.dart';
+import 'api_asset_resolver.dart';
 import '../../core/network/api_error_localizer.dart';
 import '../../core/network/api_failure.dart';
 import '../../core/network/cancellation_token.dart';
@@ -116,7 +117,7 @@ final class JsonHttpTransport {
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw _failureFromResponse(response, payload);
       }
-      return payload;
+      return ApiAssetResolver(_config).resolve(payload);
     } on http.RequestAbortedException catch (_) {
       throw _abortedFailure(timedOut);
     } on http.ClientException catch (_) {

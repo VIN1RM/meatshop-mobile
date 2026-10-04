@@ -1,6 +1,9 @@
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import '../fallback/order_processing_screen.dart';
+import 'package:meatshop_mobile/providers/review_provider.dart';
+import 'package:meatshop_mobile/providers/product_review_provider.dart';
 import 'package:flutter/material.dart';
+import 'order_tracking_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
@@ -385,8 +388,14 @@ class _ActiveOrderCard extends StatelessWidget {
               width: double.infinity,
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.deliveries),
+                onPressed: order.deliveryType != 'DELIVERY'
+                    ? null
+                    : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              OrderTrackingScreen(orderId: int.parse(order.id)),
+                        ),
+                      ),
                 icon: Icon(Icons.location_on_rounded, size: 16, color: red),
                 label: Text(
                   'Acompanhar entrega',
@@ -473,6 +482,42 @@ class _FinishedOrderCard extends StatefulWidget {
 class _FinishedOrderCardState extends State<_FinishedOrderCard>
     with SingleTickerProviderStateMixin {
   bool _expanded = false;
+  final Set<String> _unitReviewedOrders = {};
+  final Set<String> _productsReviewedOrders = {};
+
+  Future<void> _openReview(String route, Object arguments) async {
+    final order = widget.order;
+    final unitReviews = context.read<ReviewProvider>();
+    final productReviews = context.read<ProductReviewProvider>();
+    final result = await Navigator.pushNamed(
+      context,
+      route,
+      arguments: arguments,
+    );
+    if (!mounted) return;
+    if (result == true) {
+      setState(() {
+        if (route == AppRoutes.review) _unitReviewedOrders.add(order.id);
+        if (route == AppRoutes.writeProductReview) {
+          _productsReviewedOrders.add(order.id);
+        }
+      });
+    }
+    try {
+      final unitReviewed = await unitReviews.hasReviewed(order.id);
+      final products = await productReviews.reviewedProductIds(order.id);
+      if (!mounted) return;
+      setState(() {
+        if (unitReviewed) _unitReviewedOrders.add(order.id);
+        if (order.items.every((item) => products.contains(item.productId))) {
+          _productsReviewedOrders.add(order.id);
+        }
+      });
+    } catch (_) {
+      // The order stream will retry the persisted status on its next refresh.
+    }
+  }
+
   late final AnimationController _ctrl;
   late final Animation<double> _anim;
 
@@ -757,12 +802,13 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  if (!isCancelled && !order.reviewed)
+                  if (!isCancelled &&
+                      !order.reviewed &&
+                      !_unitReviewedOrders.contains(order.id))
                     GestureDetector(
-                      onTap: () => Navigator.pushNamed(
-                        context,
+                      onTap: () => _openReview(
                         AppRoutes.review,
-                        arguments: ReviewArgs(
+                        ReviewArgs(
                           order: order,
                           deliveryPersonId: order.deliveryPersonId ?? '',
                           unitImageUrl: order.unitLogoUrl,
@@ -800,12 +846,13 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                         ),
                       ),
                     ),
-                  if (!isCancelled && !order.productsReviewed)
+                  if (!isCancelled &&
+                      !order.productsReviewed &&
+                      !_productsReviewedOrders.contains(order.id))
                     GestureDetector(
-                      onTap: () => Navigator.pushNamed(
-                        context,
+                      onTap: () => _openReview(
                         AppRoutes.writeProductReview,
-                        arguments: WriteProductReviewScreenArgs(
+                        WriteProductReviewScreenArgs(
                           order: order,
                           items: order.items,
                         ),

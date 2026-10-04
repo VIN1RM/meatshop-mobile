@@ -2,6 +2,11 @@ import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 
 class DeliveryOrder {
+  final String orderStatus;
+  final bool sharingEnabled;
+  bool get isTrackable =>
+      const {'READY', 'OUT_FOR_DELIVERY'}.contains(orderStatus) &&
+      status == DeliveryOrderStatus.onTheWay;
   final int id;
   final String firestoreId;
   final String clientId;
@@ -22,6 +27,8 @@ class DeliveryOrder {
 
   DeliveryOrder({
     required this.id,
+    this.orderStatus = 'READY',
+    this.sharingEnabled = false,
     this.firestoreId = '',
     this.clientId = '',
     required this.clientName,
@@ -70,6 +77,8 @@ class DeliveryOrder {
     final deliveryStatus = '${data['delivery_status'] ?? ''}';
     return DeliveryOrder(
       id: id,
+      orderStatus: '${data['status'] ?? ''}',
+      sharingEnabled: data['sharing_enabled'] == true,
       clientId: '${data['client_id'] ?? ''}',
       clientName: '${data['client_name'] ?? 'Cliente'}',
       unitId: '${data['unit_id'] ?? ''}',

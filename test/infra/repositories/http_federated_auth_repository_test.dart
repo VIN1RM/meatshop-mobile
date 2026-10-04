@@ -100,6 +100,38 @@ void main() {
 
     expect(store.tokens, isNull);
   });
+
+  test('clears the local session even when remote logout fails', () async {
+    final store = _MemorySessionStore();
+    final repository = _repository(
+      store,
+      MockClient((request) async {
+        if (request.url.path == '/auth/firebase/exchange') {
+          return http.Response(
+            jsonEncode({
+              'access_token': 'access-secret',
+              'refresh_token': 'refresh-secret',
+              'user': {
+                'id': 7,
+                'email': 'client@example.com',
+                'name': 'Client',
+                'app_profile': 'CLIENT',
+                'profile_complete': true,
+              },
+            }),
+            200,
+          );
+        }
+        expect(request.url.path, '/auth/logout');
+        return http.Response('{"message":"offline"}', 503);
+      }),
+    );
+    await repository.exchangeFirebaseToken('firebase-secret');
+
+    await expectLater(repository.logout(), throwsA(isA<ApiFailure>()));
+
+    expect(store.tokens, isNull);
+  });
 }
 
 HttpFederatedAuthRepository _repository(

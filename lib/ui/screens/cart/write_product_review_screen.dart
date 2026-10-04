@@ -31,6 +31,13 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
 
   late WriteProductReviewScreenArgs _args;
   bool _argsLoaded = false;
+  bool _loadingStatus = true;
+  String? _statusError;
+  Set<String> _reviewedIds = {};
+  List<OrderItemModel> get _pendingItems => {
+    for (final item in _args.items)
+      if (!_reviewedIds.contains(item.productId)) item.productId: item,
+  }.values.toList();
 
   final Map<String, int> _ratings = {};
   final Map<String, TextEditingController> _commentCtrls = {};
@@ -47,7 +54,30 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
           _commentCtrls[item.productId] = TextEditingController();
         }
         _argsLoaded = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _loadStatus());
       }
+    }
+  }
+
+  Future<void> _loadStatus() async {
+    if (!mounted) return;
+    setState(() {
+      _loadingStatus = true;
+      _statusError = null;
+    });
+    try {
+      final ids = await context
+          .read<ProductReviewProvider>()
+          .reviewedProductIds(_args.order.id);
+      if (mounted) setState(() => _reviewedIds = ids);
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _statusError = 'Não foi possível consultar as avaliações.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loadingStatus = false);
     }
   }
 
@@ -63,7 +93,7 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
     final provider = context.read<ProductReviewProvider>();
 
     final reviews = <ProductReviewModel>[];
-    for (final item in _args.items) {
+    for (final item in _pendingItems) {
       final rating = _ratings[item.productId] ?? 0;
 
       if (rating == 0) {
@@ -107,10 +137,49 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_argsLoaded) {
+    if (!_argsLoaded || _loadingStatus) {
       return Scaffold(
         backgroundColor: _bg,
         body: const Center(child: CircularProgressIndicator(color: _red)),
+      );
+    }
+
+    if (_statusError != null || _pendingItems.isEmpty) {
+      return Scaffold(
+        backgroundColor: _bg,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const AppHeader(showBack: true),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _statusError ??
+                              'Todos os produtos deste pedido já foram avaliados.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        if (_statusError != null)
+                          TextButton(
+                            onPressed: _loadStatus,
+                            child: const Text(
+                              'Tentar novamente',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -162,7 +231,7 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        ..._args.items.map(
+                        ..._pendingItems.map(
                           (item) => _ProductReviewCard(
                             item: item,
                             rating: _ratings[item.productId] ?? 0,

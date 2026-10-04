@@ -138,11 +138,12 @@ class OrderProvider extends ChangeNotifier {
     StreamSubscription<Map<String, Object?>>? statusSubscription;
     StreamSubscription<RealtimeConnectionState>? connectionSubscription;
     final subscribedOrderIds = <int>{};
-    Timer? refreshTimer;
-    var refreshing = false;
+    Timer? fallback;
+    bool refreshing = false;
+    bool closed = false;
 
     Future<void> refresh() async {
-      if (refreshing || controller.isClosed) return;
+      if (refreshing || closed) return;
       refreshing = true;
       try {
         final orders = await repository.list();
@@ -152,13 +153,22 @@ class OrderProvider extends ChangeNotifier {
                   !const {'DELIVERED', 'CANCELLED'}.contains(order.status),
             )
             .toList(growable: false);
+        if (closed) return;
+        final ids = activeOrders
+            .map((o) => int.tryParse(o.id))
+            .whereType<int>()
+            .toSet();
+        for (final id in subscribedOrderIds.difference(ids).toList()) {
+          _realtime!.unsubscribeDelivery(id);
+          subscribedOrderIds.remove(id);
+        }
         for (final order in activeOrders) {
           final orderId = int.tryParse(order.id);
           if (orderId != null && subscribedOrderIds.add(orderId)) {
             await _realtime!.subscribeDelivery(orderId);
           }
         }
-        if (controller.isClosed) return;
+        if (closed || controller.isClosed) return;
         if (active) {
           controller.add(activeOrders);
         } else {
@@ -174,7 +184,7 @@ class OrderProvider extends ChangeNotifier {
           );
         }
       } catch (error, stackTrace) {
-        if (!controller.isClosed) controller.addError(error, stackTrace);
+        if (!closed) controller.addError(error, stackTrace);
       } finally {
         refreshing = false;
       }
@@ -183,18 +193,19 @@ class OrderProvider extends ChangeNotifier {
     controller = StreamController<List<OrderModel>>(
       onListen: () {
         refresh();
-        refreshTimer = Timer.periodic(
-          const Duration(seconds: 10),
+        _realtime!.connect();
+        fallback = Timer.periodic(
+          const Duration(seconds: 15),
           (_) => refresh(),
         );
-        _realtime!.connect();
         statusSubscription = _realtime.statuses.listen((_) => refresh());
         connectionSubscription = _realtime.connection.listen((state) {
           if (state == RealtimeConnectionState.connected) refresh();
         });
       },
       onCancel: () async {
-        refreshTimer?.cancel();
+        closed = true;
+        fallback?.cancel();
         await statusSubscription?.cancel();
         await connectionSubscription?.cancel();
         for (final orderId in subscribedOrderIds) {

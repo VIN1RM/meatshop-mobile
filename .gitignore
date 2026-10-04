@@ -49,3 +49,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Markdown documentation
+*.md
+![Rr][Ee][Aa][Dd][Mm][Ee].md
+![Cc][Hh][Aa][Nn][Gg][Ee][Ll][Oo][Gg].md
+![Rr][Ee][Ll][Ee][Aa][Ss][Ee][Ss].md

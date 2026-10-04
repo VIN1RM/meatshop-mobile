@@ -16,6 +16,9 @@ void main() {
     final repository = _repository(
       MockClient((request) async {
         expect(request.url.path, '/units');
+        expect(request.url.queryParameters['lat'], '-8.05');
+        expect(request.url.queryParameters['lng'], '-34.9');
+        expect(request.url.queryParameters['radius_km'], '25.0');
         expect(request.headers.containsKey('authorization'), isFalse);
         return http.Response(
           jsonEncode({
@@ -23,6 +26,9 @@ void main() {
               {
                 'id': 3,
                 'name': 'Carnes Centro',
+                'latitude': '-8.05',
+                'longitude': -34.9,
+                'distance_km': 1.25,
                 'city': 'Recife',
                 'state': 'PE',
                 'zip_code': '50000000',
@@ -30,8 +36,8 @@ void main() {
                 'number': null,
                 'complement': null,
                 'neighborhood': null,
-                'image_url': null,
-                'cover_url': null,
+                'image_url': '/uploads/test.png',
+                'cover_url': 'https://cdn.example.com/cover.png',
               },
             ],
             'meta': {'page': 1, 'limit': 50, 'total': 1, 'totalPages': 1},
@@ -40,9 +46,19 @@ void main() {
         );
       }),
     );
-    final page = await repository.listUnits();
+    final page = await repository.listUnits(
+      latitude: -8.05,
+      longitude: -34.9,
+      radiusKm: 25,
+    );
+    expect(page.items.single.imageUrl, 'http://10.0.2.2:3001/uploads/test.png');
+    expect(page.items.single.coverUrl, 'https://cdn.example.com/cover.png');
     expect(page.items.single.id, '3');
     expect(page.items.single.name, 'Carnes Centro');
+    expect(page.items.single.latitude, -8.05);
+    expect(page.items.single.longitude, -34.9);
+    expect(page.items.single.distanceKm, 1.25);
+    expect(page.items.single.distanceLabel, '1,3 km de distância');
   });
 
   test('requests only sellable products and parses stock pagination', () async {
@@ -61,7 +77,7 @@ void main() {
                 'unit_name': 'Loja',
                 'category_id': 2,
                 'brand': null,
-                'image_url': null,
+                'image_url': '/uploads/test.png',
                 'unit_of_measure': 'KG',
                 'price': 79.9,
                 'active': true,
@@ -75,25 +91,25 @@ void main() {
       }),
     );
     final page = await repository.listProducts(unitId: '7');
+    expect(page.items.single.imageUrl, 'http://10.0.2.2:3001/uploads/test.png');
     expect(page.items.single.stockQuantity, 4);
     expect(page.items.single.unitName, 'Loja');
   });
 }
 
 HttpMarketplaceRepository _repository(http.Client client) {
-  final transport = JsonHttpTransport(
-    config: ApiConfig(
-      baseUrl: Uri.parse('http://localhost:3001'),
-      environment: AppEnvironment.development,
-    ),
-    client: client,
+  final config = ApiConfig(
+    baseUrl: Uri.parse('http://10.0.2.2:3001'),
+    environment: AppEnvironment.development,
   );
+  final transport = JsonHttpTransport(config: config, client: client);
   final session = SessionCoordinator(
     store: _EmptyStore(),
     refresher: _NeverRefresh(),
   );
   return HttpMarketplaceRepository(
     ApiClient(transport: transport, session: session),
+    config,
   );
 }
 

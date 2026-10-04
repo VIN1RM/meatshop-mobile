@@ -15,6 +15,7 @@ class VehicleProvider extends ChangeNotifier {
 
   List<Map<String, dynamic>> _vehicles = [];
   List<Map<String, dynamic>> get vehicles => _vehicles;
+  int _generation = 0;
 
   void selectVehicle(Map<String, dynamic> vehicle) {
     _vehicleInfo = vehicle;
@@ -34,7 +35,9 @@ class VehicleProvider extends ChangeNotifier {
 
   Future<void> loadVehicle(String uid) async {
     {
+      final generation = ++_generation;
       final values = await repository.vehicles();
+      if (generation != _generation) return;
       _vehicles = values
           .map((item) => <String, dynamic>{...item, '_docId': '${item['id']}'})
           .toList();
@@ -148,5 +151,14 @@ class VehicleProvider extends ChangeNotifier {
     if (extension == 'png') return 'image/png';
     if (extension == 'webp') return 'image/webp';
     return 'image/jpeg';
+  }
+
+  void clear() {
+    ++_generation;
+    _vehicleInfo = {};
+    _vehicleDocId = null;
+    _vehicles = [];
+    _isLoading = false;
+    notifyListeners();
   }
 }

@@ -11,6 +11,7 @@ class AddressModel {
   final bool isDefault;
   final double? lat;
   final double? lng;
+  final String coordinateSource;
 
   const AddressModel({
     required this.id,
@@ -25,6 +26,7 @@ class AddressModel {
     required this.isDefault,
     this.lat,
     this.lng,
+    this.coordinateSource = 'UNRESOLVED',
   });
 
   AddressModel copyWith({
@@ -40,6 +42,7 @@ class AddressModel {
     bool? isDefault,
     double? lat,
     double? lng,
+    String? coordinateSource,
   }) {
     return AddressModel(
       id: id ?? this.id,
@@ -54,6 +57,7 @@ class AddressModel {
       isDefault: isDefault ?? this.isDefault,
       lat: lat ?? this.lat,
       lng: lng ?? this.lng,
+      coordinateSource: coordinateSource ?? this.coordinateSource,
     );
   }
 
@@ -119,6 +123,7 @@ class AddressModel {
       isDefault: map['is_default'] == true,
       lat: coordinate('latitude'),
       lng: coordinate('longitude'),
+      coordinateSource: '${map['coordinate_source'] ?? 'UNRESOLVED'}',
     );
   }
 
@@ -132,6 +137,10 @@ class AddressModel {
     'state': state.trim().toUpperCase(),
     'zip_code': zipCode.trim(),
     'is_default': isDefault,
+    if (coordinateSource == 'USER_PIN' && lat != null && lng != null) ...{
+      'latitude': lat,
+      'longitude': lng,
+    },
   };
 
   static String _apiLabel(String value) {
