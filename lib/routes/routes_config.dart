@@ -35,6 +35,8 @@ import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
 import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
 import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';
 import 'package:meatshop_mobile/ui/screens/onboarding/onboarding_screen.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
   return {
@@ -94,7 +96,10 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.editProfile: (_) => const EditProfileScreen(),
     AppRoutes.addressSchedule: (_) => const AddressScheduleScreen(total: 0),
     AppRoutes.recipeTips: (_) => const RecipeTipsScreen(),
-    AppRoutes.recipeChat: (_) => const RecipeScreen(),
+    AppRoutes.recipeChat: (context) =>
+        context.read<AuthProvider>().isAuthenticated
+        ? const RecipeScreen()
+        : const LoginPage(),
     AppRoutes.forgotPassword: (_) => const ForgotPasswordPage(),
     AppRoutes.search: (_) => const SearchScreen(),
     AppRoutes.cart: (_) => const CartScreen(),

@@ -31,6 +31,7 @@ import '../data/repositories/chat_repository.dart';
 import '../data/repositories/realtime_repository.dart';
 import '../data/repositories/recipe_repository.dart';
 import '../data/repositories/review_repository.dart';
+import '../data/repositories/ai_assistant_repository.dart';
 import '../services/business_hours_service.dart';
 import '../services/promotion_service.dart';
 import '../services/search_service.dart';
@@ -50,6 +51,7 @@ class ProvidersConfig {
     RealtimeRepository? realtime,
     RecipeRepository? recipes,
     ReviewRepository? reviews,
+    AiAssistantRepository? aiAssistant,
     FeatureFlags flags = const FeatureFlags(
       backendAuth: false,
       backendMarketplace: false,
@@ -60,6 +62,7 @@ class ProvidersConfig {
       backendFirebaseServices: false,
     ),
   }) => [
+    Provider<AiAssistantRepository>.value(value: aiAssistant!),
     Provider<DeliveryRepository>.value(value: delivery!),
     Provider<OrderRepository>.value(value: orders!),
     Provider<BackendRealtimeAccess>.value(

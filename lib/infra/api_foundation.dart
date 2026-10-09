@@ -33,6 +33,8 @@ import '../data/repositories/recipe_repository.dart';
 import '../data/repositories/review_repository.dart';
 import 'repositories/http_recipe_repository.dart';
 import 'repositories/http_review_repository.dart';
+import '../data/repositories/ai_assistant_repository.dart';
+import 'repositories/http_ai_assistant_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -52,6 +54,7 @@ final class ApiFoundation {
     required this.notifications,
     required this.recipes,
     required this.reviews,
+    required this.aiAssistant,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -62,8 +65,9 @@ final class ApiFoundation {
         requireAppCheck: config.environment != AppEnvironment.development,
       ),
     );
+    final secureStorage = FlutterSecureKeyValueStore();
     final session = SessionCoordinator(
-      store: SecureSessionStore(FlutterSecureKeyValueStore()),
+      store: SecureSessionStore(secureStorage),
       refresher: BackendSessionRefresher(transport),
     );
     final client = ApiClient(transport: transport, session: session);
@@ -91,6 +95,7 @@ final class ApiFoundation {
         client,
         HttpMarketplaceRepository(client, config),
       ),
+      aiAssistant: HttpAiAssistantRepository(client, secureStorage),
     );
   }
 
@@ -110,6 +115,7 @@ final class ApiFoundation {
   final NotificationRepository notifications;
   final RecipeRepository recipes;
   final ReviewRepository reviews;
+  final AiAssistantRepository aiAssistant;
 
   Future<void> initialize() => session.initialize();
 
