@@ -14,6 +14,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ### Fixed
 - Formatação e lint de testes legados corrigidos para que os gates de qualidade executem sem avisos.
+- Auditoria de dependências mobile migrada para OSV-Scanner, sem depender do Dependency Graph do GitHub, e Actions oficiais atualizadas para runtimes Node.js 24.
 
 ---
 
