@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/services/recipe_service.dart';
+import 'package:meatshop_mobile/core/network/api_failure.dart';
+import 'package:meatshop_mobile/core/network/cancellation_token.dart';
+import 'package:meatshop_mobile/data/repositories/ai_assistant_repository.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
+import 'package:provider/provider.dart';
 
 class RecipeScreen extends StatefulWidget {
   const RecipeScreen({super.key});
@@ -15,12 +18,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
   static const Color _white = Colors.white;
   static const Color _cardDark = Color(0xFF4A4A4A);
 
-  final RecipeService _recipeService = RecipeService();
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   final List<_RecipeMsg> _messages = [];
   bool _isLoading = false;
+  bool _isRestoring = true;
+  CancellationToken? _cancellationToken;
+  String? _lastQuestion;
 
   @override
   void initState() {
@@ -32,11 +37,43 @@ class _RecipeScreenState extends State<RecipeScreen> {
         isUser: false,
       ),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreHistory());
   }
 
-  Future<void> _send() async {
-    final text = _controller.text.trim();
-    if (text.isEmpty || _isLoading) return;
+  Future<void> _restoreHistory() async {
+    try {
+      final history = await context.read<AiAssistantRepository>().loadHistory();
+      if (!mounted || history.isEmpty) return;
+      setState(() {
+        _messages
+          ..clear()
+          ..addAll(
+            history.map(
+              (message) =>
+                  _RecipeMsg(text: message.text, isUser: message.isUser),
+            ),
+          );
+      });
+      _scrollToBottom();
+    } on ApiFailure catch (failure) {
+      if (!mounted) return;
+      setState(
+        () => _messages.add(
+          _RecipeMsg(text: failure.message, isUser: false, isError: true),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isRestoring = false);
+    }
+  }
+
+  Future<void> _send([String? repeatedText]) async {
+    final text = (repeatedText ?? _controller.text).trim();
+    if (text.isEmpty || _isLoading || _isRestoring) return;
+
+    final token = CancellationToken();
+    _cancellationToken = token;
+    _lastQuestion = text;
 
     setState(() {
       _messages.add(_RecipeMsg(text: text, isUser: true));
@@ -46,19 +83,74 @@ class _RecipeScreenState extends State<RecipeScreen> {
     _scrollToBottom();
 
     try {
-      final reply = await _recipeService.sendMessage(text);
-      setState(() => _messages.add(_RecipeMsg(text: reply, isUser: false)));
-    } catch (e, stackTrace) {
-      debugPrint('❌ ERRO AO CHAMAR GEMINI: $e');
-      debugPrint('📍 StackTrace: $stackTrace');
+      final reply = await context.read<AiAssistantRepository>().send(
+        text,
+        cancellationToken: token,
+      );
+      if (!mounted) return;
+      setState(
+        () => _messages.add(_RecipeMsg(text: reply.text, isUser: false)),
+      );
+    } on ApiFailure catch (failure) {
+      if (!mounted || failure.kind == ApiFailureKind.cancelled) return;
       setState(
         () => _messages.add(
-          _RecipeMsg(text: 'Erro: $e', isUser: false, isError: true),
+          _RecipeMsg(text: failure.message, isUser: false, isError: true),
+        ),
+      );
+    } catch (error, stackTrace) {
+      debugPrint('Erro ao chamar o assistente: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (!mounted) return;
+      setState(
+        () => _messages.add(
+          const _RecipeMsg(
+            text: 'Não foi possível consultar o assistente. Tente novamente.',
+            isUser: false,
+            isError: true,
+          ),
         ),
       );
     } finally {
-      setState(() => _isLoading = false);
-      _scrollToBottom();
+      _cancellationToken = null;
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _scrollToBottom();
+      }
+    }
+  }
+
+  void _cancel() {
+    _cancellationToken?.cancel();
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _clearConversation() async {
+    if (_isLoading) _cancel();
+    setState(() => _isLoading = true);
+    try {
+      await context.read<AiAssistantRepository>().clearHistory();
+      if (!mounted) return;
+      setState(() {
+        _messages
+          ..clear()
+          ..add(
+            const _RecipeMsg(
+              text: 'Conversa limpa. Como posso ajudar com carnes ou receitas?',
+              isUser: false,
+            ),
+          );
+        _lastQuestion = null;
+      });
+    } on ApiFailure catch (failure) {
+      if (!mounted) return;
+      setState(
+        () => _messages.add(
+          _RecipeMsg(text: failure.message, isUser: false, isError: true),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -72,6 +164,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
         );
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _cancellationToken?.cancel();
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -97,6 +197,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
               children: [
                 const AppHeader(),
                 _buildSubtitle(),
+                _buildAiNotice(),
                 Expanded(child: _buildMessageList()),
                 _buildInputBar(),
               ],
@@ -112,29 +213,48 @@ class _RecipeScreenState extends State<RecipeScreen> {
       width: double.infinity,
       color: _surface,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.restaurant_menu_rounded, color: _red, size: 20),
-          SizedBox(width: 8),
-          Text(
-            'ASSISTENTE DE RECEITAS',
-            style: TextStyle(
-              color: _white,
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
+          const Icon(Icons.restaurant_menu_rounded, color: _red, size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'ASSISTENTE DE RECEITAS',
+              style: TextStyle(
+                color: _white,
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+              ),
             ),
+          ),
+          IconButton(
+            tooltip: 'Limpar conversa',
+            onPressed: _isLoading || _isRestoring
+                ? null
+                : () => _clearConversation(),
+            icon: const Icon(Icons.delete_outline, color: Colors.white70),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildAiNotice() => Container(
+    width: double.infinity,
+    color: const Color(0xFF252525),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: const Text(
+      'Respostas são geradas por IA e podem conter erros. O histórico fica no servidor por 7 dias. Não envie dados pessoais, de pedidos ou pagamento.',
+      style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.3),
+    ),
+  );
+
   Widget _buildMessageList() {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      itemCount: _messages.length + (_isLoading ? 1 : 0),
+      itemCount: _messages.length + (_isLoading || _isRestoring ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == _messages.length) return const _TypingBubble();
         return _buildBubble(_messages[index]);
@@ -184,6 +304,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
               style: const TextStyle(color: _white),
               onSubmitted: (_) => _send(),
               maxLines: null,
+              maxLength: 1000,
               decoration: InputDecoration(
                 hintText: 'Pergunte sobre carnes e receitas...',
                 hintStyle: const TextStyle(color: Colors.white38),
@@ -197,22 +318,41 @@ class _RecipeScreenState extends State<RecipeScreen> {
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
+                counterText: '',
               ),
             ),
           ),
           const SizedBox(width: 10),
           GestureDetector(
-            onTap: _isLoading ? null : _send,
+            onTap: _isRestoring ? null : (_isLoading ? _cancel : _send),
             child: Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: _isLoading ? Colors.grey : _red,
+                color: _isLoading || _isRestoring ? Colors.grey : _red,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.send_rounded, color: _white, size: 20),
+              child: Icon(
+                _isLoading
+                    ? Icons.stop_rounded
+                    : _isRestoring
+                    ? Icons.hourglass_top_rounded
+                    : Icons.send_rounded,
+                color: _white,
+                size: 20,
+              ),
             ),
           ),
+          if (!_isLoading &&
+              _messages.lastOrNull?.isError == true &&
+              _lastQuestion != null) ...[
+            const SizedBox(width: 6),
+            IconButton(
+              tooltip: 'Tentar novamente',
+              onPressed: () => _send(_lastQuestion),
+              icon: const Icon(Icons.refresh, color: _white),
+            ),
+          ],
         ],
       ),
     );
@@ -223,7 +363,11 @@ class _RecipeMsg {
   final String text;
   final bool isUser;
   final bool isError;
-  _RecipeMsg({required this.text, required this.isUser, this.isError = false});
+  const _RecipeMsg({
+    required this.text,
+    required this.isUser,
+    this.isError = false,
+  });
 }
 
 class _TypingBubble extends StatefulWidget {

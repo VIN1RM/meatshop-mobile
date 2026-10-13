@@ -9,12 +9,28 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ## [Projeto ainda não publicado]
 
+### Changed
+- CI alinhado às branches oficiais `main` e `develop`, com lockfile compatível com o Flutter 3.35.5 usado nos runners.
+
+### Fixed
+- Formatação e lint de testes legados corrigidos para que os gates de qualidade executem sem avisos.
+- Auditoria de dependências mobile migrada para OSV-Scanner, sem depender do Dependency Graph do GitHub, e Actions oficiais atualizadas para runtimes Node.js 24.
+
 ---
 
 ## [3.0.0] - Em desenvolvimento
 ### Integração Mobile com Backend e PostgreSQL
 
 ### Added
+- Assistente culinário integrado ao backend autenticado, removendo a URL pública e qualquer segredo do aplicativo.
+- Contrato tipado de IA com timeout próprio, cancelamento, retry, request ID e mensagens de erro localizadas.
+- Aviso de uso de IA e privacidade, limite de entrada e teste do fluxo autenticado `/ai/chat`.
+- Histórico do assistente restaurado após fechar o aplicativo, retido por sete dias no PostgreSQL e apagável pelo usuário sem armazenar o conteúdo no dispositivo.
+- Proteção explícita da rota do assistente: visitantes são direcionados ao login.
+
+### Changed
+- A tela do assistente agora descarta controllers corretamente e protege atualizações assíncronas após o fechamento.
+- Falhas de rede, autenticação, rate limit e servidor deixaram de ser exibidas como respostas normais do bot.
 - Configuração local via `.env` nativo do Flutter e perfil do VS Code para iniciar o aplicativo apontando ao backend Docker sem expor dados específicos da máquina.
 - CI mobile para análise estática, testes com cobertura, APK release, build iOS sem assinatura, teste de integração em emulador Android e revisão de dependências.
 - Teste de integração do login e teste unitário para push data-only em segundo plano.

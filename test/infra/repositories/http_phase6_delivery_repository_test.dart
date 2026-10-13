@@ -83,9 +83,15 @@ void main() {
       );
 
       expect(await repository.accept(42), '482193');
-      await repository.sendLocation(42, -23.55, -46.63, accuracy: 12.5,
-        capturedAt: DateTime.utc(2026,9,11,12), sessionId:'00000000-0000-4000-8000-000000000001',
-        sampleId:'00000000-0000-4000-8000-000000000002');
+      await repository.sendLocation(
+        42,
+        -23.55,
+        -46.63,
+        accuracy: 12.5,
+        capturedAt: DateTime.utc(2026, 9, 11, 12),
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        sampleId: '00000000-0000-4000-8000-000000000002',
+      );
       expect(call, 2);
     },
   );

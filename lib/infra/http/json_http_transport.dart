@@ -33,12 +33,14 @@ final class JsonHttpTransport {
     Map<String, String> headers = const {},
     Object? body,
     CancellationToken? cancellationToken,
+    Duration? timeout,
   }) async {
     final dynamicHeaders = await _requestHeaders?.call() ?? const {};
     final uri = _config.resolve(path, query);
     final encodedBody = body == null ? null : utf8.encode(jsonEncode(body));
     return _execute(
       cancellationToken: cancellationToken,
+      timeout: timeout,
       buildRequest: (abortTrigger) {
         final request =
             http.AbortableRequest(
@@ -98,11 +100,12 @@ final class JsonHttpTransport {
   Future<Object?> _execute({
     required http.AbortableRequest Function(Future<void>) buildRequest,
     CancellationToken? cancellationToken,
+    Duration? timeout,
   }) async {
     _throwIfCancelled(cancellationToken);
     var timedOut = false;
     final abort = Completer<void>();
-    final timeout = Timer(_config.requestTimeout, () {
+    final timeoutTimer = Timer(timeout ?? _config.requestTimeout, () {
       timedOut = true;
       if (!abort.isCompleted) abort.complete();
     });
@@ -135,7 +138,7 @@ final class JsonHttpTransport {
         code: 'UNEXPECTED_ERROR',
       );
     } finally {
-      timeout.cancel();
+      timeoutTimer.cancel();
     }
   }
 

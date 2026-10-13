@@ -25,8 +25,9 @@ void main() {
         ),
         client: MockClient((request) async {
           final path = request.url.path;
-          if (path == '/orders')
+          if (path == '/orders') {
             return http.Response('[{"id":1},{"id":2}]', 200);
+          }
           if (path.endsWith('/reviews/status')) {
             return http.Response(
               jsonEncode({

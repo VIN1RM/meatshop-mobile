@@ -65,6 +65,16 @@ abstract final class ApiErrorLocalizer {
     'RESOURCE_ALREADY_EXISTS': 'Este registro já existe.',
     'RATE_LIMIT_EXCEEDED':
         'Muitas tentativas. Aguarde um momento e tente novamente.',
+    'AI_RATE_LIMITED':
+        'Você enviou muitas perguntas. Aguarde um momento e tente novamente.',
+    'AI_UPSTREAM_UNAVAILABLE':
+        'O assistente está indisponível no momento. Tente novamente em instantes.',
+    'AI_NOT_CONFIGURED':
+        'O assistente ainda não está disponível neste ambiente.',
+    'AI_INVALID_RESPONSE':
+        'O assistente retornou uma resposta inválida. Tente novamente.',
+    'AI_UNSAFE_INPUT':
+        'Essa solicitação não pode ser processada pelo assistente.',
     'INTERNAL_ERROR': 'Ocorreu um erro interno. Tente novamente mais tarde.',
   };
 
