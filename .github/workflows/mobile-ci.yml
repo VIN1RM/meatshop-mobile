@@ -2,9 +2,9 @@ name: Mobile CI
 
 on:
   push:
-    branches: [main, refactor/mobile-with-backend]
+    branches: [main, develop]
   pull_request:
-    branches: [main, refactor/mobile-with-backend]
+    branches: [main, develop]
 
 concurrency:
   group: mobile-ci-${{ github.ref }}

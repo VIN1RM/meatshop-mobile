@@ -9,6 +9,12 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ## [Projeto ainda não publicado]
 
+### Changed
+- CI alinhado às branches oficiais `main` e `develop`, com lockfile compatível com o Flutter 3.35.5 usado nos runners.
+
+### Fixed
+- Formatação e lint de testes legados corrigidos para que os gates de qualidade executem sem avisos.
+
 ---
 
 ## [3.0.0] - Em desenvolvimento
