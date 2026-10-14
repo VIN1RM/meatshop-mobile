@@ -25,26 +25,24 @@ void main() {
         ),
         client: MockClient((request) async {
           final path = request.url.path;
-          if (path == '/orders') {
-            return http.Response('[{"id":1},{"id":2}]', 200);
-          }
-          if (path.endsWith('/reviews/status')) {
-            return http.Response(
-              jsonEncode({
-                'unit_reviewed': true,
-                'delivery_reviewed': false,
-                'reviewed_product_ids': path.contains('/1/') ? [10, 20] : [10],
-              }),
-              200,
-            );
-          }
+          expect(path, '/orders/mobile');
           return http.Response(
             jsonEncode({
-              'id': path.split('/').last,
-              'status': 'DELIVERED',
-              'items': [
-                {'product_id': 10, 'quantity': 1},
-                {'product_id': 20, 'quantity': 1},
+              'has_more': false,
+              'data': [
+                for (final id in [1, 2])
+                  {
+                    'id': id,
+                    'status': 'DELIVERED',
+                    'items': [
+                      {'product_id': 10, 'quantity': 1},
+                      {'product_id': 20, 'quantity': 1},
+                    ],
+                    'review_status': {
+                      'unit_reviewed': true,
+                      'reviewed_product_ids': id == 1 ? [10, 20] : [10],
+                    },
+                  },
               ],
             }),
             200,

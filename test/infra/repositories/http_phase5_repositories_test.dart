@@ -85,28 +85,100 @@ void main() {
     },
   );
 
-  test('creates one Mercado Pago checkout for the entire order batch', () async {
-    final repository = HttpOrderRepository(
-      _apiClient(
-        MockClient((request) async {
-          expect(
-            request.url.path,
-            '/mercadopago/checkouts/123e4567-e89b-42d3-a456-426614174000/checkout',
-          );
-          return _json({
-            'ok': true,
-            'checkoutId': '123e4567-e89b-42d3-a456-426614174000',
-            'checkoutUrl': 'https://mercadopago.test/checkout',
-          }, statusCode: 201);
-        }),
-      ),
-    );
+  test(
+    'creates an individual Mercado Pago payment for the order seller',
+    () async {
+      final repository = HttpOrderRepository(
+        _apiClient(
+          MockClient((request) async {
+            expect(request.url.path, '/mercadopago/orders/101/checkout');
+            return _json({
+              'ok': true,
+              'checkoutId': '123e4567-e89b-42d3-a456-426614174000',
+              'checkoutUrl': 'https://mercadopago.test/checkout',
+            }, statusCode: 201);
+          }),
+        ),
+      );
 
-    expect(
-      await repository.createPayment('123e4567-e89b-42d3-a456-426614174000'),
-      'https://mercadopago.test/checkout',
+      expect(
+        await repository.createPayment('101'),
+        'https://mercadopago.test/checkout',
+      );
+    },
+  );
+
+  for (final entry in {
+    'pix': 'Pix',
+    'credit': 'Credit',
+    'debit': 'Debit',
+    'cash': 'Cash',
+    'machine': 'Card on Delivery',
+  }.entries) {
+    test(
+      'sends the backend payment enum for ${entry.key} and the reviewed total',
+      () async {
+        final repository = HttpOrderRepository(
+          _apiClient(
+            MockClient((request) async {
+              final body = jsonDecode(request.body) as Map<String, dynamic>;
+              expect(body['payment_method'], entry.value);
+              expect(body['expected_total'], 50);
+              expect(body.containsKey('saved_card_id'), isFalse);
+              if (entry.key == 'cash') expect(body['change_for'], 100);
+              return _json({
+                'checkout_id': 'checkout',
+                'orders': [_order(1, 4, 50)],
+                'total_amount': 50,
+              });
+            }),
+          ),
+        );
+        await repository.create(
+          CheckoutSummaryModel(
+            addressId: '12',
+            isScheduled: false,
+            paymentMethod: entry.key,
+            changeFor: entry.key == 'cash' ? 100 : null,
+          ).withExpectedTotal(50),
+          idempotencyKey: 'key',
+        );
+      },
     );
-  });
+  }
+
+  test(
+    'does not advertise online methods when disabled by the backend',
+    () async {
+      final repository = HttpOrderRepository(
+        _apiClient(
+          MockClient((request) async {
+            expect(request.url.path, '/mercadopago/capabilities');
+            return _json({'online': false});
+          }),
+        ),
+      );
+      expect(await repository.onlinePaymentsAvailable(), isFalse);
+    },
+  );
+
+  test(
+    'reordering updates the cart and reports unavailable products without creating payment',
+    () async {
+      final repository = HttpOrderRepository(
+        _apiClient(
+          MockClient((request) async {
+            expect(request.url.path, '/orders/101/repeat');
+            return _json({
+              'cart_updated': true,
+              'skippedItems': ['Unavailable product'],
+            });
+          }),
+        ),
+      );
+      expect(await repository.repeat('101'), ['Unavailable product']);
+    },
+  );
 
   test('maps only safe saved-card metadata from the backend', () async {
     final repository = HttpPaymentRepository(

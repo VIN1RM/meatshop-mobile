@@ -6,6 +6,18 @@ import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 
 void main() {
+  test(
+    'checkout clears only local items without deleting a new remote cart',
+    () async {
+      final repository = _FakeCartRepository();
+      final provider = CartProvider(uid: 'user', repository: repository);
+      await provider.addItem(_item(productId: '1', unitId: '10'));
+      provider.checkoutCompleted();
+      expect(provider.items, isEmpty);
+      expect(repository.clearCalls, 0);
+      provider.dispose();
+    },
+  );
   test('preserves multi-unit cart and clears remote persistence', () async {
     final repository = _FakeCartRepository();
     final provider = CartProvider(uid: 'firebase-user', repository: repository);

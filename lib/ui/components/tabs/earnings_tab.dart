@@ -36,7 +36,11 @@ class EarningsTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 4),
-          _sectionTitle('GANHOS EM TEMPO REAL'),
+          _sectionTitle('GANHOS DAS ENTREGAS'),
+          const Text(
+            'Os totais incluem valores a receber. Consulte em cada entrega se o açougue já registrou o pagamento.',
+            style: TextStyle(color: Colors.white70),
+          ),
           const SizedBox(height: 12),
           _TodayCard(total: todayTotal, deliveries: todayDeliveries),
           const SizedBox(height: 20),

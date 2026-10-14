@@ -84,7 +84,10 @@ final class ApiFoundation {
       profile: HttpProfileRepository(client, config),
       addresses: HttpAddressRepository(client),
       cart: HttpCartRepository(client),
-      orders: HttpOrderRepository(client),
+      orders: HttpOrderRepository(
+        client,
+        pendingStorage: FlutterSecureKeyValueStore(),
+      ),
       payments: HttpPaymentRepository(client),
       delivery: HttpDeliveryRepository(client, config),
       chat: HttpChatRepository(client),

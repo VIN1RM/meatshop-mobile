@@ -81,6 +81,12 @@ class CartProvider extends ChangeNotifier {
     });
   }
 
+  void checkoutCompleted() {
+    _items = [];
+    _unitOpenStatus.clear();
+    notifyListeners();
+  }
+
   Future<void> clearCart() async {
     await _mutate(() async {
       _items = await _repository.clear();
@@ -99,7 +105,7 @@ class CartProvider extends ChangeNotifier {
 
   String _requiredCartItemId(CartItemModel item) {
     if (item.cartItemId.isNotEmpty) return item.cartItemId;
-    throw StateError('O item do carrinho não possui identificador remoto.');
+    throw StateError('O item do carrinho nÃ£o possui identificador remoto.');
   }
 
   CartItemModel? _findByProductId(String productId) {
@@ -121,7 +127,7 @@ class CartProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (error) {
-      _error = 'Não foi possível atualizar o carrinho.';
+      _error = 'NÃ£o foi possÃ­vel atualizar o carrinho.';
       debugPrint('[CartProvider] mutation error: $error');
       notifyListeners();
     }

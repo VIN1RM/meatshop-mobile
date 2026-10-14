@@ -45,6 +45,44 @@ class OrderModel {
   final String deliveryType;
   final String paymentStatus;
   final String paymentMethod;
+  final String? checkoutId;
+  final DateTime? paymentDueAt;
+  final String? refundStatus;
+  final double refundedAmount;
+  final double? changeFor;
+  bool get isOfflinePayment =>
+      const {'Cash', 'Card on Delivery'}.contains(paymentMethod);
+  bool get canPay =>
+      status == 'PENDING' &&
+      const {'PENDING', 'REJECTED', 'CANCELLED'}.contains(paymentStatus) &&
+      !isOfflinePayment &&
+      paymentDueAt != null &&
+      paymentDueAt!.isAfter(DateTime.now());
+  String get paymentMethodLabel => switch (paymentMethod.toUpperCase()) {
+    'PIX' => 'Pix',
+    'CREDIT' || 'CREDIT_CARD' => 'Cartão de crédito',
+    'DEBIT' || 'DEBIT_CARD' => 'Cartão de débito',
+    'CASH' => 'Dinheiro',
+    'CARD ON DELIVERY' => 'Maquininha na entrega',
+    'MERCADO PAGO BALANCE' => 'Saldo Mercado Pago',
+    'BANK SLIP' => 'Boleto',
+    _ => paymentMethod.isEmpty ? 'Não informado' : paymentMethod,
+  };
+
+  String get paymentStatusLabel {
+    if (refundStatus == 'PENDING') return 'Estorno solicitado';
+    if (refundStatus == 'FAILED') return 'Estorno precisa de atendimento';
+    return switch (paymentStatus) {
+      'PAID' => 'Pago',
+      'REJECTED' => 'Pagamento recusado',
+      'REFUNDED' => 'Reembolsado',
+      'PARTIALLY_REFUNDED' => 'Reembolsado parcialmente',
+      'CHARGED_BACK' => 'Pagamento contestado',
+      'CANCELLED' => 'Pagamento cancelado',
+      _ => isOfflinePayment ? 'A pagar na entrega' : 'Aguardando pagamento',
+    };
+  }
+
   final double subtotal;
   final double deliveryFee;
   final double discountAmount;
@@ -73,6 +111,11 @@ class OrderModel {
     required this.deliveryType,
     required this.paymentStatus,
     required this.paymentMethod,
+    this.checkoutId,
+    this.paymentDueAt,
+    this.refundStatus,
+    this.refundedAmount = 0,
+    this.changeFor,
     required this.subtotal,
     required this.deliveryFee,
     required this.discountAmount,
@@ -115,6 +158,11 @@ class OrderModel {
     deliveryType: deliveryType,
     paymentStatus: paymentStatus,
     paymentMethod: paymentMethod,
+    checkoutId: checkoutId,
+    paymentDueAt: paymentDueAt,
+    refundStatus: refundStatus,
+    refundedAmount: refundedAmount,
+    changeFor: changeFor,
     subtotal: subtotal,
     deliveryFee: deliveryFee,
     discountAmount: discountAmount,
@@ -146,6 +194,12 @@ class OrderModel {
     final payment = data['payment'] is Map<String, Object?>
         ? data['payment']! as Map<String, Object?>
         : const <String, Object?>{};
+    final reviews = data['review_status'] is Map<String, Object?>
+        ? data['review_status'] as Map<String, Object?>
+        : null;
+    final reviewedProducts = reviews?['reviewed_product_ids'] is List
+        ? (reviews!['reviewed_product_ids'] as List).map((id) => '$id').toSet()
+        : <String>{};
     final rawItems = data['items'];
     final items = rawItems is List<Object?>
         ? rawItems
@@ -170,13 +224,17 @@ class OrderModel {
               .toList(growable: false)
         : const <OrderItemModel>[];
     return OrderModel(
+      reviewed: reviews?['unit_reviewed'] == true,
+      productsReviewed:
+          reviews != null &&
+          items.every((i) => reviewedProducts.contains(i.productId)),
       destination: data['destination'] is Map<String, Object?>
           ? AddressModel.fromApi(data['destination'] as Map<String, Object?>)
           : null,
       id: '${data['id'] ?? ''}',
       clientId: '${data['client_id'] ?? ''}',
       unitId: '${data['unit_id'] ?? ''}',
-      unitName: data['unit_name'] as String? ?? 'Açougue',
+      unitName: data['unit_name'] as String? ?? 'AÃ§ougue',
       unitLogoUrl: data['unit_logo_url'] as String? ?? '',
       addressId: '${data['address_id'] ?? ''}',
       status: data['status'] as String? ?? 'PENDING',
@@ -185,6 +243,11 @@ class OrderModel {
       deliveryType: data['delivery_type'] as String? ?? 'DELIVERY',
       paymentStatus: data['payment_status'] as String? ?? 'PENDING',
       paymentMethod: payment['method'] as String? ?? '',
+      checkoutId: data['checkout_id'] as String?,
+      paymentDueAt: date('payment_due_at'),
+      refundStatus: payment['refund_status'] as String?,
+      refundedAmount: double.tryParse('${payment['refunded_amount']}') ?? 0,
+      changeFor: double.tryParse('${data['change_for']}'),
       subtotal: number('subtotal'),
       deliveryFee: number('delivery_fee'),
       discountAmount: number('discount_amount'),

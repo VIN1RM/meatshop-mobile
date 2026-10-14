@@ -848,7 +848,7 @@ class AuthProvider extends ChangeNotifier {
     if (!context.mounted) return;
     await context.read<UserPreferencesProvider>().loadForUser(uid);
     if (!context.mounted) return;
-    context.read<PaymentProvider>().init();
+    // Card entry and saved cards are managed inside Mercado Pago Checkout Pro.
     _redirectAfterLogin(context);
   }
 
