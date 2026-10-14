@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import '../core/network/api_failure.dart';
 import 'package:meatshop_mobile/data/repositories/order_repository.dart';
 import 'package:meatshop_mobile/core/utils/idempotency_key.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
@@ -20,6 +21,7 @@ class OrderProvider extends ChangeNotifier {
   final RealtimeRepository? _realtime;
 
   bool _isLoading = false;
+  int _generation = 0;
   String? _error;
   String? _lastOrderId;
   String? _lastCheckoutId;
@@ -28,6 +30,15 @@ class OrderProvider extends ChangeNotifier {
   List<OrderModel> lastCheckoutOrders = [];
   Future<bool> onlinePaymentsAvailable() =>
       _repository.onlinePaymentsAvailable();
+  Future<Map<String, bool>> paymentAvailability(List<String> units) async {
+    final repository = _repository;
+    if (repository is CheckoutCapabilities) {
+      return (repository as CheckoutCapabilities).paymentAvailability(units);
+    }
+    final online = await onlinePaymentsAvailable();
+    return {for (final unit in units) unit: online};
+  }
+
   Future<String> payOrder(String id) => _repository.createPayment(id);
   Future<OrderModel> refreshPayment(String id) async {
     try {
@@ -36,6 +47,19 @@ class OrderProvider extends ChangeNotifier {
       /* The local state remains available during provider outages. */
     }
     return _repository.get(id);
+  }
+
+  Future<bool> recoverPending(CartProvider cart) async {
+    final repository = _repository;
+    if (repository is! CheckoutRecovery) return false;
+    final result = await (repository as CheckoutRecovery).recoverPending();
+    if (result == null) return false;
+    lastCheckoutOrders = result.orders;
+    _lastCheckoutId = result.checkoutId;
+    _lastOrderId = result.orders.firstOrNull?.id;
+    await cart.loadCart();
+    notifyListeners();
+    return true;
   }
 
   Future<OrderModel> getOrder(String id) => _repository.get(id);
@@ -56,8 +80,10 @@ class OrderProvider extends ChangeNotifier {
     required double total,
     required CartProvider cartProvider,
     Map<String, double> feeByUnit = const {},
+    String? quoteToken,
   }) async {
     if (_isLoading) return false;
+    final generation = _generation;
     _isLoading = true;
     _error = null;
     _paymentCheckoutUrl = null;
@@ -67,21 +93,28 @@ class OrderProvider extends ChangeNotifier {
       final key = _pendingIdempotencyKey ?? IdempotencyKey.generate();
       _pendingIdempotencyKey = key;
       final checkout = await _repository.create(
-        summary.withExpectedTotal(total),
+        summary.withExpectedTotal(total, token: quoteToken),
         idempotencyKey: key,
       );
+      if (generation != _generation) return false;
       _lastCheckoutId = checkout.checkoutId;
       _lastOrderId = checkout.orders.firstOrNull?.id;
       lastCheckoutOrders = checkout.orders;
       _pendingIdempotencyKey = null;
-      cartProvider.checkoutCompleted();
+      if (checkout.recovered) {
+        await cartProvider.loadCart();
+      } else {
+        cartProvider.checkoutCompleted();
+      }
       return true;
     } catch (error) {
       _error = _message(error);
       return false;
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (generation == _generation) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -218,6 +251,7 @@ class OrderProvider extends ChangeNotifier {
   }
 
   String _message(Object error) {
+    if (error is ApiFailure) return error.message;
     final text = error.toString();
     return text.isEmpty
         ? 'Erro ao registrar pedido.'
@@ -225,6 +259,7 @@ class OrderProvider extends ChangeNotifier {
   }
 
   void clear() {
+    ++_generation;
     lastCheckoutOrders = [];
     _lastOrderId = null;
     _lastCheckoutId = null;

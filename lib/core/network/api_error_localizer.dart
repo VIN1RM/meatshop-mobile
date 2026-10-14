@@ -29,6 +29,20 @@ abstract final class ApiErrorLocalizer {
     'ACCOUNT_DISABLED': 'Esta conta está desativada.',
     'ACCOUNT_LOCKED': 'Esta conta está temporariamente bloqueada.',
     'ADDRESS_IN_USE': 'Este endereço está sendo usado em um pedido.',
+    'INVALID_CHANGE_AMOUNT':
+        'O valor para troco deve cobrir o total com frete. Para vários açougues, use o valor exato.',
+    'PAYMENTS_DISABLED':
+        'Pagamento online indisponível. Escolha dinheiro ou maquininha.',
+    'SELLER_NOT_CONNECTED':
+        'Este açougue ainda não recebe online. Escolha outra forma de pagamento.',
+    'QUOTE_CHANGED':
+        'Os preços ou a cotação mudaram. Revise os novos valores e confirme novamente.',
+    'CHECKOUT_NOT_PAYABLE': 'Este pedido já foi pago, cancelado ou expirou.',
+    'IDEMPOTENCY_CONFLICT':
+        'Recupere o pedido anterior antes de iniciar uma nova compra.',
+    'PAYMENT_REQUIRED': 'Aguarde a confirmação do pagamento.',
+    'CANCELLATION_REQUIRES_SUPPORT':
+        'O pedido já está em preparo. Entre em contato com o açougue.',
     'EMPTY_CART': 'Seu carrinho está vazio.',
     'PRODUCT_UNAVAILABLE': 'Um dos produtos não está mais disponível.',
     'PRODUCT_NOT_AVAILABLE': 'Este produto não está disponível.',

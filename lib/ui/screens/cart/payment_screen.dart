@@ -41,6 +41,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (mounted) {
         setState(() {
           _online = enabled;
+          if (!enabled && !const {'cash', 'machine'}.contains(_method)) {
+            _method = 'cash';
+          }
           _error = null;
         });
       }

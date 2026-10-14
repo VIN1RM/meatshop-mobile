@@ -1,6 +1,5 @@
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
-import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -15,6 +14,8 @@ import 'package:meatshop_mobile/services/notification_service.dart';
 import 'package:meatshop_mobile/core/config/feature_flags.dart';
 import 'package:meatshop_mobile/infra/api_foundation.dart';
 import 'package:meatshop_mobile/services/firebase_complementary_services.dart';
+import 'core/utils/payment_return_intent.dart';
+import 'ui/widgets/payment_return_listener.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -104,15 +105,28 @@ class _MeatShopAppState extends State<MeatShopApp> {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFB71C1C)),
         ),
-        initialRoute: AppRoutes.splash,
+        initialRoute:
+            PaymentReturnIntent.accepts(
+              Uri.parse(
+                WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+              ),
+            )
+            ? WidgetsBinding.instance.platformDispatcher.defaultRouteName
+            : AppRoutes.splash,
+        builder: (context, child) => PaymentReturnListener(
+          navigatorKey: navigatorKey,
+          child: child ?? const SizedBox(),
+        ),
         routes: buildRoutes(),
         onGenerateRoute: (settings) {
           final uri = Uri.tryParse(settings.name ?? '');
-          if (uri?.scheme == 'meatshop' && uri?.host == 'payments' ||
-              settings.name == '/payments') {
+          if (uri != null && PaymentReturnIntent.accepts(uri)) {
+            PaymentReturnIntent.instance.remember(uri);
             return MaterialPageRoute(
               builder: (context) => context.read<AuthProvider>().isAuthenticated
-                  ? const Scaffold(body: OrdersScreen())
+                  ? const Scaffold(
+                      body: Center(child: Text('Recuperando pagamento…')),
+                    )
                   : const SplashPage(),
             );
           }

@@ -709,7 +709,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                             icon: Icons.payments_outlined,
                             label: 'Pagamento',
                             value:
-                                '${_paymentLabel(order.paymentMethod)} · ${order.paymentStatusLabel}',
+                                '${order.paymentMethodLabel} · ${order.paymentStatusLabel}',
                           ),
                         ),
                         Expanded(
@@ -927,23 +927,6 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
         ),
       ),
     );
-  }
-
-  String _paymentLabel(String method) {
-    switch (method.toUpperCase()) {
-      case 'PIX':
-        return 'Pix';
-      case 'CREDIT':
-      case 'CREDIT_CARD':
-        return 'CartÃ£o de crÃ©dito';
-      case 'DEBIT':
-      case 'DEBIT_CARD':
-        return 'CartÃ£o de dÃ©bito';
-      case 'CASH':
-        return 'Dinheiro';
-      default:
-        return method.isEmpty ? 'â€”' : method;
-    }
   }
 }
 

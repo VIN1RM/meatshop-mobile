@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:convert';
 
 import '../../core/auth/session_coordinator.dart';
 import '../../core/network/api_failure.dart';
@@ -14,6 +15,20 @@ final class ApiClient {
 
   final JsonHttpTransport _transport;
   final SessionCoordinator _session;
+
+  // Used only to namespace device storage. The server verifies identity and ownership.
+  String? get accountId {
+    try {
+      final token = _session.current?.accessToken;
+      if (token == null) return null;
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(token.split('.')[1]))),
+      );
+      return payload is Map ? payload['sub']?.toString() : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<T> get<T>(
     String path, {

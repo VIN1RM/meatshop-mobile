@@ -25,6 +25,18 @@ class CartItemModel {
     this.availableStock,
   });
 
+  String get quantityLabel {
+    final unit = unitOfMeasure.trim().toLowerCase();
+    final amount = unit == 'kg' && quantity > 0 && quantity < 1
+        ? quantity * 1000
+        : quantity;
+    final label = amount
+        .toStringAsFixed(3)
+        .replaceFirst(RegExp(r'\.?0+$'), '')
+        .replaceAll('.', ',');
+    return '$label ${unit == 'kg' && quantity > 0 && quantity < 1 ? 'g' : unit}';
+  }
+
   double get subtotal => unitPrice * quantity;
 
   String get formattedPrice =>

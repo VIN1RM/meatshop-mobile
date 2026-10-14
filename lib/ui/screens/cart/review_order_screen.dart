@@ -27,6 +27,31 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   bool _feesReady = false;
   CheckoutQuote? _quote;
   String? _feeError;
+  int _quoteGeneration = 0;
+  final Map<String, String> _methods = {};
+  final Map<String, String> _coupons = {};
+  bool _online = false;
+  final Map<String, bool> _unitOnline = {};
+  String _methodFor(String unit) {
+    final chosen = _methods[unit] ?? widget.summary.paymentMethod;
+    return !(_unitOnline[unit] ?? _online) &&
+            !const {'cash', 'machine'}.contains(chosen)
+        ? 'cash'
+        : chosen;
+  }
+
+  CheckoutSummaryModel get _summary => widget.summary.copyWith(
+    methods: {
+      for (final unit in context.read<CartProvider>().itemsByUnit.keys)
+        unit: _methodFor(unit),
+    },
+    couponCodes: _coupons,
+    defaultMethod:
+        !_online &&
+            !const {'cash', 'machine'}.contains(widget.summary.paymentMethod)
+        ? 'cash'
+        : widget.summary.paymentMethod,
+  );
 
   @override
   void initState() {
@@ -36,6 +61,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
 
   Future<void> _calculateFees() async {
     if (!mounted) return;
+    final generation = ++_quoteGeneration;
     setState(() {
       _calculatingFees = true;
       _feesReady = false;
@@ -45,12 +71,45 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     });
     final orderProvider = context.read<OrderProvider>();
     try {
-      final quote = await orderProvider.quote(widget.summary);
-      if (!mounted) return;
-      final unitIds = context.read<CartProvider>().itemsByUnit.keys;
-      if (quote == null ||
-          unitIds.isEmpty ||
-          !unitIds.every((id) => quote.groups.any((g) => g.unitId == id))) {
+      final recovered = await orderProvider.recoverPending(
+        context.read<CartProvider>(),
+      );
+      if (!mounted || generation != _quoteGeneration) return;
+      if (recovered) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const OrderProcessingScreen()),
+        );
+        return;
+      }
+      final cart = context.read<CartProvider>();
+      await cart.loadCart();
+      final activeUnits = cart.itemsByUnit.keys.toSet();
+      _coupons.removeWhere((unit, _) => !activeUnits.contains(unit));
+      _methods.removeWhere((unit, _) => !activeUnits.contains(unit));
+      if (!mounted || generation != _quoteGeneration) return;
+      try {
+        _online = await orderProvider.onlinePaymentsAvailable();
+        final available = await orderProvider.paymentAvailability(
+          cart.itemsByUnit.keys.toList(),
+        );
+        if (!mounted || generation != _quoteGeneration) return;
+        _unitOnline
+          ..clear()
+          ..addAll(available);
+      } catch (_) {
+        _online = false;
+      }
+      if (!_online) {
+        _methods.updateAll(
+          (key, value) =>
+              const {'cash', 'machine'}.contains(value) ? value : 'cash',
+        );
+      }
+      final quote = await orderProvider.quote(_summary);
+      if (!mounted || generation != _quoteGeneration) return;
+      if (generation != _quoteGeneration) return;
+      if (quote == null || quote.groups.isEmpty) {
         throw StateError('Incomplete delivery quote');
       }
       setState(() {
@@ -61,14 +120,16 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         _feesReady = true;
       });
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || generation != _quoteGeneration) return;
       setState(() {
         _feeError = error is ApiFailure
             ? error.message
             : 'Não foi possível calcular a entrega. Tente novamente.';
       });
     } finally {
-      if (mounted) setState(() => _calculatingFees = false);
+      if (mounted && generation == _quoteGeneration) {
+        setState(() => _calculatingFees = false);
+      }
     }
   }
 
@@ -85,6 +146,10 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
 
     final grandTotal = _quote?.totalAmount ?? 0;
+    final reviewedGroups =
+        _quote != null && _quote!.groups.every((g) => g.items.isNotEmpty)
+        ? {for (final g in _quote!.groups) g.unitId: g.items}
+        : cart.itemsByUnit;
 
     return Scaffold(
       backgroundColor: const Color(0xFF2E2E2E),
@@ -127,7 +192,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         if (widget.summary.isScheduled)
                           const SizedBox(height: 16),
 
-                        ...cart.itemsByUnit.entries.map(
+                        ...reviewedGroups.entries.map(
                           (e) => _buildUnitGroup(e.key, e.value, cart),
                         ),
 
@@ -156,7 +221,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         _buildTotals(
                           _quote?.groups.fold<double>(
                                 0,
-                                (sum, g) => sum + g.subtotal - g.discountAmount,
+                                (sum, g) => sum + g.subtotal,
                               ) ??
                               cart.total,
                           grandTotal,
@@ -281,7 +346,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     final unitName = items.isNotEmpty && items.first.unitName.isNotEmpty
         ? items.first.unitName
         : 'AÃ§ougue';
-    final subtotal = items.fold<double>(0, (s, i) => s + i.subtotal);
+    final official = _quote?.groups
+        .where((g) => g.unitId == unitId)
+        .firstOrNull;
+    final subtotal =
+        official?.subtotal ?? items.fold<double>(0, (s, i) => s + i.subtotal);
     final fee = _feeByUnit[unitId];
 
     return Container(
@@ -332,6 +401,68 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  initialValue: _methodFor(unitId),
+                  decoration: const InputDecoration(
+                    labelText: 'Pagamento deste açougue',
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                      value: 'cash',
+                      child: Text('Dinheiro'),
+                    ),
+                    const DropdownMenuItem(
+                      value: 'machine',
+                      child: Text('Maquininha'),
+                    ),
+                    if (_unitOnline[unitId] ?? _online) ...[
+                      const DropdownMenuItem(value: 'pix', child: Text('Pix')),
+                      const DropdownMenuItem(
+                        value: 'credit',
+                        child: Text('Crédito'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'debit',
+                        child: Text('Débito'),
+                      ),
+                    ],
+                  ],
+                  onChanged: _calculatingFees
+                      ? null
+                      : (value) {
+                          if (value != null) {
+                            _methods[unitId] = value;
+                            _calculateFees();
+                          }
+                        },
+                ),
+                TextFormField(
+                  initialValue: _coupons[unitId],
+                  decoration: const InputDecoration(
+                    labelText: 'Cupom deste açougue',
+                    helperText: 'Digite e confirme para atualizar a cotação',
+                  ),
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (value) {
+                    final code = value.trim();
+                    if (code.isEmpty) {
+                      _coupons.remove(unitId);
+                    } else {
+                      _coupons[unitId] = code;
+                    }
+                    _calculateFees();
+                  },
+                ),
+                if (official != null && official.discountAmount > 0)
+                  Text('Desconto: ${_fmt(official.discountAmount)}'),
+              ],
+            ),
+          ),
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
 
           ...items.map(
@@ -366,7 +497,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                     ),
                   ),
                   Text(
-                    '${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity.toStringAsFixed(1)} ${item.unitOfMeasure.toUpperCase()}',
+                    item.quantityLabel,
                     style: const TextStyle(
                       color: _red,
                       fontSize: 14,
@@ -467,6 +598,10 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         icon = Icons.payment;
     }
 
+    if (_summary.unitPaymentMethods.isNotEmpty) {
+      label = 'Confira as formas escolhidas para cada açougue acima';
+      icon = Icons.payment;
+    }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(14),
@@ -478,22 +613,27 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         children: [
           Icon(icon, color: _red, size: 22),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Forma de pagamento',
-                style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Forma de pagamento',
+                  style: TextStyle(
+                    color: Color(0xFF1A1A1A),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
                 ),
-              ),
-              Text(
-                label,
-                style: const TextStyle(color: Color(0xFF555555), fontSize: 12),
-              ),
-            ],
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Color(0xFF555555),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -544,6 +684,16 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                     ),
             ],
           ),
+          if ((_quote?.groups.fold<double>(
+                    0,
+                    (sum, g) => sum + g.discountAmount,
+                  ) ??
+                  0) >
+              0)
+            Text(
+              'Desconto: ${_fmt(_quote!.groups.fold<double>(0, (sum, g) => sum + g.discountAmount))}',
+              style: const TextStyle(color: Colors.white),
+            ),
           const SizedBox(height: 10),
           const Divider(color: Colors.white12),
           const SizedBox(height: 10),
@@ -584,8 +734,13 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       child: ElevatedButton(
         onPressed: canConfirm
             ? () async {
+                if (_quote?.expiresAt?.isBefore(DateTime.now()) ?? false) {
+                  await _calculateFees();
+                  return;
+                }
                 final success = await orderProvider.placeOrder(
-                  summary: widget.summary,
+                  summary: _summary,
+                  quoteToken: _quote?.token,
                   items: cart.items,
                   total: grandTotal,
                   feeByUnit: _feeByUnit,

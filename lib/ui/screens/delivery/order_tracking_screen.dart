@@ -421,7 +421,7 @@ class _OrderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      _paymentLabel(order.paymentMethod),
+                      order.paymentMethodLabel,
                       style: const TextStyle(
                         color: Color(0xFF888888),
                         fontSize: 12,
@@ -492,21 +492,6 @@ class _OrderCard extends StatelessWidget {
 
   String _deliveryTypeLabel(String type) =>
       type == 'DELIVERY' ? 'Entrega em casa' : 'Retirada no local';
-
-  String _paymentLabel(String method) {
-    switch (method.toUpperCase()) {
-      case 'PIX':
-        return 'Pix';
-      case 'CREDIT_CARD':
-        return 'Cartão de crédito';
-      case 'DEBIT_CARD':
-        return 'Cartão de débito';
-      case 'CASH':
-        return 'Dinheiro';
-      default:
-        return method;
-    }
-  }
 
   _StatusData _statusInfo(String status) {
     final s = OrderStatusX.fromString(status);

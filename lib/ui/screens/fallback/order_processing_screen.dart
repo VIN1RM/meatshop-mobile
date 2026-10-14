@@ -138,6 +138,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(order.formattedTotal),
+                    Text(order.paymentMethodLabel),
                     Text(order.paymentStatusLabel),
                     if (order.status == 'CANCELLED')
                       const Text('Pedido cancelado'),

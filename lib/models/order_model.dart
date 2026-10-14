@@ -54,10 +54,21 @@ class OrderModel {
       const {'Cash', 'Card on Delivery'}.contains(paymentMethod);
   bool get canPay =>
       status == 'PENDING' &&
-      const {'PENDING', 'REJECTED'}.contains(paymentStatus) &&
+      const {'PENDING', 'REJECTED', 'CANCELLED'}.contains(paymentStatus) &&
       !isOfflinePayment &&
       paymentDueAt != null &&
       paymentDueAt!.isAfter(DateTime.now());
+  String get paymentMethodLabel => switch (paymentMethod.toUpperCase()) {
+    'PIX' => 'Pix',
+    'CREDIT' || 'CREDIT_CARD' => 'Cartão de crédito',
+    'DEBIT' || 'DEBIT_CARD' => 'Cartão de débito',
+    'CASH' => 'Dinheiro',
+    'CARD ON DELIVERY' => 'Maquininha na entrega',
+    'MERCADO PAGO BALANCE' => 'Saldo Mercado Pago',
+    'BANK SLIP' => 'Boleto',
+    _ => paymentMethod.isEmpty ? 'Não informado' : paymentMethod,
+  };
+
   String get paymentStatusLabel {
     if (refundStatus == 'PENDING') return 'Estorno solicitado';
     if (refundStatus == 'FAILED') return 'Estorno precisa de atendimento';
@@ -183,6 +194,12 @@ class OrderModel {
     final payment = data['payment'] is Map<String, Object?>
         ? data['payment']! as Map<String, Object?>
         : const <String, Object?>{};
+    final reviews = data['review_status'] is Map<String, Object?>
+        ? data['review_status'] as Map<String, Object?>
+        : null;
+    final reviewedProducts = reviews?['reviewed_product_ids'] is List
+        ? (reviews!['reviewed_product_ids'] as List).map((id) => '$id').toSet()
+        : <String>{};
     final rawItems = data['items'];
     final items = rawItems is List<Object?>
         ? rawItems
@@ -207,6 +224,10 @@ class OrderModel {
               .toList(growable: false)
         : const <OrderItemModel>[];
     return OrderModel(
+      reviewed: reviews?['unit_reviewed'] == true,
+      productsReviewed:
+          reviews != null &&
+          items.every((i) => reviewedProducts.contains(i.productId)),
       destination: data['destination'] is Map<String, Object?>
           ? AddressModel.fromApi(data['destination'] as Map<String, Object?>)
           : null,
