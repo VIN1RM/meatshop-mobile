@@ -60,6 +60,10 @@ class _WelcomePageState extends State<WelcomePage> {
       path: 'assets/images/person10.png',
       alignment: Alignment.topCenter,
     ),
+    _CarouselItem(
+      path: 'assets/images/person13.png',
+      alignment: Alignment.topCenter,
+    ),
   ];
 
   static const int _multiplier = 1000;

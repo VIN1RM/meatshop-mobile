@@ -52,6 +52,7 @@ final class ApiClient {
     bool authenticated = true,
     CancellationToken? cancellationToken,
     Map<String, String> headers = const {},
+    Duration? timeout,
   }) => _request(
     method: 'POST',
     path: path,
@@ -60,6 +61,7 @@ final class ApiClient {
     authenticated: authenticated,
     cancellationToken: cancellationToken,
     headers: headers,
+    timeout: timeout,
   );
 
   Future<T> put<T>(
@@ -155,6 +157,7 @@ final class ApiClient {
     Object? body,
     CancellationToken? cancellationToken,
     Map<String, String> headers = const {},
+    Duration? timeout,
   }) async {
     await _session.initialize();
     try {
@@ -166,6 +169,7 @@ final class ApiClient {
         authenticated: authenticated,
         cancellationToken: cancellationToken,
         headers: headers,
+        timeout: timeout,
       );
       return decode(response);
     } on ApiFailure catch (failure) {
@@ -183,6 +187,7 @@ final class ApiClient {
         authenticated: true,
         cancellationToken: cancellationToken,
         headers: headers,
+        timeout: timeout,
       );
       return decode(response);
     }
@@ -196,6 +201,7 @@ final class ApiClient {
     Object? body,
     CancellationToken? cancellationToken,
     Map<String, String> headers = const {},
+    Duration? timeout,
   }) async {
     final accessToken = _session.current?.accessToken;
     if (authenticated && accessToken == null) {
@@ -215,6 +221,7 @@ final class ApiClient {
         if (authenticated) 'authorization': 'Bearer $accessToken',
       },
       cancellationToken: cancellationToken,
+      timeout: timeout,
     );
   }
 

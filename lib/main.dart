@@ -93,6 +93,7 @@ class _MeatShopAppState extends State<MeatShopApp> {
         realtime: apiFoundation?.realtime,
         recipes: apiFoundation?.recipes,
         reviews: apiFoundation?.reviews,
+        aiAssistant: apiFoundation?.aiAssistant,
         flags: featureFlags,
       ),
       child: MaterialApp(
