@@ -4,7 +4,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
-## [3.1.0] — Em desenvolvimento
+## [3.1.0] - 15 de outubro de 2026 - Experiência e estabilidade
 
 - Recuperação de sessão e de entregas após fechar o aplicativo.
 - Códigos protegidos de entrega e retirada com opção de renovação.
@@ -14,7 +14,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - Busca, avaliações, receitas, ganhos e metas com tratamento de falhas.
 - Formas de pagamento organizadas no padrão visual MeatShop.
 
-## [3.0.0] — Em desenvolvimento
+## [3.0.0] - 15 de outubro de 2026 - Integração e pagamentos
 ### Uma Nova Base para o MeatShop
 
 ### ✨ Novidades
@@ -34,7 +34,7 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Códigos Protegidos na Entrega:** O entregador apresenta o código de retirada à unidade e conclui a entrega somente com o código informado pelo cliente.
 - **Mais Privacidade nas Ofertas:** O endereço exato do cliente só fica disponível depois que o entregador aceita a entrega.
 - **Checkout Integrado:** Seus pedidos agora são criados no mesmo sistema usado pelo açougue, aparecendo no painel da unidade logo após a confirmação.
-- **Pagamento por Carrinho:** Quando houver produtos de vários açougues, você realiza um único fluxo de pagamento e recebe pedidos separados e organizados.
+- **Pagamento por Açougue:** Os pedidos ficam organizados por unidade e cada pagamento online é concluído separadamente, com recebimento direto pelo vendedor.
 - **Acompanhe e Repita:** Histórico, detalhes, cancelamento, agendamento e recompra passam a acompanhar o estado oficial do pedido.
 - **Código de Entrega Protegido:** O código necessário para receber o pedido fica disponível somente para você enquanto ainda for válido.
 - **Um Carrinho, Vários Açougues:** Você pode adicionar produtos de unidades diferentes no mesmo carrinho. Os itens ficam organizados por açougue e, no checkout, serão preparados como pedidos separados.
@@ -44,7 +44,6 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Busca Unificada:** A busca encontra açougues, categorias e produtos em uma única consulta.
 - **Login Conectado ao MeatShop:** O login por e-mail, Google ou Apple agora pode criar uma sessão segura no mesmo sistema usado pelo painel e pelo banco de dados principal.
 - **Vínculo Protegido:** Quando já existir uma conta com o mesmo e-mail, a senha atual será solicitada uma única vez antes de vincular o login.
-- **Integração em Andamento:** Começamos a evolução que conectará o aplicativo ao mesmo backend e banco de dados usados pelo painel do açougue.
 - **Conexões Mais Confiáveis:** A nova base já diferencia falta de internet, demora do servidor, sessão expirada e cancelamento de uma operação.
 - **Sessão Mais Segura:** As credenciais do aplicativo passam a ter armazenamento protegido pelo próprio Android ou iOS e renovação coordenada.
 
@@ -62,10 +61,9 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - **Limpeza Real do Carrinho:** Ao esvaziar a sacola, os itens também são removidos do servidor e não reaparecem em outro acesso.
 - **Disponibilidade Confiável:** Produtos inativos, categorias inativas ou itens sem estoque deixam de ser oferecidos no novo catálogo.
 - **Perfil Consistente:** Tipo de perfil e conclusão do cadastro passam a vir do sistema MeatShop durante o novo fluxo, evitando divergências entre aplicativo e painel.
-- **Preparado para a Migração Gradual:** As próximas funcionalidades poderão ser transferidas uma por vez, sem trocar todos os fluxos de uma só vez.
 - **Qualidade Automatizada:** Novos testes protegem a arquitetura e os comportamentos essenciais de conexão e sessão.
 
-> A versão 3.0.0 permanece em desenvolvimento. Estas notas serão incrementadas a cada fase do plano de integração.
+> Trabalho consolidado em 15 de outubro de 2026, incluindo os ajustes de pagamentos e interface. A integração inicial foi concluída em 4 de setembro de 2026.
 
 ---
 

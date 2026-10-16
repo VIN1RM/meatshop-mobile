@@ -7,7 +7,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
-## [3.1.0] - Em desenvolvimento
+## [3.1.0] - 2026-10-15 - Experiência e estabilidade
 
 ### Corrigido
 
@@ -17,7 +17,7 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Cadastro após verificação de e-mail e reautenticação de contas sociais.
 - Navegação e apresentação das formas de pagamento no padrão da aplicação.
 
-## [3.0.0] - Em desenvolvimento
+## [3.0.0] - 2026-10-15 - Integração e pagamentos
 
 ### Adicionado
 
