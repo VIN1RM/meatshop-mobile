@@ -83,6 +83,12 @@ class AuthProvider extends ChangeNotifier {
         ).pushNamed(AppRoutes.accountBlocked, arguments: e.blockedUntil);
       }
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'too-many-requests') {
+        if (context.mounted) {
+          Navigator.of(context).pushNamed(AppRoutes.accountBlocked);
+        }
+        return;
+      }
       _errorMessage = _mapAuthError(e.code);
       notifyListeners();
 

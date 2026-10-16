@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/services/login_attempts_service.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -20,9 +21,12 @@ class AuthService {
     required String password,
     bool loadFirestoreProfile = false,
   }) async {
-    await _auth.signInWithEmailAndPassword(
-      email: email.trim(),
-      password: password,
+    await LoginAttemptsService.instance.authenticate(
+      email,
+      () => _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      ),
     );
     return 'CLIENT';
   }

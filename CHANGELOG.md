@@ -11,6 +11,8 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ### Corrigido
 
+- Bloqueio local de login após cinco falhas, persistido no armazenamento seguro, com expiração em cinco minutos e tratamento separado das restrições do Firebase.
+
 - Recuperação de sessão, navegação por notificações e alternância entre cliente e entregador.
 - Códigos de entrega e retirada, unidades de medida, agendamento e cadastro de veículos.
 - Tratamento de falhas em busca, pedidos, receitas, avaliações, ganhos e metas.
