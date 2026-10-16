@@ -56,6 +56,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   @override
   void initState() {
     super.initState();
+    _methods.addAll(widget.summary.unitPaymentMethods);
+    _coupons.addAll(widget.summary.coupons);
     WidgetsBinding.instance.addPostFrameCallback((_) => _calculateFees());
   }
 
