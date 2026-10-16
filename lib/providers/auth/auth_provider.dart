@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
+import 'package:meatshop_mobile/services/registration_draft_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../delivery/delivery_provider.dart';
@@ -601,6 +603,21 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> expireSession(BuildContext context) async {
+    if (!_isAuthenticated) return;
+    _resetAuthenticationState();
+    await _clearUserScopedState(context);
+    try {
+      await AuthService.instance.logout();
+    } catch (_) {}
+    if (context.mounted) {
+      context.read<BackendRealtimeAccess>().realtime?.disconnect();
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+    }
+  }
+
   Future<void> restoreSession(BuildContext context, User firebaseUser) async {
     try {
       final idToken = await firebaseUser.getIdToken(true);
@@ -609,7 +626,19 @@ class AuthProvider extends ChangeNotifier {
       if (!context.mounted) return;
       await _applyBackendUser(context, user);
     } catch (error) {
-      debugPrint('[AuthProvider] session restore failed: $error');
+      final definitive =
+          error is ApiFailure &&
+              {
+                ApiFailureKind.unauthorized,
+                ApiFailureKind.forbidden,
+              }.contains(error.kind) ||
+          error is FirebaseAuthException &&
+              {
+                'user-disabled',
+                'user-token-expired',
+                'invalid-user-token',
+              }.contains(error.code);
+      if (!definitive) rethrow;
       try {
         await _requireFederatedAuth().logout();
       } catch (_) {}
@@ -646,6 +675,14 @@ class AuthProvider extends ChangeNotifier {
       password: password,
     );
 
+    await RegistrationDraftService.save(firebaseUser.uid, {
+      'name': name,
+      'cpf': cpf,
+      'phone': phone,
+      'profile': profile.name,
+      'vehicleType': vehicleType,
+      'vehicle': vehicleData,
+    });
     if (!firebaseUser.emailVerified) {
       await AuthService.instance.logout();
       if (context.mounted) {
@@ -687,6 +724,7 @@ class AuthProvider extends ChangeNotifier {
       rethrow;
     }
 
+    await RegistrationDraftService.clear(firebaseUser.uid);
     await repository.logout();
     await AuthService.instance.logout();
     if (context.mounted) {
@@ -701,44 +739,32 @@ class AuthProvider extends ChangeNotifier {
     return true;
   }
 
-  String _backendVehicleType(String value) {
-    final normalized = value.toUpperCase();
-    if (normalized.contains('BIKE') || normalized.contains('BICI')) {
-      return 'BIKE';
-    }
-    if (normalized.contains('CAR')) return 'CAR';
-    if (normalized.contains('SCOOTER')) return 'SCOOTER';
-    return 'MOTORCYCLE';
-  }
-
   Future<void> _registerBackendVehicle(
     String vehicleType,
     Map<String, dynamic> vehicleData,
-  ) async {
-    final delivery = _delivery;
-    final type = _backendVehicleType(vehicleType);
-    await delivery.register(type == 'SCOOTER' ? 'MOTORCYCLE' : type);
-    final normalizedPlate = '${vehicleData['plate'] ?? ''}'
-        .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
-        .toUpperCase();
-    final vehicles = await delivery.vehicles();
-    final alreadyCreated = vehicles.any(
-      (vehicle) =>
-          '${vehicle['plate'] ?? ''}'
-              .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
-              .toUpperCase() ==
-          normalizedPlate,
-    );
-    if (alreadyCreated) return;
+  ) => VehicleRegistrationService(_delivery).register(vehicleType, vehicleData);
 
-    await delivery.createVehicle({
-      'type': type,
-      'model': '${vehicleData['model'] ?? ''}',
-      'plate': normalizedPlate,
-      'color': '${vehicleData['color'] ?? ''}',
-      'year':
-          int.tryParse('${vehicleData['year'] ?? ''}') ?? DateTime.now().year,
-    });
+  Future<BackendAuthUser> _restoreDraft(
+    String uid,
+    BackendAuthUser user,
+  ) async {
+    final draft = await RegistrationDraftService.read(uid);
+    if (draft == null) return user;
+    final restored = await _requireFederatedAuth().completeProfile(
+      name: '${draft['name']}',
+      cpf: '${draft['cpf']}',
+      phone: '${draft['phone']}',
+      appProfile: AppProfile.fromString('${draft['profile']}'),
+    );
+    if (draft['vehicle'] is Map && draft['vehicleType'] != null) {
+      await VehicleRegistrationService(_delivery).register(
+        '${draft['vehicleType']}',
+        Map<String, dynamic>.from(draft['vehicle'] as Map),
+        photos: List<String>.from(draft['photos'] as List? ?? const []),
+      );
+    }
+    await RegistrationDraftService.clear(uid);
+    return restored;
   }
 
   String _completionErrorMessage(Object error) {
@@ -812,13 +838,31 @@ class AuthProvider extends ChangeNotifier {
 
     final uid = AuthService.instance.currentUser!.uid;
     final userProvider = context.read<UserProvider>();
+    var backendUser = user;
+    try {
+      backendUser = await _restoreDraft(uid, user);
+    } on ApiFailure catch (failure) {
+      if (!{
+        ApiFailureKind.validation,
+        ApiFailureKind.conflict,
+      }.contains(failure.kind)) {
+        rethrow;
+      }
+      await RegistrationDraftService.clear(uid);
+      _needsProfileCompletion = true;
+      notifyListeners();
+      if (context.mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);
+      }
+      return;
+    }
+    _appProfile = backendUser.appProfile;
+    if (!context.mounted) return;
     await userProvider.loadUser(uid);
     if (!context.mounted) return;
-
-    var backendUser = user;
     final profile = userProvider.user;
-    if (!user.profileComplete &&
-        user.appProfile != null &&
+    if (!backendUser.profileComplete &&
+        backendUser.appProfile != null &&
         profile != null &&
         profile.name.trim().isNotEmpty &&
         profile.cpf.trim().isNotEmpty &&
@@ -827,7 +871,7 @@ class AuthProvider extends ChangeNotifier {
         name: profile.name,
         cpf: profile.cpf,
         phone: profile.phone,
-        appProfile: user.appProfile!,
+        appProfile: backendUser.appProfile!,
       );
       _appProfile = backendUser.appProfile;
     }
@@ -844,7 +888,9 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
 
-    await NotificationService.instance.saveTokenForUser(uid);
+    try {
+      await NotificationService.instance.saveTokenForUser(uid);
+    } catch (_) {}
     if (!context.mounted) return;
     await context.read<UserPreferencesProvider>().loadForUser(uid);
     if (!context.mounted) return;
@@ -883,6 +929,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  void setClientMode() {
+    _activeProfile = AppProfile.client;
+    notifyListeners();
+  }
+
   void switchToDeliveryMode(BuildContext context) {
     _activeProfile = AppProfile.delivery;
     notifyListeners();
@@ -899,7 +950,11 @@ class AuthProvider extends ChangeNotifier {
     required String password,
   }) async {
     try {
-      await AuthService.instance.reauthenticate(password: password);
+      final identity = await AuthService.instance.reauthenticate(
+        password: password,
+      );
+      final identityToken = await identity.getIdToken(true);
+      if (identityToken == null) throw StateError('Identity unavailable');
       final uid = AuthService.instance.currentUser?.uid;
       if (!context.mounted) return;
       await context.read<DeliveryProvider>().clearSession();
@@ -912,8 +967,9 @@ class AuthProvider extends ChangeNotifier {
           debugPrint('[AuthProvider] notification cleanup failed: $error');
         }
       }
-      await _federatedAuth.deleteAccount();
-      await AuthService.instance.deleteCurrentUser();
+      await _federatedAuth.deleteAccount(firebaseIdToken: identityToken);
+      if (uid != null) await RegistrationDraftService.clear(uid);
+      await AuthService.instance.logout();
 
       _resetAuthenticationState();
 
@@ -962,9 +1018,11 @@ class AuthProvider extends ChangeNotifier {
     switch (_appProfile) {
       case AppProfile.client:
         _activeProfile = AppProfile.client;
+        notifyListeners();
         Navigator.of(context).pushReplacementNamed(AppRoutes.shell);
       case AppProfile.delivery:
         _activeProfile = AppProfile.delivery;
+        notifyListeners();
         Navigator.of(context).pushReplacementNamed(AppRoutes.deliveryShell);
       case AppProfile.both:
         Navigator.of(context).pushReplacementNamed(AppRoutes.modeSelection);

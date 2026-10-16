@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../core/utils/business_clock.dart';
 import 'package:crypto/crypto.dart';
 import '../auth/secure_key_value_store.dart';
 import '../../core/network/api_failure.dart';
@@ -294,7 +295,7 @@ final class HttpOrderRepository
     final parts = summary.scheduledTime?.split(':') ?? const [];
     final hour = parts.isNotEmpty ? int.tryParse(parts[0]) ?? 0 : 0;
     final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
-    return DateTime(date.year, date.month, date.day, hour, minute);
+    return BusinessClock.scheduled(date, hour, minute);
   }
 
   static CheckoutQuote _decodeQuote(Object? value) {

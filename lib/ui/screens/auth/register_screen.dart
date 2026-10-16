@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart'
     show PhoneInputFormatter;
 import 'package:flutter/material.dart';
@@ -32,18 +33,18 @@ class _RegisterPageState extends State<RegisterPage> {
   Map<String, dynamic>? _vehicleData;
 
   String? _selectedVehicle;
-  final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'ON_FOOT'];
+  final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'SCOOTER'];
   final Map<String, String> _vehicleLabels = {
     'MOTORCYCLE': 'Moto',
     'BIKE': 'Bicicleta',
     'CAR': 'Carro',
-    'ON_FOOT': 'A pé',
+    'SCOOTER': 'Patinete',
   };
   final Map<String, IconData> _vehicleIcons = {
     'MOTORCYCLE': Icons.two_wheeler,
     'BIKE': Icons.directions_bike,
     'CAR': Icons.directions_car,
-    'ON_FOOT': Icons.directions_walk,
+    'SCOOTER': Icons.electric_scooter,
   };
 
   bool _obscurePassword = true;
@@ -422,12 +423,17 @@ class _RegisterPageState extends State<RegisterPage> {
                                       context: context,
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
-                                      builder: (_) =>
-                                          VehicleEditModal(vehicleType: v),
+                                      builder: (_) => VehicleEditModal(
+                                        vehicleType: v,
+                                        persistChanges: false,
+                                      ),
                                     );
-                                if (result != null) {
+                                if (result != null && mounted) {
                                   setState(() {
-                                    _selectedVehicle = v;
+                                    _selectedVehicle =
+                                        VehicleRegistrationService.type(
+                                          '${result["type"] ?? v}',
+                                        );
                                     _vehicleData = result;
                                   });
                                 }

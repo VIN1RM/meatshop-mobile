@@ -1,3 +1,5 @@
+import '../core/utils/business_clock.dart';
+
 class BusinessHoursModel {
   final String weekday;
   final String openingTime;
@@ -22,7 +24,7 @@ class BusinessHoursModel {
 
   bool get isOpenNow {
     if (!isOpen) return false;
-    final now = DateTime.now();
+    final now = BusinessClock.now();
     final open = _parseTime(openingTime, now);
     final close = _parseTime(closingTime, now);
     return now.isAfter(open) && now.isBefore(close);
@@ -30,10 +32,8 @@ class BusinessHoursModel {
 
   DateTime _parseTime(String time, DateTime ref) {
     final parts = time.split(':');
-    return DateTime(
-      ref.year,
-      ref.month,
-      ref.day,
+    return BusinessClock.scheduled(
+      ref,
       int.tryParse(parts[0]) ?? 0,
       int.tryParse(parts[1]) ?? 0,
     );
@@ -49,6 +49,6 @@ class BusinessHoursModel {
       'saturday',
       'sunday',
     ];
-    return days[DateTime.now().weekday - 1];
+    return days[BusinessClock.now().weekday - 1];
   }
 }

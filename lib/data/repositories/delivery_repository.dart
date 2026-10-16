@@ -42,6 +42,7 @@ abstract interface class DeliveryRepository {
   Future<DeliveryOrder?> activeOrder();
   Future<List<DeliveryOrder>> history();
   Future<String> accept(int orderId);
+  Future<String> regenerateCode(int orderId, {required bool pickup});
   Future<void> reject(int orderId, List<String> reasons);
   Future<void> finish(int orderId, String code);
   Future<String?> setLocationSharing(int orderId, bool enabled);

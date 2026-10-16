@@ -68,8 +68,8 @@ class DeliveriesTab extends StatelessWidget {
             size: 64,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Nenhum pedido disponível',
+          Text(
+            provider.lastError ?? 'Nenhum pedido disponível',
             style: TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
               fontSize: 16,
@@ -123,7 +123,17 @@ class DeliveriesTab extends StatelessWidget {
                 order: order,
                 isLoading: provider.isLoading,
                 onAccept: () async {
-                  await provider.acceptOrder(order);
+                  try {
+                    await provider.acceptOrder(order);
+                  } catch (_) {
+                    if (context.mounted) {
+                      CustomSnackBar.error(
+                        provider.lastError ?? 'Não foi possível aceitar.',
+                        context: context,
+                      );
+                    }
+                    return;
+                  }
                   if (!context.mounted || !provider.hasActiveOrder) {
                     return;
                   }
@@ -132,7 +142,16 @@ class DeliveriesTab extends StatelessWidget {
                 onReject: () async {
                   final reasons = await RejectOrderDialog.show(context);
                   if (reasons != null && reasons.isNotEmpty) {
-                    provider.rejectOrder(order.id, reasons);
+                    try {
+                      await provider.rejectOrder(order.id, reasons);
+                    } catch (_) {
+                      if (context.mounted) {
+                        CustomSnackBar.error(
+                          provider.lastError ?? 'Não foi possível rejeitar.',
+                          context: context,
+                        );
+                      }
+                    }
                   }
                 },
               );

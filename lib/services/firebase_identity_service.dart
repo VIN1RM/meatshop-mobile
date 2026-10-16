@@ -126,10 +126,49 @@ class AuthService {
     if (user == null || user.email == null) {
       throw StateError('Usuário não autenticado.');
     }
-    await user.reauthenticateWithCredential(
-      EmailAuthProvider.credential(email: user.email!, password: password),
-    );
+    final providers = user.providerData
+        .map((value) => value.providerId)
+        .toSet();
+    if (providers.contains('password')) {
+      await user.reauthenticateWithCredential(
+        EmailAuthProvider.credential(email: user.email!, password: password),
+      );
+    } else if (providers.contains('google.com')) {
+      final account = await GoogleSignIn().signIn();
+      if (account == null) throw ApiException('Confirmação cancelada.');
+      final tokens = await account.authentication;
+      await user.reauthenticateWithCredential(
+        GoogleAuthProvider.credential(
+          accessToken: tokens.accessToken,
+          idToken: tokens.idToken,
+        ),
+      );
+    } else if (providers.contains('apple.com')) {
+      final nonce = _generateNonce();
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: const [AppleIDAuthorizationScopes.email],
+        nonce: _sha256(nonce),
+      );
+      await user.reauthenticateWithCredential(
+        OAuthProvider(
+          'apple.com',
+        ).credential(idToken: credential.identityToken, rawNonce: nonce),
+      );
+    } else {
+      throw ApiException('Entre novamente para confirmar sua identidade.');
+    }
     return user;
+  }
+
+  bool get requiresPassword =>
+      currentUser?.providerData.any((p) => p.providerId == 'password') ?? false;
+
+  Future<void> requestEmailChange(
+    String email, {
+    required String password,
+  }) async {
+    final user = await reauthenticate(password: password);
+    await user.verifyBeforeUpdateEmail(email.trim());
   }
 
   Future<void> changePassword({

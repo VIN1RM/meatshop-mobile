@@ -1,6 +1,8 @@
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/services/firebase_identity_service.dart';
+import 'package:meatshop_mobile/ui/dialogs/link_social_account_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/ui/components/sheets/avatar_picker_sheet.dart';
@@ -83,15 +85,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final hasExistingPhoto =
-        context.read<UserProvider>().user?.photoUrl.isNotEmpty ?? false;
-    if (_avatarFile == null && !hasExistingPhoto) {
-      CustomSnackBar.warning(
-        'Adicione uma foto de perfil para continuar.',
-        context: context,
-      );
-      return;
-    }
     setState(() => _isSaving = true);
     final userProvider = context.read<UserProvider>();
 
@@ -102,15 +95,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await userProvider.updateUser(
         uid: uid,
         name: _nameController.text,
-        email: _emailController.text,
+        email: userProvider.user?.email ?? _emailController.text,
         phone: _phoneController.text,
       );
+      var emailRequested = false;
+      final identityEmail = AuthService.instance.currentUser?.email ?? '';
+      if (_emailController.text.trim().toLowerCase() !=
+          identityEmail.toLowerCase()) {
+        if (!mounted) return;
+        final password = AuthService.instance.requiresPassword
+            ? await LinkSocialAccountDialog.show(
+                context,
+                email: identityEmail,
+                confirmIdentity: true,
+              )
+            : '';
+        if (password == null) return;
+        await AuthService.instance.requestEmailChange(
+          _emailController.text,
+          password: password,
+        );
+        emailRequested = true;
+      }
       if (_avatarFile != null) {
         await userProvider.updateAvatar(uid, _avatarFile!);
       }
       if (!mounted) return;
       CustomSnackBar.success(
-        'Dados atualizados com sucesso!',
+        emailRequested
+            ? 'Dados atualizados. Confirme o novo e-mail pelo link enviado e entre novamente.'
+            : 'Dados atualizados com sucesso!',
+        duration: const Duration(seconds: 10),
         context: context,
       );
       Navigator.pop(context);

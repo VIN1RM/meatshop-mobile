@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
@@ -31,9 +32,9 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<VehicleProvider>();
 
-    return Material(
-      color: const Color(0xFF2E2E2E),
-      child: Stack(
+    return Scaffold(
+      backgroundColor: const Color(0xFF2E2E2E),
+      body: Stack(
         children: [
           Positioned(
             top: 0,
@@ -53,7 +54,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const AppHeader(),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: provider.isLoading
                       ? const Center(
@@ -71,7 +72,21 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                               const SizedBox(height: 8),
                               _pageTitle(),
                               const SizedBox(height: 20),
-                              if (provider.vehicles.isEmpty)
+                              if (provider.error != null) ...[
+                                Text(
+                                  provider.error!,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                TextButton(
+                                  onPressed: () => provider.loadVehicle(
+                                    FirebaseAuth.instance.currentUser?.uid ??
+                                        '',
+                                  ),
+                                  child: const Text('Tentar novamente'),
+                                ),
+                              ],
+                              if (provider.vehicles.isEmpty &&
+                                  provider.error == null)
                                 const Text(
                                   'Nenhum veículo cadastrado.',
                                   style: TextStyle(color: Colors.white38),
@@ -81,6 +96,29 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                                   (v) => _buildVehicleCard(context, v),
                                 ),
                               const SizedBox(height: 24),
+                              if (provider.error == null)
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    provider.prepareNewVehicle();
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (_) => const VehicleEditModal(
+                                        vehicleType: 'MOTORCYCLE',
+                                        initialData: {},
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                  ),
+                                  label: const Text(
+                                    'Adicionar veículo',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -232,10 +270,19 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                     final uid = FirebaseAuth.instance.currentUser?.uid;
                     final id = (vehicle['id'] as num?)?.toInt();
                     if (uid != null && id != null) {
-                      await context.read<VehicleProvider>().activateVehicle(
-                        uid,
-                        id,
-                      );
+                      try {
+                        await context.read<VehicleProvider>().activateVehicle(
+                          uid,
+                          id,
+                        );
+                      } catch (_) {
+                        if (context.mounted) {
+                          CustomSnackBar.error(
+                            'Não foi possível atualizar o veículo. Tente novamente.',
+                            context: context,
+                          );
+                        }
+                      }
                     }
                   },
                   icon: const Icon(Icons.check_circle_outline),
@@ -251,10 +298,19 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                     final uid = FirebaseAuth.instance.currentUser?.uid;
                     final id = (vehicle['id'] as num?)?.toInt();
                     if (uid != null && id != null) {
-                      await context.read<VehicleProvider>().deleteVehicle(
-                        uid,
-                        id,
-                      );
+                      try {
+                        await context.read<VehicleProvider>().deleteVehicle(
+                          uid,
+                          id,
+                        );
+                      } catch (_) {
+                        if (context.mounted) {
+                          CustomSnackBar.error(
+                            'Não foi possível atualizar o veículo. Tente novamente.',
+                            context: context,
+                          );
+                        }
+                      }
                     }
                   },
                   icon: const Icon(Icons.delete_outline),

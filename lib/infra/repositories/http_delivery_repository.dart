@@ -111,6 +111,20 @@ final class HttpDeliveryRepository implements DeliveryRepository {
     },
   );
   @override
+  Future<String> regenerateCode(
+    int orderId, {
+    required bool pickup,
+  }) => _client.post(
+    '/delivery/orders/$orderId/${pickup ? 'pickup' : 'delivery'}-code/regenerate',
+    decode: (value) {
+      final code = _map(value)['code'];
+      if (code is! String || !RegExp(r'^\d{6}$').hasMatch(code)) {
+        throw _malformed();
+      }
+      return code;
+    },
+  );
+  @override
   Future<void> reject(int orderId, List<String> reasons) => _client.post(
     '/delivery/orders/$orderId/reject',
     body: {'reasons': reasons},

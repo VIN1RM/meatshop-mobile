@@ -4,6 +4,16 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [3.1.0] — Em desenvolvimento
+
+- Recuperação de sessão e de entregas após fechar o aplicativo.
+- Códigos protegidos de entrega e retirada com opção de renovação.
+- Quantidades por quilo, grama, unidade e pacote corrigidas.
+- Cadastro verificado, contas sociais e veículos alinhados ao backend.
+- Notificações direcionadas ao pedido e ao perfil correto.
+- Busca, avaliações, receitas, ganhos e metas com tratamento de falhas.
+- Formas de pagamento organizadas no padrão visual MeatShop.
+
 ## [3.0.0] — Em desenvolvimento
 ### Uma Nova Base para o MeatShop
 

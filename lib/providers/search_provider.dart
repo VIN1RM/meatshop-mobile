@@ -9,6 +9,7 @@ class SearchProvider extends ChangeNotifier {
   final SearchService _service;
 
   String _query = '';
+  String? error;
   bool _isLoading = false;
   List<SearchResultModel> _results = [];
   Timer? _debounce;
@@ -30,6 +31,7 @@ class SearchProvider extends ChangeNotifier {
   void onQueryChanged(String value) {
     final generation = ++_generation;
     _query = value;
+    error = null;
     _debounce?.cancel();
 
     if (value.trim().isEmpty) {
@@ -43,11 +45,19 @@ class SearchProvider extends ChangeNotifier {
     notifyListeners();
 
     _debounce = Timer(const Duration(milliseconds: 400), () async {
-      final results = await _service.search(value);
-      if (generation != _generation) return;
-      _results = results;
-      _isLoading = false;
-      notifyListeners();
+      try {
+        final results = await _service.search(value);
+        if (generation != _generation) return;
+        _results = results;
+      } catch (_) {
+        if (generation != _generation) return;
+        error = 'Não foi possível buscar. Tente novamente.';
+      } finally {
+        if (generation == _generation) {
+          _isLoading = false;
+          notifyListeners();
+        }
+      }
     });
   }
 

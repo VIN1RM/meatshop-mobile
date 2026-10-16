@@ -1,4 +1,8 @@
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../providers/auth/auth_provider.dart' as app_auth;
+import '../ui/screens/orders/order_tracking_screen.dart';
+import '../ui/screens/fallback/order_processing_screen.dart';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +15,6 @@ import 'package:meatshop_mobile/services/user_preferences_service.dart';
 import 'package:meatshop_mobile/data/repositories/notification_repository.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io' show Platform;
-import 'firebase_complementary_services.dart';
 
 class NotificationService {
   NotificationService._();
@@ -21,6 +24,14 @@ class NotificationService {
   final _localNotifications = FlutterLocalNotificationsPlugin();
   NotificationRepository? _backend;
   String? _registeredToken;
+  Map<String, dynamic>? _pendingData;
+  bool _opening = false;
+
+  Future<void> resumePending() async {
+    final data = _pendingData;
+    if (data == null || _opening) return;
+    await _navigateAfterRefresh(data);
+  }
 
   static const _channelId = 'meatshop_channel';
   static const _channelName = 'MeatShop Notificações';
@@ -135,7 +146,7 @@ class NotificationService {
     if (response.payload == null) return;
     try {
       final data = jsonDecode(response.payload!) as Map<String, dynamic>;
-      _navigateFromData(data);
+      _navigateAfterRefresh(data);
     } catch (_) {}
   }
 
@@ -189,48 +200,78 @@ class NotificationService {
   }
 
   Future<void> _navigateAfterRefresh(Map<String, dynamic> data) async {
-    var verified = data;
-    final notificationId = '${data['notification_id'] ?? ''}';
-    if (notificationId.isEmpty) return;
-    final current = await _backend!.list();
-    final item = current
-        .where((entry) => entry.id == notificationId)
-        .firstOrNull;
-    if (item == null) return;
-    await _backend!.markAsRead(notificationId);
-    verified = {'type': item.type.name.toUpperCase(), ...?item.payload};
-    _navigateFromData(verified);
-  }
-
-  void _navigateFromData(Map<String, dynamic> data) {
-    final type = (data['type'] as String? ?? '').toUpperCase();
-    FirebaseComplementaryServices.logNavigation(type.toLowerCase());
-    final nav = navigatorKey?.currentState;
-    if (nav == null) return;
-
-    switch (type) {
-      case 'ORDER':
-        final orderId = data['order_id'] as String?;
-
-        if (orderId != null && orderId.isNotEmpty) {
-          nav.pushNamed(AppRoutes.deliveries, arguments: orderId);
-          return;
-        }
-
-        nav.pushNamed(AppRoutes.deliveries);
+    _pendingData = data;
+    final context = navigatorKey?.currentContext;
+    if (_opening || context == null) return;
+    final auth = context.read<app_auth.AuthProvider>();
+    if (!auth.isAuthenticated ||
+        auth.needsProfileCompletion ||
+        auth.activeProfile == null) {
+      return;
+    }
+    final owner = auth.backendUserId;
+    final id = '${data['notification_id'] ?? ''}';
+    if (id.isEmpty) {
+      _pendingData = null;
+      return;
+    }
+    _opening = true;
+    try {
+      NotificationModel? item;
+      for (var page = 1; page <= 20; page++) {
+        final items = await _backend!.list(page: page);
+        item = items.where((entry) => entry.id == id).firstOrNull;
+        if (item != null || items.length < 50) break;
+      }
+      if (item == null) {
+        _pendingData = null;
         return;
-
-      case 'DELIVERY':
-        nav.pushNamed(AppRoutes.deliveries);
+      }
+      if (!context.mounted ||
+          !auth.isAuthenticated ||
+          auth.backendUserId != owner) {
         return;
-
-      case 'PROMOTION':
+      }
+      await _backend!.markAsRead(id);
+      _pendingData = null;
+      final nav = navigatorKey?.currentState;
+      if (nav == null) {
+        _pendingData = data;
+        return;
+      }
+      final path = '${item.payload?['action_url'] ?? ''}';
+      final match = RegExp(r'^/orders/(\d+)$').firstMatch(path);
+      final orderId = match == null ? null : int.tryParse(match.group(1)!);
+      if (item.type == NotificationType.promotion) {
         nav.pushNamed(AppRoutes.butchers);
-        return;
-
-      case 'SYSTEM':
-      default:
-        return;
+      } else if (item.type == NotificationType.order ||
+          item.type == NotificationType.delivery) {
+        if (auth.isDelivery) {
+          nav.pushNamedAndRemoveUntil(AppRoutes.deliveryShell, (_) => false);
+        } else if (orderId != null) {
+          nav.push(
+            MaterialPageRoute(
+              builder: (_) => item!.type == NotificationType.delivery
+                  ? OrderTrackingScreen(orderId: orderId)
+                  : OrderProcessingScreen(orderIds: ['$orderId']),
+            ),
+          );
+        } else {
+          nav.pushNamed(AppRoutes.deliveries);
+        }
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível abrir a notificação. Tente novamente.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      _opening = false;
     }
   }
 
@@ -252,6 +293,7 @@ class NotificationService {
       } catch (_) {}
     }
     _registeredToken = null;
+    _pendingData = null;
     await _messaging.deleteToken();
   }
 

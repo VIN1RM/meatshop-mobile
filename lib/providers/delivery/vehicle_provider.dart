@@ -16,6 +16,11 @@ class VehicleProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _vehicles = [];
   List<Map<String, dynamic>> get vehicles => _vehicles;
   int _generation = 0;
+  String? error;
+  void prepareNewVehicle() {
+    _vehicleDocId = null;
+    _vehicleInfo = {};
+  }
 
   void selectVehicle(Map<String, dynamic> vehicle) {
     _vehicleInfo = vehicle;
@@ -34,22 +39,30 @@ class VehicleProvider extends ChangeNotifier {
   }
 
   Future<void> loadVehicle(String uid) async {
-    {
-      final generation = ++_generation;
+    final generation = ++_generation;
+    _isLoading = true;
+    error = null;
+    notifyListeners();
+    try {
       final values = await repository.vehicles();
       if (generation != _generation) return;
       _vehicles = values
           .map((item) => <String, dynamic>{...item, '_docId': '${item['id']}'})
           .toList();
-      final active = _vehicles.where((v) => v['is_active'] == true);
-      if (active.isNotEmpty) {
-        _vehicleDocId = '${active.first['id']}';
-        _vehicleInfo = active.first;
-      } else if (_vehicles.isNotEmpty) {
-        _vehicleDocId = '${_vehicles.first['id']}';
-        _vehicleInfo = _vehicles.first;
+      final active =
+          _vehicles.where((v) => v['is_active'] == true).firstOrNull ??
+          _vehicles.firstOrNull;
+      _vehicleInfo = active ?? {};
+      _vehicleDocId = active == null ? null : '${active['id']}';
+    } catch (_) {
+      if (generation == _generation) {
+        error = 'Não foi possível carregar os veículos. Tente novamente.';
       }
-      notifyListeners();
+    } finally {
+      if (generation == _generation) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -71,7 +84,7 @@ class VehicleProvider extends ChangeNotifier {
               .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
               .toUpperCase(),
           'color': data['color'] ?? '',
-          'year': int.tryParse(data['year'] ?? '') ?? DateTime.now().year,
+          'year': int.parse(data['year'] ?? ''),
         };
         final id = int.tryParse(_vehicleDocId ?? '');
         final saved = id == null
@@ -136,6 +149,9 @@ class VehicleProvider extends ChangeNotifier {
       return 'BIKE';
     }
     if (normalized.contains('CAR')) return 'CAR';
+    if (normalized.contains('SCOOTER') || normalized.contains('PATINETE')) {
+      return 'SCOOTER';
+    }
     return 'MOTORCYCLE';
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/version_service.dart';
@@ -129,14 +130,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 10),
                         _buildCard(
                           children: [
-                            _buildNavItem(
-                              icon: Icons.lock_outline,
-                              label: 'Alterar senha',
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.changePassword,
+                            if (AuthService.instance.requiresPassword)
+                              _buildNavItem(
+                                icon: Icons.lock_outline,
+                                label: 'Alterar senha',
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.changePassword,
+                                ),
                               ),
-                            ),
                           ],
                         ),
 

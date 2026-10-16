@@ -90,13 +90,17 @@ void main() {
       store,
       MockClient((request) async {
         expect(request.method, 'DELETE');
+        expect(
+          request.headers['x-firebase-reauth-token'],
+          'recent-identity-token',
+        );
         expect(request.url.path, '/users/me');
         expect(request.headers['authorization'], 'Bearer access-secret');
         return http.Response('', 204);
       }),
     );
 
-    await repository.deleteAccount();
+    await repository.deleteAccount(firebaseIdToken: 'recent-identity-token');
 
     expect(store.tokens, isNull);
   });

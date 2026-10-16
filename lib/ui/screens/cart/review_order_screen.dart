@@ -41,6 +41,10 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   }
 
   CheckoutSummaryModel get _summary => widget.summary.copyWith(
+    clearChange:
+        context.read<CartProvider>().itemsByUnit.length != 1 ||
+        _methodFor(context.read<CartProvider>().itemsByUnit.keys.first) !=
+            'cash',
     methods: {
       for (final unit in context.read<CartProvider>().itemsByUnit.keys)
         unit: _methodFor(unit),
@@ -752,11 +756,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 if (!context.mounted) return;
 
                 if (success) {
-                  Navigator.push(
-                    context,
+                  Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
                       builder: (_) => const OrderProcessingScreen(),
                     ),
+                    (route) => route.isFirst,
                   );
                 } else {
                   CustomSnackBar.error(

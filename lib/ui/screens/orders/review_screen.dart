@@ -121,10 +121,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
   Widget build(BuildContext context) {
     if (!_argsLoaded) {
       return Scaffold(
-        backgroundColor: _bg,
-        body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFBE2C1B)),
-        ),
+        appBar: AppBar(title: const Text('Avaliação')),
+        body: const Center(child: Text('Selecione um pedido para avaliar.')),
       );
     }
 

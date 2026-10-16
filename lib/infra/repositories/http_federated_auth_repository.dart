@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../core/auth/session_coordinator.dart';
 import '../../core/auth/session_tokens.dart';
 import '../../core/enums/app_profile.dart';
@@ -41,13 +42,28 @@ final class HttpFederatedAuthRepository implements FederatedAuthRepository {
   @override
   Future<BackendAuthUser> restore(String firebaseIdToken) async {
     await _session.initialize();
-    if (_session.current == null) {
-      return exchangeFirebaseToken(firebaseIdToken);
-    }
+    if (_session.current == null) return exchangeFirebaseToken(firebaseIdToken);
     try {
-      return await _client.get('/users/me', decode: _decodeMe);
+      final user = await _client.get('/users/me', decode: _decodeMe);
+      final identity =
+          jsonDecode(
+                utf8.decode(
+                  base64Url.decode(
+                    base64Url.normalize(firebaseIdToken.split('.')[1]),
+                  ),
+                ),
+              )
+              as Map;
+      if (identity['email'] != user.email) {
+        return exchangeFirebaseToken(firebaseIdToken);
+      }
+      return user;
     } on ApiFailure catch (failure) {
       if (failure.kind != ApiFailureKind.unauthorized) rethrow;
+      return exchangeFirebaseToken(firebaseIdToken);
+    } on FormatException {
+      return exchangeFirebaseToken(firebaseIdToken);
+    } on RangeError {
       return exchangeFirebaseToken(firebaseIdToken);
     }
   }
@@ -87,8 +103,12 @@ final class HttpFederatedAuthRepository implements FederatedAuthRepository {
   }
 
   @override
-  Future<void> deleteAccount() async {
-    await _client.delete('/users/me', decode: (_) {});
+  Future<void> deleteAccount({required String firebaseIdToken}) async {
+    await _client.delete(
+      '/users/me',
+      headers: {'x-firebase-reauth-token': firebaseIdToken},
+      decode: (_) {},
+    );
     await _session.clear();
   }
 

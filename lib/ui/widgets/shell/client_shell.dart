@@ -24,14 +24,16 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  bool _receivedTab = false;
   bool _checkedPending = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is int) {
-      _currentIndex = args;
+    if (!_receivedTab && args is int) {
+      _receivedTab = true;
+      _currentIndex = args.clamp(0, 4);
     }
   }
 
@@ -70,6 +72,7 @@ class _AppShellState extends State<AppShell> {
       final vehicleProvider = context.read<VehicleProvider>();
       if (vehicleProvider.vehicles.isEmpty) {
         await vehicleProvider.loadVehicle(uid);
+        if (vehicleProvider.error != null) return;
       }
       if (!mounted) return;
       hasVehicle = vehicleProvider.vehicles.isNotEmpty;

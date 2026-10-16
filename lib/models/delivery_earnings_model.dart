@@ -1,3 +1,5 @@
+import '../core/utils/business_clock.dart';
+
 class DeliveryEarningModel {
   final String id;
   final String deliveryPersonId;
@@ -28,7 +30,8 @@ class DeliveryEarningModel {
         '${data['label'] ?? 'Entrega'} · ${data['paid_at'] == null ? 'A receber' : 'Recebido'}',
     amount: (data['amount'] as num?)?.toDouble() ?? 0,
     createdAt:
-        DateTime.tryParse('${data['created_at'] ?? ''}') ?? DateTime.now(),
+        DateTime.tryParse('${data['created_at'] ?? ''}')?.toLocal() ??
+        DateTime.now(),
   );
 
   Map<String, dynamic> toMap() => {
@@ -40,10 +43,11 @@ class DeliveryEarningModel {
   };
 
   bool get isToday {
-    final now = DateTime.now();
-    return createdAt.year == now.year &&
-        createdAt.month == now.month &&
-        createdAt.day == now.day;
+    final now = BusinessClock.now();
+    final date = BusinessClock.local(createdAt);
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   bool isNewest(List<DeliveryEarningModel> all) =>

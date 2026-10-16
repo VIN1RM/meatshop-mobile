@@ -36,6 +36,27 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   String? _unitError;
   String? _error;
   bool _busy = false;
+  bool _generatingCode = false;
+  Future<void> _regenerateCode() async {
+    if (_generatingCode) return;
+    setState(() => _generatingCode = true);
+    try {
+      await context.read<DeliveryRepository>().regenerateCode(
+        widget.orderId,
+        pickup: false,
+      );
+      await _refresh();
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _error = 'Não foi possível gerar o código. Tente novamente.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _generatingCode = false);
+    }
+  }
+
   bool _follow = true;
   bool _started = false;
   bool get _ended =>
@@ -344,6 +365,32 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             height: 1.4,
                           ),
                         ),
+                        if (!_ended && _order != null) ...[
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Código de entrega',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            _order!.deliveryCode ?? 'Ainda não disponível',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 3,
+                            ),
+                          ),
+                          const Text(
+                            'Informe ao entregador somente depois de receber o pedido.',
+                          ),
+                          TextButton(
+                            onPressed: _generatingCode ? null : _regenerateCode,
+                            child: Text(
+                              _generatingCode
+                                  ? 'Gerando…'
+                                  : 'Gerar novo código',
+                            ),
+                          ),
+                        ],
                         if (_point?.accuracy != null) ...[
                           const SizedBox(height: 6),
                           Text(

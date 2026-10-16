@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
@@ -49,18 +50,18 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   late final bool _addressWasMissing;
   late final bool _vehicleWasMissing;
 
-  final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'ON_FOOT'];
+  final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'SCOOTER'];
   final Map<String, String> _vehicleLabels = {
     'MOTORCYCLE': 'Moto',
     'BIKE': 'Bicicleta',
     'CAR': 'Carro',
-    'ON_FOOT': 'A pé',
+    'SCOOTER': 'Patinete',
   };
   final Map<String, IconData> _vehicleIcons = {
     'MOTORCYCLE': Icons.two_wheeler,
     'BIKE': Icons.directions_bike,
     'CAR': Icons.directions_car,
-    'ON_FOOT': Icons.directions_walk,
+    'SCOOTER': Icons.electric_scooter,
   };
 
   @override
@@ -94,7 +95,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
       'MOTO' || 'MOTORCYCLE' => 'MOTORCYCLE',
       'BICICLETA' || 'BIKE' => 'BIKE',
       'CARRO' || 'CAR' => 'CAR',
-      'A PÉ' || 'ON_FOOT' => 'ON_FOOT',
+      'PATINETE' || 'SCOOTER' => 'SCOOTER',
       _ => null,
     };
   }
@@ -572,9 +573,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 initialData: _vehicleData,
               ),
             );
-            if (result != null) {
+            if (result != null && mounted) {
               setState(() {
-                _selectedVehicle = v;
+                _selectedVehicle = VehicleRegistrationService.type(
+                  '${result["type"] ?? v}',
+                );
                 _vehicleData = result;
               });
             }

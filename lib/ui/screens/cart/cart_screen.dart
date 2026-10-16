@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/product_quantity.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
@@ -74,9 +75,18 @@ class _CartScreenState extends State<CartScreen> {
 
                       if (provider.error != null) {
                         return Center(
-                          child: Text(
-                            provider.error!,
-                            style: const TextStyle(color: Colors.white54),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                provider.error!,
+                                style: const TextStyle(color: Colors.white54),
+                              ),
+                              TextButton(
+                                onPressed: provider.loadCart,
+                                child: const Text('Tentar novamente'),
+                              ),
+                            ],
                           ),
                         );
                       }
@@ -427,7 +437,9 @@ class _CartScreenState extends State<CartScreen> {
                     _QtyButton(
                       icon: Icons.remove,
                       onTap: () async {
-                        final novaQty = item.quantity - 0.5;
+                        final novaQty =
+                            item.quantity -
+                            ProductQuantity.step(item.unitOfMeasure);
                         if (novaQty <= 0) {
                           final confirmed =
                               await CustomDialog.showRemoveCartItem(
@@ -453,7 +465,9 @@ class _CartScreenState extends State<CartScreen> {
                       child: Text(
                         item.quantity % 1 == 0
                             ? item.quantity.toInt().toString()
-                            : item.quantity.toStringAsFixed(1),
+                            : item.quantity
+                                  .toStringAsFixed(3)
+                                  .replaceFirst(RegExp(r'\.?0+$'), ''),
                         style: const TextStyle(
                           color: Color(0xFF1A1A1A),
                           fontSize: 14,
@@ -473,7 +487,8 @@ class _CartScreenState extends State<CartScreen> {
                       icon: Icons.add,
                       onTap: () => provider.updateQuantity(
                         item.productId,
-                        item.quantity + 0.5,
+                        item.quantity +
+                            ProductQuantity.step(item.unitOfMeasure),
                       ),
                     ),
                   ],
@@ -517,7 +532,7 @@ class _CartScreenState extends State<CartScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Um ou mais açougues estão fechados. Aguarde o horário de funcionamento para finalizar.',
+                      'Há açougues fechados. Escolha uma data e um horário de funcionamento para agendar.',
                       style: TextStyle(
                         color: Color(0xFFC0392B),
                         fontSize: 12,
@@ -529,15 +544,12 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ),
           ElevatedButton(
-            onPressed: hasClosedUnit
-                ? null
-                : () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          AddressScheduleScreen(total: provider.total),
-                    ),
-                  ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AddressScheduleScreen(total: provider.total),
+              ),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: hasClosedUnit
                   ? const Color(0xFFBDBDBD)
@@ -553,7 +565,7 @@ class _CartScreenState extends State<CartScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  hasClosedUnit ? 'Açougue fechado' : 'Confirmar Itens',
+                  hasClosedUnit ? 'Agendar pedido' : 'Confirmar Itens',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,

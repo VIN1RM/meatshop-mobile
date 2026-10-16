@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -67,9 +68,22 @@ class MeatShopApp extends StatefulWidget {
 }
 
 class _MeatShopAppState extends State<MeatShopApp> {
+  StreamSubscription<void>? _expiration;
+  @override
+  void dispose() {
+    _expiration?.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    _expiration = apiFoundation?.session.expirations.listen((_) {
+      final context = navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        context.read<AuthProvider>().expireSession(context);
+      }
+    });
     NotificationService.instance
         .initialize(navigatorKey: navigatorKey)
         .catchError((e) => debugPrint('NotificationService init error: $e'));

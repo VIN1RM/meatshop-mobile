@@ -7,6 +7,16 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.1.0] - Em desenvolvimento
+
+### Corrigido
+
+- Recuperação de sessão, navegação por notificações e alternância entre cliente e entregador.
+- Códigos de entrega e retirada, unidades de medida, agendamento e cadastro de veículos.
+- Tratamento de falhas em busca, pedidos, receitas, avaliações, ganhos e metas.
+- Cadastro após verificação de e-mail e reautenticação de contas sociais.
+- Navegação e apresentação das formas de pagamento no padrão da aplicação.
+
 ## [3.0.0] - Em desenvolvimento
 
 ### Adicionado

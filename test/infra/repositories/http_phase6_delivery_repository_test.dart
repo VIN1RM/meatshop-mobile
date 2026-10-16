@@ -14,6 +14,36 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_delivery_repository.dart';
 
 void main() {
+  for (final pickup in [true, false]) {
+    test(
+      'regenerates a protected ${pickup ? 'pickup' : 'delivery'} code',
+      () async {
+        final repository = HttpDeliveryRepository(
+          _client(
+            MockClient((request) async {
+              expect(request.method, 'POST');
+              expect(
+                request.url.path,
+                '/delivery/orders/42/${pickup ? 'pickup' : 'delivery'}-code/regenerate',
+              );
+              expect(request.headers['authorization'], 'Bearer access');
+              return _json({'code': '123456'});
+            }),
+          ),
+        );
+        expect(await repository.regenerateCode(42, pickup: pickup), '123456');
+      },
+    );
+  }
+  test('rejects a malformed verification code', () async {
+    final repository = HttpDeliveryRepository(
+      _client(MockClient((_) async => _json({'code': '123'}))),
+    );
+    await expectLater(
+      repository.regenerateCode(42, pickup: true),
+      throwsA(isA<Exception>()),
+    );
+  });
   test('loads available delivery offers exclusively from backend', () async {
     final repository = HttpDeliveryRepository(
       _client(

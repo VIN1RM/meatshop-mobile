@@ -100,10 +100,12 @@ final class ApiClient {
     String path, {
     required T Function(Object? json) decode,
     Object? body,
+    Map<String, String> headers = const {},
     bool authenticated = true,
     CancellationToken? cancellationToken,
   }) => _request(
     method: 'DELETE',
+    headers: headers,
     path: path,
     decode: decode,
     body: body,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/notification_service.dart';
 import 'package:provider/provider.dart';
 import '../../core/utils/payment_return_intent.dart';
 import '../../providers/auth/auth_provider.dart';
@@ -39,6 +40,11 @@ class _PaymentReturnListenerState extends State<PaymentReturnListener> {
   }
 
   void _resume() {
+    if (_auth?.isAuthenticated == true && _auth?.activeProfile != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) NotificationService.instance.resumePending();
+      });
+    }
     if (_scheduled ||
         !PaymentReturnIntent.instance.pending ||
         !(_auth?.isAuthenticated ?? false)) {

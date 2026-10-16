@@ -137,7 +137,13 @@ class _WriteProductReviewScreenState extends State<WriteProductReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_argsLoaded || _loadingStatus) {
+    if (!_argsLoaded) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Avaliação')),
+        body: const Center(child: Text('Selecione um pedido para avaliar.')),
+      );
+    }
+    if (_loadingStatus) {
       return Scaffold(
         backgroundColor: _bg,
         body: const Center(child: CircularProgressIndicator(color: _red)),

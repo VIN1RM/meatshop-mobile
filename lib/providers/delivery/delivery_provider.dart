@@ -44,6 +44,27 @@ class DeliveryProvider extends ChangeNotifier {
   bool get hasActiveOrder => _activeOrder != null;
   bool get isLoading => _isLoading;
   String? get pickupCode => _pickupCode;
+  Future<void> regeneratePickupCode() async {
+    final order = _activeOrder;
+    if (order == null || order.step != DeliveryStep.pickup || _isLoading) {
+      return;
+    }
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final code = await repository.regenerateCode(order.id, pickup: true);
+      if (_activeOrder?.id == order.id) _pickupCode = code;
+      _lastError = null;
+    } catch (_) {
+      _lastError =
+          'Não foi possível gerar o código de retirada. Tente novamente.';
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   List<DeliveryOrder> get pendingOrders => List.unmodifiable(_pendingOrders);
   List<DeliveryOrder> get historyOrders => List.unmodifiable(_historyOrders);
   bool get isLoadingHistory => _isLoadingHistory;
@@ -236,6 +257,7 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   void switchToClientMode(BuildContext context) {
+    if (hasActiveOrder) return;
     stopListeningOrders();
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
@@ -366,7 +388,9 @@ class DeliveryProvider extends ChangeNotifier {
         await locationSharing.stop();
       }
       if (uid != _deliveryPersonUid || version != _listeningVersion) return;
+      if (nextOrder?.id != _activeOrder?.id) _pickupCode = null;
       _activeOrder = nextOrder?.isTrackable == true ? nextOrder : null;
+      _lastError = null;
       final profile = results[2] as Map<String, Object?>;
       _availability = profile['is_online'] == true
           ? DeliveryAvailability.available
@@ -376,6 +400,13 @@ class DeliveryProvider extends ChangeNotifier {
       if (!isAvailable) await locationSharing.stop();
       if (uid != _deliveryPersonUid || version != _listeningVersion) return;
       notifyListeners();
+    } catch (_) {
+      if (uid == _deliveryPersonUid && version == _listeningVersion) {
+        _lastError =
+            'Não foi possível atualizar as entregas. Verifique sua conexão.';
+        notifyListeners();
+      }
+      rethrow;
     } finally {
       _refreshing = false;
     }

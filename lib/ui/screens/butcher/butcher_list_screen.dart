@@ -248,6 +248,23 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
                                 child: Center(child: MeatShopLoader()),
                               );
                             }
+                            if (provider.error != null) {
+                              return Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'Não foi possível carregar os açougues.',
+                                      style: TextStyle(color: Colors.white70),
+                                    ),
+                                    TextButton(
+                                      onPressed: provider.loadUnits,
+                                      child: const Text('Tentar novamente'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
                             if (provider.units.isEmpty) {
                               return const Center(
                                 child: Text(

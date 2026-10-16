@@ -99,9 +99,18 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
         );
       case RecipeLoadState.error:
         return Center(
-          child: Text(
-            provider.errorMessage ?? 'Erro ao carregar receitas.',
-            style: const TextStyle(color: Colors.white70),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                provider.errorMessage ?? 'Erro ao carregar receitas.',
+                style: const TextStyle(color: Colors.white70),
+              ),
+              TextButton(
+                onPressed: provider.loadAllRecipes,
+                child: const Text('Tentar novamente'),
+              ),
+            ],
           ),
         );
       case RecipeLoadState.loaded:
