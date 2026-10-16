@@ -97,8 +97,10 @@ final class HttpDeliveryRepository implements DeliveryRepository {
         value == null ? null : DeliveryOrder.fromApi(_map(value)),
   );
   @override
-  Future<List<DeliveryOrder>> history() =>
-      _orders('/delivery/me/orders/history');
+  Future<List<DeliveryOrder>> history() => _allPages(
+    (page) => _orders('/delivery/me/orders/history?page=$page&limit=100'),
+    (order) => order.id.toString(),
+  );
   @override
   Future<String> accept(int orderId) => _client.post(
     '/delivery/orders/$orderId/accept',
@@ -183,11 +185,14 @@ final class HttpDeliveryRepository implements DeliveryRepository {
     },
   );
   @override
-  Future<List<DeliveryEarningModel>> earnings() => _client.get(
-    '/delivery/me/earnings',
-    decode: (value) => _list(
-      _map(value)['entries'],
-    ).map((item) => DeliveryEarningModel.fromApi(_map(item))).toList(),
+  Future<List<DeliveryEarningModel>> earnings() => _allPages(
+    (page) => _client.get(
+      '/delivery/me/earnings?page=$page&limit=100',
+      decode: (value) => _list(
+        _map(value)['entries'],
+      ).map((item) => DeliveryEarningModel.fromApi(_map(item))).toList(),
+    ),
+    (entry) => entry.id,
   );
   @override
   Future<List<DeliveryGoalModel>> goals() => _client.get(
@@ -209,6 +214,30 @@ final class HttpDeliveryRepository implements DeliveryRepository {
         '/delivery-persons/$deliveryPersonId/reviews',
         decode: (value) => _list(value).map(_map).toList(),
       );
+
+  Future<List<T>> _allPages<T>(
+    Future<List<T>> Function(int page) fetch,
+    String Function(T item) identity,
+  ) async {
+    final accountId = _client.accountId;
+    final result = <String, T>{};
+    for (var page = 1; ; page++) {
+      final items = await fetch(page);
+      if (_client.accountId != accountId) {
+        throw const ApiFailure(
+          kind: ApiFailureKind.unauthorized,
+          message: 'A sessão mudou. Entre novamente.',
+          code: 'SESSION_EXPIRED',
+        );
+      }
+      final previousSize = result.length;
+      for (final item in items) {
+        result[identity(item)] = item;
+      }
+      if (items.length < 100 || result.length == previousSize) break;
+    }
+    return result.values.toList(growable: false);
+  }
 
   Future<List<DeliveryOrder>> _orders(String path) => _client.get(
     path,

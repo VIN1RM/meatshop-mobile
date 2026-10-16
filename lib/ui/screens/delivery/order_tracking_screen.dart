@@ -32,7 +32,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    _currentUserId = auth.currentUser?.uid ?? '';
+    _currentUserId = auth.backendUserId?.toString() ?? '';
     _currentUserName = auth.currentUser?.displayName ?? 'Cliente';
   }
 
@@ -79,15 +79,21 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
       unitName: order.unitName,
       secondaryName: deliveryId == null
           ? null
-          : 'Entregador #${_shortId(deliveryId)}',
+          : order.deliveryPersonName?.trim().isNotEmpty == true
+          ? order.deliveryPersonName!
+          : 'Entregador',
       secondaryType: ChatParticipantType.delivery,
     );
     if (participant == null || !mounted) return;
     final isUnit = participant == ChatParticipantType.unit;
-    final receiverId = isUnit ? order.unitId : deliveryId!;
+    final receiverId = isUnit
+        ? order.unitId
+        : order.deliveryPersonUserId ?? deliveryId!;
     final receiverName = isUnit
         ? order.unitName
-        : 'Entregador #${_shortId(deliveryId)}';
+        : order.deliveryPersonName?.trim().isNotEmpty == true
+        ? order.deliveryPersonName!
+        : 'Entregador';
     if (!mounted) return;
     Navigator.pushNamed(
       context,
@@ -103,11 +109,6 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         orderId: int.tryParse(order.id),
       ),
     );
-  }
-
-  String _shortId(String? value) {
-    if (value == null || value.isEmpty) return '';
-    return value.length <= 8 ? value : value.substring(0, 8);
   }
 
   @override

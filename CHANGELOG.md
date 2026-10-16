@@ -11,6 +11,10 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ### Corrigido
 
+- Chat usa IDs do backend, nomes reais dos participantes e perfil ativo. Avaliações exibem apenas primeiro nome e ícone de pessoa.
+
+- Ofertas atualizadas ao mudar a disponibilidade, estados offline e sem ofertas diferenciados e histórico/ganhos carregados por páginas sem truncamento fixo.
+
 - Bloqueio local de login após cinco falhas, persistido no armazenamento seguro, com expiração em cinco minutos e tratamento separado das restrições do Firebase.
 
 - Recuperação de sessão, navegação por notificações e alternância entre cliente e entregador.

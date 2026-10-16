@@ -42,6 +42,8 @@ class OrderModel {
   final String status;
   final String deliveryStatus;
   final String? deliveryPersonId;
+  final String? deliveryPersonName;
+  final String? deliveryPersonUserId;
   final String deliveryType;
   final String paymentStatus;
   final String paymentMethod;
@@ -108,6 +110,8 @@ class OrderModel {
     required this.status,
     required this.deliveryStatus,
     this.deliveryPersonId,
+    this.deliveryPersonName,
+    this.deliveryPersonUserId,
     required this.deliveryType,
     required this.paymentStatus,
     required this.paymentMethod,
@@ -155,6 +159,8 @@ class OrderModel {
     status: status,
     deliveryStatus: deliveryStatus,
     deliveryPersonId: deliveryPersonId ?? this.deliveryPersonId,
+    deliveryPersonName: deliveryPersonName,
+    deliveryPersonUserId: deliveryPersonUserId,
     deliveryType: deliveryType,
     paymentStatus: paymentStatus,
     paymentMethod: paymentMethod,
@@ -240,6 +246,8 @@ class OrderModel {
       status: data['status'] as String? ?? 'PENDING',
       deliveryStatus: data['delivery_status'] as String? ?? '',
       deliveryPersonId: data['delivery_person_id']?.toString(),
+      deliveryPersonName: data['delivery_person_name'] as String?,
+      deliveryPersonUserId: data['delivery_person_user_id']?.toString(),
       deliveryType: data['delivery_type'] as String? ?? 'DELIVERY',
       paymentStatus: data['payment_status'] as String? ?? 'PENDING',
       paymentMethod: payment['method'] as String? ?? '',

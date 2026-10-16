@@ -3,6 +3,7 @@ class DeliveryReview {
     required this.id,
     required this.orderId,
     required this.clientId,
+    this.clientName = 'Cliente',
     required this.deliveryPersonId,
     required this.rating,
     required this.comment,
@@ -12,6 +13,7 @@ class DeliveryReview {
   final String id;
   final String orderId;
   final String clientId;
+  final String clientName;
   final String deliveryPersonId;
   final int rating;
   final String comment;

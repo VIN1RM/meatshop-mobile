@@ -14,7 +14,7 @@ class DeliveryProvider extends ChangeNotifier {
   }
   late final LocationSharingController locationSharing;
   Timer? _refreshTimer;
-  bool _refreshing = false;
+  Future<void>? _refreshFuture;
   int _listeningVersion = 0;
   void _locationChanged() => notifyListeners();
   final DeliveryRepository repository;
@@ -106,16 +106,25 @@ class DeliveryProvider extends ChangeNotifier {
     try {
       _lastError = null;
       await repository.setAvailability(next == DeliveryAvailability.available);
-      _availability = next;
-      if (next == DeliveryAvailability.unavailable) {
-        await locationSharing.stop();
-      }
-    } catch (error) {
+    } catch (_) {
       _lastError = 'Não foi possível alterar sua disponibilidade.';
-      rethrow;
-    } finally {
       notifyListeners();
+      rethrow;
     }
+    if (_refreshFuture != null) {
+      try {
+        await _refreshFuture;
+      } catch (_) {}
+    }
+    _availability = next;
+    if (next == DeliveryAvailability.unavailable) {
+      _pendingOrders.clear();
+      await locationSharing.stop();
+    }
+    notifyListeners();
+    try {
+      await _refreshBackendState();
+    } catch (_) {}
   }
 
   Future<void> acceptOrder(DeliveryOrder order) async {
@@ -340,6 +349,7 @@ class DeliveryProvider extends ChangeNotifier {
               id: '${data['id'] ?? ''}',
               orderId: '${data['order_id'] ?? ''}',
               clientId: '${data['client_id'] ?? ''}',
+              clientName: '${data['client_name'] ?? 'Cliente'}',
               deliveryPersonId: '$_deliveryPersonId',
               rating: (data['rating'] as num?)?.toInt() ?? 0,
               comment: '${data['comment'] ?? ''}',
@@ -362,9 +372,14 @@ class DeliveryProvider extends ChangeNotifier {
     unawaited(locationSharing.stop());
   }
 
-  Future<void> _refreshBackendState() async {
-    if (_refreshing || _deliveryPersonUid == null) return;
-    _refreshing = true;
+  Future<void> _refreshBackendState() {
+    return _refreshFuture ??= _loadBackendState().whenComplete(() {
+      _refreshFuture = null;
+    });
+  }
+
+  Future<void> _loadBackendState() async {
+    if (_deliveryPersonUid == null) return;
     final uid = _deliveryPersonUid;
     final version = _listeningVersion;
     try {
@@ -407,8 +422,6 @@ class DeliveryProvider extends ChangeNotifier {
         notifyListeners();
       }
       rethrow;
-    } finally {
-      _refreshing = false;
     }
   }
 

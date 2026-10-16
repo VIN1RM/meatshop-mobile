@@ -13,6 +13,8 @@ class ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final name = review.clientName.trim().split(RegExp(r'\s+')).first;
+    final displayName = name.isEmpty ? 'Cliente' : name;
     final dateFormat = DateFormat('dd/MM/yyyy', 'pt_BR');
     final bg = darkMode ? const Color(0xFF2A2A2A) : Colors.white;
     final textPrimary = darkMode ? Colors.white : const Color(0xFF1A1A1A);
@@ -40,14 +42,14 @@ class ReviewCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildAvatar(textPrimary),
+              _buildAvatar(),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review.clientName,
+                      displayName,
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
@@ -78,11 +80,7 @@ class ReviewCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar(Color textColor) {
-    final initials = review.clientName.isNotEmpty
-        ? review.clientName.trim().split(' ').map((w) => w[0]).take(2).join()
-        : '?';
-
+  Widget _buildAvatar() {
     return Container(
       width: 40,
       height: 40,
@@ -91,16 +89,7 @@ class ReviewCard extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: _red.withValues(alpha: 0.3), width: 1.5),
       ),
-      child: Center(
-        child: Text(
-          initials.toUpperCase(),
-          style: TextStyle(
-            color: _red,
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
+      child: const Icon(Icons.person_outline_rounded, color: _red, size: 24),
     );
   }
 

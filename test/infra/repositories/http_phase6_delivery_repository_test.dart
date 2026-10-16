@@ -14,6 +14,53 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_delivery_repository.dart';
 
 void main() {
+  test('loads delivery history beyond the first one hundred records', () async {
+    final pages = <int>[];
+    final repository = HttpDeliveryRepository(
+      _client(
+        MockClient((request) async {
+          final page = int.parse(request.url.queryParameters['page']!);
+          pages.add(page);
+          return _json(
+            page == 1
+                ? [
+                    for (var i = 1; i <= 100; i++) {..._order, 'id': i},
+                  ]
+                : [
+                    {..._order, 'id': 101},
+                  ],
+          );
+        }),
+      ),
+    );
+    final orders = await repository.history();
+    expect(orders.length, 101);
+    expect(pages, [1, 2]);
+  });
+  test('loads earnings beyond three hundred sixty five deliveries', () async {
+    final repository = HttpDeliveryRepository(
+      _client(
+        MockClient((request) async {
+          final page = int.parse(request.url.queryParameters['page']!);
+          final count = page <= 4 ? 100 : 1;
+          return _json({
+            'entries': [
+              for (var i = 0; i < count; i++)
+                {
+                  'id': (page - 1) * 100 + i,
+                  'amount': 10,
+                  'created_at': '2026-10-15T12:00:00Z',
+                },
+            ],
+          });
+        }),
+      ),
+    );
+    final entries = await repository.earnings();
+    expect(entries.length, 401);
+    expect(entries.fold<double>(0, (total, e) => total + e.amount), 4010);
+  });
+
   for (final pickup in [true, false]) {
     test(
       'regenerates a protected ${pickup ? 'pickup' : 'delivery'} code',

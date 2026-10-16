@@ -1,3 +1,4 @@
+import 'delivery_availability_control.dart';
 import 'location_sharing_consent.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -42,6 +43,7 @@ class DeliveriesTab extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const AppHeader(),
+                    const DeliveryAvailabilityControl(),
                     Expanded(
                       child: provider.pendingOrders.isEmpty
                           ? _buildEmpty(provider)
@@ -69,15 +71,21 @@ class DeliveriesTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            provider.lastError ?? 'Nenhum pedido disponível',
+            provider.lastError ??
+                (provider.isAvailable
+                    ? 'Nenhuma oferta disponível'
+                    : 'Você está offline'),
             style: TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
               fontSize: 16,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Aguarde e Confie',
+          Text(
+            provider.isAvailable
+                ? 'As ofertas aparecem quando o açougue marca o pedido como pronto.'
+                : 'Ative sua disponibilidade para receber ofertas de entrega.',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Color.fromARGB(181, 255, 255, 255),
               fontSize: 13,

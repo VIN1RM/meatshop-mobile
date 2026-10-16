@@ -16,7 +16,15 @@ final class HttpChatRepository implements ChatRepository {
     int limit = 50,
   }) => _client.get(
     '/chats',
-    query: {'page': page, 'limit': limit},
+    query: {
+      'page': page,
+      'limit': limit,
+      'profile': currentUserType == ChatParticipantType.delivery
+          ? 'DELIVERY'
+          : currentUserType == ChatParticipantType.unit
+          ? 'UNIT'
+          : 'CLIENT',
+    },
     decode: (value) {
       final items = _map(value)['items'];
       if (items is! List<Object?>) throw _malformed();

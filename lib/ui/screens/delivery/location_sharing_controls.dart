@@ -11,17 +11,53 @@ class LocationSharingControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<DeliveryProvider>();
     final sharing = provider.locationSharing;
-    return Card(
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFF383838),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white12),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              sharing.sharing
-                  ? 'Localização compartilhada'
-                  : 'Localização pausada',
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color:
+                        (sharing.sharing
+                                ? const Color(0xFF66BB6A)
+                                : const Color(0xFFC0392B))
+                            .withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    sharing.sharing
+                        ? Icons.location_on_outlined
+                        : Icons.location_off_outlined,
+                    color: sharing.sharing
+                        ? const Color(0xFF81C784)
+                        : const Color(0xFFEF9A9A),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    sharing.sharing
+                        ? 'Localização compartilhada'
+                        : 'Localização pausada',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
@@ -31,9 +67,24 @@ class LocationSharingControls extends StatelessWidget {
                             ? 'Aguardando o primeiro sinal de GPS.'
                             : 'Cliente e unidade podem acompanhar sua posição durante esta entrega.'
                       : 'Ative para permitir que o cliente acompanhe sua entrega.'),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+                height: 1.5,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFC0392B),
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: const Color(0xFF555555),
+                disabledForegroundColor: Colors.white54,
+                minimumSize: const Size(double.infinity, 46),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               icon: Icon(sharing.sharing ? Icons.pause : Icons.my_location),
               label: Text(
                 sharing.starting
@@ -54,6 +105,7 @@ class LocationSharingControls extends StatelessWidget {
             ),
             if (sharing.message != null && !kIsWeb)
               TextButton(
+                style: TextButton.styleFrom(foregroundColor: Colors.white70),
                 onPressed: () => Geolocator.openAppSettings(),
                 child: const Text('Abrir permissões do aparelho'),
               ),

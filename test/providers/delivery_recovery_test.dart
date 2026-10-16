@@ -20,10 +20,24 @@ const address = AddressModel(
 
 class DeliveryFake extends Fake implements DeliveryRepository {
   bool fail = false;
+  bool online = false;
+  int offerLoads = 0;
   @override
-  Future<List<DeliveryOrder>> availableOrders() async => [];
+  Future<void> setAvailability(bool value) async {
+    online = value;
+  }
+
   @override
-  Future<Map<String, Object?>> profile() async => {'id': 1, 'is_online': true};
+  Future<List<DeliveryOrder>> availableOrders() async {
+    offerLoads++;
+    return [];
+  }
+
+  @override
+  Future<Map<String, Object?>> profile() async => {
+    'id': 1,
+    'is_online': online,
+  };
   @override
   Future<DeliveryOrder?> activeOrder() async => DeliveryOrder(
     id: 42,
@@ -45,6 +59,21 @@ class DeliveryFake extends Fake implements DeliveryRepository {
 }
 
 void main() {
+  testWidgets(
+    'availability refreshes offers immediately without waiting for polling',
+    (tester) async {
+      final repository = DeliveryFake();
+      final provider = DeliveryProvider(repository: repository);
+      provider.startListeningOrders('user');
+      await tester.pump();
+      final before = repository.offerLoads;
+      await provider.toggleAvailability();
+      expect(provider.isOnline, isTrue);
+      expect(repository.offerLoads, greaterThan(before));
+      provider.dispose();
+    },
+  );
+
   testWidgets(
     'restores an assigned delivery and requests a fresh pickup code explicitly',
     (tester) async {
