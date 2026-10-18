@@ -37,9 +37,12 @@ import '../services/promotion_service.dart';
 import '../services/search_service.dart';
 import '../services/unit_service.dart';
 
+import '../data/repositories/legal_repository.dart';
+
 class ProvidersConfig {
   static List<SingleChildWidget> providers({
     FederatedAuthRepository? federatedAuth,
+    LegalRepository? legal,
     MarketplaceRepository? marketplace,
     ProfileRepository? profile,
     AddressRepository? addresses,
@@ -62,6 +65,7 @@ class ProvidersConfig {
       backendFirebaseServices: false,
     ),
   }) => [
+    Provider<LegalRepository>.value(value: legal!),
     Provider<AiAssistantRepository>.value(value: aiAssistant!),
     Provider<DeliveryRepository>.value(value: delivery!),
     Provider<OrderRepository>.value(value: orders!),

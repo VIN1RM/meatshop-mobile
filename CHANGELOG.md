@@ -7,6 +7,22 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.2.0] - 2026-10-18 - Termos e privacidade
+
+### Adicionado
+
+- Confirmação explícita dos Termos de Uso e ciência da Política de Privacidade no cadastro.
+- Regularização de documentos no primeiro acesso social, na restauração de sessão e após atualização relevante.
+- Documentos e versões consultáveis no aplicativo, com histórico individual de registros.
+- Preservação do cadastro ao consultar documentos e nova confirmação quando houver mudança de versão.
+- Acesso ao contato de suporte, solicitações de dados pessoais e exclusão da conta durante a regularização.
+
+### Alterado
+
+- Tela, cadastro e modal de Termos e privacidade alinhados ao padrão visual mobile, com cards, cores da aplicação, leitura com rolagem interna e histórico organizado.
+
+- Versão do aplicativo atualizada para 3.2.0+1.
+
 ## [3.1.0] - 2026-10-15 - Experiência e estabilidade
 
 ### Corrigido

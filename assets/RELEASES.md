@@ -4,6 +4,16 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [3.2.0] - 18 de outubro de 2026 - Termos e privacidade
+
+- Termos e privacidade com visual padronizado, documentos mais legíveis e controles de leitura sempre acessíveis.
+
+
+- Leia os termos e a política de privacidade antes de concluir seu cadastro.
+- Confira e confirme os documentos atualizados ao entrar na conta.
+- Consulte os documentos e seu histórico em Configurações > Termos e privacidade.
+- Acesse o contato de suporte e as opções de encerramento durante a regularização.
+
 ## [3.1.0] - 15 de outubro de 2026 - Experiência e estabilidade
 
 - Recuperação de sessão e de entregas após fechar o aplicativo.

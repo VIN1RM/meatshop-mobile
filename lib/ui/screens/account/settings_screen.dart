@@ -7,7 +7,7 @@ import 'package:meatshop_mobile/ui/dialogs/delete_account_dialog.dart';
 import 'package:meatshop_mobile/ui/dialogs/release_notes_dialog.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:provider/provider.dart';
-import 'package:meatshop_mobile/ui/dialogs/terms_of_use_dialog.dart';
+import 'legal_screen.dart';
 import 'package:meatshop_mobile/providers/user_preferences_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -150,8 +150,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           children: [
                             _buildNavItem(
                               icon: Icons.description_outlined,
-                              label: 'Termos de uso',
-                              onTap: () => TermsOfUseDialog.show(context),
+                              label: 'Termos e privacidade',
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const LegalScreen(),
+                                ),
+                              ),
                             ),
                             _divider(),
                             _buildNavItem(

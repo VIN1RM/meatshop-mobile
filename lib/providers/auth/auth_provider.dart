@@ -1,3 +1,6 @@
+import '../../ui/dialogs/delete_account_dialog.dart';
+import '../../data/repositories/legal_repository.dart';
+import '../../ui/screens/account/legal_screen.dart';
 import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
 import 'package:meatshop_mobile/services/registration_draft_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -197,6 +200,7 @@ class AuthProvider extends ChangeNotifier {
     required String cpf,
     required String phone,
     required AppProfile profile,
+    List<int>? legalDocumentIds,
     String? vehicleType,
     Map<String, dynamic>? vehicleData,
     AddressModel? addressData,
@@ -342,12 +346,14 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String cpf,
     required String phone,
+    List<int>? legalDocumentIds,
     VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
     try {
       return await _registerWithBackend(
+        legalDocumentIds: legalDocumentIds,
         context: context,
         name: name,
         email: email,
@@ -398,12 +404,14 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
+    List<int>? legalDocumentIds,
     VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
     try {
       return await _registerWithBackend(
+        legalDocumentIds: legalDocumentIds,
         context: context,
         name: name,
         email: email,
@@ -456,12 +464,14 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
+    List<int>? legalDocumentIds,
     VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
     try {
       return await _registerWithBackend(
+        legalDocumentIds: legalDocumentIds,
         context: context,
         name: name,
         email: email,
@@ -672,6 +682,7 @@ class AuthProvider extends ChangeNotifier {
     required String cpf,
     required String phone,
     required AppProfile profile,
+    List<int>? legalDocumentIds,
     String? vehicleType,
     Map<String, dynamic>? vehicleData,
   }) async {
@@ -686,6 +697,7 @@ class AuthProvider extends ChangeNotifier {
       'cpf': cpf,
       'phone': phone,
       'profile': profile.name,
+      'legalDocumentIds': legalDocumentIds,
       'vehicleType': vehicleType,
       'vehicle': vehicleData,
     });
@@ -710,6 +722,10 @@ class AuthProvider extends ChangeNotifier {
     final repository = _requireFederatedAuth();
     try {
       await repository.exchangeFirebaseToken(idToken);
+      if (!context.mounted || !await _ensureLegalAcceptance(context)) {
+        await _discardFailedAuthentication();
+        return false;
+      }
       await repository.completeProfile(
         name: name,
         cpf: cpf,
@@ -832,10 +848,69 @@ class AuthProvider extends ChangeNotifier {
     _resetAuthenticationState();
   }
 
+  Future<void> reviewLegalRequirements(BuildContext context) async {
+    if (!_isAuthenticated) return;
+    try {
+      if (!await _ensureLegalAcceptance(context) && context.mounted) {
+        await logout(context);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Termos e privacidade',
+          message: 'Não foi possível verificar os documentos. Tente novamente.',
+        );
+      }
+    }
+  }
+
+  Future<void> _deletePendingAccount(BuildContext context) async {
+    final password = await DeleteAccountDialog.show(context);
+    if (password != null && context.mounted) {
+      await deleteAccount(context: context, password: password);
+    }
+  }
+
+  Future<bool> _ensureLegalAcceptance(BuildContext context) async {
+    final repository = context.read<LegalRepository>();
+    final pending = await repository.pending();
+    if (!pending.enforced || pending.documents.isEmpty) return true;
+    final uid = AuthService.instance.currentUser!.uid;
+    final draft = await RegistrationDraftService.read(uid);
+    final ids = (draft?['legalDocumentIds'] as List?)?.cast<int>();
+    if (ids != null) {
+      try {
+        await repository.accept(ids);
+        return true;
+      } on ApiFailure catch (failure) {
+        if (failure.code != 'LEGAL_DOCUMENTS_CHANGED') rethrow;
+      }
+    }
+    if (!context.mounted) return false;
+    final accepted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => LegalScreen(
+          requiredAcceptance: true,
+          onDeleteAccount: () => _deletePendingAccount(context),
+        ),
+      ),
+    );
+    return accepted == true;
+  }
+
   Future<void> _applyBackendUser(
     BuildContext context,
     BackendAuthUser user,
   ) async {
+    if (!await _ensureLegalAcceptance(context)) {
+      await _discardFailedAuthentication();
+      if (context.mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      }
+      return;
+    }
+    if (!context.mounted) return;
     await _clearUserScopedState(context);
     if (!context.mounted) return;
     _isAuthenticated = true;

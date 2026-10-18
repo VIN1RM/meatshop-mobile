@@ -1,3 +1,4 @@
+import '../../widgets/legal_registration.dart';
 import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart'
     show PhoneInputFormatter;
@@ -22,6 +23,7 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  List<int>? _legalDocumentIds;
 
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -102,6 +104,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_legalDocumentIds == null) {
+      CustomSnackBar.warning(
+        'Confirme os termos e a ciência da política de privacidade.',
+        context: context,
+      );
+      return;
+    }
     if (!isClient && _selectedVehicle == null) {
       setState(() {});
       return;
@@ -121,6 +130,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final authProvider = context.read<AuthProvider>();
     if (isClient) {
       await authProvider.registerClient(
+        legalDocumentIds: _legalDocumentIds,
         context: context,
         name: _nameController.text,
         email: _emailController.text,
@@ -137,6 +147,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
     } else if (isBoth) {
       await authProvider.registerBoth(
+        legalDocumentIds: _legalDocumentIds,
         context: context,
         name: _nameController.text,
         email: _emailController.text,
@@ -155,6 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
     } else {
       await authProvider.registerDelivery(
+        legalDocumentIds: _legalDocumentIds,
         context: context,
         name: _nameController.text,
         email: _emailController.text,
@@ -497,10 +509,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         SizedBox(height: sh * 0.03),
                       ],
 
+                      LegalRegistration(
+                        onChanged: (ids) =>
+                            setState(() => _legalDocumentIds = ids),
+                      ),
                       PrimaryButton(
                         label: 'CADASTRAR',
                         isLoading: _isLoading,
-                        onPressed: _isLoading ? null : _onRegister,
+                        onPressed: _isLoading || _legalDocumentIds == null
+                            ? null
+                            : _onRegister,
                       ),
 
                       SizedBox(height: sh * 0.025),

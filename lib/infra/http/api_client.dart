@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:convert';
 
@@ -15,6 +16,7 @@ final class ApiClient {
 
   final JsonHttpTransport _transport;
   final SessionCoordinator _session;
+  final legalRequirements = StreamController<void>.broadcast();
 
   // Used only to namespace device storage. The server verifies identity and ownership.
   String? get accountId {
@@ -175,6 +177,9 @@ final class ApiClient {
       );
       return decode(response);
     } on ApiFailure catch (failure) {
+      if (authenticated && failure.code == 'LEGAL_ACCEPTANCE_REQUIRED') {
+        legalRequirements.add(null);
+      }
       if (!authenticated ||
           failure.kind != ApiFailureKind.unauthorized ||
           _session.current == null) {

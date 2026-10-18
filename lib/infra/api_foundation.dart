@@ -36,12 +36,17 @@ import 'repositories/http_review_repository.dart';
 import '../data/repositories/ai_assistant_repository.dart';
 import 'repositories/http_ai_assistant_repository.dart';
 
+import '../data/repositories/legal_repository.dart';
+import 'repositories/http_legal_repository.dart';
+
 final class ApiFoundation {
   ApiFoundation._({
     required JsonHttpTransport transport,
     required this.session,
     required this.backendConnection,
     required this.federatedAuth,
+    required this.legal,
+    required this.client,
     required this.marketplace,
     required this.profile,
     required this.addresses,
@@ -75,6 +80,8 @@ final class ApiFoundation {
       transport: transport,
       session: session,
       backendConnection: HttpBackendConnectionRepository(client),
+      legal: HttpLegalRepository(client),
+      client: client,
       federatedAuth: HttpFederatedAuthRepository(
         transport: transport,
         client: client,
@@ -106,6 +113,8 @@ final class ApiFoundation {
   final SessionCoordinator session;
   final BackendConnectionRepository backendConnection;
   final FederatedAuthRepository federatedAuth;
+  final LegalRepository legal;
+  final ApiClient client;
   final MarketplaceRepository marketplace;
   final ProfileRepository profile;
   final AddressRepository addresses;
@@ -123,6 +132,7 @@ final class ApiFoundation {
   Future<void> initialize() => session.initialize();
 
   void dispose() {
+    client.legalRequirements.close();
     realtime.dispose();
     _transport.close();
   }

@@ -9,6 +9,14 @@ abstract final class ApiErrorLocalizer {
     'PIN_TOO_FAR':
         'O ponto escolhido está distante do CEP. Confira o endereço e marque novamente.',
     'TRACKING_ENDED': 'Esta entrega não permite mais compartilhar localização.',
+    'LEGAL_ACCEPTANCE_REQUIRED':
+        'Leia e confirme os documentos vigentes para continuar.',
+    'LEGAL_DOCUMENTS_CHANGED':
+        'Os documentos foram atualizados. Consulte e confirme as versões vigentes.',
+    'LEGAL_DOCUMENTS_UNAVAILABLE':
+        'Documentos temporariamente indisponíveis. Tente novamente.',
+    'UNIT_LEGAL_ACCEPTANCE_REQUIRED':
+        'O responsável da unidade precisa confirmar os termos.',
     'TRACKING_CONSENT_REQUIRED': 'Ative o compartilhamento para esta entrega.',
     'PROFILE_INCOMPLETE': 'Complete seu cadastro para continuar.',
     'EMAIL_ALREADY_EXISTS': 'Este e-mail já está cadastrado.',

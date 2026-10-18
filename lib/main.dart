@@ -69,9 +69,12 @@ class MeatShopApp extends StatefulWidget {
 
 class _MeatShopAppState extends State<MeatShopApp> {
   StreamSubscription<void>? _expiration;
+  StreamSubscription<void>? _legalRequirement;
+  bool _reviewingLegal = false;
   @override
   void dispose() {
     _expiration?.cancel();
+    _legalRequirement?.cancel();
     super.dispose();
   }
 
@@ -84,6 +87,18 @@ class _MeatShopAppState extends State<MeatShopApp> {
         context.read<AuthProvider>().expireSession(context);
       }
     });
+    _legalRequirement = apiFoundation?.client.legalRequirements.stream.listen((
+      _,
+    ) async {
+      final context = navigatorKey.currentContext;
+      if (_reviewingLegal || context == null || !context.mounted) return;
+      _reviewingLegal = true;
+      try {
+        await context.read<AuthProvider>().reviewLegalRequirements(context);
+      } finally {
+        _reviewingLegal = false;
+      }
+    });
     NotificationService.instance
         .initialize(navigatorKey: navigatorKey)
         .catchError((e) => debugPrint('NotificationService init error: $e'));
@@ -94,6 +109,7 @@ class _MeatShopAppState extends State<MeatShopApp> {
     return MultiProvider(
       providers: ProvidersConfig.providers(
         federatedAuth: apiFoundation?.federatedAuth,
+        legal: apiFoundation?.legal,
         marketplace: featureFlags.backendMarketplace
             ? apiFoundation?.marketplace
             : null,
