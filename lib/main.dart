@@ -12,6 +12,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/routes/routes_config.dart';
 import 'package:meatshop_mobile/providers/providers_config.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
+import 'package:meatshop_mobile/services/user_preferences_service.dart';
 import 'package:meatshop_mobile/core/config/feature_flags.dart';
 import 'package:meatshop_mobile/infra/api_foundation.dart';
 import 'package:meatshop_mobile/services/firebase_complementary_services.dart';
@@ -55,6 +56,7 @@ void main() async {
     throw StateError('Notification repository was not initialized.');
   }
   NotificationService.instance.configure(backend: notifications);
+  UserPreferencesService.instance.configure(backend: notifications);
   await initializeDateFormatting('pt_BR');
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const MeatShopApp());

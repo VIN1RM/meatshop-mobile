@@ -1,6 +1,7 @@
 import '../../core/network/api_failure.dart';
 import '../../data/repositories/notification_repository.dart';
 import '../../models/notification_model.dart';
+import '../../models/user_preferences.dart';
 import '../http/api_client.dart';
 
 final class HttpNotificationRepository implements NotificationRepository {
@@ -49,6 +50,20 @@ final class HttpNotificationRepository implements NotificationRepository {
   @override
   Future<void> markAllAsRead() =>
       _client.patch('/notifications/read-all', decode: (_) {});
+
+  @override
+  Future<UserPreferences> getPreferences() => _client.get(
+    '/notifications/preferences',
+    decode: (value) => UserPreferences.fromApi(_map(value)),
+  );
+
+  @override
+  Future<UserPreferences> updatePreferences(UserPreferences preferences) =>
+      _client.patch(
+        '/notifications/preferences',
+        body: preferences.toApi(),
+        decode: (value) => UserPreferences.fromApi(_map(value)),
+      );
 
   static Map<String, Object?> _map(Object? value) {
     if (value is Map<String, Object?>) return value;

@@ -5,9 +5,11 @@ import 'package:meatshop_mobile/services/user_preferences_service.dart';
 class UserPreferencesProvider extends ChangeNotifier {
   UserPreferences _prefs = const UserPreferences();
   bool _loading = false;
+  String? _error;
 
   UserPreferences get prefs => _prefs;
   bool get loading => _loading;
+  String? get error => _error;
 
   bool get notifOrders => _prefs.notifOrders;
   bool get notifDelivery => _prefs.notifDelivery;
@@ -16,6 +18,7 @@ class UserPreferencesProvider extends ChangeNotifier {
 
   Future<void> loadForUser(String uid) async {
     _loading = true;
+    _error = null;
     notifyListeners();
 
     try {
@@ -31,18 +34,28 @@ class UserPreferencesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setNotifOrders(String uid, bool v) =>
+  Future<bool> setNotifOrders(String uid, bool v) =>
       _update(uid, _prefs.copyWith(notifOrders: v));
-  Future<void> setNotifDelivery(String uid, bool v) =>
+  Future<bool> setNotifDelivery(String uid, bool v) =>
       _update(uid, _prefs.copyWith(notifDelivery: v));
-  Future<void> setNotifPromotions(String uid, bool v) =>
+  Future<bool> setNotifPromotions(String uid, bool v) =>
       _update(uid, _prefs.copyWith(notifPromotions: v));
-  Future<void> setNotifSystem(String uid, bool v) =>
+  Future<bool> setNotifSystem(String uid, bool v) =>
       _update(uid, _prefs.copyWith(notifSystem: v));
 
-  Future<void> _update(String uid, UserPreferences updated) async {
+  Future<bool> _update(String uid, UserPreferences updated) async {
+    final previous = _prefs;
     _prefs = updated;
+    _error = null;
     notifyListeners();
-    await UserPreferencesService.instance.save(uid, updated);
+    try {
+      await UserPreferencesService.instance.save(uid, updated);
+      return true;
+    } catch (_) {
+      _prefs = previous;
+      _error = 'Não foi possível salvar a preferência.';
+      notifyListeners();
+      return false;
+    }
   }
 }

@@ -95,6 +95,78 @@ void main() {
     expect(page.items.single.stockQuantity, 4);
     expect(page.items.single.unitName, 'Loja');
   });
+
+  test(
+    'loads available brands and sends the selected brand to search',
+    () async {
+      var calls = 0;
+      final repository = _repository(
+        MockClient((request) async {
+          calls++;
+          if (request.url.path == '/search/brands') {
+            expect(request.headers.containsKey('authorization'), isFalse);
+            return http.Response(jsonEncode(['Friboi', 'Swift']), 200);
+          }
+          expect(request.url.path, '/search');
+          expect(request.url.queryParameters['q'], 'picanha');
+          expect(request.url.queryParameters['brand'], 'Swift');
+          expect(request.url.queryParameters['category'], 'Bovinos');
+          expect(request.url.queryParameters['min_price'], '30.0');
+          expect(request.url.queryParameters['max_price'], '100.0');
+          return http.Response(
+            jsonEncode({
+              'data': <Object?>[],
+              'meta': {'page': 1, 'limit': 20, 'total': 0, 'totalPages': 1},
+            }),
+            200,
+          );
+        }),
+      );
+      expect(await repository.listBrands(), ['Friboi', 'Swift']);
+      await repository.search(
+        'picanha',
+        category: 'Bovinos',
+        brand: 'Swift',
+        minPrice: 30,
+        maxPrice: 100,
+      );
+      expect(calls, 2);
+    },
+  );
+
+  test('loads common scheduling slots for all cart units', () async {
+    final repository = _repository(
+      MockClient((request) async {
+        expect(request.url.path, '/orders/available-slots');
+        expect(request.url.queryParameters['unit_ids'], '7,9');
+        expect(request.url.queryParameters['date'], '2026-10-21');
+        expect(request.headers.containsKey('authorization'), isFalse);
+        return http.Response(
+          jsonEncode([
+            {
+              'starts_at': '2026-10-21T11:00:00.000Z',
+              'time': '08:00',
+              'remaining_capacity': 3,
+            },
+            {
+              'starts_at': '2026-10-21T11:30:00.000Z',
+              'time': '08:30',
+              'remaining_capacity': 5,
+            },
+          ]),
+          200,
+        );
+      }),
+    );
+
+    expect(
+      await repository.listAvailableScheduleSlots([
+        '7',
+        '9',
+      ], DateTime(2026, 10, 21)),
+      ['08:00', '08:30'],
+    );
+  });
 }
 
 HttpMarketplaceRepository _repository(http.Client client) {

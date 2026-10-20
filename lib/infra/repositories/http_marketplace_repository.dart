@@ -98,6 +98,33 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       );
 
   @override
+  Future<List<String>> listAvailableScheduleSlots(
+    List<String> unitIds,
+    DateTime date,
+  ) => _client.get(
+    '/orders/available-slots',
+    authenticated: false,
+    query: {'unit_ids': unitIds.join(','), 'date': _dateKey(date)},
+    decode: (json) => _list(json, (item) => _string(item, 'time')),
+  );
+
+  @override
+  Future<List<String>> listBrands({
+    String? unitId,
+    String? categoryId,
+    String? category,
+  }) => _client.get(
+    '/search/brands',
+    authenticated: false,
+    query: {
+      'unit_id': ?unitId,
+      'category_id': ?categoryId,
+      'category': ?category,
+    },
+    decode: _stringList,
+  );
+
+  @override
   Future<Page<ReviewModel>> listReviews({
     String? unitId,
     String? productId,
@@ -121,8 +148,10 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     String query, {
     String? unitId,
     String? categoryId,
+    String? category,
     double? minPrice,
     double? maxPrice,
+    String? brand,
     int page = 1,
     int limit = 20,
   }) => _client.get(
@@ -134,8 +163,10 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       'limit': limit,
       'unit_id': ?unitId,
       'category_id': ?categoryId,
+      'category': ?category,
       'min_price': ?minPrice,
       'max_price': ?maxPrice,
+      'brand': ?brand,
     },
     decode: (json) => Page.fromJson(json, _searchResult),
   );
@@ -267,6 +298,13 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     return value.map((item) => decode(_map(item))).toList(growable: false);
   }
 
+  static List<String> _stringList(Object? value) {
+    if (value is! List || value.any((item) => item is! String)) {
+      throw _malformed();
+    }
+    return value.cast<String>();
+  }
+
   static Map<String, Object?> _map(Object? value) {
     if (value is Map<String, Object?>) return value;
     throw _malformed();
@@ -279,6 +317,10 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
   }
 
   static String _nullableString(Object? value) => value is String ? value : '';
+  static String _dateKey(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
   static double _number(Map<String, Object?> json, String key) {
     final value = json[key];
     if (value is num) return value.toDouble();

@@ -7,6 +7,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/ui/widgets/search_widget.dart';
 import 'package:meatshop_mobile/models/search_model.dart';
 import 'package:meatshop_mobile/core/enums/search_type_enum.dart';
+import 'package:meatshop_mobile/ui/components/sheets/search_filter_sheet.dart';
 import 'cuts/cuts_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -32,7 +33,35 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
+      _searchProvider.loadFilters();
     });
+  }
+
+  Future<void> _openFilters(SearchProvider provider) async {
+    await provider.loadFilters(force: provider.filterError != null);
+    if (!mounted) return;
+    if (provider.filterError != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(provider.filterError!)));
+      return;
+    }
+    final selection = await SearchFilterSheet.show(
+      context,
+      categories: provider.availableCategories,
+      brands: provider.brands,
+      selectedCategory: provider.selectedCategory,
+      selectedBrand: provider.selectedBrand,
+      minPrice: provider.minPrice,
+      maxPrice: provider.maxPrice,
+    );
+    if (selection == null || !mounted) return;
+    provider.applyFilters(
+      category: selection.category,
+      brand: selection.brand,
+      minPrice: selection.minPrice,
+      maxPrice: selection.maxPrice,
+    );
   }
 
   @override
@@ -93,6 +122,49 @@ class _SearchScreenState extends State<SearchScreen> {
               hintText: 'Produto, categoria ou açougue...',
               onChanged: (v) =>
                   context.read<SearchProvider>().onQueryChanged(v),
+              onFilter: () => _openFilters(context.read<SearchProvider>()),
+              filterActive: context.watch<SearchProvider>().hasFilters,
+            ),
+            Consumer<SearchProvider>(
+              builder: (_, provider, _) => !provider.hasFilters
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (provider.selectedCategory != null)
+                              _filterChip(
+                                'Categoria: ${provider.selectedCategory}',
+                                () => provider.applyFilters(
+                                  brand: provider.selectedBrand,
+                                  minPrice: provider.minPrice,
+                                  maxPrice: provider.maxPrice,
+                                ),
+                              ),
+                            if (provider.selectedBrand != null)
+                              _filterChip(
+                                'Marca: ${provider.selectedBrand}',
+                                () => provider.applyFilters(
+                                  category: provider.selectedCategory,
+                                  minPrice: provider.minPrice,
+                                  maxPrice: provider.maxPrice,
+                                ),
+                              ),
+                            if (provider.minPrice != null ||
+                                provider.maxPrice != null)
+                              _filterChip(
+                                _priceRangeLabel(provider),
+                                () => provider.applyFilters(
+                                  category: provider.selectedCategory,
+                                  brand: provider.selectedBrand,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
             ),
             Expanded(child: _buildBody()),
           ],
@@ -104,7 +176,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildBody() {
     return Consumer<SearchProvider>(
       builder: (context, provider, _) {
-        if (provider.query.isEmpty) return _buildEmptyState();
+        if (!provider.hasCriteria) return _buildEmptyState();
         if (provider.isLoading) {
           return const Center(
             child: CircularProgressIndicator(color: Color(0xFFC0392B)),
@@ -127,7 +199,9 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           );
         }
-        if (provider.isEmpty) return _buildNoResults(provider.query);
+        if (provider.isEmpty) {
+          return _buildNoResults(provider);
+        }
 
         return ListView(
           padding: const EdgeInsets.only(bottom: 24),
@@ -163,6 +237,28 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
       ),
     );
+  }
+
+  Widget _filterChip(String label, VoidCallback onDeleted) => Padding(
+    padding: const EdgeInsets.only(right: 8),
+    child: InputChip(
+      label: Text(label),
+      labelStyle: const TextStyle(color: Colors.white),
+      backgroundColor: const Color(0xFFC0392B),
+      deleteIconColor: Colors.white,
+      onDeleted: onDeleted,
+    ),
+  );
+
+  String _priceRangeLabel(SearchProvider provider) {
+    String price(double value) => value.toStringAsFixed(2).replaceAll('.', ',');
+    if (provider.minPrice != null && provider.maxPrice != null) {
+      return 'Preço: R\$ ${price(provider.minPrice!)} a R\$ ${price(provider.maxPrice!)}';
+    }
+    if (provider.minPrice != null) {
+      return 'Preço: a partir de R\$ ${price(provider.minPrice!)}';
+    }
+    return 'Preço: até R\$ ${price(provider.maxPrice!)}';
   }
 
   Widget _buildTile(SearchResultModel result) {
@@ -257,7 +353,15 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildNoResults(String query) {
+  Widget _buildNoResults(SearchProvider provider) {
+    final criteria = <String>[
+      if (provider.query.trim().isNotEmpty) '"${provider.query}"',
+      if (provider.selectedCategory != null)
+        'categoria ${provider.selectedCategory}',
+      if (provider.selectedBrand != null) 'marca ${provider.selectedBrand}',
+      if (provider.minPrice != null || provider.maxPrice != null)
+        _priceRangeLabel(provider).toLowerCase(),
+    ].join(', ');
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -265,7 +369,7 @@ class _SearchScreenState extends State<SearchScreen> {
           const Icon(Icons.search_off, color: Colors.white12, size: 64),
           const SizedBox(height: 12),
           Text(
-            'Nada encontrado para "$query"',
+            'Nada encontrado para $criteria',
             style: const TextStyle(color: Colors.white38, fontSize: 14),
           ),
         ],

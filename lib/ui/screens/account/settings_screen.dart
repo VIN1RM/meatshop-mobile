@@ -88,8 +88,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Pedidos',
                                   subtitle: 'Atualizações sobre seus pedidos',
                                   value: prefs.notifOrders,
-                                  onChanged: (v) =>
-                                      prefs.setNotifOrders(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifOrders(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -98,8 +100,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   subtitle:
                                       'Status do entregador em tempo real',
                                   value: prefs.notifDelivery,
-                                  onChanged: (v) =>
-                                      prefs.setNotifDelivery(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifDelivery(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -107,8 +111,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Promoções',
                                   subtitle: 'Ofertas e descontos exclusivos',
                                   value: prefs.notifPromotions,
-                                  onChanged: (v) =>
-                                      prefs.setNotifPromotions(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifPromotions(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -116,8 +122,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Sistema',
                                   subtitle: 'Avisos importantes do aplicativo',
                                   value: prefs.notifSystem,
-                                  onChanged: (v) =>
-                                      prefs.setNotifSystem(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifSystem(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                               ],
                             );
@@ -205,6 +213,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _savePreference(
+    Future<bool> request,
+    UserPreferencesProvider provider,
+  ) async {
+    if (await request || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(provider.error ?? 'Não foi possível salvar.')),
     );
   }
 

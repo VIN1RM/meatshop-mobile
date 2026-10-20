@@ -29,6 +29,15 @@ abstract interface class MarketplaceRepository {
     int limit = 10,
   });
   Future<List<BusinessHoursModel>> listBusinessHours(String unitId);
+  Future<List<String>> listAvailableScheduleSlots(
+    List<String> unitIds,
+    DateTime date,
+  );
+  Future<List<String>> listBrands({
+    String? unitId,
+    String? categoryId,
+    String? category,
+  });
   Future<Page<ReviewModel>> listReviews({
     String? unitId,
     String? productId,
@@ -39,8 +48,10 @@ abstract interface class MarketplaceRepository {
     String query, {
     String? unitId,
     String? categoryId,
+    String? category,
     double? minPrice,
     double? maxPrice,
+    String? brand,
     int page = 1,
     int limit = 20,
   });

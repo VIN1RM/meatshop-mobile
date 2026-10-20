@@ -7,6 +7,20 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.3.0] - 2026-10-20 - Fechamento de lacunas funcionais
+
+### Adicionado
+
+- Filtros de busca combináveis por categoria, marca e faixa de preço, inclusive sem texto digitado.
+- Preferências de notificações sincronizadas com a API para pedidos, entregas, promoções e sistema.
+
+### Alterado
+
+- Horários de agendamento passam a vir da capacidade autoritativa do backend e consideram todas as unidades presentes no carrinho.
+- Token de push só é registrado quando o sistema operacional autoriza ou concede permissão provisória para notificações.
+- Falhas ao carregar filtros, preferências e horários exibem estado recuperável sem manter a tela bloqueada.
+- Versão do aplicativo atualizada para 3.3.0+1.
+
 ## [3.2.0] - 2026-10-18 - Termos e privacidade
 
 ### Adicionado

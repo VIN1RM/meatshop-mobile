@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/data/repositories/marketplace_context.dart';
-import 'package:meatshop_mobile/core/utils/delivery_schedule.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -51,9 +50,9 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     try {
       final repository = context.read<MarketplaceContext>().repository;
       final units = context.read<CartProvider>().itemsByUnit.keys.toList();
-      final hours = await Future.wait(units.map(repository.listBusinessHours));
+      final slots = await repository.listAvailableScheduleSlots(units, date);
       if (!mounted || generation != _slotsGeneration) return;
-      setState(() => _timeSlots = DeliverySchedule.available(date, hours));
+      setState(() => _timeSlots = slots);
     } catch (_) {
       if (mounted && generation == _slotsGeneration) {
         setState(() => _slotsError = 'Não foi possível consultar os horários.');

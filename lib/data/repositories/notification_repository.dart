@@ -1,4 +1,5 @@
 import '../../models/notification_model.dart';
+import '../../models/user_preferences.dart';
 
 abstract interface class NotificationRepository {
   Future<void> registerDeviceToken({
@@ -10,4 +11,6 @@ abstract interface class NotificationRepository {
   Future<List<NotificationModel>> list({int page = 1, int limit = 50});
   Future<void> markAsRead(String notificationId);
   Future<void> markAllAsRead();
+  Future<UserPreferences> getPreferences();
+  Future<UserPreferences> updatePreferences(UserPreferences preferences);
 }
