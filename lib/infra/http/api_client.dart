@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import '../../core/auth/session_coordinator.dart';
 import '../../core/network/api_failure.dart';
@@ -14,6 +16,21 @@ final class ApiClient {
 
   final JsonHttpTransport _transport;
   final SessionCoordinator _session;
+  final legalRequirements = StreamController<void>.broadcast();
+
+  // Used only to namespace device storage. The server verifies identity and ownership.
+  String? get accountId {
+    try {
+      final token = _session.current?.accessToken;
+      if (token == null) return null;
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(token.split('.')[1]))),
+      );
+      return payload is Map ? payload['sub']?.toString() : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   Future<T> get<T>(
     String path, {
@@ -37,6 +54,7 @@ final class ApiClient {
     bool authenticated = true,
     CancellationToken? cancellationToken,
     Map<String, String> headers = const {},
+    Duration? timeout,
   }) => _request(
     method: 'POST',
     path: path,
@@ -45,6 +63,7 @@ final class ApiClient {
     authenticated: authenticated,
     cancellationToken: cancellationToken,
     headers: headers,
+    timeout: timeout,
   );
 
   Future<T> put<T>(
@@ -83,10 +102,12 @@ final class ApiClient {
     String path, {
     required T Function(Object? json) decode,
     Object? body,
+    Map<String, String> headers = const {},
     bool authenticated = true,
     CancellationToken? cancellationToken,
   }) => _request(
     method: 'DELETE',
+    headers: headers,
     path: path,
     decode: decode,
     body: body,
@@ -140,6 +161,7 @@ final class ApiClient {
     Object? body,
     CancellationToken? cancellationToken,
     Map<String, String> headers = const {},
+    Duration? timeout,
   }) async {
     await _session.initialize();
     try {
@@ -151,9 +173,13 @@ final class ApiClient {
         authenticated: authenticated,
         cancellationToken: cancellationToken,
         headers: headers,
+        timeout: timeout,
       );
       return decode(response);
     } on ApiFailure catch (failure) {
+      if (authenticated && failure.code == 'LEGAL_ACCEPTANCE_REQUIRED') {
+        legalRequirements.add(null);
+      }
       if (!authenticated ||
           failure.kind != ApiFailureKind.unauthorized ||
           _session.current == null) {
@@ -168,6 +194,7 @@ final class ApiClient {
         authenticated: true,
         cancellationToken: cancellationToken,
         headers: headers,
+        timeout: timeout,
       );
       return decode(response);
     }
@@ -181,6 +208,7 @@ final class ApiClient {
     Object? body,
     CancellationToken? cancellationToken,
     Map<String, String> headers = const {},
+    Duration? timeout,
   }) async {
     final accessToken = _session.current?.accessToken;
     if (authenticated && accessToken == null) {
@@ -200,6 +228,7 @@ final class ApiClient {
         if (authenticated) 'authorization': 'Bearer $accessToken',
       },
       cancellationToken: cancellationToken,
+      timeout: timeout,
     );
   }
 

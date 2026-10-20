@@ -11,6 +11,7 @@ abstract interface class RealtimeRepository {
   Stream<Map<String, Object?>> get statuses;
   Stream<RealtimeConnectionState> get connection;
   Future<void> connect();
+  void disconnect();
   Future<void> joinChat(int orderId, ChatChannel channel);
   void leaveChat(int orderId, ChatChannel channel);
   void sendTyping(int orderId, ChatChannel channel, bool typing);

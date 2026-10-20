@@ -1,27 +1,41 @@
 import 'dart:async';
+import '../core/utils/business_clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 import 'package:meatshop_mobile/models/delivery_goal_model.dart';
 import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class DeliveryEarningsProvider extends ChangeNotifier {
-  final String deliveryPersonId;
-
-  DeliveryEarningsProvider({
-    required this.deliveryPersonId,
-    required this.repository,
-  }) {
-    _init();
-  }
+  DeliveryEarningsProvider({required this.repository});
   final DeliveryRepository repository;
 
   List<DeliveryEarningModel> _earnings = [];
   List<DeliveryGoalModel> _goals = [];
-  bool _loadingEarnings = true;
-  bool _loadingGoals = true;
+  bool _loadingEarnings = false;
+  bool _loadingGoals = false;
 
   StreamSubscription<List<DeliveryEarningModel>>? _earningsSub;
   StreamSubscription<List<DeliveryGoalModel>>? _goalsSub;
+  int _generation = 0;
+  String? error;
+  Timer? _refreshTimer;
+  static DateTime _day(DateTime value) {
+    final local = BusinessClock.local(value);
+    return DateTime.utc(local.year, local.month, local.day);
+  }
+
+  static int _daysAgo(DateTime value) =>
+      _day(DateTime.now()).difference(_day(value)).inDays;
+  void startUpdates() {
+    _refreshTimer?.cancel();
+    load();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) => load());
+  }
+
+  void stopUpdates() {
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+  }
 
   List<DeliveryEarningModel> get earnings => _earnings;
   List<DeliveryGoalModel> get goals => _goals;
@@ -35,10 +49,9 @@ class DeliveryEarningsProvider extends ChangeNotifier {
   int get todayDeliveries => todayEarnings.length;
 
   List<double> get weeklyBarValues {
-    final now = DateTime.now();
     final values = List.filled(7, 0.0);
     for (final e in _earnings) {
-      final diff = now.difference(e.createdAt).inDays;
+      final diff = _daysAgo(e.createdAt);
       if (diff >= 0 && diff < 7) {
         values[6 - diff] += e.amount;
       }
@@ -46,7 +59,16 @@ class DeliveryEarningsProvider extends ChangeNotifier {
     return values;
   }
 
-  static const List<String> weekDayLabels = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+  static List<String> get weekDayLabels {
+    const labels = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
+    final today = BusinessClock.now();
+    return List.generate(
+      7,
+      (i) =>
+          labels[DateTime(today.year, today.month, today.day - 6 + i).weekday -
+              1],
+    );
+  }
 
   double goalProgress(DeliveryGoalModel goal) {
     if (goal.target <= 0) return 0.0;
@@ -84,53 +106,82 @@ class DeliveryEarningsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _init() async {
+  Future<void> load() async {
+    if (loading) return;
+    final generation = ++_generation;
+    error = null;
+    _loadingEarnings = true;
+    _loadingGoals = true;
+    notifyListeners();
     try {
       final values = await Future.wait([
         repository.earnings(),
         repository.goals(),
       ]);
+      if (generation != _generation) return;
       _earnings = values[0] as List<DeliveryEarningModel>;
       _goals = values[1] as List<DeliveryGoalModel>;
+    } catch (error) {
+      if (generation != _generation) return;
+      this.error = 'Não foi possível atualizar seus ganhos. Tente novamente.';
     } finally {
-      _loadingEarnings = false;
-      _loadingGoals = false;
-      notifyListeners();
+      if (generation == _generation) {
+        _loadingEarnings = false;
+        _loadingGoals = false;
+        notifyListeners();
+      }
     }
   }
 
+  void clear() {
+    stopUpdates();
+    error = null;
+    ++_generation;
+    _earningsSub?.cancel();
+    _goalsSub?.cancel();
+    _earnings = [];
+    _goals = [];
+    _loadingEarnings = false;
+    _loadingGoals = false;
+    notifyListeners();
+  }
+
   double _earnedForPeriod(GoalPeriod period) {
-    final now = DateTime.now();
+    final now = BusinessClock.now();
     return _earnings
         .where((e) {
           return switch (period) {
             GoalPeriod.daily => e.isToday,
-            GoalPeriod.weekly => now.difference(e.createdAt).inDays < 7,
+            GoalPeriod.weekly =>
+              _daysAgo(e.createdAt) >= 0 && _daysAgo(e.createdAt) < 7,
             GoalPeriod.monthly =>
-              e.createdAt.year == now.year && e.createdAt.month == now.month,
+              BusinessClock.local(e.createdAt).year == now.year &&
+                  BusinessClock.local(e.createdAt).month == now.month,
           };
         })
         .fold(0.0, (sum, e) => sum + e.amount);
   }
 
   List<DeliveryEarningModel> _earningsThisWeek() {
-    final now = DateTime.now();
     return _earnings
-        .where((e) => now.difference(e.createdAt).inDays < 7)
+        .where((e) => _daysAgo(e.createdAt) >= 0 && _daysAgo(e.createdAt) < 7)
         .toList();
   }
 
   List<DeliveryEarningModel> _earningsThisMonth() {
-    final now = DateTime.now();
+    final now = BusinessClock.now();
     return _earnings
         .where(
-          (e) => e.createdAt.year == now.year && e.createdAt.month == now.month,
+          (e) =>
+              BusinessClock.local(e.createdAt).year == now.year &&
+              BusinessClock.local(e.createdAt).month == now.month,
         )
         .toList();
   }
 
   @override
   void dispose() {
+    stopUpdates();
     _earningsSub?.cancel();
     _goalsSub?.cancel();
     super.dispose();

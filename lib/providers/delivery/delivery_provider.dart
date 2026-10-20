@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'location_sharing_controller.dart';
 import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -8,7 +8,15 @@ import 'package:meatshop_mobile/models/delivery_review.dart';
 import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
 class DeliveryProvider extends ChangeNotifier {
-  DeliveryProvider({required this.repository});
+  DeliveryProvider({required this.repository}) {
+    locationSharing = LocationSharingController(repository: repository)
+      ..addListener(_locationChanged);
+  }
+  late final LocationSharingController locationSharing;
+  Timer? _refreshTimer;
+  Future<void>? _refreshFuture;
+  int _listeningVersion = 0;
+  void _locationChanged() => notifyListeners();
   final DeliveryRepository repository;
 
   DeliveryAvailability _availability = DeliveryAvailability.unavailable;
@@ -18,7 +26,6 @@ class DeliveryProvider extends ChangeNotifier {
   Map<String, String> _vehicleInfo = {};
   String? _deliveryPersonUid;
   int? _deliveryPersonId;
-  StreamSubscription<Position>? _locationSubscription;
 
   final List<DeliveryOrder> _pendingOrders = [];
   final List<DeliveryOrder> _historyOrders = [];
@@ -37,6 +44,27 @@ class DeliveryProvider extends ChangeNotifier {
   bool get hasActiveOrder => _activeOrder != null;
   bool get isLoading => _isLoading;
   String? get pickupCode => _pickupCode;
+  Future<void> regeneratePickupCode() async {
+    final order = _activeOrder;
+    if (order == null || order.step != DeliveryStep.pickup || _isLoading) {
+      return;
+    }
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final code = await repository.regenerateCode(order.id, pickup: true);
+      if (_activeOrder?.id == order.id) _pickupCode = code;
+      _lastError = null;
+    } catch (_) {
+      _lastError =
+          'Não foi possível gerar o código de retirada. Tente novamente.';
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   List<DeliveryOrder> get pendingOrders => List.unmodifiable(_pendingOrders);
   List<DeliveryOrder> get historyOrders => List.unmodifiable(_historyOrders);
   bool get isLoadingHistory => _isLoadingHistory;
@@ -52,11 +80,20 @@ class DeliveryProvider extends ChangeNotifier {
   bool get isReloading => _isReloading;
 
   void startListeningOrders(String uid) {
+    ++_listeningVersion;
     _deliveryPersonUid = uid;
-    _refreshBackendState();
+    unawaited(_refreshBackendState().catchError((Object _) {}));
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      unawaited(_refreshBackendState().catchError((Object _) {}));
+    });
   }
 
   void stopListeningOrders() {
+    ++_listeningVersion;
+    _deliveryPersonUid = null;
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
     stopLocationSharing();
   }
 
@@ -69,13 +106,25 @@ class DeliveryProvider extends ChangeNotifier {
     try {
       _lastError = null;
       await repository.setAvailability(next == DeliveryAvailability.available);
-      _availability = next;
-    } catch (error) {
+    } catch (_) {
       _lastError = 'Não foi possível alterar sua disponibilidade.';
-      rethrow;
-    } finally {
       notifyListeners();
+      rethrow;
     }
+    if (_refreshFuture != null) {
+      try {
+        await _refreshFuture;
+      } catch (_) {}
+    }
+    _availability = next;
+    if (next == DeliveryAvailability.unavailable) {
+      _pendingOrders.clear();
+      await locationSharing.stop();
+    }
+    notifyListeners();
+    try {
+      await _refreshBackendState();
+    } catch (_) {}
   }
 
   Future<void> acceptOrder(DeliveryOrder order) async {
@@ -191,22 +240,33 @@ class DeliveryProvider extends ChangeNotifier {
     }
   }
 
-  void logout(BuildContext context) {
-    stopListeningOrders();
+  Future<void> clearSession() async {
+    ++_listeningVersion;
+    _deliveryPersonUid = null;
+    _refreshTimer?.cancel();
+    _refreshTimer = null;
+    try {
+      await locationSharing.stop();
+    } catch (_) {}
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
     _pickupCode = null;
-    _deliveryPersonUid = null;
+    _vehicleInfo = {};
+    _deliveryPersonId = null;
+    _pendingOrders.clear();
+    _historyOrders.clear();
+    _isLoading = false;
+    _isLoadingHistory = false;
+    _historyError = null;
+    _lastError = null;
     _averageRating = 0.0;
     _reviewCount = 0;
+    _isReloading = false;
     notifyListeners();
-
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
   }
 
   void switchToClientMode(BuildContext context) {
+    if (hasActiveOrder) return;
     stopListeningOrders();
     _availability = DeliveryAvailability.unavailable;
     _activeOrder = null;
@@ -289,6 +349,7 @@ class DeliveryProvider extends ChangeNotifier {
               id: '${data['id'] ?? ''}',
               orderId: '${data['order_id'] ?? ''}',
               clientId: '${data['client_id'] ?? ''}',
+              clientName: '${data['client_name'] ?? 'Cliente'}',
               deliveryPersonId: '$_deliveryPersonId',
               rating: (data['rating'] as num?)?.toInt() ?? 0,
               comment: '${data['comment'] ?? ''}',
@@ -303,73 +364,74 @@ class DeliveryProvider extends ChangeNotifier {
   }
 
   Future<bool> startLocationSharing({required bool consent}) async {
-    if (!consent || _activeOrder == null) return false;
-    if (!await Geolocator.isLocationServiceEnabled()) return false;
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      return false;
-    }
-
-    await _locationSubscription?.cancel();
-    _locationSubscription =
-        Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-            distanceFilter: 20,
-          ),
-        ).listen((position) {
-          final order = _activeOrder;
-          if (order == null || order.status == DeliveryOrderStatus.delivered) {
-            stopLocationSharing();
-            return;
-          }
-          repository
-              .sendLocation(
-                order.id,
-                position.latitude,
-                position.longitude,
-                accuracy: position.accuracy,
-              )
-              .catchError((error) {
-                _lastError = 'Falha temporária ao enviar localização.';
-                debugPrint('Location update error: $error');
-              });
-        });
-    return true;
+    if (!consent || _activeOrder == null || !isAvailable) return false;
+    return locationSharing.start(_activeOrder!.id);
   }
 
   void stopLocationSharing() {
-    _locationSubscription?.cancel();
-    _locationSubscription = null;
+    unawaited(locationSharing.stop());
   }
 
-  Future<void> _refreshBackendState() async {
-    final results = await Future.wait<Object?>([
-      repository.availableOrders(),
-      repository.activeOrder(),
-      repository.profile(),
-    ]);
-    _pendingOrders
-      ..clear()
-      ..addAll(results[0] as List<DeliveryOrder>);
-    _activeOrder = results[1] as DeliveryOrder?;
-    final profile = results[2] as Map<String, Object?>;
-    _availability = profile['is_online'] == true
-        ? DeliveryAvailability.available
-        : DeliveryAvailability.unavailable;
-    _averageRating = (profile['average_rating'] as num?)?.toDouble() ?? 0;
-    _deliveryPersonId = (profile['id'] as num?)?.toInt();
-    notifyListeners();
+  Future<void> _refreshBackendState() {
+    return _refreshFuture ??= _loadBackendState().whenComplete(() {
+      _refreshFuture = null;
+    });
+  }
+
+  Future<void> _loadBackendState() async {
+    if (_deliveryPersonUid == null) return;
+    final uid = _deliveryPersonUid;
+    final version = _listeningVersion;
+    try {
+      final results = await Future.wait<Object?>([
+        repository.availableOrders(),
+        repository.activeOrder(),
+        repository.profile(),
+      ]);
+      if (uid != _deliveryPersonUid || version != _listeningVersion) return;
+      _pendingOrders
+        ..clear()
+        ..addAll(results[0] as List<DeliveryOrder>);
+      final nextOrder = results[1] as DeliveryOrder?;
+      if (nextOrder?.sharingEnabled == true &&
+          !locationSharing.sharing &&
+          !locationSharing.starting) {
+        // Reopening the app never silently restores a previous consent session.
+        await repository.setLocationSharing(nextOrder!.id, false);
+      }
+      if (nextOrder?.id != _activeOrder?.id || nextOrder?.isTrackable != true) {
+        await locationSharing.stop();
+      }
+      if (uid != _deliveryPersonUid || version != _listeningVersion) return;
+      if (nextOrder?.id != _activeOrder?.id) _pickupCode = null;
+      _activeOrder = nextOrder?.isTrackable == true ? nextOrder : null;
+      _lastError = null;
+      final profile = results[2] as Map<String, Object?>;
+      _availability = profile['is_online'] == true
+          ? DeliveryAvailability.available
+          : DeliveryAvailability.unavailable;
+      _averageRating = (profile['average_rating'] as num?)?.toDouble() ?? 0;
+      _deliveryPersonId = (profile['id'] as num?)?.toInt();
+      if (!isAvailable) await locationSharing.stop();
+      if (uid != _deliveryPersonUid || version != _listeningVersion) return;
+      notifyListeners();
+    } catch (_) {
+      if (uid == _deliveryPersonUid && version == _listeningVersion) {
+        _lastError =
+            'Não foi possível atualizar as entregas. Verifique sua conexão.';
+        notifyListeners();
+      }
+      rethrow;
+    }
   }
 
   @override
   void dispose() {
-    stopListeningOrders();
+    ++_listeningVersion;
+    _deliveryPersonUid = null;
+    _refreshTimer?.cancel();
+    locationSharing.removeListener(_locationChanged);
+    locationSharing.dispose();
     super.dispose();
   }
 }

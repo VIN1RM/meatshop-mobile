@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/ui/screens/cart/review_order_screen.dart';
-import 'package:meatshop_mobile/ui/widgets/app_header.dart';
-import 'package:meatshop_mobile/providers/payment_provider.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:meatshop_mobile/models/payment_model.dart';
-import 'package:meatshop_mobile/models/checkout_summary_model.dart';
+import '../../../models/cart_item_model.dart';
+import '../../../models/checkout_summary_model.dart';
+import '../../../providers/cart_provider.dart';
+import '../../../providers/order_provider.dart';
+import '../../widgets/app_header.dart';
+import 'review_order_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
-  final double total;
-  final String addressId;
-  final bool isScheduled;
-  final DateTime? scheduledDate;
-  final String? scheduledTime;
-
   const PaymentScreen({
     super.key,
     required this.total,
@@ -22,109 +18,144 @@ class PaymentScreen extends StatefulWidget {
     this.scheduledTime,
   });
 
+  final double total;
+  final String addressId;
+  final bool isScheduled;
+  final DateTime? scheduledDate;
+  final String? scheduledTime;
+
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentScreenState extends State<PaymentScreen>
-    with SingleTickerProviderStateMixin {
-  static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
-  static const Color _surface = Color(0xFF3A3A3A);
-  static const Color _bg = Color(0xFF2E2E2E);
+class _PaymentScreenState extends State<PaymentScreen> {
+  static const _red = Color(0xFFC0392B);
+  static const _background = Color(0xFF2E2E2E);
+  static const _surface = Color(0xFFF5F5F5);
+  final _change = TextEditingController();
+  final Map<String, String> _methods = {};
+  Map<String, bool> _onlineUnits = {};
+  bool _loading = true;
+  String? _availabilityError;
+  String? _changeError;
+  int _loadGeneration = 0;
 
-  late TabController _tabController;
+  bool _isOffline(String method) => method == 'cash' || method == 'machine';
 
-  int _onlineMethodIndex = 0;
-  int _selectedSavedCardIndex = -1;
-  bool _saveCard = false;
-  int _deliveryMethodIndex = 0;
-  bool _needsChange = false;
-  final TextEditingController _changeController = TextEditingController();
-  int _selectedBrandIndex = -1;
+  String _methodFor(String unitId) {
+    final method = _methods[unitId] ?? 'cash';
+    return !_isOffline(method) && _onlineUnits[unitId] != true
+        ? 'cash'
+        : method;
+  }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load() async {
+    if (!mounted) return;
+    final generation = ++_loadGeneration;
+    final units = context.read<CartProvider>().itemsByUnit.keys.toList();
+    if (units.isEmpty) {
+      setState(() {
+        _onlineUnits = {};
+        _methods.clear();
+        _loading = false;
+        _availabilityError = null;
+      });
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _availabilityError = null;
+    });
+    try {
+      final availability = await context
+          .read<OrderProvider>()
+          .paymentAvailability(units);
+      if (!mounted || generation != _loadGeneration) return;
+      setState(() {
+        _onlineUnits = availability;
+        _methods.removeWhere((id, _) => !units.contains(id));
+        for (final id in units) {
+          _methods[id] = _methodFor(id);
+        }
+      });
+    } catch (_) {
+      if (!mounted || generation != _loadGeneration) return;
+      setState(() {
+        _onlineUnits = {};
+        _methods.updateAll((_, method) => _isOffline(method) ? method : 'cash');
+        _availabilityError =
+            'Não foi possível verificar os pagamentos online. Você pode tentar novamente ou escolher pagar na entrega.';
+      });
+    } finally {
+      if (mounted && generation == _loadGeneration) {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _changeController.dispose();
+    _change.dispose();
     super.dispose();
   }
 
-  void _confirm() {
-    final cards = context.read<PaymentProvider>().cards;
+  void _choose(String unitId, String method) {
+    setState(() {
+      _methods[unitId] = method;
+      _changeError = null;
+    });
+  }
 
-    String method;
-    String? savedCardId;
-    String? cardBrand;
-
-    if (_tabController.index == 0) {
-      if (_onlineMethodIndex == 0) {
-        method = 'pix';
-      } else if (_onlineMethodIndex == 1) {
-        method = 'credit';
-      } else {
-        method = 'debit';
-      }
-      if (_selectedSavedCardIndex >= 0 &&
-          _selectedSavedCardIndex < cards.length) {
-        savedCardId = cards[_selectedSavedCardIndex].id;
-      }
-    } else {
-      if (_deliveryMethodIndex == 0) {
-        method = 'cash';
-      } else {
-        method = 'machine';
-        final brands = [
-          'Visa',
-          'Mastercard',
-          'Elo',
-          'Hipercard',
-          'Amex',
-          'Cabal',
-        ];
-        if (_selectedBrandIndex >= 0) {
-          cardBrand = brands[_selectedBrandIndex];
-        }
-      }
+  void _continue() {
+    final units = context.read<CartProvider>().itemsByUnit.keys.toList();
+    if (_loading || units.isEmpty) return;
+    final methods = {for (final id in units) id: _methodFor(id)};
+    final singleCash = units.length == 1 && methods[units.first] == 'cash';
+    final raw = _change.text.trim();
+    final normalized = raw.contains(',')
+        ? raw.replaceAll('.', '').replaceAll(',', '.')
+        : raw;
+    final amount = double.tryParse(normalized);
+    if (singleCash &&
+        raw.isNotEmpty &&
+        (amount == null || !amount.isFinite || amount < widget.total)) {
+      setState(
+        () => _changeError = 'Informe um valor para troco que cubra o pedido.',
+      );
+      return;
     }
-
-    final summary = CheckoutSummaryModel(
-      addressId: widget.addressId,
-      isScheduled: widget.isScheduled,
-      scheduledDate: widget.scheduledDate,
-      scheduledTime: widget.scheduledTime,
-      paymentMethod: method,
-      savedCardId: savedCardId,
-      cardBrand: cardBrand,
-    );
-
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ReviewOrderScreen(summary: summary)),
+      MaterialPageRoute(
+        builder: (_) => ReviewOrderScreen(
+          summary: CheckoutSummaryModel(
+            addressId: widget.addressId,
+            isScheduled: widget.isScheduled,
+            scheduledDate: widget.scheduledDate,
+            scheduledTime: widget.scheduledTime,
+            paymentMethod: methods[units.first]!,
+            unitPaymentMethods: methods,
+            changeFor: singleCash ? amount : null,
+          ),
+        ),
+      ),
     );
   }
 
-  String _fmt(double value) {
-    final s = value.toStringAsFixed(2).replaceAll('.', ',');
-    final parts = s.split(',');
-    final inteiro = parts[0].replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-      (m) => '${m[1]}.',
-    );
-    return 'R\$$inteiro,${parts[1]}';
-  }
+  String _money(double value) =>
+      'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
 
   @override
   Widget build(BuildContext context) {
+    final groups = context.watch<CartProvider>().itemsByUnit;
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: _background,
       body: Stack(
         children: [
           Positioned(
@@ -146,925 +177,533 @@ class _PaymentScreenState extends State<PaymentScreen>
               children: [
                 const AppHeader(),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      _pageTitle(),
-                      const SizedBox(height: 20),
-                      _buildTabs(),
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          physics: const NeverScrollableScrollPhysics(),
-                          children: [_buildOnlineTab(), _buildDeliveryTab()],
-                        ),
-                      ),
-                      _buildTotalAndButton(),
-                      const SizedBox(height: 28),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _pageTitle() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        'PAGAMENTO',
-        style: TextStyle(
-          color: _white,
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.0,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabs() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8E8E8),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            color: _red,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          indicatorSize: TabBarIndicatorSize.tab,
-          dividerColor: Colors.transparent,
-          labelColor: _white,
-          unselectedLabelColor: const Color(0xFF666666),
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
-          tabs: const [
-            Tab(
-              height: 44,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.smartphone, size: 18),
-                  SizedBox(width: 8),
-                  Text('Pagar online'),
-                ],
-              ),
-            ),
-            Tab(
-              height: 44,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.delivery_dining, size: 18),
-                  SizedBox(width: 8),
-                  Text('Na entrega'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOnlineTab() {
-    final cards = context.watch<PaymentProvider>().cards;
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionLabel('Escolha a forma de pagamento'),
-          const SizedBox(height: 14),
-          _buildOnlineMethods(),
-          const SizedBox(height: 24),
-          if (_onlineMethodIndex == 0) ...[
-            _buildPixInfo(),
-          ] else ...[
-            if (cards.isNotEmpty) ...[
-              _sectionLabel('Cartões salvos'),
-              const SizedBox(height: 12),
-              ...cards.asMap().entries.map(
-                (e) => _buildSavedCard(e.key, e.value),
-              ),
-              const SizedBox(height: 4),
-              _dividerOr(),
-              const SizedBox(height: 12),
-            ],
-            _sectionLabel('Novo cartão'),
-            const SizedBox(height: 12),
-            _buildNewCardForm(),
-            const SizedBox(height: 16),
-            _buildSaveCardToggle(),
-          ],
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOnlineMethods() {
-    final methods = [
-      {'icon': Icons.pix, 'label': 'Pix'},
-      {'icon': Icons.credit_card, 'label': 'Crédito'},
-      {'icon': Icons.credit_card_outlined, 'label': 'Débito'},
-    ];
-
-    return Row(
-      children: methods.asMap().entries.map((e) {
-        final i = e.key;
-        final m = e.value;
-        final selected = _onlineMethodIndex == i;
-        return Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(right: i < methods.length - 1 ? 10 : 0),
-            child: GestureDetector(
-              onTap: () => setState(() {
-                _onlineMethodIndex = i;
-                _selectedSavedCardIndex = -1;
-              }),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: selected ? _red : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: selected ? _red : const Color(0xFFBDBDBD),
-                    width: 1.5,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      m['icon'] as IconData,
-                      color: selected ? _white : const Color(0xFF555555),
-                      size: 22,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      m['label'] as String,
-                      style: TextStyle(
-                        color: selected ? _white : const Color(0xFF555555),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildPixInfo() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00B5A5).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.pix,
-                  color: Color(0xFF00B5A5),
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 14),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pagamento via Pix',
-                      style: TextStyle(
-                        color: Color(0xFF1A1A1A),
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Aprovação instantânea',
-                      style: TextStyle(
-                        color: Color(0xFF00B5A5),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(color: Color(0xFFE0E0E0)),
-          const SizedBox(height: 12),
-          _pixInfoRow(Icons.qr_code_2, 'QR Code gerado após confirmar'),
-          const SizedBox(height: 10),
-          _pixInfoRow(Icons.timer_outlined, 'Válido por 30 minutos'),
-          const SizedBox(height: 10),
-          _pixInfoRow(
-            Icons.check_circle_outline,
-            'Pedido confirmado automaticamente',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _pixInfoRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, color: const Color(0xFFBDBDBD), size: 18),
-        const SizedBox(width: 10),
-        Text(
-          text,
-          style: const TextStyle(color: Color(0xFF555555), fontSize: 13),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSavedCard(int index, PaymentMethodModel card) {
-    final selected = _selectedSavedCardIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedSavedCardIndex = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: selected ? _red.withValues(alpha: 0.12) : _surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? _red : const Color(0xFF555555),
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.credit_card,
-              color: selected ? _red : Colors.white54,
-              size: 28,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${card.brand.toUpperCase()} •••• ${card.lastFour}',
-                    style: TextStyle(
-                      color: selected ? _white : Colors.white70,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${card.holderName} · ${card.expirationMonth}/${card.expirationYear.length == 4 ? card.expirationYear.substring(2) : card.expirationYear}',
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: selected ? _red : Colors.transparent,
-                border: Border.all(
-                  color: selected ? _red : Colors.white38,
-                  width: 2,
-                ),
-              ),
-              child: selected
-                  ? const Icon(Icons.check, color: _white, size: 12)
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _dividerOr() {
-    return Row(
-      children: [
-        const Expanded(child: Divider(color: Color(0xFF4A4A4A))),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'ou adicione novo',
-            style: TextStyle(color: Colors.white38, fontSize: 12),
-          ),
-        ),
-        const Expanded(child: Divider(color: Color(0xFF4A4A4A))),
-      ],
-    );
-  }
-
-  Widget _buildNewCardForm() {
-    const fieldDecoration = InputDecoration(
-      filled: true,
-      fillColor: Color(0xFF3A3A3A),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-        borderSide: BorderSide(color: Color(0xFF555555)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-        borderSide: BorderSide(color: Color(0xFF555555)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(10)),
-        borderSide: BorderSide(color: Color(0xFFC0392B), width: 1.5),
-      ),
-      hintStyle: TextStyle(color: Colors.white38, fontSize: 13),
-      labelStyle: TextStyle(color: Colors.white54, fontSize: 13),
-      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-    );
-
-    return Column(
-      children: [
-        TextFormField(
-          style: const TextStyle(color: _white, fontSize: 14),
-          keyboardType: TextInputType.number,
-          decoration: fieldDecoration.copyWith(
-            labelText: 'Número do cartão',
-            hintText: '0000 0000 0000 0000',
-            prefixIcon: const Icon(
-              Icons.credit_card,
-              color: Colors.white38,
-              size: 20,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextFormField(
-          style: const TextStyle(color: _white, fontSize: 14),
-          decoration: fieldDecoration.copyWith(
-            labelText: 'Nome no cartão',
-            hintText: 'Como está no cartão',
-            prefixIcon: const Icon(
-              Icons.person_outline,
-              color: Colors.white38,
-              size: 20,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                style: const TextStyle(color: _white, fontSize: 14),
-                keyboardType: TextInputType.datetime,
-                decoration: fieldDecoration.copyWith(
-                  labelText: 'Validade',
-                  hintText: 'MM/AA',
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: TextFormField(
-                style: const TextStyle(color: _white, fontSize: 14),
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                decoration: fieldDecoration.copyWith(
-                  labelText: 'CVV',
-                  hintText: '•••',
-                  prefixIcon: const Icon(
-                    Icons.lock_outline,
-                    color: Colors.white38,
-                    size: 18,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (_onlineMethodIndex == 1) ...[
-          const SizedBox(height: 12),
-          TextFormField(
-            style: const TextStyle(color: _white, fontSize: 14),
-            keyboardType: TextInputType.number,
-            decoration: fieldDecoration.copyWith(
-              labelText: 'Parcelas',
-              hintText: '1x sem juros',
-              prefixIcon: const Icon(
-                Icons.splitscreen,
-                color: Colors.white38,
-                size: 20,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSaveCardToggle() {
-    return GestureDetector(
-      onTap: () => setState(() => _saveCard = !_saveCard),
-      child: Row(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: _saveCard ? _red : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: _saveCard ? _red : Colors.white38,
-                width: 2,
-              ),
-            ),
-            child: _saveCard
-                ? const Icon(Icons.check, color: _white, size: 14)
-                : null,
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'Salvar cartão para próximas compras',
-            style: TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeliveryTab() {
-    final methods = [
-      {'icon': Icons.money, 'label': 'Dinheiro'},
-      {'icon': Icons.credit_card_outlined, 'label': 'Débito'},
-      {'icon': Icons.credit_card, 'label': 'Crédito'},
-    ];
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionLabel('Como prefere pagar na entrega?'),
-          const SizedBox(height: 14),
-          Row(
-            children: methods.asMap().entries.map((e) {
-              final i = e.key;
-              final m = e.value;
-              final selected = _deliveryMethodIndex == i;
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    right: i < methods.length - 1 ? 10 : 0,
-                  ),
-                  child: GestureDetector(
-                    onTap: () => setState(() {
-                      _deliveryMethodIndex = i;
-                      if (i != 0) _needsChange = false;
-                      _selectedBrandIndex = -1;
-                    }),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: selected ? _red : const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: selected ? _red : const Color(0xFFBDBDBD),
-                          width: 1.5,
-                        ),
-                      ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 640),
                       child: Column(
                         children: [
-                          Icon(
-                            m['icon'] as IconData,
-                            color: selected ? _white : const Color(0xFF555555),
-                            size: 22,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            m['label'] as String,
-                            style: TextStyle(
-                              color: selected
-                                  ? _white
-                                  : const Color(0xFF555555),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: ListView(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                12,
+                                16,
+                                24,
+                              ),
+                              children: [
+                                Row(
+                                  children: [
+                                    IconButton.outlined(
+                                      onPressed: () => Navigator.pop(context),
+                                      tooltip: 'Voltar',
+                                      style: IconButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                        side: const BorderSide(
+                                          color: Colors.white54,
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.arrow_back,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Expanded(
+                                      child: Text(
+                                        'PAGAMENTO',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  groups.length > 1
+                                      ? 'Escolha como pagar em cada açougue'
+                                      : 'Escolha como deseja pagar',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  groups.length > 1
+                                      ? 'Cada açougue recebe separadamente. Você pode escolher uma forma diferente para cada pedido.'
+                                      : 'Confira as opções disponíveis para o açougue do seu pedido.',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                    height: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                if (_loading)
+                                  const Padding(
+                                    padding: EdgeInsets.only(bottom: 16),
+                                    child: LinearProgressIndicator(
+                                      color: _red,
+                                      backgroundColor: Colors.white12,
+                                      semanticsLabel:
+                                          'Consultando formas de pagamento',
+                                    ),
+                                  ),
+                                if (_availabilityError != null)
+                                  _notice(
+                                    _availabilityError!,
+                                    Icons.wifi_off_outlined,
+                                  ),
+                                if (groups.isEmpty)
+                                  _notice(
+                                    'Seu carrinho está vazio. Adicione produtos para escolher como pagar.',
+                                    Icons.shopping_bag_outlined,
+                                  ),
+                                for (final entry in groups.entries)
+                                  _unitCard(
+                                    entry.key,
+                                    entry.value,
+                                    groups.length,
+                                  ),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: TextButton.icon(
+                                    onPressed: _loading ? null : _load,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      disabledForegroundColor: Colors.white38,
+                                    ),
+                                    icon: const Icon(Icons.refresh, size: 18),
+                                    label: const Text(
+                                      'Atualizar disponibilidade',
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          _footer(groups.isNotEmpty),
                         ],
                       ),
                     ),
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          if (_deliveryMethodIndex == 0) ...[
-            _buildCashInfo(),
-          ] else ...[
-            _buildMachineInfo(),
-          ],
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCashInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: _surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF555555)),
-          ),
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () => setState(() => _needsChange = !_needsChange),
-                child: Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: _needsChange ? _red : Colors.transparent,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: _needsChange ? _red : Colors.white38,
-                          width: 2,
-                        ),
-                      ),
-                      child: _needsChange
-                          ? const Icon(Icons.check, color: _white, size: 14)
-                          : null,
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Preciso de troco',
-                      style: TextStyle(
-                        color: _white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (_needsChange) ...[
-                const SizedBox(height: 14),
-                const Divider(color: Color(0xFF4A4A4A)),
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: _changeController,
-                  style: const TextStyle(color: _white, fontSize: 14),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    filled: true,
-                    fillColor: Color(0xFF2E2E2E),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(color: Color(0xFF555555)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(color: Color(0xFF555555)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                      borderSide: BorderSide(
-                        color: Color(0xFFC0392B),
-                        width: 1.5,
-                      ),
-                    ),
-                    labelText: 'Troco para quanto?',
-                    hintText: 'Ex: R\$ 100,00',
-                    hintStyle: TextStyle(color: Colors.white38, fontSize: 13),
-                    labelStyle: TextStyle(color: Colors.white54, fontSize: 13),
-                    prefixIcon: Icon(
-                      Icons.money,
-                      color: Colors.white38,
-                      size: 20,
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
               ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        _buildDeliveryInfoNote(
-          Icons.info_outline,
-          'Tenha o valor exato se possível. O entregador pode não ter troco disponível.',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMachineInfo() {
-    final brands = [
-      {
-        'label': 'Visa',
-        'color': const Color(0xFF1A1F71),
-        'textColor': Colors.white,
-        'icon': Icons.credit_card,
-      },
-      {
-        'label': 'Mastercard',
-        'color': const Color(0xFFEB001B),
-        'textColor': Colors.white,
-        'icon': Icons.credit_card,
-      },
-      {
-        'label': 'Elo',
-        'color': const Color(0xFFFFD700),
-        'textColor': const Color(0xFF1A1A1A),
-        'icon': Icons.credit_card,
-      },
-      {
-        'label': 'Hipercard',
-        'color': const Color(0xFFB71C1C),
-        'textColor': Colors.white,
-        'icon': Icons.credit_card,
-      },
-      {
-        'label': 'Amex',
-        'color': const Color(0xFF007BC1),
-        'textColor': Colors.white,
-        'icon': Icons.credit_card,
-      },
-      {
-        'label': 'Cabal',
-        'color': const Color(0xFF2E7D32),
-        'textColor': Colors.white,
-        'icon': Icons.credit_card,
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: _surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF555555)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: _red.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.point_of_sale, color: _red, size: 28),
-              ),
-              const SizedBox(width: 14),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Maquininha na entrega',
-                      style: TextStyle(
-                        color: _white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'O entregador levará a maquininha',
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        _sectionLabel('Selecione a bandeira do cartão'),
-        const SizedBox(height: 14),
-
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: brands.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 2.2,
-          ),
-          itemBuilder: (context, i) {
-            final brand = brands[i];
-            final selected = _selectedBrandIndex == i;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedBrandIndex = i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                decoration: BoxDecoration(
-                  color: selected ? (brand['color'] as Color) : _surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: selected
-                        ? (brand['color'] as Color)
-                        : const Color(0xFF555555),
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (selected)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: Icon(
-                          Icons.check_circle,
-                          color: brand['textColor'] as Color,
-                          size: 13,
-                        ),
-                      ),
-                    Text(
-                      brand['label'] as String,
-                      style: TextStyle(
-                        color: selected
-                            ? (brand['textColor'] as Color)
-                            : Colors.white54,
-                        fontSize: 13,
-                        fontWeight: selected
-                            ? FontWeight.w800
-                            : FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-
-        if (_selectedBrandIndex >= 0) ...[
-          const SizedBox(height: 14),
-          _buildDeliveryInfoNote(
-            Icons.warning_amber_outlined,
-            'A disponibilidade da maquininha depende do entregador. Em caso de dúvida, escolha dinheiro.',
+            ),
           ),
         ],
-      ],
+      ),
     );
   }
 
-  Widget _buildDeliveryInfoNote(IconData icon, String text) {
+  Widget _unitCard(String unitId, List<CartItemModel> items, int unitCount) {
+    final method = _methodFor(unitId);
+    final online = _onlineUnits[unitId] == true;
+    final onlineSelected = !_isOffline(method);
+    final name = items.first.unitName.isEmpty
+        ? 'Açougue'
+        : items.first.unitName;
     return Container(
-      padding: const EdgeInsets.all(14),
+      key: ValueKey('payment-unit-$unitId'),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF3A3020),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFF7A6030).withValues(alpha: 0.5),
-        ),
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFFFFB800), size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Color(0xFFDDA060),
-                fontSize: 12,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTotalAndButton() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: Column(
-        children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Total',
-                style: TextStyle(
-                  color: _white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: _red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.storefront_outlined,
+                  color: _red,
+                  size: 22,
                 ),
               ),
-              Text(
-                _fmt(widget.total),
-                style: const TextStyle(
-                  color: _white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    color: Color(0xFF1A1A1A),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          ElevatedButton(
-            onPressed: _confirm,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _red,
-              foregroundColor: _white,
-              minimumSize: const Size(double.infinity, 52),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              elevation: 0,
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8E8E8),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.all(4),
+            child: Row(
               children: [
-                Text(
-                  'Confirmar',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                _tab(
+                  'Pagar online',
+                  Icons.smartphone_outlined,
+                  onlineSelected,
+                  !_loading && online ? () => _choose(unitId, 'pix') : null,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 4),
+                _tab(
+                  'Na entrega',
+                  Icons.delivery_dining_outlined,
+                  !onlineSelected,
+                  !_loading ? () => _choose(unitId, 'cash') : null,
+                ),
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          if (!_loading && !online && _availabilityError == null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Color(0xFF777777),
+                  ),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'Este açougue está recebendo apenas na entrega no momento.',
+                      style: TextStyle(
+                        color: Color(0xFF666666),
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (onlineSelected && online) ...[
+            _option(
+              unitId,
+              'pix',
+              'Pix',
+              'Pelo checkout Mercado Pago',
+              Icons.pix,
+            ),
+            _option(
+              unitId,
+              'credit',
+              'Cartão de crédito',
+              'Condições confirmadas no checkout',
+              Icons.credit_card,
+            ),
+            _option(
+              unitId,
+              'debit',
+              'Cartão de débito',
+              'Disponibilidade confirmada no checkout',
+              Icons.credit_card_outlined,
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(
+                'Os dados do cartão e as opções de parcelamento são informados no ambiente seguro do Mercado Pago.',
+                style: TextStyle(
+                  color: Color(0xFF666666),
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ] else ...[
+            _option(
+              unitId,
+              'cash',
+              'Dinheiro',
+              'Pague ao receber seu pedido',
+              Icons.payments_outlined,
+            ),
+            _option(
+              unitId,
+              'machine',
+              'Maquininha',
+              'Cartão na entrega',
+              Icons.point_of_sale_outlined,
+            ),
+            if (method == 'machine')
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Confirme com o açougue a disponibilidade da maquininha e as bandeiras aceitas.',
+                  style: TextStyle(
+                    color: Color(0xFF666666),
+                    fontSize: 12,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            if (method == 'cash' && unitCount == 1) ...[
+              const SizedBox(height: 12),
+              TextField(
+                key: const ValueKey('payment-change'),
+                controller: _change,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+                ],
+                onChanged: (_) {
+                  if (_changeError != null) setState(() => _changeError = null);
+                },
+                style: const TextStyle(color: Color(0xFF1A1A1A)),
+                decoration: InputDecoration(
+                  labelText: 'Troco para (opcional)',
+                  hintText: 'Ex.: 100,00',
+                  prefixText: 'R\$ ',
+                  filled: true,
+                  fillColor: Colors.white,
+                  helperText: 'Deixe em branco se for pagar o valor exato.',
+                  helperMaxLines: 2,
+                  errorText: _changeError,
+                  errorMaxLines: 3,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _red),
+                  ),
+                ),
+              ),
+            ],
+            if (method == 'cash' && unitCount > 1)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Separe o valor exato deste pedido. Você confere o total de cada açougue na próxima etapa.',
+                  style: TextStyle(
+                    color: Color(0xFF666666),
+                    fontSize: 12,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _sectionLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: Color.fromARGB(255, 255, 255, 255),
-        fontSize: 15,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.3,
+  Widget _tab(
+    String label,
+    IconData icon,
+    bool selected,
+    VoidCallback? onPressed,
+  ) => Expanded(
+    child: Semantics(
+      selected: selected,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          backgroundColor: selected ? _red : Colors.transparent,
+          foregroundColor: selected ? Colors.white : const Color(0xFF666666),
+          disabledForegroundColor: selected
+              ? Colors.white70
+              : const Color(0xFF999999),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _option(
+    String unitId,
+    String value,
+    String label,
+    String subtitle,
+    IconData icon,
+  ) {
+    final selected = _methodFor(unitId) == value;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Semantics(
+        selected: selected,
+        button: true,
+        child: Material(
+          color: selected ? const Color(0xFFFFF0ED) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            key: ValueKey('payment-$unitId-$value'),
+            onTap: _loading ? null : () => _choose(unitId, value),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: selected ? _red : const Color(0xFFE0E0E0),
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: selected ? _red : const Color(0xFF777777),
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: TextStyle(
+                            color: selected ? _red : const Color(0xFF222222),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            color: Color(0xFF777777),
+                            fontSize: 12,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    selected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                    color: selected ? _red : const Color(0xFF999999),
+                    size: 21,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
+
+  Widget _notice(String message, IconData icon) => Container(
+    padding: const EdgeInsets.all(14),
+    margin: const EdgeInsets.only(bottom: 16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF3A3A3A),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.white70, size: 20),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _footer(bool hasItems) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+    decoration: const BoxDecoration(
+      color: _background,
+      border: Border(top: BorderSide(color: Colors.white12)),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          spacing: 16,
+          runSpacing: 6,
+          children: [
+            const Text(
+              'Subtotal dos produtos',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            Text(
+              _money(widget.total),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Frete, descontos e total final na revisão.',
+          style: TextStyle(color: Colors.white54, fontSize: 12),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: _loading || !hasItems ? null : _continue,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _red,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.white12,
+            disabledForegroundColor: Colors.white38,
+            minimumSize: const Size(double.infinity, 52),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            elevation: 0,
+          ),
+          child: const Text(
+            'Revisar pedido',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    ),
+  );
 }

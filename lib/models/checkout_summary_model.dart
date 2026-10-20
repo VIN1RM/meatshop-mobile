@@ -4,8 +4,11 @@ class CheckoutSummaryModel {
   final DateTime? scheduledDate;
   final String? scheduledTime;
   final String paymentMethod;
-  final String? savedCardId;
-  final String? cardBrand;
+  final double? changeFor;
+  final double? expectedTotal;
+  final String? quoteToken;
+  final Map<String, String> unitPaymentMethods;
+  final Map<String, String> coupons;
 
   const CheckoutSummaryModel({
     required this.addressId,
@@ -13,7 +16,33 @@ class CheckoutSummaryModel {
     this.scheduledDate,
     this.scheduledTime,
     required this.paymentMethod,
-    this.savedCardId,
-    this.cardBrand,
+    this.changeFor,
+    this.expectedTotal,
+    this.quoteToken,
+    this.unitPaymentMethods = const {},
+    this.coupons = const {},
   });
+
+  CheckoutSummaryModel withExpectedTotal(double total, {String? token}) =>
+      copyWith(total: total, token: token);
+
+  CheckoutSummaryModel copyWith({
+    double? total,
+    String? token,
+    Map<String, String>? methods,
+    Map<String, String>? couponCodes,
+    String? defaultMethod,
+    bool clearChange = false,
+  }) => CheckoutSummaryModel(
+    addressId: addressId,
+    isScheduled: isScheduled,
+    scheduledDate: scheduledDate,
+    scheduledTime: scheduledTime,
+    paymentMethod: defaultMethod ?? paymentMethod,
+    changeFor: clearChange ? null : changeFor,
+    expectedTotal: total ?? expectedTotal,
+    quoteToken: token ?? quoteToken,
+    unitPaymentMethods: methods ?? unitPaymentMethods,
+    coupons: couponCodes ?? coupons,
+  );
 }

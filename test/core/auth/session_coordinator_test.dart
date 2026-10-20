@@ -41,7 +41,9 @@ void main() {
         refresher: _FailingRefresher(),
       );
 
+      final expired = coordinator.expirations.first;
       await expectLater(coordinator.refresh(), throwsA(isA<ApiFailure>()));
+      await expired;
 
       expect(store.tokens, isNull);
       expect(coordinator.current, isNull);

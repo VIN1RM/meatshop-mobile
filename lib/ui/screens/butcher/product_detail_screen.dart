@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/product_quantity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -29,6 +30,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   static const Color _textGray = Color(0xFF555555);
 
   bool _isGrams = true;
+  String _unit = 'KG';
+  bool get _weight => ProductQuantity.isWeight(_unit);
+  double get _quantity => ProductQuantity.inUnit(
+    ProductQuantity.parse(_qtyController.text),
+    _unit,
+    grams: _isGrams,
+  );
+  String get _inputUnit =>
+      _weight ? (_isGrams ? 'g' : 'kg') : _unit.toLowerCase();
   final TextEditingController _qtyController = TextEditingController(text: '');
 
   static const List<int> _chipsG = [100, 200, 300, 500, 750];
@@ -42,17 +52,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Map<String, dynamic>) {
         final item = args['cartItem'] as CartItemModel?;
         if (item != null) {
           setState(() {
             _isEditingCart = true;
-            final isKg = item.unitOfMeasure.toLowerCase() == 'kg';
-            _isGrams = !isKg;
-            _qtyController.text = isKg
-                ? item.quantity.toStringAsFixed(1)
-                : (item.quantity * 1000).toInt().toString();
+            _unit = ProductQuantity.unit(item.unitOfMeasure);
+            _isGrams = _unit == 'G';
+            _qtyController.text = item.quantity.toString();
           });
         }
       }
@@ -65,13 +74,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         prod = productArgs as ProductModel?;
       }
       if (prod != null) {
+        _unit = ProductQuantity.unit(prod.unitOfMeasure);
+        if (!_isEditingCart) {
+          _isGrams = _unit != 'KG';
+          _qtyController.text = _weight ? (_isGrams ? '300' : '0.5') : '1';
+        }
+        if (mounted) setState(() {});
         final reviewService = ReviewService(
           marketplace: context.read<MarketplaceContext>().repository,
         );
-        final reviews = await reviewService
-            .watchProductReviews(prod.id, limit: 3)
-            .first;
-        if (mounted) setState(() => _reviews = reviews);
+        try {
+          final reviews = await reviewService
+              .watchProductReviews(prod.id, limit: 3)
+              .first;
+          if (mounted) setState(() => _reviews = reviews);
+        } catch (_) {}
       }
     });
   }
@@ -83,10 +100,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _addToCart(BuildContext context, ProductModel product) async {
-    final inputVal = double.tryParse(_qtyController.text) ?? 0;
+    final inputVal = ProductQuantity.parse(_qtyController.text);
     if (inputVal <= 0) return;
 
-    final qtyInUom = _isGrams ? inputVal / 1000.0 : inputVal;
+    final qtyInUom = _quantity;
+    if (!ProductQuantity.valid(qtyInUom, _unit)) return;
     final uid = context.read<AuthProvider>().currentUser?.uid;
     if (uid == null) return;
 
@@ -404,7 +422,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          _buildUnitTabs(),
+          if (_weight) _buildUnitTabs(),
           const SizedBox(height: 16),
           _buildQtyInput(),
           const SizedBox(height: 12),
@@ -478,15 +496,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         _buildQtyButton(
           icon: Icons.remove,
           onTap: () {
-            final current = double.tryParse(_qtyController.text) ?? 0;
-            final step = _isGrams ? 50.0 : 0.5;
-            final min = _isGrams ? 50.0 : 0.5;
+            final current = ProductQuantity.parse(_qtyController.text);
+            final step = _weight ? (_isGrams ? 50.0 : 0.05) : 1.0;
+            final min = step;
             final next = current - step;
             if (next >= min) {
               setState(() {
                 _qtyController.text = _isGrams
                     ? next.toInt().toString()
-                    : next.toStringAsFixed(1);
+                    : next.toStringAsFixed(_weight ? 2 : 0);
               });
             }
           },
@@ -509,7 +527,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       decimal: true,
                     ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                     ],
                     textAlign: TextAlign.center,
                     style: const TextStyle(
@@ -528,7 +546,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Text(
-                    _isGrams ? 'g' : 'kg',
+                    _inputUnit,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -544,8 +562,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         _buildQtyButton(
           icon: Icons.add,
           onTap: () {
-            final current = double.tryParse(_qtyController.text) ?? 0;
-            final step = _isGrams ? 50.0 : 0.5;
+            final current = ProductQuantity.parse(_qtyController.text);
+            final step = _weight ? (_isGrams ? 50.0 : 0.05) : 1.0;
             setState(() {
               _qtyController.text = _isGrams
                   ? (current + step).toInt().toString()
@@ -576,7 +594,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildQtyChips() {
-    final currentVal = double.tryParse(_qtyController.text) ?? 0;
+    if (!_weight) return const SizedBox.shrink();
+    final currentVal = ProductQuantity.parse(_qtyController.text);
     if (_isGrams) {
       return Wrap(
         spacing: 8,
@@ -633,13 +652,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildTotalBox(ProductModel product) {
-    final inputVal = double.tryParse(_qtyController.text) ?? 0;
-    final qtyKg = _isGrams ? inputVal / 1000.0 : inputVal;
+    final qtyKg = _quantity;
     final total = product.price * qtyKg;
     final formattedTotal =
         'R\$${total.toStringAsFixed(2).replaceAll('.', ',')}';
     final qty = _qtyController.text.isEmpty ? '0' : _qtyController.text;
-    final unit = _isGrams ? 'g' : 'kg';
+    final unit = _inputUnit;
 
     return Container(
       width: double.infinity,
@@ -850,10 +868,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildAddToCartBar(BuildContext context, ProductModel product) {
-    final inputVal = double.tryParse(_qtyController.text) ?? 0;
-    final qtyKg = _isGrams ? inputVal / 1000.0 : inputVal;
+    final qtyKg = _quantity;
     final total = product.price * qtyKg;
-    final isValid = inputVal > 0;
+    final isValid = ProductQuantity.valid(_quantity, _unit);
 
     return Container(
       padding: EdgeInsets.only(

@@ -1,484 +1,562 @@
-import 'dart:math';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/routes/app_routes.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../providers/order_provider.dart';
+import '../../../models/order_model.dart';
+import '../../widgets/app_header.dart';
 
 class OrderProcessingScreen extends StatefulWidget {
-  const OrderProcessingScreen({super.key});
-
+  const OrderProcessingScreen({super.key, this.orderIds = const []});
+  final List<String> orderIds;
   @override
   State<OrderProcessingScreen> createState() => _OrderProcessingScreenState();
 }
 
 class _OrderProcessingScreenState extends State<OrderProcessingScreen>
-    with TickerProviderStateMixin {
-  static const Color _red = Color(0xFFC0392B);
-  static const Color _white = Colors.white;
-  static const Color _bg = Color(0xFFF5F2EF);
-  static const Color _surface = Color(0xFFEAE6E1);
-
-  late AnimationController _progressController;
-  late AnimationController _pulseController;
-  late AnimationController _successController;
-  late AnimationController _particleController;
-
-  late Animation<double> _progressAnim;
-  late Animation<double> _pulseAnim;
-  late Animation<double> _successScaleAnim;
-  late Animation<double> _successOpacityAnim;
-  late Animation<double> _particleAnim;
-
-  bool _isSuccess = false;
-  int _stepIndex = 0;
-
-  final List<_ProcessStep> _steps = const [
-    _ProcessStep(
-      icon: Icons.receipt_long_outlined,
-      label: 'Registrando pedido...',
-    ),
-    _ProcessStep(
-      icon: Icons.storefront_outlined,
-      label: 'Notificando o açougue...',
-    ),
-    _ProcessStep(
-      icon: Icons.payment_outlined,
-      label: 'Processando pagamento...',
-    ),
-    _ProcessStep(icon: Icons.check_circle_outline, label: 'Pedido confirmado!'),
-  ];
-
+    with WidgetsBindingObserver {
+  static const _red = Color(0xFFC0392B);
+  static const _background = Color(0xFF2E2E2E);
+  static const _surface = Color(0xFFF5F5F5);
+  Timer? _timer;
+  List<OrderModel> _orders = [];
+  bool _loading = false;
+  String? _paying;
+  String? _error;
+  late final List<String> _ids;
   @override
   void initState() {
     super.initState();
-
-    _progressController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 10000),
-    );
-    _progressAnim = CurvedAnimation(
-      parent: _progressController,
-      curve: Curves.easeInOut,
-    );
-
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    )..repeat(reverse: true);
-    _pulseAnim = Tween<double>(begin: 0.95, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    _successController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
-    );
-    _successScaleAnim = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _successController, curve: Curves.elasticOut),
-    );
-    _successOpacityAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _successController,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
-      ),
-    );
-
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _particleAnim = CurvedAnimation(
-      parent: _particleController,
-      curve: Curves.easeOut,
-    );
-
-    _startFlow();
+    WidgetsBinding.instance.addObserver(this);
+    _ids = widget.orderIds.isEmpty
+        ? context
+              .read<OrderProvider>()
+              .lastCheckoutOrders
+              .map((o) => o.id)
+              .toList()
+        : widget.orderIds;
+    _refresh();
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) => _refresh());
   }
 
-  Future<void> _startFlow() async {
-    _progressController.forward();
-
-    for (int i = 0; i < _steps.length - 1; i++) {
-      await Future.delayed(
-        Duration(milliseconds: (5000 / (_steps.length - 1)).round()),
-      );
-      if (!mounted) return;
-      setState(() => _stepIndex = i + 1);
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _refresh(reconcile: true);
     }
+  }
 
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (!mounted) return;
+  Future<void> _refresh({bool reconcile = false}) async {
+    if (!mounted || _loading) return;
+    setState(() => _loading = true);
+    try {
+      final provider = context.read<OrderProvider>();
+      final orders = await Future.wait(
+        _ids.map(
+          (id) =>
+              reconcile ? provider.refreshPayment(id) : provider.getOrder(id),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _orders = orders;
+          _error = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _error =
+              'Não foi possível atualizar. Seu pedido continua salvo; tente novamente.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
-    setState(() => _isSuccess = true);
-    _pulseController.stop();
-    _successController.forward();
-    _particleController.forward();
-
-    await Future.delayed(const Duration(milliseconds: 2800));
-    if (!mounted) return;
-
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      AppRoutes.deliveries,
-      (route) => route.settings.name == AppRoutes.shell,
-    );
+  Future<void> _pay(OrderModel order) async {
+    setState(() {
+      _paying = order.id;
+      _error = null;
+    });
+    try {
+      final url = Uri.parse(
+        await context.read<OrderProvider>().payOrder(order.id),
+      );
+      if (url.scheme != 'https' ||
+          !(url.host == 'mercadopago.com.br' ||
+              url.host.endsWith('.mercadopago.com.br'))) {
+        throw StateError('Invalid payment URL');
+      }
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        throw StateError('Could not open checkout');
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _error =
+              'Não foi possível abrir o pagamento. Atualize o pedido e tente novamente.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _paying = null);
+    }
   }
 
   @override
   void dispose() {
-    _progressController.dispose();
-    _pulseController.dispose();
-    _successController.dispose();
-    _particleController.dispose();
+    _timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      body: Stack(
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: _background,
+    body: Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: SizedBox(
+            height: 130,
+            child: Image.asset(
+              'assets/images/background.png',
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) =>
+                  Container(color: const Color(0xFF1A1A1A)),
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Column(
+            children: [
+              const AppHeader(),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 640),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: RefreshIndicator(
+                            color: _red,
+                            onRefresh: () => _refresh(reconcile: true),
+                            child: ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                12,
+                                16,
+                                24,
+                              ),
+                              children: [
+                                Row(
+                                  children: [
+                                    IconButton.outlined(
+                                      onPressed: () => Navigator.pop(context),
+                                      tooltip: 'Voltar',
+                                      style: IconButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                        side: const BorderSide(
+                                          color: Colors.white54,
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.arrow_back,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Expanded(
+                                      child: Text(
+                                        'PAGAMENTOS',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'Acompanhe seus pedidos',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Seus pedidos ficam salvos. Confira abaixo a forma de pagamento e a situação de cada açougue.',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                    height: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                if (_loading)
+                                  const Padding(
+                                    padding: EdgeInsets.only(bottom: 16),
+                                    child: LinearProgressIndicator(
+                                      color: _red,
+                                      backgroundColor: Colors.white12,
+                                      semanticsLabel: 'Atualizando pagamentos',
+                                    ),
+                                  ),
+                                if (_error != null)
+                                  _notice(_error!, error: true),
+                                if (_ids.isEmpty)
+                                  _notice(
+                                    'Abra um pedido em Meus pedidos para consultar o pagamento.',
+                                  ),
+                                for (final order in _orders) _orderCard(order),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                          decoration: const BoxDecoration(
+                            color: _background,
+                            border: Border(
+                              top: BorderSide(color: Colors.white12),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Text(
+                                'Os pagamentos são atualizados automaticamente.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 12,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                onPressed: _loading || _ids.isEmpty
+                                    ? null
+                                    : () => _refresh(reconcile: true),
+                                icon: const Icon(Icons.refresh, size: 20),
+                                label: const Text(
+                                  'Atualizar pagamentos',
+                                  textAlign: TextAlign.center,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _red,
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: Colors.white12,
+                                  disabledForegroundColor: Colors.white38,
+                                  minimumSize: const Size(double.infinity, 52),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Color _statusColor(OrderModel order) {
+    if (order.refundStatus == 'PENDING' || order.refundStatus == 'FAILED') {
+      return const Color(0xFF9A6700);
+    }
+    return switch (order.paymentStatus) {
+      'PAID' => const Color(0xFF247A46),
+      'REJECTED' || 'CHARGED_BACK' => _red,
+      _ => const Color(0xFF666666),
+    };
+  }
+
+  String _description(OrderModel order) {
+    if (order.status == 'CANCELLED') {
+      return 'Este pedido foi cancelado. Confira aqui a situação do pagamento e de eventuais devoluções.';
+    }
+    if (order.refundStatus == 'FAILED') {
+      return 'Entre em contato com o açougue para acompanhar a devolução.';
+    }
+    if (order.refundStatus == 'PENDING') {
+      return 'A devolução foi solicitada. Acompanhe a confirmação por aqui.';
+    }
+    if (order.paymentStatus == 'PAID') {
+      return 'Pagamento confirmado. Acompanhe o andamento em Meus pedidos.';
+    }
+    if (order.isOfflinePayment && order.paymentStatus == 'PENDING') {
+      return 'Pague ao receber. A confirmação aparece aqui após o registro do açougue.';
+    }
+    if (order.canPay) {
+      return 'Conclua o pagamento no Mercado Pago. Ao voltar, atualizamos a situação do pedido.';
+    }
+    if (order.paymentStatus == 'PENDING' &&
+        order.paymentDueAt != null &&
+        order.paymentDueAt!.isBefore(DateTime.now())) {
+      return 'O prazo de pagamento terminou. Atualize para consultar a situação do pedido.';
+    }
+    return 'Consulte os detalhes do pedido e acompanhe as atualizações por aqui.';
+  }
+
+  String _deadline(DateTime date) {
+    final local = date.toLocal();
+    String pad(int value) => value.toString().padLeft(2, '0');
+    return '${pad(local.day)}/${pad(local.month)} às ${pad(local.hour)}:${pad(local.minute)}';
+  }
+
+  Widget _orderCard(OrderModel order) {
+    final color = _statusColor(order);
+    return Container(
+      key: ValueKey('order-payment-${order.id}'),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(0, -0.3),
-                  radius: 1.2,
-                  colors: [
-                    _red.withValues(alpha: 0.06),
-                    const Color(0xFFF5F2EF),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: _red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.storefront_outlined,
+                  color: _red,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.unitName.isEmpty ? 'Açougue' : order.unitName,
+                      style: const TextStyle(
+                        color: Color(0xFF1A1A1A),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Pedido #${order.id}',
+                      style: const TextStyle(
+                        color: Color(0xFF777777),
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFDDDDDD)),
+          const SizedBox(height: 16),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Total do pedido',
+                    style: TextStyle(color: Color(0xFF777777), fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    order.formattedTotal,
+                    style: const TextStyle(
+                      color: Color(0xFF1A1A1A),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  order.paymentStatusLabel,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Icon(
+                order.isOfflinePayment
+                    ? Icons.payments_outlined
+                    : Icons.account_balance_wallet_outlined,
+                size: 18,
+                color: const Color(0xFF777777),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  order.paymentMethodLabel,
+                  style: const TextStyle(
+                    color: Color(0xFF555555),
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (order.status == 'CANCELLED')
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Text(
+                'Pedido cancelado',
+                style: TextStyle(
+                  color: _red,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          Text(
+            _description(order),
+            style: const TextStyle(
+              color: Color(0xFF666666),
+              fontSize: 12,
+              height: 1.5,
             ),
           ),
-
-          if (_isSuccess)
-            AnimatedBuilder(
-              animation: _particleAnim,
-              builder: (_, _) => _buildParticles(context),
+          if (order.refundedAmount > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                'Valor devolvido: R\$ ${order.refundedAmount.toStringAsFixed(2).replaceAll('.', ',')}',
+                style: const TextStyle(
+                  color: Color(0xFF555555),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-
-          SafeArea(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              child: _isSuccess ? _buildSuccess() : _buildLoading(),
+          if (order.paymentDueAt != null && order.canPay)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                'Pague até ${_deadline(order.paymentDueAt!)}',
+                style: const TextStyle(
+                  color: _red,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-          ),
+          if (order.canPay)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _paying == null ? () => _pay(order) : null,
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: Text(
+                    _paying == order.id ? 'Abrindo…' : 'Pagar este açougue',
+                    textAlign: TextAlign.center,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _red,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildLoading() {
-    return Center(
-      key: const ValueKey('loading'),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ScaleTransition(
-              scale: _pulseAnim,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _surface,
-                  border: Border.all(
-                    color: _red.withValues(alpha: 0.4),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _red.withValues(alpha: 0.15),
-                      blurRadius: 30,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.shopping_bag_outlined,
-                  color: _red,
-                  size: 44,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: Text(
-                _steps[_stepIndex].label,
-                key: ValueKey(_stepIndex),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            const Text(
-              'Isso pode levar alguns instantes',
-              style: TextStyle(color: Color(0xFF888888), fontSize: 13),
-            ),
-
-            const SizedBox(height: 40),
-
-            AnimatedBuilder(
-              animation: _progressAnim,
-              builder: (_, _) {
-                return Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(100),
-                      child: SizedBox(
-                        height: 6,
-                        child: LinearProgressIndicator(
-                          value: _progressAnim.value,
-                          backgroundColor: _surface,
-                          valueColor: const AlwaysStoppedAnimation<Color>(_red),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        '${(_progressAnim.value * 100).toInt()}%',
-                        style: const TextStyle(
-                          color: Color(0xFF999999),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-
-            const SizedBox(height: 48),
-
-            _buildStepIndicators(),
-          ],
+  Widget _notice(String message, {bool error = false}) => Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: const Color(0xFF3A3A3A),
+      borderRadius: BorderRadius.circular(12),
+      border: error ? Border.all(color: const Color(0xFFE19A90)) : null,
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          error ? Icons.error_outline : Icons.info_outline,
+          color: Colors.white70,
+          size: 20,
         ),
-      ),
-    );
-  }
-
-  Widget _buildStepIndicators() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_steps.length, (i) {
-        final done = i < _stepIndex;
-        final active = i == _stepIndex;
-        return Row(
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: done
-                    ? _red
-                    : active
-                    ? _surface
-                    : const Color(0xFFDDD9D4),
-                border: Border.all(
-                  color: done
-                      ? _red
-                      : active
-                      ? _red.withValues(alpha: 0.5)
-                      : const Color(0xFFCCC8C2),
-                  width: 1.5,
-                ),
-              ),
-              child: Center(
-                child: done
-                    ? const Icon(Icons.check, color: _white, size: 16)
-                    : Icon(
-                        _steps[i].icon,
-                        color: active ? _red : const Color(0xFFBBB7B1),
-
-                        size: 16,
-                      ),
-              ),
-            ),
-            if (i < _steps.length - 1)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                width: 24,
-                height: 2,
-                margin: const EdgeInsets.symmetric(horizontal: 2),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(2),
-                  color: done ? _red : const Color(0xFFCCC8C2),
-                ),
-              ),
-          ],
-        );
-      }),
-    );
-  }
-
-  Widget _buildSuccess() {
-    return Center(
-      key: const ValueKey('success'),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            AnimatedBuilder(
-              animation: _successController,
-              builder: (_, _) => Opacity(
-                opacity: _successOpacityAnim.value,
-                child: Transform.scale(
-                  scale: _successScaleAnim.value,
-                  child: Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _red.withValues(alpha: 0.12),
-                      border: Border.all(color: _red, width: 2.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _red.withValues(alpha: 0.3),
-                          blurRadius: 40,
-                          spreadRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.check_rounded,
-                      color: Color.fromARGB(255, 255, 255, 255),
-                      size: 56,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 36),
-
-            FadeTransition(
-              opacity: _successOpacityAnim,
-              child: const Text(
-                'Pedido realizado!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            FadeTransition(
-              opacity: _successOpacityAnim,
-              child: const Text(
-                'Seu pedido foi confirmado e\nestá sendo preparado.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Color(0xFF777777),
-                  fontSize: 14,
-                  height: 1.6,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 48),
-
-            FadeTransition(
-              opacity: _successOpacityAnim,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFFCCCCCC),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'Abrindo acompanhamento...',
-                    style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildParticles(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final rng = Random(42);
-    const count = 18;
-
-    return Stack(
-      children: List.generate(count, (i) {
-        final x = rng.nextDouble() * size.width;
-        final startY = size.height * 0.35 + rng.nextDouble() * 60;
-        final endY = startY - (80 + rng.nextDouble() * 200);
-        final particleSize = 4.0 + rng.nextDouble() * 6;
-        final delay = rng.nextDouble() * 0.4;
-
-        final colors = [
-          _red,
-          const Color(0xFFFF6B6B),
-          _white,
-          const Color(0xFFFFB800),
-        ];
-        final color = colors[i % colors.length];
-
-        final t = (_particleAnim.value - delay).clamp(0.0, 1.0);
-        final opacity = t < 0.7 ? t / 0.7 : (1.0 - t) / 0.3;
-        final currentY = startY + (endY - startY) * t;
-        final currentX = x + sin(i * 1.3 + t * 3) * 20;
-
-        return Positioned(
-          left: currentX - particleSize / 2,
-          top: currentY - particleSize / 2,
-          child: Opacity(
-            opacity: opacity.clamp(0.0, 1.0),
-            child: Container(
-              width: particleSize,
-              height: particleSize,
-              decoration: BoxDecoration(
-                color: color,
-                shape: i % 2 == 0 ? BoxShape.circle : BoxShape.rectangle,
-                borderRadius: i % 2 != 0 ? BorderRadius.circular(2) : null,
-              ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            message,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 13,
+              height: 1.5,
             ),
           ),
-        );
-      }),
-    );
-  }
-}
-
-class _ProcessStep {
-  final IconData icon;
-  final String label;
-  const _ProcessStep({required this.icon, required this.label});
+        ),
+      ],
+    ),
+  );
 }

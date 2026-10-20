@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,6 +15,8 @@ import 'package:meatshop_mobile/services/notification_service.dart';
 import 'package:meatshop_mobile/core/config/feature_flags.dart';
 import 'package:meatshop_mobile/infra/api_foundation.dart';
 import 'package:meatshop_mobile/services/firebase_complementary_services.dart';
+import 'core/utils/payment_return_intent.dart';
+import 'ui/widgets/payment_return_listener.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -63,9 +68,37 @@ class MeatShopApp extends StatefulWidget {
 }
 
 class _MeatShopAppState extends State<MeatShopApp> {
+  StreamSubscription<void>? _expiration;
+  StreamSubscription<void>? _legalRequirement;
+  bool _reviewingLegal = false;
+  @override
+  void dispose() {
+    _expiration?.cancel();
+    _legalRequirement?.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
+    _expiration = apiFoundation?.session.expirations.listen((_) {
+      final context = navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        context.read<AuthProvider>().expireSession(context);
+      }
+    });
+    _legalRequirement = apiFoundation?.client.legalRequirements.stream.listen((
+      _,
+    ) async {
+      final context = navigatorKey.currentContext;
+      if (_reviewingLegal || context == null || !context.mounted) return;
+      _reviewingLegal = true;
+      try {
+        await context.read<AuthProvider>().reviewLegalRequirements(context);
+      } finally {
+        _reviewingLegal = false;
+      }
+    });
     NotificationService.instance
         .initialize(navigatorKey: navigatorKey)
         .catchError((e) => debugPrint('NotificationService init error: $e'));
@@ -76,6 +109,7 @@ class _MeatShopAppState extends State<MeatShopApp> {
     return MultiProvider(
       providers: ProvidersConfig.providers(
         federatedAuth: apiFoundation?.federatedAuth,
+        legal: apiFoundation?.legal,
         marketplace: featureFlags.backendMarketplace
             ? apiFoundation?.marketplace
             : null,
@@ -89,6 +123,7 @@ class _MeatShopAppState extends State<MeatShopApp> {
         realtime: apiFoundation?.realtime,
         recipes: apiFoundation?.recipes,
         reviews: apiFoundation?.reviews,
+        aiAssistant: apiFoundation?.aiAssistant,
         flags: featureFlags,
       ),
       child: MaterialApp(
@@ -101,8 +136,33 @@ class _MeatShopAppState extends State<MeatShopApp> {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFB71C1C)),
         ),
-        initialRoute: AppRoutes.splash,
+        initialRoute:
+            PaymentReturnIntent.accepts(
+              Uri.parse(
+                WidgetsBinding.instance.platformDispatcher.defaultRouteName,
+              ),
+            )
+            ? WidgetsBinding.instance.platformDispatcher.defaultRouteName
+            : AppRoutes.splash,
+        builder: (context, child) => PaymentReturnListener(
+          navigatorKey: navigatorKey,
+          child: child ?? const SizedBox(),
+        ),
         routes: buildRoutes(),
+        onGenerateRoute: (settings) {
+          final uri = Uri.tryParse(settings.name ?? '');
+          if (uri != null && PaymentReturnIntent.accepts(uri)) {
+            PaymentReturnIntent.instance.remember(uri);
+            return MaterialPageRoute(
+              builder: (context) => context.read<AuthProvider>().isAuthenticated
+                  ? const Scaffold(
+                      body: Center(child: Text('Recuperando pagamento…')),
+                    )
+                  : const SplashPage(),
+            );
+          }
+          return null;
+        },
       ),
     );
   }

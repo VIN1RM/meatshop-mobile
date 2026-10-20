@@ -40,6 +40,7 @@ class PrimaryButton extends StatelessWidget {
           backgroundColor: AppColors.redPrimary,
           foregroundColor: AppColors.white,
           disabledBackgroundColor: AppColors.redPrimary.withValues(alpha: 0.6),
+          disabledForegroundColor: Colors.white70,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),

@@ -14,6 +14,10 @@ final class HttpDeliveryRepository implements DeliveryRepository {
   final ApiConfig? _config;
 
   @override
+  Future<Map<String, Object?>> trackingPolicy() =>
+      _client.get('/delivery/tracking-policy', decode: _map);
+
+  @override
   Future<Map<String, Object?>> profile() => _client.get(
     '/delivery/me',
     decode: (value) {
@@ -93,13 +97,29 @@ final class HttpDeliveryRepository implements DeliveryRepository {
         value == null ? null : DeliveryOrder.fromApi(_map(value)),
   );
   @override
-  Future<List<DeliveryOrder>> history() =>
-      _orders('/delivery/me/orders/history');
+  Future<List<DeliveryOrder>> history() => _allPages(
+    (page) => _orders('/delivery/me/orders/history?page=$page&limit=100'),
+    (order) => order.id.toString(),
+  );
   @override
   Future<String> accept(int orderId) => _client.post(
     '/delivery/orders/$orderId/accept',
     decode: (value) {
       final code = _map(value)['pickup_code'];
+      if (code is! String || !RegExp(r'^\d{6}$').hasMatch(code)) {
+        throw _malformed();
+      }
+      return code;
+    },
+  );
+  @override
+  Future<String> regenerateCode(
+    int orderId, {
+    required bool pickup,
+  }) => _client.post(
+    '/delivery/orders/$orderId/${pickup ? 'pickup' : 'delivery'}-code/regenerate',
+    decode: (value) {
+      final code = _map(value)['code'];
       if (code is! String || !RegExp(r'^\d{6}$').hasMatch(code)) {
         throw _malformed();
       }
@@ -119,14 +139,31 @@ final class HttpDeliveryRepository implements DeliveryRepository {
     decode: (_) {},
   );
   @override
+  Future<String?> setLocationSharing(int orderId, bool enabled) =>
+      _client.patch(
+        '/delivery/orders/$orderId/sharing',
+        body: {'enabled': enabled},
+        decode: (value) => _map(value)['session_id'] as String?,
+      );
+  @override
   Future<void> sendLocation(
     int orderId,
     double latitude,
     double longitude, {
     double? accuracy,
+    required DateTime capturedAt,
+    required String sessionId,
+    required String sampleId,
+    bool isMocked = false,
   }) => _client.post(
     '/delivery/orders/$orderId/location',
-    body: _locationBody(latitude, longitude, accuracy),
+    body: {
+      ..._locationBody(latitude, longitude, accuracy),
+      'captured_at': capturedAt.toUtc().toIso8601String(),
+      'session_id': sessionId,
+      'sample_id': sampleId,
+      'is_mocked': isMocked,
+    },
     decode: (_) {},
   );
   @override
@@ -141,16 +178,21 @@ final class HttpDeliveryRepository implements DeliveryRepository {
         latitude: _number(point['latitude']),
         longitude: _number(point['longitude']),
         accuracy: point['accuracy'] == null ? null : _number(point['accuracy']),
-        recordedAt: DateTime.parse(point['created_at'] as String),
+        recordedAt: DateTime.parse(
+          (point['captured_at'] ?? point['created_at']) as String,
+        ),
       );
     },
   );
   @override
-  Future<List<DeliveryEarningModel>> earnings() => _client.get(
-    '/delivery/me/earnings',
-    decode: (value) => _list(
-      _map(value)['entries'],
-    ).map((item) => DeliveryEarningModel.fromApi(_map(item))).toList(),
+  Future<List<DeliveryEarningModel>> earnings() => _allPages(
+    (page) => _client.get(
+      '/delivery/me/earnings?page=$page&limit=100',
+      decode: (value) => _list(
+        _map(value)['entries'],
+      ).map((item) => DeliveryEarningModel.fromApi(_map(item))).toList(),
+    ),
+    (entry) => entry.id,
   );
   @override
   Future<List<DeliveryGoalModel>> goals() => _client.get(
@@ -172,6 +214,30 @@ final class HttpDeliveryRepository implements DeliveryRepository {
         '/delivery-persons/$deliveryPersonId/reviews',
         decode: (value) => _list(value).map(_map).toList(),
       );
+
+  Future<List<T>> _allPages<T>(
+    Future<List<T>> Function(int page) fetch,
+    String Function(T item) identity,
+  ) async {
+    final accountId = _client.accountId;
+    final result = <String, T>{};
+    for (var page = 1; ; page++) {
+      final items = await fetch(page);
+      if (_client.accountId != accountId) {
+        throw const ApiFailure(
+          kind: ApiFailureKind.unauthorized,
+          message: 'A sessão mudou. Entre novamente.',
+          code: 'SESSION_EXPIRED',
+        );
+      }
+      final previousSize = result.length;
+      for (final item in items) {
+        result[identity(item)] = item;
+      }
+      if (items.length < 100 || result.length == previousSize) break;
+    }
+    return result.values.toList(growable: false);
+  }
 
   Future<List<DeliveryOrder>> _orders(String path) => _client.get(
     path,

@@ -29,12 +29,19 @@ class ChatListProvider extends ChangeNotifier {
   String? _error;
   final List<StreamSubscription<Object?>> _subscriptions = [];
 
+  Timer? _inboxTimer;
+  bool _inboxDisposed = false;
+
   List<ChatConversation> get conversations => _conversations;
   bool get loading => _loading;
   String? get error => _error;
 
   void _init() {
     if (backendUserId != null) {
+      _inboxTimer = Timer.periodic(
+        const Duration(seconds: 10),
+        (_) => _loadBackend(silent: true),
+      );
       _loadBackend();
       _realtime.connect();
       _subscriptions.add(
@@ -60,21 +67,27 @@ class ChatListProvider extends ChangeNotifier {
       notifyListeners();
     }
     try {
-      _conversations = await _repository.conversations(
+      final conversations = await _repository.conversations(
         currentUserId: backendUserId!,
         currentUserType: activeType,
       );
+      if (_inboxDisposed) return;
+      _conversations = conversations;
       _error = null;
     } catch (_) {
-      _error = 'Não foi possível carregar as conversas.';
+      if (!_inboxDisposed) _error = 'Não foi possível carregar as conversas.';
     } finally {
-      _loading = false;
-      notifyListeners();
+      if (!_inboxDisposed) {
+        _loading = false;
+        notifyListeners();
+      }
     }
   }
 
   @override
   void dispose() {
+    _inboxDisposed = true;
+    _inboxTimer?.cancel();
     for (final subscription in _subscriptions) {
       subscription.cancel();
     }

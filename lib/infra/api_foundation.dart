@@ -33,6 +33,11 @@ import '../data/repositories/recipe_repository.dart';
 import '../data/repositories/review_repository.dart';
 import 'repositories/http_recipe_repository.dart';
 import 'repositories/http_review_repository.dart';
+import '../data/repositories/ai_assistant_repository.dart';
+import 'repositories/http_ai_assistant_repository.dart';
+
+import '../data/repositories/legal_repository.dart';
+import 'repositories/http_legal_repository.dart';
 
 final class ApiFoundation {
   ApiFoundation._({
@@ -40,6 +45,8 @@ final class ApiFoundation {
     required this.session,
     required this.backendConnection,
     required this.federatedAuth,
+    required this.legal,
+    required this.client,
     required this.marketplace,
     required this.profile,
     required this.addresses,
@@ -52,6 +59,7 @@ final class ApiFoundation {
     required this.notifications,
     required this.recipes,
     required this.reviews,
+    required this.aiAssistant,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -62,8 +70,9 @@ final class ApiFoundation {
         requireAppCheck: config.environment != AppEnvironment.development,
       ),
     );
+    final secureStorage = FlutterSecureKeyValueStore();
     final session = SessionCoordinator(
-      store: SecureSessionStore(FlutterSecureKeyValueStore()),
+      store: SecureSessionStore(secureStorage),
       refresher: BackendSessionRefresher(transport),
     );
     final client = ApiClient(transport: transport, session: session);
@@ -71,23 +80,32 @@ final class ApiFoundation {
       transport: transport,
       session: session,
       backendConnection: HttpBackendConnectionRepository(client),
+      legal: HttpLegalRepository(client),
+      client: client,
       federatedAuth: HttpFederatedAuthRepository(
         transport: transport,
         client: client,
         session: session,
       ),
-      marketplace: HttpMarketplaceRepository(client),
+      marketplace: HttpMarketplaceRepository(client, config),
       profile: HttpProfileRepository(client, config),
       addresses: HttpAddressRepository(client),
       cart: HttpCartRepository(client),
-      orders: HttpOrderRepository(client),
+      orders: HttpOrderRepository(
+        client,
+        pendingStorage: FlutterSecureKeyValueStore(),
+      ),
       payments: HttpPaymentRepository(client),
       delivery: HttpDeliveryRepository(client, config),
       chat: HttpChatRepository(client),
       realtime: BackendRealtimeClient(config: config, session: session),
       notifications: HttpNotificationRepository(client),
       recipes: HttpRecipeRepository(client),
-      reviews: HttpReviewRepository(client, HttpMarketplaceRepository(client)),
+      reviews: HttpReviewRepository(
+        client,
+        HttpMarketplaceRepository(client, config),
+      ),
+      aiAssistant: HttpAiAssistantRepository(client, secureStorage),
     );
   }
 
@@ -95,6 +113,8 @@ final class ApiFoundation {
   final SessionCoordinator session;
   final BackendConnectionRepository backendConnection;
   final FederatedAuthRepository federatedAuth;
+  final LegalRepository legal;
+  final ApiClient client;
   final MarketplaceRepository marketplace;
   final ProfileRepository profile;
   final AddressRepository addresses;
@@ -107,10 +127,12 @@ final class ApiFoundation {
   final NotificationRepository notifications;
   final RecipeRepository recipes;
   final ReviewRepository reviews;
+  final AiAssistantRepository aiAssistant;
 
   Future<void> initialize() => session.initialize();
 
   void dispose() {
+    client.legalRequirements.close();
     realtime.dispose();
     _transport.close();
   }

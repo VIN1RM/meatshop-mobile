@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 
 class DeleteAccountDialog extends StatefulWidget {
   const DeleteAccountDialog({super.key});
@@ -31,7 +32,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
 
   void _confirm() {
     final password = _passwordController.text.trim();
-    if (password.isEmpty) {
+    if (AuthService.instance.requiresPassword && password.isEmpty) {
       setState(() => _errorMessage = 'Digite sua senha para confirmar.');
       return;
     }
@@ -77,7 +78,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Esta ação é permanente e não pode ser desfeita. Digite sua senha para confirmar.',
+              'Esta ação é permanente. Confirme sua identidade para excluir sua conta.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF555555),
@@ -86,42 +87,43 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
               ),
             ),
             const SizedBox(height: 24),
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscure,
-              style: const TextStyle(color: Color(0xFF1A1A1A)),
-              decoration: InputDecoration(
-                hintText: 'Sua senha',
-                hintStyle: const TextStyle(color: Color(0xFF999999)),
-                filled: true,
-                fillColor: const Color(0xFFEAEAEA),
-                errorText: _errorMessage,
-                errorStyle: const TextStyle(color: _red),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: _red, width: 1.5),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscure
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: const Color(0xFF999999),
-                    size: 20,
+            if (AuthService.instance.requiresPassword)
+              TextField(
+                controller: _passwordController,
+                obscureText: _obscure,
+                style: const TextStyle(color: Color(0xFF1A1A1A)),
+                decoration: InputDecoration(
+                  hintText: 'Sua senha',
+                  hintStyle: const TextStyle(color: Color(0xFF999999)),
+                  filled: true,
+                  fillColor: const Color(0xFFEAEAEA),
+                  errorText: _errorMessage,
+                  errorStyle: const TextStyle(color: _red),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
-                  onPressed: () => setState(() => _obscure = !_obscure),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: _red, width: 1.5),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscure
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: const Color(0xFF999999),
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                  ),
                 ),
+                onSubmitted: (_) => _confirm(),
               ),
-              onSubmitted: (_) => _confirm(),
-            ),
             const SizedBox(height: 24),
             Row(
               children: [

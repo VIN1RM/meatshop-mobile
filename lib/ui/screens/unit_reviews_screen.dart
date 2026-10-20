@@ -20,6 +20,7 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
   ReviewService? _reviewService;
   List<ReviewModel> _reviews = [];
   bool _isLoading = true;
+  String? _error;
   String? _unitId;
 
   @override
@@ -28,11 +29,15 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
     _reviewService ??= ReviewService(
       marketplace: context.read<MarketplaceContext>().repository,
     );
-    _loadReviews();
+    if (_reviewService != null && _unitId == null) _loadReviews();
   }
 
   Future<void> _loadReviews() async {
-    if (_unitId != null) return;
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
     try {
       _unitId = ModalRoute.of(context)!.settings.arguments as String;
@@ -46,7 +51,12 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
       }
     } catch (e) {
       debugPrint('Review load error: $e');
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Não foi possível carregar as avaliações.';
+        });
+      }
     }
   }
 
@@ -96,6 +106,20 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
   }
 
   Widget _buildBody() {
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, style: const TextStyle(color: Colors.white)),
+            TextButton(
+              onPressed: _loadReviews,
+              child: const Text('Tentar novamente'),
+            ),
+          ],
+        ),
+      );
+    }
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFFBE2C1B)),

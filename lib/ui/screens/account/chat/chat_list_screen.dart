@@ -18,7 +18,7 @@ class ChatListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.read<AuthProvider>();
-    final currentUserId = auth.currentUser?.uid ?? '';
+    final currentUserId = auth.backendUserId?.toString() ?? '';
     final currentUserName = auth.currentUser?.displayName ?? 'Você';
     final activeType = auth.isDelivery
         ? ChatParticipantType.delivery

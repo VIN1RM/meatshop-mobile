@@ -1,5 +1,23 @@
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
+    'DELIVERY_LOCATION_REQUIRED':
+        'Confirme o ponto do endereço e da unidade no mapa para solicitar entrega.',
+    'DELIVERY_LOCATION_CONFIRMATION_REQUIRED':
+        'Confirme a entrada no mapa antes de solicitar entrega. A unidade também precisa ter seu ponto confirmado.',
+    'OUTSIDE_DELIVERY_AREA':
+        'Este endereço está fora da área de entrega da unidade.',
+    'PIN_TOO_FAR':
+        'O ponto escolhido está distante do CEP. Confira o endereço e marque novamente.',
+    'TRACKING_ENDED': 'Esta entrega não permite mais compartilhar localização.',
+    'LEGAL_ACCEPTANCE_REQUIRED':
+        'Leia e confirme os documentos vigentes para continuar.',
+    'LEGAL_DOCUMENTS_CHANGED':
+        'Os documentos foram atualizados. Consulte e confirme as versões vigentes.',
+    'LEGAL_DOCUMENTS_UNAVAILABLE':
+        'Documentos temporariamente indisponíveis. Tente novamente.',
+    'UNIT_LEGAL_ACCEPTANCE_REQUIRED':
+        'O responsável da unidade precisa confirmar os termos.',
+    'TRACKING_CONSENT_REQUIRED': 'Ative o compartilhamento para esta entrega.',
     'PROFILE_INCOMPLETE': 'Complete seu cadastro para continuar.',
     'EMAIL_ALREADY_EXISTS': 'Este e-mail já está cadastrado.',
     'CPF_ALREADY_EXISTS': 'Este CPF já está cadastrado.',
@@ -19,6 +37,20 @@ abstract final class ApiErrorLocalizer {
     'ACCOUNT_DISABLED': 'Esta conta está desativada.',
     'ACCOUNT_LOCKED': 'Esta conta está temporariamente bloqueada.',
     'ADDRESS_IN_USE': 'Este endereço está sendo usado em um pedido.',
+    'INVALID_CHANGE_AMOUNT':
+        'O valor para troco deve cobrir o total com frete. Para vários açougues, use o valor exato.',
+    'PAYMENTS_DISABLED':
+        'Pagamento online indisponível. Escolha dinheiro ou maquininha.',
+    'SELLER_NOT_CONNECTED':
+        'Este açougue ainda não recebe online. Escolha outra forma de pagamento.',
+    'QUOTE_CHANGED':
+        'Os preços ou a cotação mudaram. Revise os novos valores e confirme novamente.',
+    'CHECKOUT_NOT_PAYABLE': 'Este pedido já foi pago, cancelado ou expirou.',
+    'IDEMPOTENCY_CONFLICT':
+        'Recupere o pedido anterior antes de iniciar uma nova compra.',
+    'PAYMENT_REQUIRED': 'Aguarde a confirmação do pagamento.',
+    'CANCELLATION_REQUIRES_SUPPORT':
+        'O pedido já está em preparo. Entre em contato com o açougue.',
     'EMPTY_CART': 'Seu carrinho está vazio.',
     'PRODUCT_UNAVAILABLE': 'Um dos produtos não está mais disponível.',
     'PRODUCT_NOT_AVAILABLE': 'Este produto não está disponível.',
@@ -55,6 +87,16 @@ abstract final class ApiErrorLocalizer {
     'RESOURCE_ALREADY_EXISTS': 'Este registro já existe.',
     'RATE_LIMIT_EXCEEDED':
         'Muitas tentativas. Aguarde um momento e tente novamente.',
+    'AI_RATE_LIMITED':
+        'Você enviou muitas perguntas. Aguarde um momento e tente novamente.',
+    'AI_UPSTREAM_UNAVAILABLE':
+        'O assistente está indisponível no momento. Tente novamente em instantes.',
+    'AI_NOT_CONFIGURED':
+        'O assistente ainda não está disponível neste ambiente.',
+    'AI_INVALID_RESPONSE':
+        'O assistente retornou uma resposta inválida. Tente novamente.',
+    'AI_UNSAFE_INPUT':
+        'Essa solicitação não pode ser processada pelo assistente.',
     'INTERNAL_ERROR': 'Ocorreu um erro interno. Tente novamente mais tarde.',
   };
 

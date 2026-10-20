@@ -21,7 +21,11 @@ void main() {
         _client(
           MockClient((request) async {
             expect(request.url.path, '/chats');
-            expect(request.url.queryParameters, {'page': '1', 'limit': '50'});
+            expect(request.url.queryParameters, {
+              'page': '1',
+              'limit': '50',
+              'profile': 'CLIENT',
+            });
             expect(request.headers['authorization'], 'Bearer access');
             return _json({
               'items': [
@@ -52,6 +56,7 @@ void main() {
       expect(conversations.single.orderId, 42);
       expect(conversations.single.channel, ChatChannel.deliveryPerson);
       expect(conversations.single.unreadFor('7'), 2);
+      expect(conversations.single.otherParticipant('7')?.name, 'João');
       expect(
         conversations.single.otherParticipant('7')?.type,
         ChatParticipantType.delivery,

@@ -32,12 +32,14 @@ import 'package:meatshop_mobile/ui/screens/recipes/recipe_assistant_screen.dart'
 import 'package:meatshop_mobile/ui/screens/recipes/recipe_screen.dart';
 import 'package:meatshop_mobile/ui/screens/delivery/order_tracking_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/shell/delivery_shell.dart';
-import 'package:meatshop_mobile/ui/screens/cart/address_schedule_screen.dart';
+import 'package:meatshop_mobile/ui/screens/delivery/personal_management_screen.dart';
 import 'package:meatshop_mobile/ui/screens/orders/review_screen.dart';
 import 'package:meatshop_mobile/ui/screens/onboarding/onboarding_screen.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 Map<String, WidgetBuilder> buildRoutes() {
-  return {
+  final Map<String, WidgetBuilder> routes = {
     AppRoutes.splash: (_) => const SplashPage(),
     AppRoutes.welcome: (_) => const WelcomePage(),
     AppRoutes.onboarding: (_) => const OnboardingScreen(),
@@ -47,15 +49,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.changePassword: (_) => const ChangePasswordPage(),
     AppRoutes.shell: (_) => const AppShell(),
     AppRoutes.productReviews: (_) => const ProductReviewsScreen(),
-    AppRoutes.reviewOrder: (_) => const Scaffold(
-      backgroundColor: Color(0xFF2E2E2E),
-      body: Center(
-        child: Text(
-          'Use o fluxo do carrinho',
-          style: TextStyle(color: Colors.white54),
-        ),
-      ),
-    ),
+    AppRoutes.reviewOrder: (_) => const CartScreen(),
     AppRoutes.butchers: (_) => const ButcherListScreen(),
     AppRoutes.beefCuts: (_) =>
         const CutsScreen(title: 'CORTES BOVINOS', categoryName: 'Bovinos'),
@@ -74,6 +68,7 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.settings: (_) => const SettingsScreen(),
     AppRoutes.savedPayments: (_) => const SavedPaymentsScreen(),
     AppRoutes.modeSelection: (_) => const ModeSelectionPage(),
+    AppRoutes.personalManagement: (_) => const PersonalManagementScreen(),
     AppRoutes.deliveryShell: (_) => const DeliveryShell(),
     AppRoutes.vehicleSettings: (_) => const VehicleSettingsScreen(),
     AppRoutes.modeSwitch: (_) => const ModeSwitchScreen(),
@@ -81,20 +76,15 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.review: (_) => const ReviewScreen(),
     AppRoutes.writeProductReview: (_) => const WriteProductReviewScreen(),
     AppRoutes.unitReviews: (_) => const UnitReviewsScreen(),
-    AppRoutes.paymentOrder: (_) => const Scaffold(
-      backgroundColor: Color(0xFF2E2E2E),
-      body: Center(
-        child: Text(
-          'Use o fluxo do carrinho',
-          style: TextStyle(color: Colors.white54),
-        ),
-      ),
-    ),
+    AppRoutes.paymentOrder: (_) => const CartScreen(),
 
     AppRoutes.editProfile: (_) => const EditProfileScreen(),
-    AppRoutes.addressSchedule: (_) => const AddressScheduleScreen(total: 0),
+    AppRoutes.addressSchedule: (_) => const CartScreen(),
     AppRoutes.recipeTips: (_) => const RecipeTipsScreen(),
-    AppRoutes.recipeChat: (_) => const RecipeScreen(),
+    AppRoutes.recipeChat: (context) =>
+        context.read<AuthProvider>().isAuthenticated
+        ? const RecipeScreen()
+        : const LoginPage(),
     AppRoutes.forgotPassword: (_) => const ForgotPasswordPage(),
     AppRoutes.search: (_) => const SearchScreen(),
     AppRoutes.cart: (_) => const CartScreen(),
@@ -118,4 +108,25 @@ Map<String, WidgetBuilder> buildRoutes() {
       );
     },
   };
+  const public = {
+    AppRoutes.splash,
+    AppRoutes.welcome,
+    AppRoutes.onboarding,
+    AppRoutes.login,
+    AppRoutes.selectRegister,
+    AppRoutes.register,
+    AppRoutes.forgotPassword,
+    AppRoutes.accountBlocked,
+  };
+  return routes.map(
+    (name, builder) => MapEntry(name, (context) {
+      if (public.contains(name)) return builder(context);
+      final auth = context.watch<AuthProvider>();
+      if (!auth.isAuthenticated) return const LoginPage();
+      if (auth.needsProfileCompletion && name != AppRoutes.completeProfile) {
+        return const CompleteProfileScreen();
+      }
+      return builder(context);
+    }),
+  );
 }

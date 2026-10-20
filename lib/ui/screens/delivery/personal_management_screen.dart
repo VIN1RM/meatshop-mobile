@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/delivery_goal_model.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/ui/components/tabs/earnings_tab.dart';
@@ -42,7 +43,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
+      builder: (sheetContext) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
@@ -105,14 +106,23 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final val = double.tryParse(
                       controller.text.replaceAll(',', '.'),
                     );
                     if (val != null && val > 0) {
-                      ep.updateGoalTarget(goal, val);
+                      try {
+                        await ep.updateGoalTarget(goal, val);
+                        if (sheetContext.mounted) Navigator.pop(sheetContext);
+                      } catch (_) {
+                        if (sheetContext.mounted) {
+                          CustomSnackBar.error(
+                            'Não foi possível salvar a meta. Tente novamente.',
+                            context: sheetContext,
+                          );
+                        }
+                      }
                     }
-                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _red,
@@ -183,6 +193,23 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                       if (ep.loading) {
                         return const Center(
                           child: CircularProgressIndicator(color: _red),
+                        );
+                      }
+                      if (ep.error != null) {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                ep.error!,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              TextButton(
+                                onPressed: ep.load,
+                                child: const Text('Tentar novamente'),
+                              ),
+                            ],
+                          ),
                         );
                       }
                       return TabBarView(

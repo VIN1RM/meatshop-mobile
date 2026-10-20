@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'web_socket_connector.dart';
 
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
@@ -21,7 +22,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
   bool _refreshing = false;
   int? _chatOrderId;
   ChatChannel? _chatChannel;
-  final Set<int> _deliveryOrderIds = {};
+  final Map<int, int> _deliveryOrderIds = {};
 
   final _chatMessages = StreamController<Map<String, Object?>>.broadcast();
   final _chatReads = StreamController<Map<String, Object?>>.broadcast();
@@ -61,6 +62,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
       '$_origin$namespace',
       io.OptionBuilder()
           .setTransports(['websocket'])
+          .setWebSocketConnector(connectRealtimeWebSocket)
           .disableAutoConnect()
           .enableReconnection()
           .setReconnectionAttempts(20)
@@ -96,6 +98,10 @@ final class BackendRealtimeClient implements RealtimeRepository {
   }
 
   void _configureDelivery(io.Socket socket) {
+    socket.on(
+      'delivery:access.revoked',
+      (data) => _addMap(_deliveryStatuses, data),
+    );
     socket.on(
       'delivery:location.updated',
       (data) => _addMap(_deliveryLocations, data),
@@ -134,7 +140,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
       });
     }
     if (identical(socket, _deliverySocket)) {
-      for (final orderId in _deliveryOrderIds) {
+      for (final orderId in _deliveryOrderIds.keys) {
         socket.emit('delivery:subscribe-order', {'orderId': orderId});
       }
     }
@@ -174,13 +180,18 @@ final class BackendRealtimeClient implements RealtimeRepository {
 
   @override
   Future<void> subscribeDelivery(int orderId) async {
-    _deliveryOrderIds.add(orderId);
+    _deliveryOrderIds[orderId] = (_deliveryOrderIds[orderId] ?? 0) + 1;
     await connect();
     _deliverySocket?.emit('delivery:subscribe-order', {'orderId': orderId});
   }
 
   @override
   void unsubscribeDelivery(int orderId) {
+    final remaining = (_deliveryOrderIds[orderId] ?? 1) - 1;
+    if (remaining > 0) {
+      _deliveryOrderIds[orderId] = remaining;
+      return;
+    }
     _deliveryOrderIds.remove(orderId);
     _deliverySocket?.emit('delivery:unsubscribe-order', {'orderId': orderId});
   }
@@ -192,6 +203,17 @@ final class BackendRealtimeClient implements RealtimeRepository {
     if (value is Map<Object?, Object?>) {
       controller.add(value.map((key, item) => MapEntry(key.toString(), item)));
     }
+  }
+
+  @override
+  void disconnect() {
+    _chatSocket?.dispose();
+    _deliverySocket?.dispose();
+    _chatSocket = null;
+    _deliverySocket = null;
+    _deliveryOrderIds.clear();
+    _chatOrderId = null;
+    _chatChannel = null;
   }
 
   void dispose() {

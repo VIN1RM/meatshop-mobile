@@ -14,6 +14,7 @@ class AccountBlockedPage extends StatefulWidget {
 class _AccountBlockedPageState extends State<AccountBlockedPage> {
   late DateTime _blockedUntil;
   Timer? _timer;
+  bool _providerBlocked = false;
 
   Duration _remaining = Duration.zero;
   bool _isExpired = false;
@@ -31,7 +32,8 @@ class _AccountBlockedPageState extends State<AccountBlockedPage> {
     if (args is DateTime) {
       _blockedUntil = args;
     } else {
-      _blockedUntil = DateTime.now();
+      _providerBlocked = true;
+      return;
     }
 
     _updateRemaining();
@@ -151,6 +153,7 @@ class _AccountBlockedPageState extends State<AccountBlockedPage> {
                                 height: (size.height * 0.03).clamp(18.0, 28.0),
                               ),
                               _BlockedCard(
+                                providerBlocked: _providerBlocked,
                                 countdown: _formattedCountdown,
                                 isExpired: _isExpired,
                                 onReturnToLogin: _goToLogin,
@@ -173,11 +176,13 @@ class _AccountBlockedPageState extends State<AccountBlockedPage> {
 
 class _BlockedCard extends StatelessWidget {
   const _BlockedCard({
+    required this.providerBlocked,
     required this.countdown,
     required this.isExpired,
     required this.onReturnToLogin,
   });
 
+  final bool providerBlocked;
   final String countdown;
   final bool isExpired;
   final VoidCallback onReturnToLogin;
@@ -205,10 +210,25 @@ class _BlockedCard extends StatelessWidget {
           const SizedBox(height: 24),
           const _BlockedTitle(),
           const SizedBox(height: 12),
-          const _BlockedDescription(),
+          if (providerBlocked)
+            const Text(
+              'O provedor de acesso limitou temporariamente as tentativas. '
+              'O prazo não foi informado. Aguarde antes de tentar novamente.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: _BlockedColors.grey100, height: 1.5),
+            )
+          else
+            const _BlockedDescription(),
           const SizedBox(height: 28),
-          if (!isExpired) _CountdownDisplay(countdown: countdown),
-          if (isExpired) _ReturnToLoginContent(onPressed: onReturnToLogin),
+          if (providerBlocked)
+            TextButton(
+              onPressed: onReturnToLogin,
+              child: const Text('Voltar ao login'),
+            ),
+          if (!providerBlocked && !isExpired)
+            _CountdownDisplay(countdown: countdown),
+          if (!providerBlocked && isExpired)
+            _ReturnToLoginContent(onPressed: onReturnToLogin),
           const SizedBox(height: 24),
           const _SecurityInfoBox(),
         ],
@@ -296,7 +316,7 @@ class _BlockedDescription extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Text(
       'Detectamos muitas tentativas de login inválidas. '
-      'Por segurança, aguarde o tempo abaixo para tentar novamente.',
+      'Aguarde o prazo local abaixo. O provedor pode manter uma restrição adicional.',
       textAlign: TextAlign.center,
       style: TextStyle(
         color: _BlockedColors.grey100,
@@ -381,7 +401,7 @@ class _ReturnToLoginContent extends StatelessWidget {
               SizedBox(width: 8),
               Flexible(
                 child: Text(
-                  'O bloqueio foi encerrado.',
+                  'O prazo local de espera terminou.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFF166534),

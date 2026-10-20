@@ -1,5 +1,12 @@
+import '../../ui/dialogs/delete_account_dialog.dart';
+import '../../data/repositories/legal_repository.dart';
+import '../../ui/screens/account/legal_screen.dart';
+import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
+import 'package:meatshop_mobile/services/registration_draft_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../delivery/delivery_provider.dart';
+import '../../data/repositories/realtime_repository.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/login_blocked_exception.dart';
@@ -7,6 +14,14 @@ import 'package:meatshop_mobile/core/exceptions/social_account_link_required_exc
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
 import 'package:meatshop_mobile/providers/payment_provider.dart';
+import 'package:meatshop_mobile/providers/cart_provider.dart';
+import 'package:meatshop_mobile/providers/order_provider.dart';
+import 'package:meatshop_mobile/providers/search_provider.dart';
+import 'package:meatshop_mobile/providers/review_provider.dart';
+import 'package:meatshop_mobile/providers/product_review_provider.dart';
+import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
+import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
+import 'package:meatshop_mobile/providers/unit/unit_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
@@ -71,6 +86,12 @@ class AuthProvider extends ChangeNotifier {
         ).pushNamed(AppRoutes.accountBlocked, arguments: e.blockedUntil);
       }
     } on FirebaseAuthException catch (e) {
+      if (e.code == 'too-many-requests') {
+        if (context.mounted) {
+          Navigator.of(context).pushNamed(AppRoutes.accountBlocked);
+        }
+        return;
+      }
       _errorMessage = _mapAuthError(e.code);
       notifyListeners();
 
@@ -179,6 +200,7 @@ class AuthProvider extends ChangeNotifier {
     required String cpf,
     required String phone,
     required AppProfile profile,
+    List<int>? legalDocumentIds,
     String? vehicleType,
     Map<String, dynamic>? vehicleData,
     AddressModel? addressData,
@@ -212,6 +234,9 @@ class AuthProvider extends ChangeNotifier {
 
       _needsProfileCompletion = false;
       _appProfile = profile;
+      if (context.mounted) {
+        await context.read<UserProvider>().loadUser(uid);
+      }
       notifyListeners();
 
       if (context.mounted) {
@@ -294,6 +319,10 @@ class AuthProvider extends ChangeNotifier {
       );
       _appProfile = user.appProfile;
       _needsProfileCompletion = !user.profileComplete;
+      final uid = AuthService.instance.currentUser?.uid;
+      if (uid != null && context.mounted) {
+        await context.read<UserProvider>().loadUser(uid);
+      }
       notifyListeners();
 
       if (context.mounted) {
@@ -317,12 +346,14 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String cpf,
     required String phone,
+    List<int>? legalDocumentIds,
     VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
     try {
       return await _registerWithBackend(
+        legalDocumentIds: legalDocumentIds,
         context: context,
         name: name,
         email: email,
@@ -373,12 +404,14 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
+    List<int>? legalDocumentIds,
     VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
     try {
       return await _registerWithBackend(
+        legalDocumentIds: legalDocumentIds,
         context: context,
         name: name,
         email: email,
@@ -431,12 +464,14 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String vehicleType,
     required Map<String, dynamic> vehicleData,
+    List<int>? legalDocumentIds,
     VoidCallback? onEmailExists,
   }) async {
     _errorMessage = null;
 
     try {
       return await _registerWithBackend(
+        legalDocumentIds: legalDocumentIds,
         context: context,
         name: name,
         email: email,
@@ -514,6 +549,8 @@ class AuthProvider extends ChangeNotifier {
       if (context.mounted) {
         await context.read<UserProvider>().loadUser(uid);
       }
+      _needsProfileCompletion = false;
+      notifyListeners();
       return true;
     } catch (e) {
       if (context.mounted) {
@@ -546,29 +583,54 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout(BuildContext context) async {
+    final deliveryProvider = context.read<DeliveryProvider>();
+    await deliveryProvider.clearSession();
+    if (context.mounted) {
+      context.read<BackendRealtimeAccess>().realtime?.disconnect();
+    }
     final uid = AuthService.instance.currentUser?.uid;
     if (uid != null) {
-      await NotificationService.instance.clearTokenForUser(uid);
+      try {
+        await NotificationService.instance.clearTokenForUser(uid);
+      } catch (error) {
+        debugPrint('[AuthProvider] notification cleanup failed: $error');
+      }
     }
 
     try {
       await _requireFederatedAuth().logout();
-    } catch (_) {}
-    await AuthService.instance.logout();
+    } catch (error) {
+      debugPrint('[AuthProvider] backend logout failed: $error');
+    }
+    try {
+      await AuthService.instance.logout();
+    } catch (error) {
+      debugPrint('[AuthProvider] Firebase logout failed: $error');
+    }
 
-    _isAuthenticated = false;
-    _appProfile = null;
-    _activeProfile = null;
-    _errorMessage = null;
-    _backendUserId = null;
-    notifyListeners();
+    _resetAuthenticationState();
 
     if (context.mounted) {
-      context.read<UserProvider>().clear();
-      context.read<UserPreferencesProvider>().clear();
+      await _clearUserScopedState(context, deliveryAlreadyCleared: true);
+      if (!context.mounted) return;
       Navigator.of(
         context,
       ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    }
+  }
+
+  Future<void> expireSession(BuildContext context) async {
+    if (!_isAuthenticated) return;
+    _resetAuthenticationState();
+    await _clearUserScopedState(context);
+    try {
+      await AuthService.instance.logout();
+    } catch (_) {}
+    if (context.mounted) {
+      context.read<BackendRealtimeAccess>().realtime?.disconnect();
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
     }
   }
 
@@ -579,10 +641,30 @@ class AuthProvider extends ChangeNotifier {
       final user = await _requireFederatedAuth().restore(idToken);
       if (!context.mounted) return;
       await _applyBackendUser(context, user);
-    } catch (_) {
-      _isAuthenticated = false;
-      notifyListeners();
+    } catch (error) {
+      final definitive =
+          error is ApiFailure &&
+              {
+                ApiFailureKind.unauthorized,
+                ApiFailureKind.forbidden,
+              }.contains(error.kind) ||
+          error is FirebaseAuthException &&
+              {
+                'user-disabled',
+                'user-token-expired',
+                'invalid-user-token',
+              }.contains(error.code);
+      if (!definitive) rethrow;
+      try {
+        await _requireFederatedAuth().logout();
+      } catch (_) {}
+      try {
+        await AuthService.instance.logout();
+      } catch (_) {}
+      _resetAuthenticationState();
       if (context.mounted) {
+        await _clearUserScopedState(context);
+        if (!context.mounted) return;
         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
     }
@@ -600,6 +682,7 @@ class AuthProvider extends ChangeNotifier {
     required String cpf,
     required String phone,
     required AppProfile profile,
+    List<int>? legalDocumentIds,
     String? vehicleType,
     Map<String, dynamic>? vehicleData,
   }) async {
@@ -609,6 +692,15 @@ class AuthProvider extends ChangeNotifier {
       password: password,
     );
 
+    await RegistrationDraftService.save(firebaseUser.uid, {
+      'name': name,
+      'cpf': cpf,
+      'phone': phone,
+      'profile': profile.name,
+      'legalDocumentIds': legalDocumentIds,
+      'vehicleType': vehicleType,
+      'vehicle': vehicleData,
+    });
     if (!firebaseUser.emailVerified) {
       await AuthService.instance.logout();
       if (context.mounted) {
@@ -630,6 +722,10 @@ class AuthProvider extends ChangeNotifier {
     final repository = _requireFederatedAuth();
     try {
       await repository.exchangeFirebaseToken(idToken);
+      if (!context.mounted || !await _ensureLegalAcceptance(context)) {
+        await _discardFailedAuthentication();
+        return false;
+      }
       await repository.completeProfile(
         name: name,
         cpf: cpf,
@@ -650,6 +746,7 @@ class AuthProvider extends ChangeNotifier {
       rethrow;
     }
 
+    await RegistrationDraftService.clear(firebaseUser.uid);
     await repository.logout();
     await AuthService.instance.logout();
     if (context.mounted) {
@@ -664,44 +761,32 @@ class AuthProvider extends ChangeNotifier {
     return true;
   }
 
-  String _backendVehicleType(String value) {
-    final normalized = value.toUpperCase();
-    if (normalized.contains('BIKE') || normalized.contains('BICI')) {
-      return 'BIKE';
-    }
-    if (normalized.contains('CAR')) return 'CAR';
-    if (normalized.contains('SCOOTER')) return 'SCOOTER';
-    return 'MOTORCYCLE';
-  }
-
   Future<void> _registerBackendVehicle(
     String vehicleType,
     Map<String, dynamic> vehicleData,
-  ) async {
-    final delivery = _delivery;
-    final type = _backendVehicleType(vehicleType);
-    await delivery.register(type == 'SCOOTER' ? 'MOTORCYCLE' : type);
-    final normalizedPlate = '${vehicleData['plate'] ?? ''}'
-        .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
-        .toUpperCase();
-    final vehicles = await delivery.vehicles();
-    final alreadyCreated = vehicles.any(
-      (vehicle) =>
-          '${vehicle['plate'] ?? ''}'
-              .replaceAll(RegExp(r'[^A-Za-z0-9]'), '')
-              .toUpperCase() ==
-          normalizedPlate,
-    );
-    if (alreadyCreated) return;
+  ) => VehicleRegistrationService(_delivery).register(vehicleType, vehicleData);
 
-    await delivery.createVehicle({
-      'type': type,
-      'model': '${vehicleData['model'] ?? ''}',
-      'plate': normalizedPlate,
-      'color': '${vehicleData['color'] ?? ''}',
-      'year':
-          int.tryParse('${vehicleData['year'] ?? ''}') ?? DateTime.now().year,
-    });
+  Future<BackendAuthUser> _restoreDraft(
+    String uid,
+    BackendAuthUser user,
+  ) async {
+    final draft = await RegistrationDraftService.read(uid);
+    if (draft == null) return user;
+    final restored = await _requireFederatedAuth().completeProfile(
+      name: '${draft['name']}',
+      cpf: '${draft['cpf']}',
+      phone: '${draft['phone']}',
+      appProfile: AppProfile.fromString('${draft['profile']}'),
+    );
+    if (draft['vehicle'] is Map && draft['vehicleType'] != null) {
+      await VehicleRegistrationService(_delivery).register(
+        '${draft['vehicleType']}',
+        Map<String, dynamic>.from(draft['vehicle'] as Map),
+        photos: List<String>.from(draft['photos'] as List? ?? const []),
+      );
+    }
+    await RegistrationDraftService.clear(uid);
+    return restored;
   }
 
   String _completionErrorMessage(Object error) {
@@ -725,28 +810,155 @@ class AuthProvider extends ChangeNotifier {
       );
       if (context.mounted) await _applyBackendUser(context, user);
     } on ApiFailure catch (failure) {
-      if (failure.code != 'ACCOUNT_LINK_REQUIRED' || !context.mounted) rethrow;
+      if (failure.code != 'ACCOUNT_LINK_REQUIRED' || !context.mounted) {
+        await _discardFailedAuthentication();
+        rethrow;
+      }
       final password = await LinkSocialAccountDialog.show(
         context,
         email: firebaseUser.email ?? '',
       );
-      if (password == null || !context.mounted) return;
-      final user = await _requireFederatedAuth().exchangeFirebaseToken(
-        idToken,
-        accountPassword: password,
-      );
-      if (context.mounted) await _applyBackendUser(context, user);
+      if (password == null || !context.mounted) {
+        await _discardFailedAuthentication();
+        return;
+      }
+      try {
+        final user = await _requireFederatedAuth().exchangeFirebaseToken(
+          idToken,
+          accountPassword: password,
+        );
+        if (context.mounted) await _applyBackendUser(context, user);
+      } catch (_) {
+        await _discardFailedAuthentication();
+        rethrow;
+      }
+    } catch (_) {
+      await _discardFailedAuthentication();
+      rethrow;
     }
+  }
+
+  Future<void> _discardFailedAuthentication() async {
+    try {
+      await _requireFederatedAuth().logout();
+    } catch (_) {}
+    try {
+      await AuthService.instance.logout();
+    } catch (_) {}
+    _resetAuthenticationState();
+  }
+
+  Future<void> reviewLegalRequirements(BuildContext context) async {
+    if (!_isAuthenticated) return;
+    try {
+      if (!await _ensureLegalAcceptance(context) && context.mounted) {
+        await logout(context);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        CustomDialog.showError(
+          context: context,
+          title: 'Termos e privacidade',
+          message: 'Não foi possível verificar os documentos. Tente novamente.',
+        );
+      }
+    }
+  }
+
+  Future<void> _deletePendingAccount(BuildContext context) async {
+    final password = await DeleteAccountDialog.show(context);
+    if (password != null && context.mounted) {
+      await deleteAccount(context: context, password: password);
+    }
+  }
+
+  Future<bool> _ensureLegalAcceptance(BuildContext context) async {
+    final repository = context.read<LegalRepository>();
+    final pending = await repository.pending();
+    if (!pending.enforced || pending.documents.isEmpty) return true;
+    final uid = AuthService.instance.currentUser!.uid;
+    final draft = await RegistrationDraftService.read(uid);
+    final ids = (draft?['legalDocumentIds'] as List?)?.cast<int>();
+    if (ids != null) {
+      try {
+        await repository.accept(ids);
+        return true;
+      } on ApiFailure catch (failure) {
+        if (failure.code != 'LEGAL_DOCUMENTS_CHANGED') rethrow;
+      }
+    }
+    if (!context.mounted) return false;
+    final accepted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => LegalScreen(
+          requiredAcceptance: true,
+          onDeleteAccount: () => _deletePendingAccount(context),
+        ),
+      ),
+    );
+    return accepted == true;
   }
 
   Future<void> _applyBackendUser(
     BuildContext context,
     BackendAuthUser user,
   ) async {
+    if (!await _ensureLegalAcceptance(context)) {
+      await _discardFailedAuthentication();
+      if (context.mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+      }
+      return;
+    }
+    if (!context.mounted) return;
+    await _clearUserScopedState(context);
+    if (!context.mounted) return;
     _isAuthenticated = true;
     _backendUserId = user.id;
     _appProfile = user.appProfile;
-    _needsProfileCompletion = !user.profileComplete;
+
+    final uid = AuthService.instance.currentUser!.uid;
+    final userProvider = context.read<UserProvider>();
+    var backendUser = user;
+    try {
+      backendUser = await _restoreDraft(uid, user);
+    } on ApiFailure catch (failure) {
+      if (!{
+        ApiFailureKind.validation,
+        ApiFailureKind.conflict,
+      }.contains(failure.kind)) {
+        rethrow;
+      }
+      await RegistrationDraftService.clear(uid);
+      _needsProfileCompletion = true;
+      notifyListeners();
+      if (context.mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.completeProfile);
+      }
+      return;
+    }
+    _appProfile = backendUser.appProfile;
+    if (!context.mounted) return;
+    await userProvider.loadUser(uid);
+    if (!context.mounted) return;
+    final profile = userProvider.user;
+    if (!backendUser.profileComplete &&
+        backendUser.appProfile != null &&
+        profile != null &&
+        profile.name.trim().isNotEmpty &&
+        profile.cpf.trim().isNotEmpty &&
+        profile.phone.trim().isNotEmpty) {
+      backendUser = await _requireFederatedAuth().completeProfile(
+        name: profile.name,
+        cpf: profile.cpf,
+        phone: profile.phone,
+        appProfile: backendUser.appProfile!,
+      );
+      _appProfile = backendUser.appProfile;
+    }
+    if (!context.mounted) return;
+
+    _needsProfileCompletion = !backendUser.profileComplete;
     notifyListeners();
 
     if (_needsProfileCompletion) {
@@ -757,13 +969,50 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
 
-    final uid = AuthService.instance.currentUser!.uid;
-    await NotificationService.instance.saveTokenForUser(uid);
+    try {
+      await NotificationService.instance.saveTokenForUser(uid);
+    } catch (_) {}
     if (!context.mounted) return;
     await context.read<UserPreferencesProvider>().loadForUser(uid);
     if (!context.mounted) return;
-    context.read<PaymentProvider>().init();
+    // Card entry and saved cards are managed inside Mercado Pago Checkout Pro.
     _redirectAfterLogin(context);
+  }
+
+  void _resetAuthenticationState() {
+    _isAuthenticated = false;
+    _appProfile = null;
+    _activeProfile = null;
+    _needsProfileCompletion = false;
+    _errorMessage = null;
+    _backendUserId = null;
+    notifyListeners();
+  }
+
+  Future<void> _clearUserScopedState(
+    BuildContext context, {
+    bool deliveryAlreadyCleared = false,
+  }) async {
+    context.read<UserProvider>().clear();
+    context.read<UserPreferencesProvider>().clear();
+    context.read<AddressProvider>().clear();
+    context.read<VehicleProvider>().clear();
+    context.read<CartProvider>().clearLocal();
+    context.read<PaymentProvider>().clear();
+    context.read<OrderProvider>().clear();
+    context.read<DeliveryEarningsProvider>().clear();
+    context.read<SearchProvider>().clear();
+    context.read<ReviewProvider>().reset();
+    context.read<ProductReviewProvider>().reset();
+    context.read<UnitProvider>().clearSession();
+    if (!deliveryAlreadyCleared) {
+      await context.read<DeliveryProvider>().clearSession();
+    }
+  }
+
+  void setClientMode() {
+    _activeProfile = AppProfile.client;
+    notifyListeners();
   }
 
   void switchToDeliveryMode(BuildContext context) {
@@ -782,18 +1031,32 @@ class AuthProvider extends ChangeNotifier {
     required String password,
   }) async {
     try {
-      await AuthService.instance.reauthenticate(password: password);
-      await _federatedAuth.deleteAccount();
+      final identity = await AuthService.instance.reauthenticate(
+        password: password,
+      );
+      final identityToken = await identity.getIdToken(true);
+      if (identityToken == null) throw StateError('Identity unavailable');
+      final uid = AuthService.instance.currentUser?.uid;
+      if (!context.mounted) return;
+      await context.read<DeliveryProvider>().clearSession();
+      if (!context.mounted) return;
+      context.read<BackendRealtimeAccess>().realtime?.disconnect();
+      if (uid != null) {
+        try {
+          await NotificationService.instance.clearTokenForUser(uid);
+        } catch (error) {
+          debugPrint('[AuthProvider] notification cleanup failed: $error');
+        }
+      }
+      await _federatedAuth.deleteAccount(firebaseIdToken: identityToken);
+      if (uid != null) await RegistrationDraftService.clear(uid);
+      await AuthService.instance.logout();
 
-      _isAuthenticated = false;
-      _appProfile = null;
-      _activeProfile = null;
-      _errorMessage = null;
-      notifyListeners();
+      _resetAuthenticationState();
 
       if (context.mounted) {
-        context.read<UserProvider>().clear();
-        context.read<PaymentProvider>().clear();
+        await _clearUserScopedState(context, deliveryAlreadyCleared: true);
+        if (!context.mounted) return;
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
@@ -836,9 +1099,11 @@ class AuthProvider extends ChangeNotifier {
     switch (_appProfile) {
       case AppProfile.client:
         _activeProfile = AppProfile.client;
+        notifyListeners();
         Navigator.of(context).pushReplacementNamed(AppRoutes.shell);
       case AppProfile.delivery:
         _activeProfile = AppProfile.delivery;
+        notifyListeners();
         Navigator.of(context).pushReplacementNamed(AppRoutes.deliveryShell);
       case AppProfile.both:
         Navigator.of(context).pushReplacementNamed(AppRoutes.modeSelection);

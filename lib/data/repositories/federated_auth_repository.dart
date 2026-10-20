@@ -32,5 +32,5 @@ abstract interface class FederatedAuthRepository {
   });
 
   Future<void> logout();
-  Future<void> deleteAccount();
+  Future<void> deleteAccount({required String firebaseIdToken});
 }

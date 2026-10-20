@@ -28,6 +28,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   bool _isReturningUser = false;
+  String? _error;
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   Future<void> _checkSession() async {
+    if (mounted) setState(() => _error = null);
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
 
@@ -55,11 +57,10 @@ class _SplashPageState extends State<SplashPage> {
       if (!mounted) return;
       await context.read<AuthProvider>().restoreSession(context, firebaseUser);
     } catch (_) {
-      await FirebaseAuth.instance.signOut();
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const WelcomePage()),
+        setState(
+          () =>
+              _error = 'Não foi possível conectar. Sua sessão foi preservada.',
         );
       }
     }
@@ -101,11 +102,28 @@ class _SplashPageState extends State<SplashPage> {
                 ),
                 const Spacer(),
                 Center(
-                  child: MeatShopLoader(
-                    color: MeatShopColors.grey500,
-                    dotSize: sw * 0.03,
-                    spacing: sw * 0.015,
-                  ),
+                  child: _error != null
+                      ? Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              Text(
+                                _error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              TextButton(
+                                onPressed: _checkSession,
+                                child: const Text('Tentar novamente'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : MeatShopLoader(
+                          color: MeatShopColors.grey500,
+                          dotSize: sw * 0.03,
+                          spacing: sw * 0.015,
+                        ),
                 ),
                 const Spacer(),
                 Center(

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
+import 'package:meatshop_mobile/providers/cart_provider.dart';
+import 'package:meatshop_mobile/data/repositories/marketplace_context.dart';
+import 'package:meatshop_mobile/core/utils/delivery_schedule.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
 import 'package:meatshop_mobile/ui/screens/cart/payment_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -31,25 +35,59 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   DateTime? _selectedDate;
   String? _selectedTime;
 
-  final List<String> _timeSlots = const [
-    '08:00 – 10:00',
-    '10:00 – 12:00',
-    '12:00 – 14:00',
-    '14:00 – 16:00',
-    '16:00 – 18:00',
-    '18:00 – 20:00',
-  ];
+  List<String> _timeSlots = [];
+  bool _loadingSlots = false;
+  String? _slotsError;
+  int _slotsGeneration = 0;
+  Future<void> _loadSlots() async {
+    final date = _selectedDate;
+    if (date == null) return;
+    final generation = ++_slotsGeneration;
+    setState(() {
+      _loadingSlots = true;
+      _selectedTime = null;
+      _slotsError = null;
+    });
+    try {
+      final repository = context.read<MarketplaceContext>().repository;
+      final units = context.read<CartProvider>().itemsByUnit.keys.toList();
+      final hours = await Future.wait(units.map(repository.listBusinessHours));
+      if (!mounted || generation != _slotsGeneration) return;
+      setState(() => _timeSlots = DeliverySchedule.available(date, hours));
+    } catch (_) {
+      if (mounted && generation == _slotsGeneration) {
+        setState(() => _slotsError = 'Não foi possível consultar os horários.');
+      }
+    } finally {
+      if (mounted && generation == _slotsGeneration) {
+        setState(() => _loadingSlots = false);
+      }
+    }
+  }
 
   bool get _canProceed {
     if (_selectedAddressId == null) return false;
-    if (_tabController.index == 0) return true;
-    return _selectedDate != null && _selectedTime != null;
+    if (_tabController.index == 0) {
+      final cart = context.read<CartProvider>();
+      return cart.itemsByUnit.keys.every(cart.isUnitOpen);
+    }
+    return !_loadingSlots &&
+        _slotsError == null &&
+        _selectedDate != null &&
+        _selectedTime != null;
   }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    final cart = context.read<CartProvider>();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: cart.itemsByUnit.keys.any((id) => !cart.isUnitOpen(id))
+          ? 1
+          : 0,
+    );
     _tabController.addListener(() => setState(() {}));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -57,6 +95,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
       if (uid != null) {
         final provider = context.read<AddressProvider>();
         provider.load(uid).then((_) {
+          if (!mounted) return;
           final addresses = provider.addresses;
           if (addresses.isNotEmpty && _selectedAddressId == null) {
             setState(() {
@@ -77,6 +116,25 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   void _proceed() {
+    final address = context
+        .read<AddressProvider>()
+        .addresses
+        .where((a) => a.id == _selectedAddressId)
+        .firstOrNull;
+    if (address == null) return;
+    if (address.coordinateSource != 'USER_PIN' ||
+        address.lat == null ||
+        address.lng == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Confirme a entrada no mapa para receber a entrega neste endereço.',
+          ),
+        ),
+      );
+      _openAddressSheet(address: address);
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -342,6 +400,14 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                     ),
                   ),
                   const SizedBox(height: 6),
+                  if (address.coordinateSource != 'USER_PIN')
+                    Text(
+                      'Confirme o ponto no mapa',
+                      style: TextStyle(
+                        color: selected ? _white : _red,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   Text(
                     '${address.street}, ${address.number}',
                     style: TextStyle(
@@ -573,7 +639,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
 
     return GestureDetector(
       onTap: () async {
-        final now = DateTime.now();
+        final now = BusinessClock.now();
         final picked = await showDatePicker(
           context: context,
           initialDate: now.add(const Duration(days: 1)),
@@ -609,11 +675,12 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           },
         );
 
-        if (picked != null) {
+        if (picked != null && mounted) {
           setState(() {
             _selectedDate = picked;
             _selectedTime = null;
           });
+          await _loadSlots();
         }
       },
       child: AnimatedContainer(
@@ -668,8 +735,12 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
             if (_selectedDate != null)
               GestureDetector(
                 onTap: () => setState(() {
+                  ++_slotsGeneration;
                   _selectedDate = null;
                   _selectedTime = null;
+                  _timeSlots = [];
+                  _loadingSlots = false;
+                  _slotsError = null;
                 }),
                 child: Icon(
                   Icons.close,
@@ -684,6 +755,26 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   Widget _buildTimeSlots() {
+    if (_loadingSlots) {
+      return const Center(child: CircularProgressIndicator(color: _red));
+    }
+    if (_slotsError != null) {
+      return Column(
+        children: [
+          Text(_slotsError!, style: const TextStyle(color: Colors.white)),
+          TextButton(
+            onPressed: _loadSlots,
+            child: const Text('Tentar novamente'),
+          ),
+        ],
+      );
+    }
+    if (_selectedDate != null && _timeSlots.isEmpty) {
+      return const Text(
+        'Não há horários em comum para os açougues nesta data. Escolha outro dia ou faça pedidos separados.',
+        style: TextStyle(color: Colors.white70),
+      );
+    }
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),

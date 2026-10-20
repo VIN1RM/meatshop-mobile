@@ -14,6 +14,12 @@ class UnitModel {
   final String coverUrl;
   final DateTime createdAt;
   final double averageRating;
+  final double? latitude;
+  final double? longitude;
+  final double? distanceKm;
+  String? get distanceLabel => distanceKm == null
+      ? null
+      : '${distanceKm!.toStringAsFixed(1).replaceAll('.', ',')} km de distância';
 
   UnitModel({
     required this.id,
@@ -31,6 +37,9 @@ class UnitModel {
     this.coverUrl = '',
     required this.createdAt,
     this.averageRating = 0.0,
+    this.latitude,
+    this.longitude,
+    this.distanceKm,
   });
 
   String get formattedAddress =>
@@ -53,6 +62,9 @@ class UnitModel {
       'cover_url': coverUrl,
       'created_at': createdAt,
       'average_rating': averageRating,
+      'latitude': latitude,
+      'longitude': longitude,
+      'distance_km': distanceKm,
     };
   }
 
@@ -73,6 +85,9 @@ class UnitModel {
       coverUrl: map['cover_url'] ?? '',
       createdAt: (map['created_at'] as dynamic)?.toDate() ?? DateTime.now(),
       averageRating: (map['average_rating'] as num?)?.toDouble() ?? 0.0,
+      latitude: double.tryParse('${map['latitude']}'),
+      longitude: double.tryParse('${map['longitude']}'),
+      distanceKm: double.tryParse('${map['distance_km']}'),
     );
   }
 }

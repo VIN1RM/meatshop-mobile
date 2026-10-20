@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../network/api_failure.dart';
 import 'session_refresher.dart';
 import 'session_store.dart';
@@ -13,6 +14,8 @@ final class SessionCoordinator {
   final SessionStore _store;
   final SessionRefresher _refresher;
 
+  final _expiration = StreamController<void>.broadcast();
+  Stream<void> get expirations => _expiration.stream;
   SessionTokens? _tokens;
   Future<void>? _initializing;
   Future<SessionTokens>? _refreshing;
@@ -67,6 +70,7 @@ final class SessionCoordinator {
       if (failure.kind == ApiFailureKind.unauthorized ||
           failure.kind == ApiFailureKind.forbidden) {
         await clear();
+        _expiration.add(null);
       }
       rethrow;
     } finally {

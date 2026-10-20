@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 import '../../core/config/api_config.dart';
+import 'api_asset_resolver.dart';
 import '../../core/network/api_error_localizer.dart';
 import '../../core/network/api_failure.dart';
 import '../../core/network/cancellation_token.dart';
@@ -32,12 +33,14 @@ final class JsonHttpTransport {
     Map<String, String> headers = const {},
     Object? body,
     CancellationToken? cancellationToken,
+    Duration? timeout,
   }) async {
     final dynamicHeaders = await _requestHeaders?.call() ?? const {};
     final uri = _config.resolve(path, query);
     final encodedBody = body == null ? null : utf8.encode(jsonEncode(body));
     return _execute(
       cancellationToken: cancellationToken,
+      timeout: timeout,
       buildRequest: (abortTrigger) {
         final request =
             http.AbortableRequest(
@@ -97,11 +100,12 @@ final class JsonHttpTransport {
   Future<Object?> _execute({
     required http.AbortableRequest Function(Future<void>) buildRequest,
     CancellationToken? cancellationToken,
+    Duration? timeout,
   }) async {
     _throwIfCancelled(cancellationToken);
     var timedOut = false;
     final abort = Completer<void>();
-    final timeout = Timer(_config.requestTimeout, () {
+    final timeoutTimer = Timer(timeout ?? _config.requestTimeout, () {
       timedOut = true;
       if (!abort.isCompleted) abort.complete();
     });
@@ -116,7 +120,7 @@ final class JsonHttpTransport {
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw _failureFromResponse(response, payload);
       }
-      return payload;
+      return ApiAssetResolver(_config).resolve(payload);
     } on http.RequestAbortedException catch (_) {
       throw _abortedFailure(timedOut);
     } on http.ClientException catch (_) {
@@ -134,7 +138,7 @@ final class JsonHttpTransport {
         code: 'UNEXPECTED_ERROR',
       );
     } finally {
-      timeout.cancel();
+      timeoutTimer.cancel();
     }
   }
 

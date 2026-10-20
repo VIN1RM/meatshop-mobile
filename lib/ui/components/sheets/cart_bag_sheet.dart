@@ -1,4 +1,6 @@
+import 'package:meatshop_mobile/core/utils/product_quantity.dart';
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/ui/dialogs/custom_dialog.dart';
 import 'package:meatshop_mobile/models/cart_item_model.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -241,7 +243,7 @@ class CartBagSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity.toStringAsFixed(1)} ${item.unitOfMeasure.toUpperCase()}',
+                    '${item.quantity % 1 == 0 ? item.quantity.toInt() : item.quantity.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0+$'), '')} ${item.unitOfMeasure.toUpperCase()}',
                     style: const TextStyle(
                       color: Color(0xFF888888),
                       fontSize: 12,
@@ -266,17 +268,33 @@ class CartBagSheet extends StatelessWidget {
                   children: [
                     _MiniQtyButton(
                       icon: Icons.remove,
-                      onTap: () => provider.updateQuantity(
-                        item.productId,
-                        item.quantity - (item.unitOfMeasure == 'kg' ? 0.5 : 50),
-                      ),
+                      onTap: () async {
+                        final nextQuantity =
+                            item.quantity -
+                            ProductQuantity.step(item.unitOfMeasure);
+                        if (nextQuantity <= 0) {
+                          final confirmed =
+                              await CustomDialog.showRemoveCartItem(
+                                context: context,
+                                productName: item.productName,
+                              );
+                          if (!context.mounted || !confirmed) return;
+                          await provider.removeItem(item.productId);
+                          return;
+                        }
+                        await provider.updateQuantity(
+                          item.productId,
+                          nextQuantity,
+                        );
+                      },
                     ),
                     const SizedBox(width: 6),
                     _MiniQtyButton(
                       icon: Icons.add,
                       onTap: () => provider.updateQuantity(
                         item.productId,
-                        item.quantity + (item.unitOfMeasure == 'kg' ? 0.5 : 50),
+                        item.quantity +
+                            ProductQuantity.step(item.unitOfMeasure),
                       ),
                     ),
                   ],

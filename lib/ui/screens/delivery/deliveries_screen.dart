@@ -1,3 +1,5 @@
+import 'delivery_availability_control.dart';
+import 'location_sharing_consent.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
@@ -41,6 +43,7 @@ class DeliveriesTab extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const AppHeader(),
+                    const DeliveryAvailabilityControl(),
                     Expanded(
                       child: provider.pendingOrders.isEmpty
                           ? _buildEmpty(provider)
@@ -67,16 +70,22 @@ class DeliveriesTab extends StatelessWidget {
             size: 64,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Nenhum pedido disponível',
+          Text(
+            provider.lastError ??
+                (provider.isAvailable
+                    ? 'Nenhuma oferta disponível'
+                    : 'Você está offline'),
             style: TextStyle(
               color: Color.fromARGB(255, 255, 255, 255),
               fontSize: 16,
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Aguarde e Confie',
+          Text(
+            provider.isAvailable
+                ? 'As ofertas aparecem quando o açougue marca o pedido como pronto.'
+                : 'Ative sua disponibilidade para receber ofertas de entrega.',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Color.fromARGB(181, 255, 255, 255),
               fontSize: 13,
@@ -122,38 +131,35 @@ class DeliveriesTab extends StatelessWidget {
                 order: order,
                 isLoading: provider.isLoading,
                 onAccept: () async {
-                  await provider.acceptOrder(order);
+                  try {
+                    await provider.acceptOrder(order);
+                  } catch (_) {
+                    if (context.mounted) {
+                      CustomSnackBar.error(
+                        provider.lastError ?? 'Não foi possível aceitar.',
+                        context: context,
+                      );
+                    }
+                    return;
+                  }
                   if (!context.mounted || !provider.hasActiveOrder) {
                     return;
                   }
-                  final consent = await showDialog<bool>(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (dialogContext) => AlertDialog(
-                      title: const Text('Compartilhar localização?'),
-                      content: const Text(
-                        'Durante esta entrega, sua localização precisa poderá ser acompanhada pelo cliente e pela unidade. O envio termina ao concluir ou sair da entrega.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(dialogContext, false),
-                          child: const Text('Agora não'),
-                        ),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(dialogContext, true),
-                          child: const Text('Permitir durante a entrega'),
-                        ),
-                      ],
-                    ),
-                  );
-                  await provider.startLocationSharing(
-                    consent: consent ?? false,
-                  );
+                  await requestLocationSharing(context, provider);
                 },
                 onReject: () async {
                   final reasons = await RejectOrderDialog.show(context);
                   if (reasons != null && reasons.isNotEmpty) {
-                    provider.rejectOrder(order.id, reasons);
+                    try {
+                      await provider.rejectOrder(order.id, reasons);
+                    } catch (_) {
+                      if (context.mounted) {
+                        CustomSnackBar.error(
+                          provider.lastError ?? 'Não foi possível rejeitar.',
+                          context: context,
+                        );
+                      }
+                    }
                   }
                 },
               );

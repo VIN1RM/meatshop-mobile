@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/models/chat_model.dart';
 import 'package:meatshop_mobile/providers/chat_provider.dart';
@@ -328,18 +327,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           child: Row(
             children: [
-              if (!provider.backendEnabled)
-                GestureDetector(
-                  onTap: _showAttachmentOptions,
-                  child: const Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: Icon(
-                      Icons.attach_file_rounded,
-                      color: _red,
-                      size: 26,
-                    ),
-                  ),
-                ),
               Expanded(
                 child: Container(
                   height: 44,
@@ -403,14 +390,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _showAttachmentOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _AttachmentSheet(),
     );
   }
 }
@@ -527,129 +506,6 @@ class _DateDivider extends StatelessWidget {
             ),
           ),
           const Expanded(child: Divider(color: Colors.white12, thickness: 1)),
-        ],
-      ),
-    );
-  }
-}
-
-class _AttachmentSheet extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-      decoration: BoxDecoration(
-        color: const Color(0xFF525252),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: const Color(0xFF777777),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Anexar arquivo',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Escolha como deseja enviar',
-            style: TextStyle(fontSize: 13, color: Colors.white54),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _AttachOption(
-                icon: Icons.camera_alt_outlined,
-                label: 'Câmera',
-                onTap: () async {
-                  Navigator.pop(context);
-                  await ImagePicker().pickImage(source: ImageSource.camera);
-                },
-              ),
-              _AttachOption(
-                icon: Icons.photo_library_outlined,
-                label: 'Galeria',
-                onTap: () async {
-                  Navigator.pop(context);
-                  await ImagePicker().pickImage(source: ImageSource.gallery);
-                },
-              ),
-              _AttachOption(
-                icon: Icons.insert_drive_file_outlined,
-                label: 'Arquivo',
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                color: Color(0xFFC0392B),
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-}
-
-class _AttachOption extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _AttachOption({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: const Color(0xFF424242),
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF666666)),
-            ),
-            child: Icon(icon, color: const Color(0xFFC0392B), size: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Colors.white70,
-            ),
-          ),
         ],
       ),
     );

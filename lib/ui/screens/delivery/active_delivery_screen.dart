@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
+import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
+import 'location_sharing_controls.dart';
 import 'package:meatshop_mobile/core/enums/delivery_enums.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -51,6 +54,8 @@ class ActiveDeliveryScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
+                            const LocationSharingControls(),
+                            const SizedBox(height: 12),
                             _StepCard(
                               stepNumber: 1,
                               label: 'RETIRADA',
@@ -98,6 +103,35 @@ class ActiveDeliveryScreen extends StatelessWidget {
 
                             const SizedBox(height: 24),
 
+                            if (isPickup)
+                              TextButton.icon(
+                                onPressed: provider.isLoading
+                                    ? null
+                                    : () => _perform(
+                                        context,
+                                        provider.regeneratePickupCode,
+                                      ),
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  color: Colors.white,
+                                ),
+                                label: Text(
+                                  provider.pickupCode == null
+                                      ? 'Gerar código de retirada'
+                                      : 'Gerar novo código',
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            if (provider.lastError != null)
+                              Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  provider.lastError!,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              ),
                             if (isPickup && provider.pickupCode != null) ...[
                               Container(
                                 width: double.infinity,
@@ -198,6 +232,23 @@ class ActiveDeliveryScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _perform(
+    BuildContext context,
+    Future<void> Function() action,
+  ) async {
+    try {
+      await action();
+    } catch (_) {
+      if (context.mounted) {
+        CustomSnackBar.error(
+          context.read<DeliveryProvider>().lastError ??
+              'Não foi possível concluir. Tente novamente.',
+          context: context,
+        );
+      }
+    }
+  }
+
   Future<void> _onConfirmPickup(
     BuildContext context,
     DeliveryProvider provider,
@@ -206,7 +257,18 @@ class ActiveDeliveryScreen extends StatelessWidget {
       context: context,
       isPickup: true,
     );
-    if (confirmed) await provider.confirmPickup();
+    if (confirmed && context.mounted) {
+      await _perform(context, () async {
+        await provider.confirmPickup();
+        if (context.mounted &&
+            provider.activeOrder?.step == DeliveryStep.pickup) {
+          CustomSnackBar.info(
+            'Apresente o código ao açougue e aguarde a confirmação da retirada no painel.',
+            context: context,
+          );
+        }
+      });
+    }
   }
 
   Future<void> _onConfirmDelivery(
@@ -244,7 +306,15 @@ class ActiveDeliveryScreen extends StatelessWidget {
       ),
     );
     controller.dispose();
-    if (code != null) await provider.confirmDelivery(code);
+    if (code != null && context.mounted) {
+      await _perform(context, () async {
+        await provider.confirmDelivery(code);
+        if (context.mounted) {
+          await context.read<DeliveryEarningsProvider>().load();
+          await provider.loadHistory();
+        }
+      });
+    }
   }
 }
 
@@ -265,7 +335,7 @@ Future<void> _onOpenChat(BuildContext context, order) async {
     context,
     AppRoutes.chat,
     arguments: ChatArgs(
-      currentUserId: currentUser.uid,
+      currentUserId: auth.backendUserId?.toString() ?? '',
       currentUserName: 'Você',
       currentUserType: ChatParticipantType.delivery,
       otherUserId: participant == ChatParticipantType.unit

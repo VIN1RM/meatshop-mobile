@@ -14,6 +14,83 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_delivery_repository.dart';
 
 void main() {
+  test('loads delivery history beyond the first one hundred records', () async {
+    final pages = <int>[];
+    final repository = HttpDeliveryRepository(
+      _client(
+        MockClient((request) async {
+          final page = int.parse(request.url.queryParameters['page']!);
+          pages.add(page);
+          return _json(
+            page == 1
+                ? [
+                    for (var i = 1; i <= 100; i++) {..._order, 'id': i},
+                  ]
+                : [
+                    {..._order, 'id': 101},
+                  ],
+          );
+        }),
+      ),
+    );
+    final orders = await repository.history();
+    expect(orders.length, 101);
+    expect(pages, [1, 2]);
+  });
+  test('loads earnings beyond three hundred sixty five deliveries', () async {
+    final repository = HttpDeliveryRepository(
+      _client(
+        MockClient((request) async {
+          final page = int.parse(request.url.queryParameters['page']!);
+          final count = page <= 4 ? 100 : 1;
+          return _json({
+            'entries': [
+              for (var i = 0; i < count; i++)
+                {
+                  'id': (page - 1) * 100 + i,
+                  'amount': 10,
+                  'created_at': '2026-10-15T12:00:00Z',
+                },
+            ],
+          });
+        }),
+      ),
+    );
+    final entries = await repository.earnings();
+    expect(entries.length, 401);
+    expect(entries.fold<double>(0, (total, e) => total + e.amount), 4010);
+  });
+
+  for (final pickup in [true, false]) {
+    test(
+      'regenerates a protected ${pickup ? 'pickup' : 'delivery'} code',
+      () async {
+        final repository = HttpDeliveryRepository(
+          _client(
+            MockClient((request) async {
+              expect(request.method, 'POST');
+              expect(
+                request.url.path,
+                '/delivery/orders/42/${pickup ? 'pickup' : 'delivery'}-code/regenerate',
+              );
+              expect(request.headers['authorization'], 'Bearer access');
+              return _json({'code': '123456'});
+            }),
+          ),
+        );
+        expect(await repository.regenerateCode(42, pickup: pickup), '123456');
+      },
+    );
+  }
+  test('rejects a malformed verification code', () async {
+    final repository = HttpDeliveryRepository(
+      _client(MockClient((_) async => _json({'code': '123'}))),
+    );
+    await expectLater(
+      repository.regenerateCode(42, pickup: true),
+      throwsA(isA<Exception>()),
+    );
+  });
   test('loads available delivery offers exclusively from backend', () async {
     final repository = HttpDeliveryRepository(
       _client(
@@ -72,6 +149,10 @@ void main() {
               'latitude': -23.55,
               'longitude': -46.63,
               'accuracy': 12.5,
+              'captured_at': '2026-09-11T12:00:00.000Z',
+              'session_id': '00000000-0000-4000-8000-000000000001',
+              'sample_id': '00000000-0000-4000-8000-000000000002',
+              'is_mocked': false,
             });
             return _json({});
           }),
@@ -79,7 +160,15 @@ void main() {
       );
 
       expect(await repository.accept(42), '482193');
-      await repository.sendLocation(42, -23.55, -46.63, accuracy: 12.5);
+      await repository.sendLocation(
+        42,
+        -23.55,
+        -46.63,
+        accuracy: 12.5,
+        capturedAt: DateTime.utc(2026, 9, 11, 12),
+        sessionId: '00000000-0000-4000-8000-000000000001',
+        sampleId: '00000000-0000-4000-8000-000000000002',
+      );
       expect(call, 2);
     },
   );

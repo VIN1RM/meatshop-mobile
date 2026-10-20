@@ -32,7 +32,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    _currentUserId = auth.currentUser?.uid ?? '';
+    _currentUserId = auth.backendUserId?.toString() ?? '';
     _currentUserName = auth.currentUser?.displayName ?? 'Cliente';
   }
 
@@ -79,15 +79,21 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
       unitName: order.unitName,
       secondaryName: deliveryId == null
           ? null
-          : 'Entregador #${_shortId(deliveryId)}',
+          : order.deliveryPersonName?.trim().isNotEmpty == true
+          ? order.deliveryPersonName!
+          : 'Entregador',
       secondaryType: ChatParticipantType.delivery,
     );
     if (participant == null || !mounted) return;
     final isUnit = participant == ChatParticipantType.unit;
-    final receiverId = isUnit ? order.unitId : deliveryId!;
+    final receiverId = isUnit
+        ? order.unitId
+        : order.deliveryPersonUserId ?? deliveryId!;
     final receiverName = isUnit
         ? order.unitName
-        : 'Entregador #${_shortId(deliveryId)}';
+        : order.deliveryPersonName?.trim().isNotEmpty == true
+        ? order.deliveryPersonName!
+        : 'Entregador';
     if (!mounted) return;
     Navigator.pushNamed(
       context,
@@ -103,11 +109,6 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         orderId: int.tryParse(order.id),
       ),
     );
-  }
-
-  String _shortId(String? value) {
-    if (value == null || value.isEmpty) return '';
-    return value.length <= 8 ? value : value.substring(0, 8);
   }
 
   @override
@@ -421,7 +422,7 @@ class _OrderCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      _paymentLabel(order.paymentMethod),
+                      order.paymentMethodLabel,
                       style: const TextStyle(
                         color: Color(0xFF888888),
                         fontSize: 12,
@@ -492,21 +493,6 @@ class _OrderCard extends StatelessWidget {
 
   String _deliveryTypeLabel(String type) =>
       type == 'DELIVERY' ? 'Entrega em casa' : 'Retirada no local';
-
-  String _paymentLabel(String method) {
-    switch (method.toUpperCase()) {
-      case 'PIX':
-        return 'Pix';
-      case 'CREDIT_CARD':
-        return 'Cartão de crédito';
-      case 'DEBIT_CARD':
-        return 'Cartão de débito';
-      case 'CASH':
-        return 'Dinheiro';
-      default:
-        return method;
-    }
-  }
 
   _StatusData _statusInfo(String status) {
     final s = OrderStatusX.fromString(status);

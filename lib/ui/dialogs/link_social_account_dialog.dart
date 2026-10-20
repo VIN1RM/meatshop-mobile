@@ -1,15 +1,28 @@
 import 'package:flutter/material.dart';
 
 class LinkSocialAccountDialog extends StatefulWidget {
-  const LinkSocialAccountDialog({super.key, required this.email});
+  const LinkSocialAccountDialog({
+    super.key,
+    required this.email,
+    this.confirmIdentity = false,
+  });
+
+  final bool confirmIdentity;
 
   final String email;
 
-  static Future<String?> show(BuildContext context, {required String email}) {
+  static Future<String?> show(
+    BuildContext context, {
+    required String email,
+    bool confirmIdentity = false,
+  }) {
     return showDialog<String?>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => LinkSocialAccountDialog(email: email),
+      builder: (_) => LinkSocialAccountDialog(
+        email: email,
+        confirmIdentity: confirmIdentity,
+      ),
     );
   }
 
@@ -62,8 +75,10 @@ class _LinkSocialAccountDialogState extends State<LinkSocialAccountDialog> {
               child: const Icon(Icons.link_rounded, color: _red, size: 30),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Conta já existente',
+            Text(
+              widget.confirmIdentity
+                  ? 'Confirme sua identidade'
+                  : 'Conta já existente',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF1A1A1A),
@@ -73,8 +88,9 @@ class _LinkSocialAccountDialogState extends State<LinkSocialAccountDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              'O e-mail ${widget.email} já possui uma conta. Digite sua senha '
-              'uma vez para vincular este login social.',
+              widget.confirmIdentity
+                  ? 'Digite a senha de ${widget.email} para confirmar a alteração.'
+                  : 'O e-mail ${widget.email} já possui uma conta. Digite sua senha uma vez para vincular este login social.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Color(0xFF555555),

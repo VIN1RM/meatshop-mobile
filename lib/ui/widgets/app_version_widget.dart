@@ -14,7 +14,7 @@ class AppVersionText extends StatelessWidget {
         if (!snapshot.hasData) return const SizedBox.shrink();
 
         return Text(
-          'Versão: ${snapshot.data!}',
+          'Versão ${snapshot.data!}',
           textAlign: TextAlign.center,
           style:
               style ??

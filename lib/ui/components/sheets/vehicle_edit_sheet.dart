@@ -79,13 +79,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       label: 'Bicicleta',
       icon: Icons.pedal_bike_outlined,
       description: 'Convencional ou elétrica, ideal para centros urbanos.',
-      fields: ['Modelo', 'Cor'],
+      fields: ['Modelo', 'Cor', 'Ano'],
     ),
     _VehicleOption(
       label: 'Patinete',
       icon: Icons.electric_scooter_outlined,
       description: 'Ideal para regiões planas e áreas centrais.',
-      fields: ['Modelo', 'Cor'],
+      fields: ['Modelo', 'Cor', 'Ano'],
     ),
   ];
 
@@ -97,7 +97,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       'MOTORCYCLE': 'Moto',
       'BIKE': 'Bicicleta',
       'CAR': 'Carro',
-      'ON_FOOT': null,
+      'SCOOTER': 'Patinete',
 
       'Moto': 'Moto',
       'Bicicleta': 'Bicicleta',
@@ -118,6 +118,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
     _yearController = TextEditingController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final info =
           widget.initialData ??
           (widget.persistChanges
@@ -127,14 +128,14 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         _modelController.text = info['model'] ?? '';
         _plateController.text = info['plate'] ?? '';
         _colorController.text = info['color'] ?? '';
-        _yearController.text = info['year'] ?? '';
+        _yearController.text = '${info['year'] ?? ''}';
         setState(() {
           _existingUrls = List<String>.from(info['photo_urls'] ?? []);
           _originalType = _selectedVehicleType?.label ?? '';
           _originalModel = info['model'] ?? '';
           _originalPlate = info['plate'] ?? '';
           _originalColor = info['color'] ?? '';
-          _originalYear = info['year'] ?? '';
+          _originalYear = '${info['year'] ?? ''}';
           _originalUrls = List<String>.from(info['photo_urls'] ?? []);
         });
       }
@@ -277,10 +278,7 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         Navigator.of(context).pop();
       },
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: screenH * 0.80,
-          maxHeight: screenH * 0.92 - bottom,
-        ),
+        constraints: BoxConstraints(maxHeight: screenH * 0.92),
         child: Container(
           decoration: const BoxDecoration(
             color: _bg,
@@ -368,14 +366,18 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                                     : const Color(0xFFAAAAAA),
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                option.label,
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? _white
-                                      : const Color(0xFF555555),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                              Flexible(
+                                child: Text(
+                                  option.label,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? _white
+                                        : const Color(0xFF555555),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
@@ -720,8 +722,20 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               borderSide: const BorderSide(color: _red, width: 1.5),
             ),
           ),
-          validator: (v) =>
-              (v == null || v.trim().isEmpty) ? 'Campo obrigatório' : null,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Campo obrigatório';
+            }
+            if (label == 'Ano') {
+              final year = int.tryParse(value);
+              if (year == null ||
+                  year < 1950 ||
+                  year > DateTime.now().year + 1) {
+                return 'Informe um ano válido';
+              }
+            }
+            return null;
+          },
         ),
       ],
     );

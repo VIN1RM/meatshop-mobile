@@ -245,11 +245,38 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
             _buildMenuItem(
               icon: Icons.swap_horiz_outlined,
               label: 'Modo cliente',
-              onTap: () => provider.switchToClientMode(context),
+              onTap: () async {
+                if (provider.hasActiveOrder) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Conclua a entrega ativa antes de trocar de modo.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                try {
+                  if (provider.isAvailable) await provider.toggleAvailability();
+                  if (!context.mounted) return;
+                  context.read<AuthProvider>().setClientMode();
+                  provider.switchToClientMode(context);
+                } catch (_) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Não foi possível alterar sua disponibilidade. Tente novamente.',
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
             ),
           if (context.read<AuthProvider>().appProfile == AppProfile.both)
             const Divider(height: 1, color: Color(0xFFE0E0E0)),
-          _buildLogoutRow(context, provider),
+          _buildLogoutRow(context),
         ],
       ),
     );
@@ -285,7 +312,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
     );
   }
 
-  Widget _buildLogoutRow(BuildContext context, DeliveryProvider provider) {
+  Widget _buildLogoutRow(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: GestureDetector(
@@ -295,7 +322,7 @@ class _DeliveryAccountScreenState extends State<DeliveryAccountScreen> {
                 setState(() => _isLoggingOut = true);
                 await Future.delayed(const Duration(milliseconds: 600));
                 if (!context.mounted) return;
-                provider.logout(context);
+                await context.read<AuthProvider>().logout(context);
               },
         child: Row(
           children: [

@@ -110,6 +110,23 @@ class _SearchScreenState extends State<SearchScreen> {
             child: CircularProgressIndicator(color: Color(0xFFC0392B)),
           );
         }
+        if (provider.error != null) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  provider.error!,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                TextButton(
+                  onPressed: () => provider.onQueryChanged(provider.query),
+                  child: const Text('Tentar novamente'),
+                ),
+              ],
+            ),
+          );
+        }
         if (provider.isEmpty) return _buildNoResults(provider.query);
 
         return ListView(

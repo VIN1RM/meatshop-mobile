@@ -18,10 +18,12 @@ class UserPreferencesProvider extends ChangeNotifier {
     _loading = true;
     notifyListeners();
 
-    _prefs = await UserPreferencesService.instance.load(uid);
-
-    _loading = false;
-    notifyListeners();
+    try {
+      _prefs = await UserPreferencesService.instance.load(uid);
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
   }
 
   void clear() {
