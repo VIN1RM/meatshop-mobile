@@ -3,6 +3,67 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meatshop_mobile/ui/components/sheets/search_filter_sheet.dart';
 
 void main() {
+  testWidgets('rejects NaN, infinite and negative prices', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SearchFilterSheet(
+            categories: [],
+            brands: [],
+            selectedCategory: null,
+            selectedBrand: null,
+            minPrice: null,
+            maxPrice: null,
+          ),
+        ),
+      ),
+    );
+    for (final value in ['NaN', 'Infinity', '-1']) {
+      await tester.enterText(find.byType(TextField).first, value);
+      await tester.tap(find.text('Aplicar filtros'));
+      await tester.pump();
+      expect(find.byType(SearchFilterSheet), findsOneWidget);
+      expect(
+        find.text('Informe valores v\u00e1lidos e positivos.'),
+        findsOneWidget,
+      );
+    }
+  });
+
+  testWidgets('fits a small screen with large text and the keyboard open', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(1.8),
+              viewInsets: const EdgeInsets.only(bottom: 180),
+            ),
+            child: const Scaffold(
+              body: SearchFilterSheet(
+                categories: ['Bovinos', 'Aves'],
+                brands: ['Swift', 'Friboi'],
+                selectedCategory: null,
+                selectedBrand: null,
+                minPrice: null,
+                maxPrice: null,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Aplicar filtros'), findsOneWidget);
+  });
+
   testWidgets('returns category, brand, and price filters together', (
     tester,
   ) async {

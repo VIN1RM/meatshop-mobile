@@ -323,7 +323,8 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
 
   static double? _parsePrice(String value) {
     final normalized = value.trim().replaceAll(',', '.');
-    return normalized.isEmpty ? null : double.tryParse(normalized);
+    final parsed = normalized.isEmpty ? null : double.tryParse(normalized);
+    return parsed != null && parsed.isFinite ? parsed : null;
   }
 
   static String _displayPrice(double? value) {

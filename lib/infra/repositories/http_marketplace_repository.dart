@@ -158,7 +158,7 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     '/search',
     authenticated: false,
     query: {
-      'q': query,
+      if (query.trim().isNotEmpty) 'q': query.trim(),
       'page': page,
       'limit': limit,
       'unit_id': ?unitId,

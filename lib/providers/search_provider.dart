@@ -19,6 +19,7 @@ class SearchProvider extends ChangeNotifier {
   double? _minPrice;
   double? _maxPrice;
   bool _loadingFilters = false;
+  bool _disposed = false;
   String? _filterError;
   Timer? _debounce;
   int _generation = 0;
@@ -64,15 +65,17 @@ class SearchProvider extends ChangeNotifier {
         _service.listBrands(),
         _service.listCategories(),
       ]);
+      if (_disposed) return;
       _brands = filters[0];
       _availableCategories = filters[1];
     } catch (_) {
+      if (_disposed) return;
       _brands = [];
       _availableCategories = [];
       _filterError = 'Não foi possível carregar as marcas. Tente novamente.';
     } finally {
       _loadingFilters = false;
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     }
   }
 
@@ -148,6 +151,8 @@ class SearchProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
+    ++_generation;
     _debounce?.cancel();
     super.dispose();
   }

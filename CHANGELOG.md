@@ -21,6 +21,13 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 - Falhas ao carregar filtros, preferências e horários exibem estado recuperável sem manter a tela bloqueada.
 - Versão do aplicativo atualizada para 3.3.0+1.
 
+### Correcoes da revisao
+
+- Busca por filtros omite o texto vazio para respeitar a validacao da API.
+- Precos nao finitos sao rejeitados; filtros possuem teste de layout com texto ampliado e teclado.
+- Preferencias serializam gravacoes e ignoram respostas de uma sessao encerrada.
+- Respostas de busca apos o descarte do provider nao atualizam a interface.
+
 ## [3.2.0] - 2026-10-18 - Termos e privacidade
 
 ### Adicionado

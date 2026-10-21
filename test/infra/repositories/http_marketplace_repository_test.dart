@@ -12,6 +12,23 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_marketplace_repository.dart';
 
 void main() {
+  test('omits empty text when searching by filters only', () async {
+    final repository = _repository(
+      MockClient((request) async {
+        expect(request.url.queryParameters.containsKey('q'), isFalse);
+        expect(request.url.queryParameters['brand'], 'Swift');
+        return http.Response(
+          jsonEncode({
+            'data': <Object?>[],
+            'meta': {'page': 1, 'limit': 20, 'total': 0, 'totalPages': 1},
+          }),
+          200,
+        );
+      }),
+    );
+    await repository.search('   ', brand: 'Swift');
+  });
+
   test('loads public units without an authenticated session', () async {
     final repository = _repository(
       MockClient((request) async {
