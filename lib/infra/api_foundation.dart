@@ -1,3 +1,9 @@
+import '../data/repositories/support_repository.dart';
+import '../data/repositories/personal_data_repository.dart';
+import '../data/repositories/delivery_expense_repository.dart';
+import 'repositories/http_support_repository.dart';
+import 'repositories/http_personal_data_repository.dart';
+import 'repositories/http_delivery_expense_repository.dart';
 import '../core/auth/session_coordinator.dart';
 import '../core/config/api_config.dart';
 import '../data/repositories/backend_connection_repository.dart';
@@ -60,6 +66,9 @@ final class ApiFoundation {
     required this.recipes,
     required this.reviews,
     required this.aiAssistant,
+    required this.support,
+    required this.personalData,
+    required this.deliveryExpenses,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -105,6 +114,9 @@ final class ApiFoundation {
         client,
         HttpMarketplaceRepository(client, config),
       ),
+      support: HttpSupportRepository(client),
+      personalData: HttpPersonalDataRepository(client),
+      deliveryExpenses: HttpDeliveryExpenseRepository(client),
       aiAssistant: HttpAiAssistantRepository(client, secureStorage),
     );
   }
@@ -128,6 +140,9 @@ final class ApiFoundation {
   final RecipeRepository recipes;
   final ReviewRepository reviews;
   final AiAssistantRepository aiAssistant;
+  final SupportRepository support;
+  final PersonalDataRepository personalData;
+  final DeliveryExpenseRepository deliveryExpenses;
 
   Future<void> initialize() => session.initialize();
 

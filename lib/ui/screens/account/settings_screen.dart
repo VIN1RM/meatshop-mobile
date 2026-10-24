@@ -1,3 +1,6 @@
+import 'support_screen.dart';
+import '../../../data/repositories/personal_data_repository.dart';
+import '../../../services/personal_data_export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -28,6 +31,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     VersionService().getAppVersion().then((v) {
       if (mounted) setState(() => _appVersion = 'v$v');
     });
+  }
+
+  bool _exporting = false;
+  Future<void> _exportData() async {
+    if (_exporting) return;
+    _exporting = true;
+    try {
+      final data = await context.read<PersonalDataRepository>().export();
+      if (mounted) await PersonalDataExportService.share(data);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível exportar os dados. Tente novamente.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      _exporting = false;
+    }
   }
 
   @override
@@ -134,6 +159,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                         const SizedBox(height: 20),
 
+                        _buildCard(
+                          children: [
+                            _buildNavItem(
+                              icon: Icons.support_agent,
+                              label: 'Meus chamados',
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SupportScreen(),
+                                ),
+                              ),
+                            ),
+                            _buildNavItem(
+                              icon: Icons.download_outlined,
+                              label: 'Exportar meus dados',
+                              onTap: _exportData,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
                         _sectionLabel('CONTA'),
                         const SizedBox(height: 10),
                         _buildCard(

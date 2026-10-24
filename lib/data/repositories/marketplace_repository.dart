@@ -14,6 +14,8 @@ abstract interface class MarketplaceRepository {
     double? latitude,
     double? longitude,
     double? radiusKm,
+    String? city,
+    String? region,
   });
   Future<UnitModel> getUnit(String id);
   Future<List<CategoryModel>> listCategories({String? unitId});

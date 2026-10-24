@@ -14,11 +14,15 @@ class UnitService {
     double? latitude,
     double? longitude,
     double? radiusKm,
+    String? city,
+    String? region,
   }) async {
     return (await _marketplace.listUnits(
       latitude: latitude,
       longitude: longitude,
       radiusKm: radiusKm,
+      city: city,
+      region: region,
     )).items;
   }
 }

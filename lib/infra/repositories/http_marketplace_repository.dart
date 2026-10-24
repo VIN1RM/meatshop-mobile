@@ -24,6 +24,8 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     double? latitude,
     double? longitude,
     double? radiusKm,
+    String? city,
+    String? region,
   }) => _client.get(
     '/units',
     authenticated: false,
@@ -33,6 +35,8 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       'lat': ?latitude,
       'lng': ?longitude,
       'radius_km': ?radiusKm,
+      'city': ?city,
+      'region': ?region,
     },
     decode: (json) => Page.fromJson(json, _unit),
   );

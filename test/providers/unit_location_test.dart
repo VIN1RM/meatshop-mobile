@@ -10,6 +10,8 @@ import 'package:meatshop_mobile/services/unit_service.dart';
 
 class FakeMarketplace extends Fake implements MarketplaceRepository {
   final requests = <({double? latitude, double? longitude})>[];
+  String? cityFilter;
+  String? regionFilter;
   Completer<Page<UnitModel>>? pending;
   @override
   Future<Page<UnitModel>> listUnits({
@@ -18,7 +20,11 @@ class FakeMarketplace extends Fake implements MarketplaceRepository {
     double? latitude,
     double? longitude,
     double? radiusKm,
+    String? city,
+    String? region,
   }) async {
+    cityFilter = city;
+    regionFilter = region;
     requests.add((latitude: latitude, longitude: longitude));
     if (pending != null) return pending!.future;
     return const Page(
@@ -55,6 +61,19 @@ void main() {
     );
   });
   tearDown(() => units.dispose());
+  test(
+    'city lookup is independent of GPS permission and clears on selection change',
+    () async {
+      await units.useCity(' Anapolis ', region: ' GO ');
+      expect(marketplace.cityFilter, 'Anapolis');
+      expect(marketplace.regionFilter, 'GO');
+      expect(location.calls, 0);
+      await units.showAllUnits();
+      expect(marketplace.cityFilter, isNull);
+      expect(marketplace.regionFilter, isNull);
+    },
+  );
+
   test(
     'only requests device location after an explicit selection and forwards it',
     () async {

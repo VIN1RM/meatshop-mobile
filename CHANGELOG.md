@@ -9,6 +9,15 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ## [3.3.0] - 2026-10-20 - Fechamento de lacunas funcionais
 
+### Complemento da especificacao original (23/10/2026)
+
+- Politica de senha compartilhada e validacao de login pelo backend com bloqueio central.
+- Busca manual de unidades por cidade ou regiao sem exigir GPS.
+- Central de chamados com conversa, encerramento, reabertura e recuperacao de erro.
+- Gestao de despesas do entregador e exportacao dos proprios dados pelo compartilhamento do sistema.
+- Formularios verificados com fonte ampliada, tela estreita e teclado; botoes com altura adaptativa.
+- Validacao: 183 testes Flutter aprovados e flutter analyze sem problemas.
+
 ### Adicionado
 
 - Filtros de busca combináveis por categoria, marca e faixa de preço, inclusive sem texto digitado.
