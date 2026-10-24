@@ -11,6 +11,20 @@ class UserPreferences {
     this.notifSystem = true,
   });
 
+  factory UserPreferences.fromApi(Map<String, Object?> json) => UserPreferences(
+    notifOrders: json['orders_enabled'] as bool? ?? true,
+    notifDelivery: json['delivery_enabled'] as bool? ?? true,
+    notifPromotions: json['promotions_enabled'] as bool? ?? true,
+    notifSystem: json['system_enabled'] as bool? ?? true,
+  );
+
+  Map<String, Object?> toApi() => {
+    'orders_enabled': notifOrders,
+    'delivery_enabled': notifDelivery,
+    'promotions_enabled': notifPromotions,
+    'system_enabled': notifSystem,
+  };
+
   UserPreferences copyWith({
     bool? notifOrders,
     bool? notifDelivery,

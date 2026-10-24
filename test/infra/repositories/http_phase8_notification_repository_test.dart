@@ -12,6 +12,7 @@ import 'package:meatshop_mobile/infra/http/api_client.dart';
 import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/realtime/backend_realtime_client.dart';
 import 'package:meatshop_mobile/infra/repositories/http_notification_repository.dart';
+import 'package:meatshop_mobile/models/user_preferences.dart';
 
 void main() {
   test(
@@ -75,6 +76,44 @@ void main() {
     expect(notification.id, '31');
     expect(notification.payload?['action_url'], '/orders/42');
     expect(notification.read, isFalse);
+  });
+
+  test('loads and updates server-backed notification preferences', () async {
+    var call = 0;
+    final repository = _repository(
+      MockClient((request) async {
+        call++;
+        expect(request.url.path, '/notifications/preferences');
+        if (call == 1) {
+          expect(request.method, 'GET');
+        } else {
+          expect(request.method, 'PATCH');
+          expect(jsonDecode(request.body), {
+            'orders_enabled': true,
+            'delivery_enabled': true,
+            'promotions_enabled': false,
+            'system_enabled': true,
+          });
+        }
+        return http.Response(
+          jsonEncode({
+            'orders_enabled': true,
+            'delivery_enabled': true,
+            'promotions_enabled': false,
+            'system_enabled': true,
+          }),
+          200,
+        );
+      }),
+    );
+
+    final loaded = await repository.getPreferences();
+    expect(loaded.notifPromotions, isFalse);
+    final updated = await repository.updatePreferences(
+      const UserPreferences(notifPromotions: false),
+    );
+    expect(updated.notifPromotions, isFalse);
+    expect(call, 2);
   });
 
   test('classifies server disconnect authentication failures for recovery', () {

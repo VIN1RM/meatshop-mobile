@@ -1,3 +1,4 @@
+import 'expenses_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/delivery_goal_model.dart';
@@ -169,6 +170,14 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
             child: Column(
               children: [
                 const AppHeader(),
+                TextButton.icon(
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ExpensesScreen()),
+                  ),
+                  icon: const Icon(Icons.receipt_long),
+                  label: const Text('Minhas despesas'),
+                ),
                 Container(
                   color: const Color(0xFF2E2E2E),
                   child: TabBar(

@@ -7,6 +7,36 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.3.0] - 2026-10-20 - Fechamento de lacunas funcionais
+
+### Complemento da especificacao original (23/10/2026)
+
+- Politica de senha compartilhada e validacao de login pelo backend com bloqueio central.
+- Busca manual de unidades por cidade ou regiao sem exigir GPS.
+- Central de chamados com conversa, encerramento, reabertura e recuperacao de erro.
+- Gestao de despesas do entregador e exportacao dos proprios dados pelo compartilhamento do sistema.
+- Formularios verificados com fonte ampliada, tela estreita e teclado; botoes com altura adaptativa.
+- Validacao: 183 testes Flutter aprovados e flutter analyze sem problemas.
+
+### Adicionado
+
+- Filtros de busca combináveis por categoria, marca e faixa de preço, inclusive sem texto digitado.
+- Preferências de notificações sincronizadas com a API para pedidos, entregas, promoções e sistema.
+
+### Alterado
+
+- Horários de agendamento passam a vir da capacidade autoritativa do backend e consideram todas as unidades presentes no carrinho.
+- Token de push só é registrado quando o sistema operacional autoriza ou concede permissão provisória para notificações.
+- Falhas ao carregar filtros, preferências e horários exibem estado recuperável sem manter a tela bloqueada.
+- Versão do aplicativo atualizada para 3.3.0+1.
+
+### Correcoes da revisao
+
+- Busca por filtros omite o texto vazio para respeitar a validacao da API.
+- Precos nao finitos sao rejeitados; filtros possuem teste de layout com texto ampliado e teclado.
+- Preferencias serializam gravacoes e ignoram respostas de uma sessao encerrada.
+- Respostas de busca apos o descarte do provider nao atualizam a interface.
+
 ## [3.2.0] - 2026-10-18 - Termos e privacidade
 
 ### Adicionado

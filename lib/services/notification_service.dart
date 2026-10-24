@@ -337,6 +337,11 @@ class NotificationService {
   }
 
   Future<void> _registerBackendToken(String token) async {
+    final settings = await _messaging.getNotificationSettings();
+    if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+        settings.authorizationStatus != AuthorizationStatus.provisional) {
+      return;
+    }
     final info = await PackageInfo.fromPlatform();
     await _backend!.registerDeviceToken(
       token: token,
