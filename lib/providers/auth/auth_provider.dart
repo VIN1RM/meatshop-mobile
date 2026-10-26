@@ -13,7 +13,6 @@ import 'package:meatshop_mobile/core/exceptions/login_blocked_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/social_account_link_required_exception.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
-import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/providers/search_provider.dart';
@@ -998,7 +997,6 @@ class AuthProvider extends ChangeNotifier {
     context.read<AddressProvider>().clear();
     context.read<VehicleProvider>().clear();
     context.read<CartProvider>().clearLocal();
-    context.read<PaymentProvider>().clear();
     context.read<OrderProvider>().clear();
     context.read<DeliveryEarningsProvider>().clear();
     context.read<SearchProvider>().clear();

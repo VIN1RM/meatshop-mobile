@@ -105,7 +105,7 @@ class CartProvider extends ChangeNotifier {
 
   String _requiredCartItemId(CartItemModel item) {
     if (item.cartItemId.isNotEmpty) return item.cartItemId;
-    throw StateError('O item do carrinho nÃ£o possui identificador remoto.');
+    throw StateError('O item do carrinho não possui identificador remoto.');
   }
 
   CartItemModel? _findByProductId(String productId) {
@@ -127,7 +127,7 @@ class CartProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (error) {
-      _error = 'NÃ£o foi possÃ­vel atualizar o carrinho.';
+      _error = 'Não foi possível atualizar o carrinho.';
       debugPrint('[CartProvider] mutation error: $error');
       notifyListeners();
     }

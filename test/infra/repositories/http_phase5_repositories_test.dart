@@ -11,7 +11,6 @@ import 'package:meatshop_mobile/core/config/api_config.dart';
 import 'package:meatshop_mobile/infra/http/api_client.dart';
 import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_order_repository.dart';
-import 'package:meatshop_mobile/infra/repositories/http_payment_repository.dart';
 import 'package:meatshop_mobile/models/checkout_summary_model.dart';
 
 void main() {
@@ -179,32 +178,6 @@ void main() {
       expect(await repository.repeat('101'), ['Unavailable product']);
     },
   );
-
-  test('maps only safe saved-card metadata from the backend', () async {
-    final repository = HttpPaymentRepository(
-      _apiClient(
-        MockClient(
-          (request) async => _json([
-            {
-              'id': 7,
-              'brand': 'visa',
-              'last_four': '4242',
-              'holder_name': 'ANA',
-              'expiration_month': '08',
-              'expiration_year': '2030',
-              'is_default': true,
-              'created_at': '2026-09-02T12:00:00.000Z',
-            },
-          ]),
-        ),
-      ),
-    );
-
-    final methods = await repository.list();
-    expect(methods.single.lastFour, '4242');
-    expect(methods.single.mpCardId, isEmpty);
-    expect(methods.single.mpCustomerId, isEmpty);
-  });
 }
 
 Map<String, Object?> _order(int id, int unitId, double total) => {

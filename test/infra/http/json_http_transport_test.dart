@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:meatshop_mobile/core/config/api_config.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/core/network/cancellation_token.dart';
+import 'package:meatshop_mobile/infra/auth/backend_session_refresher.dart';
 import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 
 void main() {
@@ -20,6 +23,55 @@ void main() {
       expect(await transport.send(method: 'GET', path: '/health'), {
         'status': 'ok',
       });
+    });
+
+    test('identifies the mobile client on every JSON request', () async {
+      final transport = _transport(
+        MockClient((request) async {
+          expect(request.headers['x-client-platform'], 'mobile');
+          return http.Response('{}', 200);
+        }),
+      );
+
+      await transport.send(
+        method: 'POST',
+        path: '/auth/login',
+        body: const {'email': 'a@b.c'},
+        headers: const {'x-client-platform': 'web'},
+      );
+    });
+
+    test('identifies the mobile client on multipart uploads', () async {
+      final transport = _transport(
+        MockClient((request) async {
+          expect(request.headers['x-client-platform'], 'mobile');
+          return http.Response('{}', 200);
+        }),
+      );
+
+      await transport.sendMultipart(
+        path: '/users/me/avatar',
+        bytes: Uint8List.fromList(const [1, 2, 3]),
+        fileName: 'avatar.png',
+        contentType: 'image/png',
+      );
+    });
+
+    test('identifies the mobile client on session refresh', () async {
+      final transport = _transport(
+        MockClient((request) async {
+          expect(request.url.path, '/auth/refresh');
+          expect(request.headers['x-client-platform'], 'mobile');
+          return http.Response(
+            '{"access_token":"access","refresh_token":"refresh"}',
+            200,
+          );
+        }),
+      );
+
+      final tokens = await BackendSessionRefresher(transport).refresh('old');
+
+      expect(tokens.accessToken, 'access');
     });
 
     test('normalizes NestJS errors and respects Retry-After', () async {

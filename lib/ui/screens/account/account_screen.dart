@@ -209,11 +209,6 @@ class _AccountScreenState extends State<AccountScreen> {
         onTap: () => Navigator.pushNamed(context, AppRoutes.chatList),
       ),
       _MenuItem(
-        Icons.credit_card_outlined,
-        'Formas de pagamento',
-        onTap: () => Navigator.pushNamed(context, AppRoutes.savedPayments),
-      ),
-      _MenuItem(
         Icons.map_outlined,
         'Endereços salvos',
         onTap: () => Navigator.pushNamed(context, AppRoutes.savedAddresses),

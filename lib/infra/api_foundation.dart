@@ -24,9 +24,7 @@ import 'repositories/http_address_repository.dart';
 import 'repositories/http_cart_repository.dart';
 import 'repositories/http_profile_repository.dart';
 import '../data/repositories/order_repository.dart';
-import '../data/repositories/payment_repository.dart';
 import 'repositories/http_order_repository.dart';
-import 'repositories/http_payment_repository.dart';
 import '../data/repositories/delivery_repository.dart';
 import 'repositories/http_delivery_repository.dart';
 import '../data/repositories/chat_repository.dart';
@@ -58,7 +56,6 @@ final class ApiFoundation {
     required this.addresses,
     required this.cart,
     required this.orders,
-    required this.payments,
     required this.delivery,
     required this.chat,
     required this.realtime,
@@ -104,7 +101,6 @@ final class ApiFoundation {
         client,
         pendingStorage: FlutterSecureKeyValueStore(),
       ),
-      payments: HttpPaymentRepository(client),
       delivery: HttpDeliveryRepository(client, config),
       chat: HttpChatRepository(client),
       realtime: BackendRealtimeClient(config: config, session: session),
@@ -132,7 +128,6 @@ final class ApiFoundation {
   final AddressRepository addresses;
   final CartRepository cart;
   final OrderRepository orders;
-  final PaymentRepository payments;
   final DeliveryRepository delivery;
   final ChatRepository chat;
   final BackendRealtimeClient realtime;

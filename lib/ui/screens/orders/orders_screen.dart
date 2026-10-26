@@ -101,7 +101,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       _groupTitle('Finalizados'),
                       const SizedBox(height: 4),
                       _groupSubtitle(
-                        'Ãšltimos 3 meses Â· ConcluÃ­dos e Cancelados',
+                        'Últimos 3 meses · Concluídos e Cancelados',
                       ),
                       const SizedBox(height: 10),
                       _FinishedOrdersSection(
@@ -219,7 +219,7 @@ class _FinishedOrdersSection extends StatelessWidget {
         final orders = snap.data ?? [];
         if (orders.isEmpty) {
           return const _EmptyTile(
-            message: 'Nenhum pedido finalizado nos Ãºltimos 3 meses.',
+            message: 'Nenhum pedido finalizado nos últimos 3 meses.',
           );
         }
         return Column(
@@ -595,7 +595,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                               color: statusColor,
                             ),
                             Text(
-                              isCancelled ? 'Cancelado' : 'ConcluÃ­do',
+                              isCancelled ? 'Cancelado' : 'Concluído',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: statusColor,
@@ -604,7 +604,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                             ),
                             if (formattedDate != null)
                               Text(
-                                'Â· $formattedDate',
+                                '· $formattedDate',
                                 style: const TextStyle(
                                   color: Color(0xFF888888),
                                   fontSize: 11,
@@ -835,7 +835,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                             ),
                             SizedBox(width: 4),
                             Text(
-                              'AÃ§ougue',
+                              'Açougue',
                               style: TextStyle(
                                 color: Color(0xFFE6A000),
                                 fontSize: 11,

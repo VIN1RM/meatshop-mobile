@@ -14,6 +14,9 @@ import '../../core/network/cancellation_token.dart';
 typedef RequestHeadersProvider = Future<Map<String, String>> Function();
 
 final class JsonHttpTransport {
+  static const clientPlatformHeader = 'x-client-platform';
+  static const clientPlatform = 'mobile';
+
   JsonHttpTransport({
     required ApiConfig config,
     http.Client? client,
@@ -54,6 +57,7 @@ final class JsonHttpTransport {
                   'content-type': 'application/json; charset=utf-8',
                 ...dynamicHeaders,
                 ...headers,
+                clientPlatformHeader: clientPlatform,
               });
         if (encodedBody != null) request.bodyBytes = encodedBody;
         return request;
@@ -77,6 +81,7 @@ final class JsonHttpTransport {
         'accept': 'application/json',
         ...dynamicHeaders,
         ...headers,
+        clientPlatformHeader: clientPlatform,
       })
       ..files.add(
         http.MultipartFile.fromBytes(
