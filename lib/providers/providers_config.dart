@@ -114,7 +114,8 @@ class ProvidersConfig {
       create: (_) => ProductReviewProvider(repository: reviews!),
     ),
     ChangeNotifierProvider(
-      create: (_) => DeliveryEarningsProvider(repository: delivery),
+      create: (_) =>
+          DeliveryEarningsProvider(repository: delivery, realtime: realtime),
     ),
     ChangeNotifierProvider(
       create: (_) => CartProvider(

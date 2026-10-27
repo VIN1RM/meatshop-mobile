@@ -30,6 +30,41 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   late TabController _tabController;
 
   String? _selectedAddressId;
+  final Map<String, String> _deliveryTypes = {};
+  bool get _pickupOnly {
+    final units = context.read<CartProvider>().itemsByUnit.keys;
+    return units.isNotEmpty &&
+        units.every((id) => _deliveryTypes[id] == 'PICKUP');
+  }
+
+  Widget _fulfilmentChoices() => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: Column(
+      children: [
+        for (final entry in context.watch<CartProvider>().itemsByUnit.entries)
+          DropdownButtonFormField<String>(
+            key: ValueKey('fulfilment-${entry.key}'),
+            initialValue: _deliveryTypes[entry.key] ?? 'DELIVERY',
+            dropdownColor: const Color(0xFF3A3A3A),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              labelText: entry.value.first.unitName,
+              labelStyle: const TextStyle(color: Colors.white70),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'DELIVERY', child: Text('Entrega')),
+              DropdownMenuItem(
+                value: 'PICKUP',
+                child: Text('Retirada no balcao (sem taxa)'),
+              ),
+            ],
+            onChanged: (value) => setState(() {
+              _deliveryTypes[entry.key] = value!;
+            }),
+          ),
+      ],
+    ),
+  );
 
   DateTime? _selectedDate;
   String? _selectedTime;
@@ -65,6 +100,11 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   bool get _canProceed {
+    if (_pickupOnly) {
+      return context.read<CartProvider>().itemsByUnit.keys.every(
+        context.read<CartProvider>().isUnitOpen,
+      );
+    }
     if (_selectedAddressId == null) return false;
     if (_tabController.index == 0) {
       final cart = context.read<CartProvider>();
@@ -120,10 +160,11 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         .addresses
         .where((a) => a.id == _selectedAddressId)
         .firstOrNull;
-    if (address == null) return;
-    if (address.coordinateSource != 'USER_PIN' ||
-        address.lat == null ||
-        address.lng == null) {
+    if (!_pickupOnly && address == null) return;
+    if (!_pickupOnly &&
+        (address!.coordinateSource != 'USER_PIN' ||
+            address.lat == null ||
+            address.lng == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -139,8 +180,12 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
       MaterialPageRoute(
         builder: (_) => PaymentScreen(
           total: widget.total,
-          addressId: _selectedAddressId!,
-          isScheduled: _tabController.index == 1,
+          addressId: _selectedAddressId ?? '',
+          unitDeliveryTypes: {
+            for (final id in context.read<CartProvider>().itemsByUnit.keys)
+              id: _deliveryTypes[id] ?? 'DELIVERY',
+          },
+          isScheduled: !_pickupOnly && _tabController.index == 1,
           scheduledDate: _selectedDate,
           scheduledTime: _selectedTime,
         ),
@@ -219,13 +264,22 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                   const SizedBox(height: 20),
                   _pageTitle(),
                   const SizedBox(height: 20),
-                  _buildTabs(),
+                  _fulfilmentChoices(),
+                  if (!_pickupOnly) _buildTabs(),
                   Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [_buildNowTab(), _buildScheduleTab()],
-                    ),
+                    child: _pickupOnly
+                        ? const Center(
+                            child: Text(
+                              'Retire na unidade e apresente o codigo do pedido.',
+                              style: TextStyle(color: Colors.white),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : TabBarView(
+                            controller: _tabController,
+                            physics: const NeverScrollableScrollPhysics(),
+                            children: [_buildNowTab(), _buildScheduleTab()],
+                          ),
                   ),
                   _buildBottomBar(),
                   const SizedBox(height: 28),

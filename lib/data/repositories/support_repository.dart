@@ -6,8 +6,9 @@ abstract interface class SupportRepository {
   Future<SupportTicketModel> create(
     String subject,
     String description,
-    String category,
-  );
+    String category, {
+    String? contact,
+  });
   Future<void> send(int id, String message);
   Future<void> close(int id);
   Future<void> reopen(int id);

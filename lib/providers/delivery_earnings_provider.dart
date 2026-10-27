@@ -1,12 +1,15 @@
 import 'dart:async';
 import '../core/utils/business_clock.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import '../data/repositories/realtime_repository.dart';
 import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 import 'package:meatshop_mobile/models/delivery_goal_model.dart';
 import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 
-class DeliveryEarningsProvider extends ChangeNotifier {
-  DeliveryEarningsProvider({required this.repository});
+class DeliveryEarningsProvider extends ChangeNotifier
+    with WidgetsBindingObserver {
+  DeliveryEarningsProvider({required this.repository, this.realtime});
+  final RealtimeRepository? realtime;
   final DeliveryRepository repository;
 
   List<DeliveryEarningModel> _earnings = [];
@@ -18,7 +21,9 @@ class DeliveryEarningsProvider extends ChangeNotifier {
   StreamSubscription<List<DeliveryGoalModel>>? _goalsSub;
   int _generation = 0;
   String? error;
-  Timer? _refreshTimer;
+  StreamSubscription<Map<String, Object?>>? _events;
+  StreamSubscription<RealtimeConnectionState>? _connection;
+  bool _observing = false;
   static DateTime _day(DateTime value) {
     final local = BusinessClock.local(value);
     return DateTime.utc(local.year, local.month, local.day);
@@ -27,14 +32,32 @@ class DeliveryEarningsProvider extends ChangeNotifier {
   static int _daysAgo(DateTime value) =>
       _day(DateTime.now()).difference(_day(value)).inDays;
   void startUpdates() {
-    _refreshTimer?.cancel();
+    stopUpdates();
     load();
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) => load());
+    WidgetsBinding.instance.addObserver(this);
+    _observing = true;
+    _events = realtime?.statuses.listen((_) => load());
+    _connection = realtime?.connection.listen((state) {
+      if (state == RealtimeConnectionState.connected) load();
+    });
+    realtime?.connect();
   }
 
   void stopUpdates() {
-    _refreshTimer?.cancel();
-    _refreshTimer = null;
+    _events?.cancel();
+    _events = null;
+    _connection?.cancel();
+    _connection = null;
+    if (_observing) WidgetsBinding.instance.removeObserver(this);
+    _observing = false;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_observing && state == AppLifecycleState.resumed) {
+      realtime?.connect();
+      load();
+    }
   }
 
   List<DeliveryEarningModel> get earnings => _earnings;

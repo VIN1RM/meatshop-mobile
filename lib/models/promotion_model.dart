@@ -13,6 +13,7 @@ class PromotionModel {
   final String productName;
   final String productImageUrl;
   final String productUnitOfMeasure;
+  final double productStockQuantity;
 
   const PromotionModel({
     required this.id,
@@ -25,6 +26,7 @@ class PromotionModel {
     required this.startsAt,
     required this.endsAt,
     required this.active,
+    this.productStockQuantity = 0,
     this.productName = '',
     this.productImageUrl = '',
     this.productUnitOfMeasure = 'kg',
@@ -54,6 +56,7 @@ class PromotionModel {
       endsAt: endsAt,
       active: active,
       productName: productName ?? this.productName,
+      productStockQuantity: productStockQuantity,
       productImageUrl: productImageUrl ?? this.productImageUrl,
       productUnitOfMeasure: productUnitOfMeasure ?? this.productUnitOfMeasure,
       unitName: unitName ?? this.unitName,

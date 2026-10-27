@@ -1,3 +1,4 @@
+import '../core/network/api_failure.dart';
 import 'package:flutter/foundation.dart';
 import '../data/repositories/review_repository.dart';
 
@@ -48,7 +49,9 @@ class ReviewProvider extends ChangeNotifier {
       _submitted = true;
       return true;
     } catch (e) {
-      _error = 'Erro ao enviar avaliação: $e';
+      _error = e is ApiFailure
+          ? e.message
+          : 'Nao foi possivel enviar a avaliacao. Tente novamente.';
       return false;
     } finally {
       _isLoading = false;

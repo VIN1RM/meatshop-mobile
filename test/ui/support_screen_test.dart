@@ -14,8 +14,9 @@ class _Support implements SupportRepository {
   Future<SupportTicketModel> create(
     String subject,
     String description,
-    String category,
-  ) async {
+    String category, {
+    String? contact,
+  }) async {
     if (fail) throw Exception('network');
     savedSubject = subject;
     return const SupportTicketModel(id: 1, subject: 'Teste', status: 'OPEN');
@@ -85,7 +86,7 @@ void main() {
         'Pedido atrasado',
       );
       await tester.enterText(
-        find.byType(TextFormField).at(1),
+        find.byType(TextFormField).at(2),
         'Preciso de ajuda para acompanhar meu pedido.',
       );
       await tester.ensureVisible(find.text('Enviar chamado'));

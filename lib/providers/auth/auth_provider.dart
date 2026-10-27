@@ -102,6 +102,15 @@ class AuthProvider extends ChangeNotifier {
         );
       }
     } on ApiFailure catch (e) {
+      if (e.code == 'ACCOUNT_LOCKED' &&
+          e.retryAfter != null &&
+          context.mounted) {
+        Navigator.of(context).pushNamed(
+          AppRoutes.accountBlocked,
+          arguments: DateTime.now().add(e.retryAfter!),
+        );
+        return;
+      }
       _errorMessage = e.message;
       notifyListeners();
 

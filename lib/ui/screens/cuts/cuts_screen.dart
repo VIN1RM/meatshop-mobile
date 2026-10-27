@@ -79,6 +79,7 @@ class _CutsViewState extends State<_CutsView> {
 
     final currentFilter = CutsFilter(
       order: _toSheetOrder(provider.sortOrder),
+      brand: provider.brand,
       priceRange: _toSheetRange(provider.priceRange),
     );
 
@@ -87,11 +88,13 @@ class _CutsViewState extends State<_CutsView> {
       provider.updateFilters(
         order: _fromSheetOrder(result.order),
         range: _fromSheetRange(result.priceRange),
+        brand: result.brand,
       );
     }
   }
 
   bool _isFilterActive(ProductsProvider provider) =>
+      provider.brand.isNotEmpty ||
       provider.priceRange != ProductPriceRange.all ||
       provider.sortOrder != ProductSortOrder.nameAZ;
 

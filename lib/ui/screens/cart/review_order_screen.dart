@@ -189,7 +189,16 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         _pageTitle(),
                         const SizedBox(height: 16),
 
-                        if (address != null) _buildAddressCard(address),
+                        if (!_summary.pickupOnly && address != null)
+                          _buildAddressCard(address),
+                        if (_summary.unitDeliveryTypes.containsValue('PICKUP'))
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Retirada no balcao: sem taxa de entrega. Apresente o codigo do pedido na unidade.',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
                         const SizedBox(height: 16),
 
                         if (widget.summary.isScheduled &&

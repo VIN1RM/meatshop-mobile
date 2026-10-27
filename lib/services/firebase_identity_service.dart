@@ -11,6 +11,13 @@ import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/social_account_link_required_exception.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+Never rethrowCredentialFailure(ApiFailure error) {
+  if (error.statusCode == 401) {
+    throw FirebaseAuthException(code: 'invalid-credential');
+  }
+  throw error;
+}
+
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
@@ -36,13 +43,7 @@ class AuthService {
         decode: (_) => true,
       );
     } on ApiFailure catch (error) {
-      if (error.statusCode == 429) {
-        throw FirebaseAuthException(code: 'too-many-requests');
-      }
-      if (error.statusCode == 401) {
-        throw FirebaseAuthException(code: 'invalid-credential');
-      }
-      rethrow;
+      rethrowCredentialFailure(error);
     }
     await _auth.signInWithEmailAndPassword(
       email: email.trim(),

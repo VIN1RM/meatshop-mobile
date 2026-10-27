@@ -67,6 +67,60 @@ void main() {
     },
   );
 
+  test(
+    'loads only the requested finished history page and keeps older orders',
+    () async {
+      final requested = <int>[];
+      final transport = JsonHttpTransport(
+        config: ApiConfig(
+          baseUrl: Uri.parse('http://localhost:3001'),
+          environment: AppEnvironment.development,
+        ),
+        client: MockClient((request) async {
+          final page = int.parse(request.url.queryParameters['page']!);
+          requested.add(page);
+          expect(request.url.queryParameters, {
+            'page': '$page',
+            'finished': 'true',
+          });
+          return http.Response(
+            jsonEncode({
+              'has_more': page == 0,
+              'data': [
+                {
+                  'id': page + 1,
+                  'status': 'DELIVERED',
+                  'order_date': '2020-01-01T12:00:00Z',
+                  'items': [],
+                },
+              ],
+            }),
+            200,
+          );
+        }),
+      );
+      addTearDown(transport.close);
+      final session = SessionCoordinator(
+        store: _MemorySessionStore(),
+        refresher: _NeverRefresh(),
+      );
+      await session.save(
+        const SessionTokens(accessToken: 'access', refreshToken: 'refresh'),
+      );
+      final repository = HttpOrderRepository(
+        ApiClient(transport: transport, session: session),
+      );
+      final first = await repository.historyPage(0);
+      expect(requested, [0]);
+      expect(first.hasMore, isTrue);
+      expect(first.orders.single.orderDate!.year, 2020);
+      final last = await repository.historyPage(1);
+      expect(requested, [0, 1]);
+      expect(last.orders.single.id, '2');
+      expect(last.hasMore, isFalse);
+    },
+  );
+
   for (final entry in {
     'cash': 'Cash',
     'credit': 'Credit',

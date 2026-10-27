@@ -12,6 +12,37 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_marketplace_repository.dart';
 
 void main() {
+  test('combines name, brand, category, price and unit filters', () async {
+    final repository = _repository(
+      MockClient((request) async {
+        expect(request.url.queryParameters, containsPair('q', 'picanha'));
+        expect(request.url.queryParameters, containsPair('brand', 'Swift'));
+        expect(
+          request.url.queryParameters,
+          containsPair('category', 'Bovinos'),
+        );
+        expect(request.url.queryParameters, containsPair('unit_id', '3'));
+        expect(request.url.queryParameters, containsPair('min_price', '10.0'));
+        expect(request.url.queryParameters, containsPair('max_price', '50.0'));
+        return http.Response(
+          jsonEncode({
+            'data': [],
+            'meta': {'page': 1, 'limit': 20, 'total': 0, 'totalPages': 1},
+          }),
+          200,
+        );
+      }),
+    );
+    await repository.search(
+      'picanha',
+      brand: 'Swift',
+      category: 'Bovinos',
+      unitId: '3',
+      minPrice: 10,
+      maxPrice: 50,
+    );
+  });
+
   test('omits empty text when searching by filters only', () async {
     final repository = _repository(
       MockClient((request) async {

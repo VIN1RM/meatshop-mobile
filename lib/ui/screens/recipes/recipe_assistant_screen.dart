@@ -83,14 +83,31 @@ class _RecipeScreenState extends State<RecipeScreen> {
     _scrollToBottom();
 
     try {
-      final reply = await context.read<AiAssistantRepository>().send(
-        text,
-        cancellationToken: token,
-      );
-      if (!mounted) return;
-      setState(
-        () => _messages.add(_RecipeMsg(text: reply.text, isUser: false)),
-      );
+      final repository = context.read<AiAssistantRepository>();
+      int? replyIndex;
+      void showDelta(String value) {
+        if (!mounted || token.isCancelled) return;
+        setState(() {
+          replyIndex ??= _messages.length;
+          final message = _RecipeMsg(text: value, isUser: false);
+          if (replyIndex == _messages.length) {
+            _messages.add(message);
+          } else {
+            _messages[replyIndex!] = message;
+          }
+        });
+        _scrollToBottom();
+      }
+
+      final reply = repository is StreamingAiAssistantRepository
+          ? await (repository as StreamingAiAssistantRepository).sendStreaming(
+              text,
+              onDelta: showDelta,
+              cancellationToken: token,
+            )
+          : await repository.send(text, cancellationToken: token);
+      if (!mounted || token.isCancelled) return;
+      showDelta(reply.text);
     } on ApiFailure catch (failure) {
       if (!mounted || failure.kind == ApiFailureKind.cancelled) return;
       setState(

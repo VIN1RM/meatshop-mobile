@@ -204,7 +204,7 @@ class CartBagSheet extends StatelessWidget {
               unitId: item.unitId,
               unitName: item.unitName,
               categoryId: '',
-              stockQuantity: 999,
+              stockQuantity: item.availableStock ?? 0,
             ),
             'cartItem': item,
           },

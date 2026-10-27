@@ -1,5 +1,9 @@
 class CheckoutSummaryModel {
   final String addressId;
+  final Map<String, String> unitDeliveryTypes;
+  bool get pickupOnly =>
+      unitDeliveryTypes.isNotEmpty &&
+      unitDeliveryTypes.values.every((value) => value == 'PICKUP');
   final bool isScheduled;
   final DateTime? scheduledDate;
   final String? scheduledTime;
@@ -12,6 +16,7 @@ class CheckoutSummaryModel {
 
   const CheckoutSummaryModel({
     required this.addressId,
+    this.unitDeliveryTypes = const {},
     required this.isScheduled,
     this.scheduledDate,
     this.scheduledTime,
@@ -35,6 +40,7 @@ class CheckoutSummaryModel {
     bool clearChange = false,
   }) => CheckoutSummaryModel(
     addressId: addressId,
+    unitDeliveryTypes: unitDeliveryTypes,
     isScheduled: isScheduled,
     scheduledDate: scheduledDate,
     scheduledTime: scheduledTime,

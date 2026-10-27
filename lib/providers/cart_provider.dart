@@ -63,6 +63,13 @@ class CartProvider extends ChangeNotifier {
 
   Future<void> updateQuantity(String productId, double quantity) async {
     if (quantity <= 0) return removeItem(productId);
+    final current = _findByProductId(productId);
+    if (current?.availableStock != null &&
+        quantity > current!.availableStock!) {
+      _error = 'Quantidade acima do estoque disponivel.';
+      notifyListeners();
+      return;
+    }
     await _mutate(() async {
       final index = _items.indexWhere((item) => item.productId == productId);
       if (index == -1) return;

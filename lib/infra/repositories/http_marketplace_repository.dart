@@ -214,7 +214,7 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     unitId: '${json['unit_id']}',
     unitName: _nullableString(json['unit_name']),
     categoryId: '${json['category_id']}',
-    stockQuantity: (json['stock_quantity'] as num?)?.toInt() ?? 0,
+    stockQuantity: double.tryParse('${json['stock_quantity'] ?? 0}') ?? 0,
   );
   PromotionModel _promotion(Map<String, Object?> json) {
     final product = json['product'] is Map<String, Object?>
@@ -240,6 +240,11 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       endsAt: DateTime.parse(_string(json, 'ends_at')),
       active: json['active'] == true,
       productName: _nullableString(product['name']),
+      productStockQuantity:
+          double.tryParse(
+            '${(product['stock'] as Map?)?['quantity'] ?? product['stock_quantity'] ?? 0}',
+          ) ??
+          0,
       productImageUrl: _config.resolveAsset(
         _nullableString(product['image_url']),
       ),

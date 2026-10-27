@@ -13,6 +13,7 @@ class PaymentScreen extends StatefulWidget {
     super.key,
     required this.total,
     required this.addressId,
+    this.unitDeliveryTypes = const {},
     this.isScheduled = false,
     this.scheduledDate,
     this.scheduledTime,
@@ -20,6 +21,7 @@ class PaymentScreen extends StatefulWidget {
 
   final double total;
   final String addressId;
+  final Map<String, String> unitDeliveryTypes;
   final bool isScheduled;
   final DateTime? scheduledDate;
   final String? scheduledTime;
@@ -136,6 +138,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         builder: (_) => ReviewOrderScreen(
           summary: CheckoutSummaryModel(
             addressId: widget.addressId,
+            unitDeliveryTypes: widget.unitDeliveryTypes,
             isScheduled: widget.isScheduled,
             scheduledDate: widget.scheduledDate,
             scheduledTime: widget.scheduledTime,

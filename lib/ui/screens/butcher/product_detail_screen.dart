@@ -104,6 +104,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (inputVal <= 0) return;
 
     final qtyInUom = _quantity;
+    if (qtyInUom > product.stockQuantity) {
+      CustomSnackBar.error(
+        'Quantidade acima do estoque disponivel.',
+        context: context,
+      );
+      return;
+    }
     if (!ProductQuantity.valid(qtyInUom, _unit)) return;
     final uid = context.read<AuthProvider>().currentUser?.uid;
     if (uid == null) return;

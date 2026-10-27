@@ -13,6 +13,68 @@ import 'package:meatshop_mobile/infra/auth/secure_key_value_store.dart';
 import 'package:meatshop_mobile/infra/repositories/http_ai_assistant_repository.dart';
 
 void main() {
+  test('renders SSE deltas and stores the completed conversation', () async {
+    final storage = _MemoryKeyValueStore();
+    final repository = _repository(
+      MockClient((request) async {
+        expect(request.url.path, '/ai/chat/stream');
+        expect(request.headers['x-client-platform'], 'mobile');
+        return http.Response(
+          'data: {"delta":"Use "}\r\n\r\ndata: {"delta":"sal."}\n\ndata: {"done":true,"conversation_id":"stream-id"}\n\n',
+          200,
+          headers: {'content-type': 'text/event-stream'},
+        );
+      }),
+      storage,
+    );
+    final deltas = <String>[];
+    final reply = await repository.sendStreaming(
+      'picanha',
+      onDelta: deltas.add,
+    );
+    expect(deltas, ['Use ', 'Use sal.']);
+    expect(reply.text, 'Use sal.');
+    expect(await storage.read('meatshop.ai.conversation_id.v1'), 'stream-id');
+  });
+
+  test('falls back only before the first delta', () async {
+    var calls = 0;
+    final repository = _repository(
+      MockClient((request) async {
+        calls++;
+        if (request.url.path.endsWith('/stream')) {
+          return http.Response('data: {"error":"unavailable"}\n\n', 200);
+        }
+        return http.Response(
+          '{"response":"Fallback","conversation_id":"fallback-id"}',
+          200,
+        );
+      }),
+      _MemoryKeyValueStore(),
+    );
+    expect(
+      (await repository.sendStreaming('picanha', onDelta: (_) {})).text,
+      'Fallback',
+    );
+    expect(calls, 2);
+    calls = 0;
+    final partial = _repository(
+      MockClient((request) async {
+        calls++;
+        return http.Response(
+          'data: {"delta":"Partial"}\n\ndata: {"error":"unavailable"}\n\n',
+          200,
+        );
+      }),
+      _MemoryKeyValueStore(),
+    );
+    await expectLater(
+      partial.sendStreaming('picanha', onDelta: (_) {}),
+      throwsA(isA<ApiFailure>()),
+    );
+    expect(calls, 1);
+  });
+
   test('sends the prompt through the authenticated MeatShop backend', () async {
     final storage = _MemoryKeyValueStore();
     final repository = _repository(

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import '../fallback/order_processing_screen.dart';
 import 'package:meatshop_mobile/providers/review_provider.dart';
@@ -52,7 +53,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
     } catch (error) {
       if (!context.mounted) return;
       CustomSnackBar.error(
-        'Não foi possível repetir o pedido: $error',
+        error is ApiFailure
+            ? error.message
+            : 'Não foi possível repetir o pedido. Tente novamente.',
         context: context,
       );
     }
@@ -101,14 +104,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       _groupTitle('Finalizados'),
                       const SizedBox(height: 4),
                       _groupSubtitle(
-                        'Últimos 3 meses · Concluídos e Cancelados',
+                        'Histórico completo · Concluídos e Cancelados',
                       ),
                       const SizedBox(height: 10),
-                      _FinishedOrdersSection(
-                        stream: orders.finishedOrdersStream(),
-                        onReorder: _onReorder,
-                        red: _red,
-                      ),
+                      _FinishedOrdersSection(onReorder: _onReorder, red: _red),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -196,46 +195,74 @@ class _ActiveOrdersSection extends StatelessWidget {
   }
 }
 
-class _FinishedOrdersSection extends StatelessWidget {
-  const _FinishedOrdersSection({
-    required this.stream,
-    required this.onReorder,
-    required this.red,
-  });
-
-  final Stream<List<OrderModel>> stream;
+class _FinishedOrdersSection extends StatefulWidget {
+  const _FinishedOrdersSection({required this.onReorder, required this.red});
   final Future<void> Function(BuildContext, OrderModel) onReorder;
   final Color red;
+  @override
+  State<_FinishedOrdersSection> createState() => _FinishedOrdersSectionState();
+}
+
+class _FinishedOrdersSectionState extends State<_FinishedOrdersSection> {
+  final Map<String, OrderModel> _orders = {};
+  int _page = 0;
+  bool _loading = false;
+  bool _hasMore = true;
+  String? _error;
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (_loading || !_hasMore) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final result = await context.read<OrderProvider>().historyPage(_page);
+      if (!mounted) return;
+      setState(() {
+        for (final order in result.orders) {
+          _orders[order.id] = order;
+        }
+        _hasMore = result.hasMore;
+        _page++;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _error = 'Não foi possível carregar o histórico.');
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<OrderModel>>(
-      stream: stream,
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const _Loading();
-        }
-        if (snap.hasError) return const _ErrorTile();
-        final orders = snap.data ?? [];
-        if (orders.isEmpty) {
-          return const _EmptyTile(
-            message: 'Nenhum pedido finalizado nos últimos 3 meses.',
-          );
-        }
-        return Column(
-          children: orders
-              .map(
-                (o) => _FinishedOrderCard(
-                  order: o,
-                  red: red,
-                  onReorder: onReorder,
-                ),
-              )
-              .toList(),
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => Column(
+    children: [
+      for (final order in _orders.values)
+        _FinishedOrderCard(
+          order: order,
+          red: widget.red,
+          onReorder: widget.onReorder,
+        ),
+      if (_loading) const _Loading(),
+      if (_error != null)
+        Text(_error!, style: const TextStyle(color: Colors.white)),
+      if (!_loading && _orders.isEmpty && _error == null)
+        const _EmptyTile(message: 'Nenhum pedido finalizado.'),
+      if (!_loading && _hasMore)
+        TextButton(
+          onPressed: _load,
+          child: Text(
+            _error == null ? 'Carregar mais pedidos' : 'Tentar novamente',
+          ),
+        ),
+    ],
+  );
 }
 
 class _ActiveOrderCard extends StatelessWidget {

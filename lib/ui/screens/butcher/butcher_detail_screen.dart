@@ -81,6 +81,7 @@ class _ButcherDetailView extends StatelessWidget {
                       _buildDivider(),
                       const SizedBox(height: 20),
                       _buildSectionTitle('Produtos'),
+                      _ProductFilters(),
                       const SizedBox(height: 20),
                       _buildProductList(context),
                       const SizedBox(height: 20),
@@ -317,7 +318,7 @@ class _ButcherDetailView extends StatelessWidget {
                         unitId: promo.unitId,
                         unitName: unit.name,
                         categoryId: '',
-                        stockQuantity: 1,
+                        stockQuantity: promo.productStockQuantity,
                       );
                       Navigator.pushNamed(
                         context,
@@ -833,4 +834,83 @@ class _ButcherDetailShimmer extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ProductFilters extends StatefulWidget {
+  @override
+  State<_ProductFilters> createState() => _ProductFiltersState();
+}
+
+class _ProductFiltersState extends State<_ProductFilters> {
+  final _name = TextEditingController();
+  final _brand = TextEditingController();
+  final _category = TextEditingController();
+  final _price = TextEditingController();
+  @override
+  void dispose() {
+    _name.dispose();
+    _brand.dispose();
+    _category.dispose();
+    _price.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      children: [
+        TextField(
+          controller: _name,
+          decoration: const InputDecoration(labelText: 'Nome do produto'),
+        ),
+        TextField(
+          controller: _brand,
+          decoration: const InputDecoration(labelText: 'Marca'),
+        ),
+        TextField(
+          controller: _category,
+          decoration: const InputDecoration(labelText: 'Categoria'),
+        ),
+        TextField(
+          controller: _price,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(labelText: 'Preco maximo (R\$)'),
+        ),
+        Wrap(
+          children: [
+            TextButton(
+              onPressed: () {
+                final price = double.tryParse(_price.text.replaceAll(',', '.'));
+                if (_price.text.trim().isNotEmpty &&
+                    (price == null || price < 0)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Informe um preco valido.')),
+                  );
+                  return;
+                }
+                context.read<ButcherProvider>().applyFilters(
+                  name: _name.text.trim(),
+                  brand: _brand.text.trim(),
+                  category: _category.text.trim(),
+                  maxPrice: price,
+                );
+              },
+              child: const Text('Aplicar filtros'),
+            ),
+            TextButton(
+              onPressed: () {
+                _name.clear();
+                _brand.clear();
+                _category.clear();
+                _price.clear();
+                context.read<ButcherProvider>().applyFilters();
+              },
+              child: const Text('Limpar filtros'),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 }
