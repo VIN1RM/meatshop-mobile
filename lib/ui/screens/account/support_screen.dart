@@ -151,6 +151,7 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
   final _form = GlobalKey<FormState>();
   final _subject = TextEditingController();
   final _description = TextEditingController();
+  final _contact = TextEditingController();
   bool _saving = false;
   String _category = 'TECHNICAL';
   String? _error;
@@ -158,6 +159,7 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
   void dispose() {
     _subject.dispose();
     _description.dispose();
+    _contact.dispose();
     super.dispose();
   }
 
@@ -172,6 +174,7 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
         _subject.text,
         _description.text,
         _category,
+        contact: _contact.text,
       );
       if (mounted) Navigator.pop(context, true);
     } catch (_) {
@@ -217,6 +220,15 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             decoration: const InputDecoration(labelText: 'Assunto'),
             validator: (v) =>
                 v == null || v.trim().isEmpty ? 'Informe o assunto' : null,
+          ),
+          TextFormField(
+            controller: _contact,
+            enabled: !_saving,
+            maxLength: 150,
+            decoration: const InputDecoration(labelText: 'Contato (opcional)'),
+            validator: (value) => (value?.trim().length ?? 0) > 150
+                ? 'Use ate 150 caracteres'
+                : null,
           ),
           TextFormField(
             controller: _description,
@@ -332,6 +344,8 @@ class _TicketScreenState extends State<_TicketScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(_status(ticket.status)),
+                  if (ticket.contact?.isNotEmpty == true)
+                    Text('Contato: ${ticket.contact}'),
                   for (final message in ticket.messages)
                     Card(
                       child: Padding(

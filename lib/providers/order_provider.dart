@@ -62,6 +62,23 @@ class OrderProvider extends ChangeNotifier {
     return true;
   }
 
+  Future<OrderHistoryPage> historyPage(int page) async {
+    final repository = _repository;
+    if (repository is PaginatedOrderHistory) {
+      return (repository as PaginatedOrderHistory).historyPage(page);
+    }
+    if (page > 0) return const OrderHistoryPage([], hasMore: false);
+    final rows = await repository.list();
+    return OrderHistoryPage(
+      rows
+          .where(
+            (order) => const {'DELIVERED', 'CANCELLED'}.contains(order.status),
+          )
+          .toList(),
+      hasMore: false,
+    );
+  }
+
   Future<OrderModel> getOrder(String id) => _repository.get(id);
 
   bool get isLoading => _isLoading;
@@ -133,13 +150,10 @@ class OrderProvider extends ChangeNotifier {
   Stream<List<OrderModel>> finishedOrdersStream() {
     final repository = _repository;
     if (_realtime != null) return _realtimeOrders(repository, active: false);
-    final since = DateTime.now().subtract(const Duration(days: 90));
     return _poll(repository).map(
       (orders) => orders
           .where(
-            (order) =>
-                const {'DELIVERED', 'CANCELLED'}.contains(order.status) &&
-                (order.orderDate?.isAfter(since) ?? false),
+            (order) => const {'DELIVERED', 'CANCELLED'}.contains(order.status),
           )
           .toList(growable: false),
     );
@@ -205,13 +219,11 @@ class OrderProvider extends ChangeNotifier {
         if (active) {
           controller.add(activeOrders);
         } else {
-          final since = DateTime.now().subtract(const Duration(days: 90));
           controller.add(
             orders
                 .where(
                   (order) =>
-                      const {'DELIVERED', 'CANCELLED'}.contains(order.status) &&
-                      (order.orderDate?.isAfter(since) ?? false),
+                      const {'DELIVERED', 'CANCELLED'}.contains(order.status),
                 )
                 .toList(growable: false),
           );
@@ -252,10 +264,7 @@ class OrderProvider extends ChangeNotifier {
 
   String _message(Object error) {
     if (error is ApiFailure) return error.message;
-    final text = error.toString();
-    return text.isEmpty
-        ? 'Erro ao registrar pedido.'
-        : 'Erro ao registrar pedido: $text';
+    return 'Nao foi possivel registrar o pedido. Tente novamente.';
   }
 
   void clear() {

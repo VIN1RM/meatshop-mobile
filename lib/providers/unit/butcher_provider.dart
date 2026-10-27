@@ -43,6 +43,54 @@ class ButcherProvider extends ChangeNotifier {
   String? _error;
   String? get error => _error;
 
+  String nameFilter = '';
+  String brandFilter = '';
+  String categoryFilter = '';
+  double? maxPriceFilter;
+  int _filterGeneration = 0;
+  Future<void> applyFilters({
+    String name = '',
+    String brand = '',
+    String category = '',
+    double? maxPrice,
+  }) async {
+    nameFilter = name;
+    brandFilter = brand;
+    categoryFilter = category;
+    maxPriceFilter = maxPrice;
+    final generation = ++_filterGeneration;
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final items = <ProductModel>[];
+      var page = 1;
+      while (true) {
+        final result = await _productService.filtered(
+          unitId: unitId,
+          name: name,
+          brand: brand,
+          category: category.trim().isEmpty ? null : category.trim(),
+          maxPrice: maxPrice,
+          page: page++,
+        );
+        if (generation != _filterGeneration) return;
+        items.addAll(result.items);
+        if (!result.hasMore) break;
+      }
+      _items = items;
+    } catch (_) {
+      if (generation == _filterGeneration) {
+        _error = 'Nao foi possivel filtrar os produtos.';
+      }
+    } finally {
+      if (generation == _filterGeneration) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
   Future<void> loadProducts() async {
     _isLoading = true;
     _error = null;

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
+import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/services/report_export_service.dart';
 import 'package:meatshop_mobile/ui/widgets/earning_row.dart';
 import 'package:meatshop_mobile/ui/widgets/summary_grid.dart';
+
+typedef PdfReportExporter =
+    Future<void> Function({
+      required String period,
+      required List<DeliveryEarningModel> earnings,
+      required Map<String, String> summary,
+    });
 
 class ReportsTab extends StatelessWidget {
   const ReportsTab({
@@ -11,13 +19,17 @@ class ReportsTab extends StatelessWidget {
     required this.period,
     required this.onPeriodChanged,
     required this.earningsProvider,
+    this.exportPdf = ReportExportService.exportPdf,
   });
 
   final String period;
   final void Function(String) onPeriodChanged;
   final DeliveryEarningsProvider earningsProvider;
+  final PdfReportExporter exportPdf;
 
   static const Color _red = Color(0xFFC0392B);
+  static const String pdfExportFailureMessage =
+      'Não foi possível gerar o PDF. Tente novamente.';
 
   Map<String, String> _buildSummary() {
     final total = earningsProvider.totalForPeriod(period);
@@ -81,14 +93,15 @@ class ReportsTab extends StatelessWidget {
               label: 'Exportar como PDF',
               onTap: () {
                 Navigator.pop(context);
-                ReportExportService.exportPdf(
+                exportPdf(
                   period: period,
                   earnings: earnings,
                   summary: summary,
-                ).catchError((e) {
+                ).catchError((Object error) {
+                  debugPrint('PDF report export error: $error');
                   if (!context.mounted) return;
                   CustomSnackBar.error(
-                    'Erro ao gerar PDF: $e',
+                    pdfExportFailureMessage,
                     context: context,
                   );
                 });

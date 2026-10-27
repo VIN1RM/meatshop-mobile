@@ -10,7 +10,7 @@ class ProductModel {
   final String unitId;
   final String unitName;
   final String categoryId;
-  final int stockQuantity;
+  final double stockQuantity;
   final DateTime? createdAt;
 
   const ProductModel({
@@ -34,9 +34,9 @@ class ProductModel {
 
   factory ProductModel.fromMap(Map<String, dynamic> data, String id) {
     final stockRaw = data['stock'];
-    int qty = 0;
+    double qty = 0;
     if (stockRaw is Map) {
-      qty = (stockRaw['quantity'] as num?)?.toInt() ?? 0;
+      qty = (stockRaw['quantity'] as num?)?.toDouble() ?? 0;
     }
 
     return ProductModel(

@@ -14,6 +14,7 @@ class SupportTicketModel {
     required this.id,
     required this.subject,
     required this.status,
+    this.contact,
     this.messages = const [],
   });
   factory SupportTicketModel.fromJson(Map<String, dynamic> json) =>
@@ -21,6 +22,7 @@ class SupportTicketModel {
         id: (json['id'] as num).toInt(),
         subject: json['subject'] as String,
         status: json['status'] as String,
+        contact: json['contact'] as String?,
         messages: (json['messages'] as List? ?? [])
             .map(
               (item) => SupportMessageModel.fromJson(
@@ -32,5 +34,6 @@ class SupportTicketModel {
   final int id;
   final String subject;
   final String status;
+  final String? contact;
   final List<SupportMessageModel> messages;
 }

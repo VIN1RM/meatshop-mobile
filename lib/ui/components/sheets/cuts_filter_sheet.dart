@@ -6,21 +6,29 @@ enum CutsPriceRange { all, upTo20, from20to50, above50 }
 
 class CutsFilter {
   final CutsOrder order;
+  final String brand;
   final CutsPriceRange priceRange;
 
   const CutsFilter({
+    this.brand = '',
     this.order = CutsOrder.nameAZ,
     this.priceRange = CutsPriceRange.all,
   });
 
-  CutsFilter copyWith({CutsOrder? order, CutsPriceRange? priceRange}) {
+  CutsFilter copyWith({
+    CutsOrder? order,
+    CutsPriceRange? priceRange,
+    String? brand,
+  }) {
     return CutsFilter(
+      brand: brand ?? this.brand,
       order: order ?? this.order,
       priceRange: priceRange ?? this.priceRange,
     );
   }
 
-  bool get hasActiveFilter => priceRange != CutsPriceRange.all;
+  bool get hasActiveFilter =>
+      brand.isNotEmpty || priceRange != CutsPriceRange.all;
 
   bool matchesPriceRange(double price) => switch (priceRange) {
     CutsPriceRange.all => true,
@@ -99,6 +107,13 @@ class _CutsFilterSheetState extends State<CutsFilterSheet> {
               _buildHandle(),
               const SizedBox(height: 20),
               _buildHeader(),
+              TextFormField(
+                key: ValueKey(_filter.brand.isEmpty),
+                initialValue: _filter.brand,
+                decoration: const InputDecoration(labelText: 'Marca'),
+                onChanged: (value) =>
+                    _filter = _filter.copyWith(brand: value.trim()),
+              ),
               const SizedBox(height: 24),
               _buildSectionLabel('ORDEM ALFABÉTICA'),
               const SizedBox(height: 8),

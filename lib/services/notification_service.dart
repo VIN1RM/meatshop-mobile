@@ -13,10 +13,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:meatshop_mobile/ui/widgets/in_app_notification_banner.dart';
 import 'package:meatshop_mobile/services/user_preferences_service.dart';
 import 'package:meatshop_mobile/data/repositories/notification_repository.dart';
+import 'package:meatshop_mobile/services/push_permission_prompt.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:io' show Platform;
 
-class NotificationService {
+class NotificationService implements PushPermissionGateway {
   NotificationService._();
   static final NotificationService instance = NotificationService._();
 
@@ -48,7 +49,6 @@ class NotificationService {
   }) async {
     this.navigatorKey = navigatorKey;
 
-    await _requestPermission();
     await _setupLocalNotifications();
     _setupForegroundHandler();
     _setupMessageOpenedHandler();
@@ -58,8 +58,43 @@ class NotificationService {
     });
   }
 
-  Future<void> _requestPermission() async {
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+  @override
+  Future<PushPermissionStatus> permissionStatus() async {
+    final settings = await _messaging.getNotificationSettings();
+    return permissionStatusFrom(settings.authorizationStatus);
+  }
+
+  @override
+  Future<PushPermissionStatus> requestPermission() async {
+    final settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    final status = permissionStatusFrom(settings.authorizationStatus);
+    if (status == PushPermissionStatus.granted) {
+      await _registerCurrentToken();
+    }
+    return status;
+  }
+
+  @visibleForTesting
+  static PushPermissionStatus permissionStatusFrom(AuthorizationStatus value) =>
+      switch (value) {
+        AuthorizationStatus.authorized ||
+        AuthorizationStatus.provisional => PushPermissionStatus.granted,
+        AuthorizationStatus.denied => PushPermissionStatus.denied,
+        AuthorizationStatus.notDetermined => PushPermissionStatus.notDetermined,
+      };
+
+  Future<void> _registerCurrentToken() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      final token = await getToken();
+      if (token != null) await _registerBackendToken(token);
+    } catch (error) {
+      debugPrint('[NotificationService] token registration error: $error');
+    }
   }
 
   Future<void> _setupLocalNotifications() async {

@@ -10,7 +10,11 @@ import '../../models/cart_item_model.dart';
 import '../http/api_client.dart';
 
 final class HttpOrderRepository
-    implements OrderRepository, CheckoutRecovery, CheckoutCapabilities {
+    implements
+        OrderRepository,
+        CheckoutRecovery,
+        CheckoutCapabilities,
+        PaginatedOrderHistory {
   HttpOrderRepository(this._client, {SecureKeyValueStore? pendingStorage})
     : _pendingStorage = pendingStorage;
   final ApiClient _client;
@@ -154,6 +158,21 @@ final class HttpOrderRepository
   Future<void> reconcilePayment(String orderId) =>
       _client.post('/payments/orders/$orderId/reconcile', decode: (_) {});
 
+  @override
+  Future<OrderHistoryPage> historyPage(int page) => _client.get(
+    '/orders/mobile',
+    query: {'page': page, 'finished': true},
+    decode: (value) {
+      final response = _map(value);
+      return OrderHistoryPage(
+        _list(
+          response['data'],
+        ).map((item) => OrderModel.fromApi(_map(item))).toList(),
+        hasMore: response['has_more'] == true,
+      );
+    },
+  );
+
   Future<List<OrderModel>>? _listing;
   List<OrderModel>? _cached;
   String? _cachedOwner;
@@ -241,7 +260,16 @@ final class HttpOrderRepository
       _ => null,
     };
     final body = <String, Object?>{
-      'delivery_type': 'DELIVERY',
+      'delivery_type': summary.pickupOnly ? 'PICKUP' : 'DELIVERY',
+      if (summary.unitDeliveryTypes.isNotEmpty)
+        'unit_delivery_types': summary.unitDeliveryTypes.entries
+            .map(
+              (entry) => {
+                'unit_id': int.parse(entry.key),
+                'delivery_type': entry.value,
+              },
+            )
+            .toList(),
       if (summary.quoteToken != null) 'quote_token': summary.quoteToken,
       if (summary.coupons.isNotEmpty)
         'coupon_codes':
@@ -267,7 +295,7 @@ final class HttpOrderRepository
       if (summary.changeFor != null) 'change_for': summary.changeFor,
       if (summary.expectedTotal != null)
         'expected_total': summary.expectedTotal,
-      'address_id': int.parse(summary.addressId),
+      if (!summary.pickupOnly) 'address_id': int.parse(summary.addressId),
       if (scheduled != null)
         'scheduled_delivery_date': scheduled.toUtc().toIso8601String(),
     };

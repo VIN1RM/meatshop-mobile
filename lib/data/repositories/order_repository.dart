@@ -69,3 +69,13 @@ abstract interface class CheckoutRecovery {
 abstract interface class CheckoutCapabilities {
   Future<Map<String, bool>> paymentAvailability(List<String> units);
 }
+
+final class OrderHistoryPage {
+  const OrderHistoryPage(this.orders, {required this.hasMore});
+  final List<OrderModel> orders;
+  final bool hasMore;
+}
+
+abstract interface class PaginatedOrderHistory {
+  Future<OrderHistoryPage> historyPage(int page);
+}

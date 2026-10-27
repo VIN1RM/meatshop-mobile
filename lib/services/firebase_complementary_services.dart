@@ -4,14 +4,16 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 
+import 'analytics_consent_store.dart';
+
 final class FirebaseComplementaryServices {
   FirebaseComplementaryServices._();
 
   static bool _enabled = false;
+  static bool _analyticsConsent = AnalyticsConsentStore.defaultConsent;
 
-  static Future<void> initialize({required bool enabled}) async {
-    _enabled = enabled;
-    if (!enabled) return;
+  static Future<void> initialize() async {
+    _enabled = true;
     await FirebaseAppCheck.instance.activate(
       androidProvider: kReleaseMode
           ? AndroidProvider.playIntegrity
@@ -25,10 +27,7 @@ final class FirebaseComplementaryServices {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
-    const analyticsConsent = bool.fromEnvironment('FIREBASE_ANALYTICS_CONSENT');
-    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(
-      analyticsConsent,
-    );
+    await setAnalyticsConsent(await const AnalyticsConsentStore().read());
     const performanceEnabled = bool.fromEnvironment(
       'FIREBASE_PERFORMANCE_ENABLED',
       defaultValue: true,
@@ -54,10 +53,14 @@ final class FirebaseComplementaryServices {
     }
   }
 
-  static Future<void> logNavigation(String destination) async {
+  static Future<void> setAnalyticsConsent(bool granted) async {
+    _analyticsConsent = granted;
     if (!_enabled) return;
-    const consent = bool.fromEnvironment('FIREBASE_ANALYTICS_CONSENT');
-    if (!consent) return;
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(granted);
+  }
+
+  static Future<void> logNavigation(String destination) async {
+    if (!_enabled || !_analyticsConsent) return;
     await FirebaseAnalytics.instance.logEvent(
       name: 'push_open',
       parameters: {'destination': destination},

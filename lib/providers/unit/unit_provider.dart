@@ -1,3 +1,4 @@
+import '../../core/network/api_failure.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/discovery_location_source.dart';
 
@@ -165,7 +166,11 @@ class UnitProvider extends ChangeNotifier {
       );
       if (version == _loadVersion) _hoursMap = hours;
     } catch (e) {
-      if (version == _loadVersion) _error = e.toString();
+      if (version == _loadVersion) {
+        _error = e is ApiFailure
+            ? e.message
+            : 'Não foi possível carregar os açougues. Tente novamente.';
+      }
     } finally {
       if (version == _loadVersion) {
         _loading = false;

@@ -1,9 +1,10 @@
+import 'package:meatshop_mobile/providers/analytics_consent_provider.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
+import 'package:meatshop_mobile/services/firebase_complementary_services.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
-import 'package:meatshop_mobile/providers/payment_provider.dart';
 import 'package:meatshop_mobile/providers/product_review_provider.dart';
 import 'package:meatshop_mobile/providers/promotion_provider.dart';
 import 'package:meatshop_mobile/providers/review_provider.dart';
@@ -17,7 +18,6 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
 import 'package:meatshop_mobile/providers/recipe_provider.dart';
-import '../core/config/feature_flags.dart';
 import '../data/repositories/federated_auth_repository.dart';
 import '../data/repositories/marketplace_repository.dart';
 import '../data/repositories/marketplace_context.dart';
@@ -25,7 +25,6 @@ import '../data/repositories/address_repository.dart';
 import '../data/repositories/cart_repository.dart';
 import '../data/repositories/profile_repository.dart';
 import '../data/repositories/order_repository.dart';
-import '../data/repositories/payment_repository.dart';
 import '../data/repositories/delivery_repository.dart';
 import '../data/repositories/chat_repository.dart';
 import '../data/repositories/realtime_repository.dart';
@@ -48,32 +47,19 @@ class ProvidersConfig {
     AddressRepository? addresses,
     CartRepository? cart,
     OrderRepository? orders,
-    PaymentRepository? payments,
     DeliveryRepository? delivery,
     ChatRepository? chat,
     RealtimeRepository? realtime,
     RecipeRepository? recipes,
     ReviewRepository? reviews,
     AiAssistantRepository? aiAssistant,
-    FeatureFlags flags = const FeatureFlags(
-      backendAuth: false,
-      backendMarketplace: false,
-      backendProfileCart: false,
-      backendCheckout: false,
-      backendDelivery: false,
-      backendRealtime: false,
-      backendFirebaseServices: false,
-    ),
   }) => [
     Provider<LegalRepository>.value(value: legal!),
     Provider<AiAssistantRepository>.value(value: aiAssistant!),
     Provider<DeliveryRepository>.value(value: delivery!),
     Provider<OrderRepository>.value(value: orders!),
     Provider<BackendRealtimeAccess>.value(
-      value: BackendRealtimeAccess(
-        chat: flags.backendRealtime ? chat : null,
-        realtime: flags.backendRealtime ? realtime : null,
-      ),
+      value: BackendRealtimeAccess(chat: chat, realtime: realtime),
     ),
     Provider<MarketplaceContext>.value(value: MarketplaceContext(marketplace!)),
     ChangeNotifierProvider<AuthProvider>(
@@ -114,22 +100,22 @@ class ProvidersConfig {
       ),
     ),
     ChangeNotifierProvider(
-      create: (_) => PaymentProvider(repository: payments!),
-    ),
-    ChangeNotifierProvider(
-      create: (_) => OrderProvider(
-        repository: orders,
-        realtime: flags.backendRealtime ? realtime : null,
-      ),
+      create: (_) => OrderProvider(repository: orders, realtime: realtime),
     ),
     ChangeNotifierProvider(create: (_) => UserPreferencesProvider()),
+    ChangeNotifierProvider(
+      create: (_) => AnalyticsConsentProvider(
+        apply: FirebaseComplementaryServices.setAnalyticsConsent,
+      )..load(),
+    ),
     ChangeNotifierProvider(create: (_) => RecipeProvider(repository: recipes!)),
     ChangeNotifierProvider(create: (_) => ReviewProvider(repository: reviews!)),
     ChangeNotifierProvider(
       create: (_) => ProductReviewProvider(repository: reviews!),
     ),
     ChangeNotifierProvider(
-      create: (_) => DeliveryEarningsProvider(repository: delivery),
+      create: (_) =>
+          DeliveryEarningsProvider(repository: delivery, realtime: realtime),
     ),
     ChangeNotifierProvider(
       create: (_) => CartProvider(

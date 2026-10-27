@@ -14,6 +14,9 @@ import '../../core/network/cancellation_token.dart';
 typedef RequestHeadersProvider = Future<Map<String, String>> Function();
 
 final class JsonHttpTransport {
+  static const clientPlatformHeader = 'x-client-platform';
+  static const clientPlatform = 'mobile';
+
   JsonHttpTransport({
     required ApiConfig config,
     http.Client? client,
@@ -54,6 +57,7 @@ final class JsonHttpTransport {
                   'content-type': 'application/json; charset=utf-8',
                 ...dynamicHeaders,
                 ...headers,
+                clientPlatformHeader: clientPlatform,
               });
         if (encodedBody != null) request.bodyBytes = encodedBody;
         return request;
@@ -77,6 +81,7 @@ final class JsonHttpTransport {
         'accept': 'application/json',
         ...dynamicHeaders,
         ...headers,
+        clientPlatformHeader: clientPlatform,
       })
       ..files.add(
         http.MultipartFile.fromBytes(
@@ -142,6 +147,65 @@ final class JsonHttpTransport {
     }
   }
 
+  Stream<String> streamSse({
+    required String path,
+    required Object body,
+    Map<String, String> headers = const {},
+    CancellationToken? cancellationToken,
+  }) async* {
+    _throwIfCancelled(cancellationToken);
+    final abort = Completer<void>();
+    final timer = Timer(const Duration(seconds: 55), () {
+      if (!abort.isCompleted) abort.complete();
+    });
+    cancellationToken?.whenCancelled.then((_) {
+      if (!abort.isCompleted) abort.complete();
+    });
+    try {
+      final dynamicHeaders =
+          await _requestHeaders?.call() ?? const <String, String>{};
+      final request =
+          http.AbortableRequest(
+              'POST',
+              _config.resolve(path),
+              abortTrigger: abort.future,
+            )
+            ..headers.addAll({
+              ...dynamicHeaders,
+              ...headers,
+              'accept': 'text/event-stream',
+              'content-type': 'application/json; charset=utf-8',
+              clientPlatformHeader: clientPlatform,
+            })
+            ..bodyBytes = utf8.encode(jsonEncode(body));
+      final response = await _client.send(request);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final value = await http.Response.fromStream(response);
+        throw _failureFromResponse(value, _decodeBody(value));
+      }
+      var data = <String>[];
+      await for (final line
+          in response.stream
+              .transform(utf8.decoder)
+              .transform(const LineSplitter())) {
+        _throwIfCancelled(cancellationToken);
+        if (line.isEmpty) {
+          if (data.isNotEmpty) {
+            yield data.join('\n');
+            data = [];
+          }
+        } else if (line.startsWith('data:')) {
+          data.add(line.substring(5).trimLeft());
+        }
+      }
+      if (data.isNotEmpty) yield data.join('\n');
+    } on http.RequestAbortedException {
+      throw _abortedFailure(!(cancellationToken?.isCancelled ?? false));
+    } finally {
+      timer.cancel();
+    }
+  }
+
   void close() => _client.close();
 
   void _throwIfCancelled(CancellationToken? token) {
@@ -186,8 +250,10 @@ final class JsonHttpTransport {
       code: code,
       statusCode: response.statusCode,
     );
+    final lockedUntil = DateTime.tryParse('${json['locked_until'] ?? ''}');
     final retryAfterSeconds = int.tryParse(
-      response.headers['retry-after'] ?? '',
+      response.headers['retry-after'] ??
+          '${json['retry_after_seconds'] ?? lockedUntil?.difference(DateTime.now()).inSeconds ?? ''}',
     );
     final rawRequestId = json['request_id'] ?? response.headers['x-request-id'];
     return ApiFailure.forStatus(

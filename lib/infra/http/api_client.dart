@@ -200,6 +200,27 @@ final class ApiClient {
     }
   }
 
+  Stream<String> streamSse(
+    String path, {
+    required Object body,
+    CancellationToken? cancellationToken,
+  }) async* {
+    await _session.initialize();
+    if (_session.current == null) {
+      throw const ApiFailure(
+        kind: ApiFailureKind.unauthorized,
+        message: 'Entre na sua conta para continuar.',
+        code: 'SESSION_REQUIRED',
+      );
+    }
+    yield* _transport.streamSse(
+      path: path,
+      body: body,
+      headers: {'authorization': 'Bearer ${_session.current!.accessToken}'},
+      cancellationToken: cancellationToken,
+    );
+  }
+
   Future<Object?> _send({
     required String method,
     required String path,

@@ -53,7 +53,7 @@ void main() {
       );
       expect(called, isFalse);
       expect(storage.values.keys.single, isNot(contains('example.com')));
-      now = now.add(const Duration(minutes: 5));
+      now = now.add(const Duration(minutes: 15));
       await restored.authenticate('test@example.com', () async {});
       expect(storage.values, isEmpty);
     },
@@ -92,14 +92,14 @@ void main() {
       expect(storage.values.length, 1);
     },
   );
-  test('failures reset after five minutes without attempts', () async {
+  test('failures reset after fifteen minutes without attempts', () async {
     for (var i = 0; i < 4; i++) {
       await expectLater(
         service.authenticate('a@b.com', invalid),
         throwsA(isA<FirebaseAuthException>()),
       );
     }
-    now = now.add(const Duration(minutes: 5));
+    now = now.add(const Duration(minutes: 15));
     await expectLater(
       service.authenticate('a@b.com', invalid),
       throwsA(isA<FirebaseAuthException>()),

@@ -27,13 +27,16 @@ class HttpSupportRepository implements SupportRepository {
   Future<SupportTicketModel> create(
     String subject,
     String description,
-    String category,
-  ) => client.post(
+    String category, {
+    String? contact,
+  }) => client.post(
     '/support-tickets',
     body: {
       'subject': subject.trim(),
       'description': description.trim(),
       'category': category,
+      if (contact != null && contact.trim().isNotEmpty)
+        'contact': contact.trim(),
     },
     decode: (json) =>
         SupportTicketModel.fromJson(Map<String, dynamic>.from(json as Map)),

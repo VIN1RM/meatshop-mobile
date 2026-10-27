@@ -18,6 +18,37 @@ class ProductService {
   static const int _pageSize = 10;
   final MarketplaceRepository _marketplace;
 
+  Future<ProductPage> filtered({
+    String? unitId,
+    String? categoryId,
+    String? category,
+    String name = '',
+    String brand = '',
+    double minPrice = 0,
+    double? maxPrice,
+    int page = 1,
+  }) async {
+    final result = await _marketplace.search(
+      name,
+      unitId: unitId,
+      categoryId: categoryId,
+      category: category,
+      brand: brand.trim().isEmpty ? null : brand.trim(),
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      page: page,
+      limit: 50,
+    );
+    return ProductPage(
+      items: result.items
+          .map((item) => item.payload)
+          .whereType<ProductModel>()
+          .toList(),
+      lastDoc: result.meta.hasNextPage ? page + 1 : null,
+      hasMore: result.meta.hasNextPage,
+    );
+  }
+
   Future<ProductPage> fetchByCategory({
     required String categoryId,
     Object? startAfter,

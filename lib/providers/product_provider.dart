@@ -49,6 +49,8 @@ class ProductsProvider extends ChangeNotifier {
   ProductSortOrder _sortOrder = ProductSortOrder.nameAZ;
   ProductSortOrder get sortOrder => _sortOrder;
 
+  String _brand = '';
+  String get brand => _brand;
   ProductPriceRange _priceRange = ProductPriceRange.all;
   ProductPriceRange get priceRange => _priceRange;
 
@@ -134,11 +136,32 @@ class ProductsProvider extends ChangeNotifier {
 
   Future<void> _fetchNextPage() async {
     try {
-      final page = await _service.fetchByCategoryIds(
-        categoryIds: _categoryIds,
-        startAfter: _lastDoc,
-        searchQuery: _searchQuery,
-      );
+      final filtered =
+          _brand.isNotEmpty || _priceRange != ProductPriceRange.all;
+      final minPrice = switch (_priceRange) {
+        ProductPriceRange.from20to50 => 20.01,
+        ProductPriceRange.above50 => 50.01,
+        _ => 0.0,
+      };
+      final maxPrice = switch (_priceRange) {
+        ProductPriceRange.upTo20 => 20.0,
+        ProductPriceRange.from20to50 => 50.0,
+        _ => null,
+      };
+      final page = filtered
+          ? await _service.filtered(
+              category: categoryName,
+              name: _searchQuery,
+              brand: _brand,
+              minPrice: minPrice,
+              maxPrice: maxPrice,
+              page: _lastDoc is int ? _lastDoc as int : 1,
+            )
+          : await _service.fetchByCategoryIds(
+              categoryIds: _categoryIds,
+              startAfter: _lastDoc,
+              searchQuery: _searchQuery,
+            );
       final resolved = await _resolveUnitNames(page.items);
       _items.addAll(resolved);
       _lastDoc = page.lastDoc;
@@ -169,10 +192,12 @@ class ProductsProvider extends ChangeNotifier {
   void updateFilters({
     required ProductSortOrder order,
     required ProductPriceRange range,
+    String brand = '',
   }) {
     _sortOrder = order;
     _priceRange = range;
-    _safeNotify();
+    _brand = brand.trim();
+    loadFirstPage();
   }
 
   Future<List<ProductModel>> _resolveUnitNames(List<ProductModel> items) async {
