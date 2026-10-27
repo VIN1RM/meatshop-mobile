@@ -7,6 +7,26 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.4.0] - 2026-10-26 - Conformidade com a especificação
+
+### Adicionado
+
+- Retirada no balcão escolhida por unidade no checkout, sem endereço nem taxa de entrega, com instruções e código do cliente no pedido.
+- Filtro de marca combinado com nome, categoria e faixa de preço nas telas de cortes e do açougue.
+- Campo opcional de contato, com até 150 caracteres, na abertura de chamados de suporte e no detalhe do chamado.
+- Consentimento de analytics controlado pelo usuário nas configurações, desativado por padrão.
+- Respostas do assistente de receitas exibidas progressivamente por streaming, com retorno ao envio comum se o streaming falhar antes do primeiro trecho.
+- Cabeçalho `x-client-platform: mobile` em todas as requisições, inclusive autenticação, renovação de sessão e streaming.
+
+### Alterado
+
+- Histórico de pedidos completo, sem o limite de 90 dias, com carregamento incremental.
+- Quantidades do carrinho, da sacola, da home e do açougue limitadas ao estoque real informado pela API.
+- A tela de bloqueio mostra a contagem regressiva com o prazo informado pelo servidor.
+- Ganhos do entregador atualizados pelo evento em tempo real, ao reconectar e ao voltar ao app, sem consulta a cada 30 segundos.
+- A permissão de notificações é pedida em um momento contextual, e não mais ao abrir o aplicativo.
+- Falhas em avaliações, pagamentos, pedidos, unidades e geração do relatório em PDF exibem mensagens amigáveis, sem detalhes técnicos.
+
 ## [3.3.0] - 2026-10-20 - Fechamento de lacunas funcionais
 
 ### Complemento da especificacao original (23/10/2026)

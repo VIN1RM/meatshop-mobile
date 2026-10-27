@@ -4,6 +4,19 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [3.4.0] - 26 de outubro de 2026 - Mais escolha e mais segurança
+
+- Retire seu pedido direto no balcão do açougue, sem taxa de entrega.
+- Filtre os cortes por marca, junto com nome, categoria e preço.
+- Veja todo o seu histórico de pedidos, sem limite de data.
+- O carrinho respeita o estoque disponível de cada produto.
+- Informe um contato ao abrir um chamado de suporte.
+- Escolha nas configurações se quer compartilhar dados de uso do aplicativo.
+- As respostas do assistente de receitas aparecem enquanto são escritas.
+- Ganhos do entregador atualizados na hora.
+- Se a conta for bloqueada por tentativas de login, veja quanto tempo falta para tentar de novo.
+- Mensagens de erro mais claras.
+
 ## [3.2.0] - 18 de outubro de 2026 - Termos e privacidade
 
 - Termos e privacidade com visual padronizado, documentos mais legíveis e controles de leitura sempre acessíveis.
