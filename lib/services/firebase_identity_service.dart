@@ -1,4 +1,6 @@
-import 'package:meatshop_mobile/services/login_attempts_service.dart';
+import '../infra/http/api_client.dart';
+import '../core/network/api_failure.dart';
+import 'package:meatshop_mobile/core/auth/password_policy.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -9,9 +11,19 @@ import 'package:meatshop_mobile/core/exceptions/api_exception.dart';
 import 'package:meatshop_mobile/core/exceptions/social_account_link_required_exception.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+Never rethrowCredentialFailure(ApiFailure error) {
+  if (error.statusCode == 401) {
+    throw FirebaseAuthException(code: 'invalid-credential');
+  }
+  throw error;
+}
+
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
+
+  ApiClient? _backend;
+  void configure(ApiClient client) => _backend = client;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? get currentUser => _auth.currentUser;
@@ -21,12 +33,21 @@ class AuthService {
     required String password,
     bool loadFirestoreProfile = false,
   }) async {
-    await LoginAttemptsService.instance.authenticate(
-      email,
-      () => _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      ),
+    final backend = _backend;
+    if (backend == null) throw StateError('Authentication backend unavailable');
+    try {
+      await backend.post(
+        '/auth/mobile/password',
+        authenticated: false,
+        body: {'email': email.trim(), 'password': password},
+        decode: (_) => true,
+      );
+    } on ApiFailure catch (error) {
+      rethrowCredentialFailure(error);
+    }
+    await _auth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password,
     );
     return 'CLIENT';
   }
@@ -105,6 +126,7 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    PasswordPolicy.validate(password);
     final user = (await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -180,6 +202,7 @@ class AuthService {
     required String currentPassword,
     required String newPassword,
   }) async {
+    PasswordPolicy.validate(newPassword);
     final user = _auth.currentUser;
     if (user == null) throw StateError('Usuário não autenticado.');
     await user.reauthenticateWithCredential(

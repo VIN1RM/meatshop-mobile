@@ -1,3 +1,9 @@
+import '../data/repositories/support_repository.dart';
+import '../data/repositories/personal_data_repository.dart';
+import '../data/repositories/delivery_expense_repository.dart';
+import 'repositories/http_support_repository.dart';
+import 'repositories/http_personal_data_repository.dart';
+import 'repositories/http_delivery_expense_repository.dart';
 import '../core/auth/session_coordinator.dart';
 import '../core/config/api_config.dart';
 import '../data/repositories/backend_connection_repository.dart';
@@ -18,9 +24,7 @@ import 'repositories/http_address_repository.dart';
 import 'repositories/http_cart_repository.dart';
 import 'repositories/http_profile_repository.dart';
 import '../data/repositories/order_repository.dart';
-import '../data/repositories/payment_repository.dart';
 import 'repositories/http_order_repository.dart';
-import 'repositories/http_payment_repository.dart';
 import '../data/repositories/delivery_repository.dart';
 import 'repositories/http_delivery_repository.dart';
 import '../data/repositories/chat_repository.dart';
@@ -52,7 +56,6 @@ final class ApiFoundation {
     required this.addresses,
     required this.cart,
     required this.orders,
-    required this.payments,
     required this.delivery,
     required this.chat,
     required this.realtime,
@@ -60,6 +63,9 @@ final class ApiFoundation {
     required this.recipes,
     required this.reviews,
     required this.aiAssistant,
+    required this.support,
+    required this.personalData,
+    required this.deliveryExpenses,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -95,7 +101,6 @@ final class ApiFoundation {
         client,
         pendingStorage: FlutterSecureKeyValueStore(),
       ),
-      payments: HttpPaymentRepository(client),
       delivery: HttpDeliveryRepository(client, config),
       chat: HttpChatRepository(client),
       realtime: BackendRealtimeClient(config: config, session: session),
@@ -105,6 +110,9 @@ final class ApiFoundation {
         client,
         HttpMarketplaceRepository(client, config),
       ),
+      support: HttpSupportRepository(client),
+      personalData: HttpPersonalDataRepository(client),
+      deliveryExpenses: HttpDeliveryExpenseRepository(client),
       aiAssistant: HttpAiAssistantRepository(client, secureStorage),
     );
   }
@@ -120,7 +128,6 @@ final class ApiFoundation {
   final AddressRepository addresses;
   final CartRepository cart;
   final OrderRepository orders;
-  final PaymentRepository payments;
   final DeliveryRepository delivery;
   final ChatRepository chat;
   final BackendRealtimeClient realtime;
@@ -128,6 +135,9 @@ final class ApiFoundation {
   final RecipeRepository recipes;
   final ReviewRepository reviews;
   final AiAssistantRepository aiAssistant;
+  final SupportRepository support;
+  final PersonalDataRepository personalData;
+  final DeliveryExpenseRepository deliveryExpenses;
 
   Future<void> initialize() => session.initialize();
 

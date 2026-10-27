@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/auth/password_policy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -43,17 +44,17 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   void _checkPassword(String value) {
     setState(() {
-      _hasMinLength = value.length >= 6;
-      _hasUpperCase = RegExp(r'[A-Z]').hasMatch(value);
-      _hasLowerCase = RegExp(r'[a-z]').hasMatch(value);
-      _hasNumber = RegExp(r'[0-9]').hasMatch(value);
-      _hasSpecialChar = RegExp(r'[!@#\$%^&*(),.?":{}|<>]').hasMatch(value);
+      _hasMinLength = PasswordPolicy.hasMinimumLength(value);
+      _hasUpperCase = PasswordPolicy.hasUppercase(value);
+      _hasLowerCase = PasswordPolicy.hasLowercase(value);
+      _hasNumber = PasswordPolicy.hasNumber(value);
+      _hasSpecialChar = PasswordPolicy.hasSpecialCharacter(value);
     });
   }
 
   String? _validateNewPassword(String? v) {
     if (v == null || v.isEmpty) return 'Informe a nova senha';
-    if (!_hasMinLength) return 'Mínimo 6 caracteres';
+    if (!_hasMinLength) return 'Mínimo 8 caracteres';
     if (!_hasUpperCase) return 'Adicione uma letra maiúscula';
     if (!_hasLowerCase) return 'Adicione uma letra minúscula';
     if (!_hasNumber) return 'Adicione um número';

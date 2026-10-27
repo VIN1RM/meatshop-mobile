@@ -361,7 +361,7 @@ class _CartScreenState extends State<CartScreen> {
                     unitId: item.unitId,
                     unitName: item.unitName,
                     categoryId: '',
-                    stockQuantity: 999,
+                    stockQuantity: item.availableStock ?? 0,
                   );
 
             navigator.pushNamed(

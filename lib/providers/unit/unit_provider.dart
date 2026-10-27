@@ -1,3 +1,4 @@
+import '../../core/network/api_failure.dart';
 import 'package:flutter/foundation.dart';
 import '../../services/discovery_location_source.dart';
 
@@ -21,6 +22,8 @@ class UnitProvider extends ChangeNotifier {
        _locationSource = locationSource ?? GeolocatorDiscoverySource();
 
   final DiscoveryLocationSource _locationSource;
+  String? _city;
+  String? _region;
   double? _latitude;
   double? _longitude;
   double? _savedLatitude;
@@ -36,7 +39,9 @@ class UnitProvider extends ChangeNotifier {
       _savedLatitude != null && _savedLongitude != null;
   double? get latitude => _latitude;
   double? get longitude => _longitude;
-  String get locationLabel => !hasDeliveryLocation
+  String get locationLabel => (_city != null || _region != null)
+      ? 'Açougues em ${_city ?? _region}'
+      : !hasDeliveryLocation
       ? 'Todos os açougues'
       : switch (locationMode) {
           UnitLocationMode.savedAddress => 'Perto do endereço padrão',
@@ -62,9 +67,29 @@ class UnitProvider extends ChangeNotifier {
     ++_selectionVersion;
     locating = false;
     locationError = null;
+    _city = null;
+    _region = null;
     locationMode = mode;
     _latitude = lat;
     _longitude = lng;
+    await loadUnits();
+  }
+
+  Future<void> useCity(String city, {String? region}) async {
+    if (_disposed) return;
+    if ((city.trim().isEmpty && (region?.trim().isEmpty ?? true)) ||
+        city.trim().length > 100 ||
+        (region?.length ?? 0) > 100) {
+      throw ArgumentError('Informe uma cidade válida');
+    }
+    ++_selectionVersion;
+    locating = false;
+    locationError = null;
+    locationMode = UnitLocationMode.manual;
+    _latitude = null;
+    _longitude = null;
+    _city = city.trim().isEmpty ? null : city.trim();
+    _region = region?.trim().isEmpty == true ? null : region?.trim();
     await loadUnits();
   }
 
@@ -131,6 +156,8 @@ class UnitProvider extends ChangeNotifier {
         latitude: latitude ?? _latitude,
         longitude: longitude ?? _longitude,
         radiusKm: radiusKm,
+        city: _city,
+        region: _region,
       );
       if (version != _loadVersion) return;
       _units = units;
@@ -139,7 +166,11 @@ class UnitProvider extends ChangeNotifier {
       );
       if (version == _loadVersion) _hoursMap = hours;
     } catch (e) {
-      if (version == _loadVersion) _error = e.toString();
+      if (version == _loadVersion) {
+        _error = e is ApiFailure
+            ? e.message
+            : 'Não foi possível carregar os açougues. Tente novamente.';
+      }
     } finally {
       if (version == _loadVersion) {
         _loading = false;
@@ -156,6 +187,8 @@ class UnitProvider extends ChangeNotifier {
     locationMode = UnitLocationMode.savedAddress;
     _latitude = null;
     _longitude = null;
+    _city = null;
+    _region = null;
     _savedLatitude = null;
     _savedLongitude = null;
     _units = [];

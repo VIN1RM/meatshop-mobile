@@ -1,15 +1,61 @@
+import 'dart:convert';
 import '../../core/network/api_failure.dart';
 import '../../core/network/cancellation_token.dart';
 import '../../data/repositories/ai_assistant_repository.dart';
 import '../auth/secure_key_value_store.dart';
 import '../http/api_client.dart';
 
-final class HttpAiAssistantRepository implements AiAssistantRepository {
+final class HttpAiAssistantRepository
+    implements AiAssistantRepository, StreamingAiAssistantRepository {
   HttpAiAssistantRepository(this._client, this._storage);
 
   static const _conversationIdKey = 'meatshop.ai.conversation_id.v1';
   final ApiClient _client;
   final SecureKeyValueStore _storage;
+
+  @override
+  Future<AiChatReply> sendStreaming(
+    String message, {
+    required void Function(String text) onDelta,
+    CancellationToken? cancellationToken,
+  }) async {
+    var text = '';
+    var done = false;
+    final conversationId = await _storage.read(_conversationIdKey);
+    try {
+      await for (final raw in _client.streamSse(
+        '/ai/chat/stream',
+        body: {'message': message, 'conversation_id': ?conversationId},
+        cancellationToken: cancellationToken,
+      )) {
+        final event = jsonDecode(raw);
+        if (event is! Map) throw _malformed();
+        if (event['error'] != null) {
+          throw const ApiFailure(
+            kind: ApiFailureKind.server,
+            message: 'Nao foi possivel concluir a resposta. Tente novamente.',
+            code: 'AI_UPSTREAM_UNAVAILABLE',
+          );
+        }
+        if (event['delta'] is String) {
+          text += event['delta'] as String;
+          onDelta(text);
+        }
+        if (event['done'] == true && event['conversation_id'] is String) {
+          await _storage.write(
+            _conversationIdKey,
+            event['conversation_id'] as String,
+          );
+          done = true;
+        }
+      }
+      if (!done || text.isEmpty) throw _malformed();
+      return AiChatReply(text: text);
+    } catch (_) {
+      if (text.isNotEmpty || (cancellationToken?.isCancelled ?? false)) rethrow;
+      return send(message, cancellationToken: cancellationToken);
+    }
+  }
 
   @override
   Future<List<AiConversationMessage>> loadHistory() async {

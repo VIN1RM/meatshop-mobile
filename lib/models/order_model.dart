@@ -240,7 +240,7 @@ class OrderModel {
       id: '${data['id'] ?? ''}',
       clientId: '${data['client_id'] ?? ''}',
       unitId: '${data['unit_id'] ?? ''}',
-      unitName: data['unit_name'] as String? ?? 'AÃ§ougue',
+      unitName: data['unit_name'] as String? ?? 'Açougue',
       unitLogoUrl: data['unit_logo_url'] as String? ?? '',
       addressId: '${data['address_id'] ?? ''}',
       status: data['status'] as String? ?? 'PENDING',

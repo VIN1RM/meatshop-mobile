@@ -7,12 +7,10 @@ O Firebase permanece como transporte e camada de observabilidade. As notificaç�
 ## Ativação mobile
 
 ```text
---dart-define=FEATURE_BACKEND_FIREBASE_SERVICES=true
---dart-define=FIREBASE_ANALYTICS_CONSENT=true
 --dart-define=FIREBASE_PERFORMANCE_ENABLED=true
 ```
 
-Analytics inicia desativado sem consentimento explícito. O único evento definido nesta fase é `push_open`, cujo parâmetro `destination` contém apenas a categoria da tela, nunca ID, texto, e-mail, telefone, token ou localização.
+Analytics inicia desativado e só é ligado quando o próprio usuário autoriza em Configurações > Privacidade. A escolha fica salva no dispositivo e é reaplicada na inicialização. O único evento definido nesta fase é `push_open`, cujo parâmetro `destination` contém apenas a categoria da tela, nunca ID, texto, e-mail, telefone, token ou localização.
 
 ## Configuração backend
 

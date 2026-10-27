@@ -1,3 +1,6 @@
+import 'support_screen.dart';
+import '../../../data/repositories/personal_data_repository.dart';
+import '../../../services/personal_data_export_service.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -28,6 +31,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     VersionService().getAppVersion().then((v) {
       if (mounted) setState(() => _appVersion = 'v$v');
     });
+  }
+
+  bool _exporting = false;
+  Future<void> _exportData() async {
+    if (_exporting) return;
+    _exporting = true;
+    try {
+      final data = await context.read<PersonalDataRepository>().export();
+      if (mounted) await PersonalDataExportService.share(data);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Não foi possível exportar os dados. Tente novamente.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      _exporting = false;
+    }
   }
 
   @override
@@ -88,8 +113,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Pedidos',
                                   subtitle: 'Atualizações sobre seus pedidos',
                                   value: prefs.notifOrders,
-                                  onChanged: (v) =>
-                                      prefs.setNotifOrders(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifOrders(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -98,8 +125,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   subtitle:
                                       'Status do entregador em tempo real',
                                   value: prefs.notifDelivery,
-                                  onChanged: (v) =>
-                                      prefs.setNotifDelivery(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifDelivery(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -107,8 +136,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Promoções',
                                   subtitle: 'Ofertas e descontos exclusivos',
                                   value: prefs.notifPromotions,
-                                  onChanged: (v) =>
-                                      prefs.setNotifPromotions(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifPromotions(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                                 _divider(),
                                 _buildToggle(
@@ -116,8 +147,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   label: 'Sistema',
                                   subtitle: 'Avisos importantes do aplicativo',
                                   value: prefs.notifSystem,
-                                  onChanged: (v) =>
-                                      prefs.setNotifSystem(uid, v),
+                                  onChanged: (v) => _savePreference(
+                                    prefs.setNotifSystem(uid, v),
+                                    prefs,
+                                  ),
                                 ),
                               ],
                             );
@@ -126,6 +159,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                         const SizedBox(height: 20),
 
+                        _buildCard(
+                          children: [
+                            _buildNavItem(
+                              icon: Icons.support_agent,
+                              label: 'Meus chamados',
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SupportScreen(),
+                                ),
+                              ),
+                            ),
+                            _buildNavItem(
+                              icon: Icons.download_outlined,
+                              label: 'Exportar meus dados',
+                              onTap: _exportData,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
                         _sectionLabel('CONTA'),
                         const SizedBox(height: 10),
                         _buildCard(
@@ -205,6 +257,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _savePreference(
+    Future<bool> request,
+    UserPreferencesProvider provider,
+  ) async {
+    if (await request || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(provider.error ?? 'Não foi possível salvar.')),
     );
   }
 

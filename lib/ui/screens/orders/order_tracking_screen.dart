@@ -31,6 +31,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   DeliveryTrackingPoint? _point;
   DateTime? _pointReceivedAt;
   OrderModel? _order;
+  bool get _pickup => _order?.deliveryType == 'PICKUP';
   UnitModel? _unit;
   bool _loadingUnit = false;
   String? _unitError;
@@ -269,7 +270,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     final age = _point == null
         ? null
         : DateTime.now().difference(_point!.recordedAt).inSeconds;
-    final signal = _ended
+    final signal = _pickup
+        ? (_ended
+              ? 'Pedido encerrado'
+              : 'Retire na unidade quando o pedido estiver pronto.')
+        : _ended
         ? 'Entrega encerrada'
         : age == null
         ? 'Aguardando compartilhamento do entregador'
@@ -303,7 +308,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            'ENTREGA #${widget.orderId}',
+                            '${_pickup ? 'RETIRADA' : 'ENTREGA'} #${widget.orderId}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -368,7 +373,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         if (!_ended && _order != null) ...[
                           const SizedBox(height: 10),
                           const Text(
-                            'Código de entrega',
+                            'Codigo do cliente',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           Text(
@@ -379,8 +384,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               letterSpacing: 3,
                             ),
                           ),
-                          const Text(
-                            'Informe ao entregador somente depois de receber o pedido.',
+                          Text(
+                            _pickup
+                                ? 'Apresente este codigo no balcao para retirar seu pedido.'
+                                : 'Informe ao entregador somente depois de receber o pedido.',
                           ),
                           TextButton(
                             onPressed: _generatingCode ? null : _regenerateCode,
@@ -440,111 +447,125 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ],
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: FlutterMap(
-                        mapController: _map,
-                        options: MapOptions(
-                          initialCenter:
-                              point ?? dest ?? const LatLng(-14.2, -51.9),
-                          initialZoom: point == null && dest == null ? 4 : 16,
-                          onPositionChanged: (_, gesture) {
-                            if (gesture && _follow) {
-                              setState(() => _follow = false);
-                            }
-                          },
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate: const String.fromEnvironment(
-                              'MAP_TILE_URL',
-                              defaultValue:
-                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            ),
-                            userAgentPackageName: 'com.meatshop.mobile',
-                          ),
-                          if (point != null && _point?.accuracy != null)
-                            CircleLayer(
-                              circles: [
-                                CircleMarker(
-                                  point: point,
-                                  radius: _point!.accuracy!,
-                                  useRadiusInMeter: true,
-                                  color: Colors.blue.withValues(alpha: 0.12),
+                      child: _pickup
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(24),
+                                child: Text(
+                                  'Retirada no balcao\n\nAguarde o pedido ficar pronto e apresente seu codigo na unidade. Nao ha taxa de entrega.',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            )
+                          : FlutterMap(
+                              mapController: _map,
+                              options: MapOptions(
+                                initialCenter:
+                                    point ?? dest ?? const LatLng(-14.2, -51.9),
+                                initialZoom: point == null && dest == null
+                                    ? 4
+                                    : 16,
+                                onPositionChanged: (_, gesture) {
+                                  if (gesture && _follow) {
+                                    setState(() => _follow = false);
+                                  }
+                                },
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: const String.fromEnvironment(
+                                    'MAP_TILE_URL',
+                                    defaultValue:
+                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                  ),
+                                  userAgentPackageName: 'com.meatshop.mobile',
+                                ),
+                                if (point != null && _point?.accuracy != null)
+                                  CircleLayer(
+                                    circles: [
+                                      CircleMarker(
+                                        point: point,
+                                        radius: _point!.accuracy!,
+                                        useRadiusInMeter: true,
+                                        color: Colors.blue.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                MarkerLayer(
+                                  markers: [
+                                    if (_unit != null &&
+                                        _unitError == null &&
+                                        _unit!.latitude != null &&
+                                        _unit!.longitude != null)
+                                      Marker(
+                                        point: LatLng(
+                                          _unit!.latitude!,
+                                          _unit!.longitude!,
+                                        ),
+                                        width: 44,
+                                        height: 44,
+                                        child: Tooltip(
+                                          message: _unit!.name,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: AppColors.redPrimary,
+                                                width: 2,
+                                              ),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                  color: Colors.black26,
+                                                  blurRadius: 4,
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Icon(
+                                              Icons.storefront_rounded,
+                                              color: AppColors.redPrimary,
+                                              size: 28,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    if (dest != null)
+                                      Marker(
+                                        point: dest,
+                                        width: 44,
+                                        height: 44,
+                                        child: const Tooltip(
+                                          message: 'Destino',
+                                          child: Icon(
+                                            Icons.home,
+                                            color: AppColors.redPrimary,
+                                            size: 36,
+                                          ),
+                                        ),
+                                      ),
+                                    if (point != null)
+                                      Marker(
+                                        point: point,
+                                        width: 44,
+                                        height: 44,
+                                        child: const Tooltip(
+                                          message: 'Entregador',
+                                          child: Icon(
+                                            Icons.delivery_dining,
+                                            color: Colors.blue,
+                                            size: 36,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SimpleAttributionWidget(
+                                  source: Text('© OpenStreetMap contributors'),
                                 ),
                               ],
                             ),
-                          MarkerLayer(
-                            markers: [
-                              if (_unit != null &&
-                                  _unitError == null &&
-                                  _unit!.latitude != null &&
-                                  _unit!.longitude != null)
-                                Marker(
-                                  point: LatLng(
-                                    _unit!.latitude!,
-                                    _unit!.longitude!,
-                                  ),
-                                  width: 44,
-                                  height: 44,
-                                  child: Tooltip(
-                                    message: _unit!.name,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: AppColors.redPrimary,
-                                          width: 2,
-                                        ),
-                                        boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black26,
-                                            blurRadius: 4,
-                                          ),
-                                        ],
-                                      ),
-                                      child: const Icon(
-                                        Icons.storefront_rounded,
-                                        color: AppColors.redPrimary,
-                                        size: 28,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              if (dest != null)
-                                Marker(
-                                  point: dest,
-                                  width: 44,
-                                  height: 44,
-                                  child: const Tooltip(
-                                    message: 'Destino',
-                                    child: Icon(
-                                      Icons.home,
-                                      color: AppColors.redPrimary,
-                                      size: 36,
-                                    ),
-                                  ),
-                                ),
-                              if (point != null)
-                                Marker(
-                                  point: point,
-                                  width: 44,
-                                  height: 44,
-                                  child: const Tooltip(
-                                    message: 'Entregador',
-                                    child: Icon(
-                                      Icons.delivery_dining,
-                                      color: Colors.blue,
-                                      size: 36,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SimpleAttributionWidget(
-                            source: Text('© OpenStreetMap contributors'),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   Padding(

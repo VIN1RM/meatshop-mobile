@@ -314,7 +314,7 @@ class _HomeBodyState extends State<HomeBody> {
                       unitId: promo.unitId,
                       unitName: promo.unitName,
                       categoryId: '',
-                      stockQuantity: 1,
+                      stockQuantity: promo.productStockQuantity,
                     );
                     Navigator.pushNamed(
                       context,

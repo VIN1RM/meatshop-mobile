@@ -33,7 +33,6 @@ class AppRoutes {
   static const String productDetail = '/acougues/product_detail';
   static const String savedAddresses = '/account/addresses';
   static const String settings = '/account/settings';
-  static const String savedPayments = '/account/payments';
   static const String vehicleSettings = '/vehicle-settings';
   static const String modeSwitch = '/mode-switch';
   static const String personalManagement = '/delivery/personal-management';

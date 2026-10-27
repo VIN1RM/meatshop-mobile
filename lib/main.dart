@@ -1,3 +1,7 @@
+import 'data/repositories/support_repository.dart';
+import 'data/repositories/personal_data_repository.dart';
+import 'data/repositories/delivery_expense_repository.dart';
+import 'services/firebase_identity_service.dart';
 import 'dart:async';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/screens/initial_screens/splash_screen.dart';
@@ -12,7 +16,7 @@ import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/routes/routes_config.dart';
 import 'package:meatshop_mobile/providers/providers_config.dart';
 import 'package:meatshop_mobile/services/notification_service.dart';
-import 'package:meatshop_mobile/core/config/feature_flags.dart';
+import 'package:meatshop_mobile/services/user_preferences_service.dart';
 import 'package:meatshop_mobile/infra/api_foundation.dart';
 import 'package:meatshop_mobile/services/firebase_complementary_services.dart';
 import 'core/utils/payment_return_intent.dart';
@@ -31,30 +35,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 final navigatorKey = GlobalKey<NavigatorState>();
-final featureFlags = FeatureFlags.fromEnvironment();
 ApiFoundation? apiFoundation;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseComplementaryServices.initialize(
-    enabled: featureFlags.backendFirebaseServices,
-  );
-  if (featureFlags.backendAuth ||
-      featureFlags.backendMarketplace ||
-      featureFlags.backendProfileCart ||
-      featureFlags.backendCheckout ||
-      featureFlags.backendDelivery ||
-      featureFlags.backendRealtime ||
-      featureFlags.backendFirebaseServices) {
-    apiFoundation = ApiFoundation.fromEnvironment();
-    await apiFoundation!.initialize();
-  }
+  await FirebaseComplementaryServices.initialize();
+  apiFoundation = ApiFoundation.fromEnvironment();
+  await apiFoundation!.initialize();
+  AuthService.instance.configure(apiFoundation!.client);
   final notifications = apiFoundation?.notifications;
   if (notifications == null) {
     throw StateError('Notification repository was not initialized.');
   }
   NotificationService.instance.configure(backend: notifications);
+  UserPreferencesService.instance.configure(backend: notifications);
   await initializeDateFormatting('pt_BR');
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const MeatShopApp());
@@ -107,25 +102,32 @@ class _MeatShopAppState extends State<MeatShopApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: ProvidersConfig.providers(
-        federatedAuth: apiFoundation?.federatedAuth,
-        legal: apiFoundation?.legal,
-        marketplace: featureFlags.backendMarketplace
-            ? apiFoundation?.marketplace
-            : null,
-        profile: apiFoundation?.profile,
-        addresses: apiFoundation?.addresses,
-        cart: apiFoundation?.cart,
-        orders: apiFoundation?.orders,
-        payments: apiFoundation?.payments,
-        delivery: apiFoundation?.delivery,
-        chat: apiFoundation?.chat,
-        realtime: apiFoundation?.realtime,
-        recipes: apiFoundation?.recipes,
-        reviews: apiFoundation?.reviews,
-        aiAssistant: apiFoundation?.aiAssistant,
-        flags: featureFlags,
-      ),
+      providers: [
+        if (apiFoundation != null) ...[
+          Provider<SupportRepository>.value(value: apiFoundation!.support),
+          Provider<PersonalDataRepository>.value(
+            value: apiFoundation!.personalData,
+          ),
+          Provider<DeliveryExpenseRepository>.value(
+            value: apiFoundation!.deliveryExpenses,
+          ),
+        ],
+        ...ProvidersConfig.providers(
+          federatedAuth: apiFoundation?.federatedAuth,
+          legal: apiFoundation?.legal,
+          marketplace: apiFoundation?.marketplace,
+          profile: apiFoundation?.profile,
+          addresses: apiFoundation?.addresses,
+          cart: apiFoundation?.cart,
+          orders: apiFoundation?.orders,
+          delivery: apiFoundation?.delivery,
+          chat: apiFoundation?.chat,
+          realtime: apiFoundation?.realtime,
+          recipes: apiFoundation?.recipes,
+          reviews: apiFoundation?.reviews,
+          aiAssistant: apiFoundation?.aiAssistant,
+        ),
+      ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
         title: 'MeatShop',

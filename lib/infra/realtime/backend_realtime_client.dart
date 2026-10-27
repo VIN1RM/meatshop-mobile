@@ -99,6 +99,10 @@ final class BackendRealtimeClient implements RealtimeRepository {
 
   void _configureDelivery(io.Socket socket) {
     socket.on(
+      'delivery:earnings.updated',
+      (data) => _addMap(_deliveryStatuses, data),
+    );
+    socket.on(
       'delivery:access.revoked',
       (data) => _addMap(_deliveryStatuses, data),
     );

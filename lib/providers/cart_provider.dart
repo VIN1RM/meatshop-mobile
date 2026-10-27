@@ -63,6 +63,13 @@ class CartProvider extends ChangeNotifier {
 
   Future<void> updateQuantity(String productId, double quantity) async {
     if (quantity <= 0) return removeItem(productId);
+    final current = _findByProductId(productId);
+    if (current?.availableStock != null &&
+        quantity > current!.availableStock!) {
+      _error = 'Quantidade acima do estoque disponivel.';
+      notifyListeners();
+      return;
+    }
     await _mutate(() async {
       final index = _items.indexWhere((item) => item.productId == productId);
       if (index == -1) return;
@@ -105,7 +112,7 @@ class CartProvider extends ChangeNotifier {
 
   String _requiredCartItemId(CartItemModel item) {
     if (item.cartItemId.isNotEmpty) return item.cartItemId;
-    throw StateError('O item do carrinho nÃ£o possui identificador remoto.');
+    throw StateError('O item do carrinho não possui identificador remoto.');
   }
 
   CartItemModel? _findByProductId(String productId) {
@@ -127,7 +134,7 @@ class CartProvider extends ChangeNotifier {
       }
       notifyListeners();
     } catch (error) {
-      _error = 'NÃ£o foi possÃ­vel atualizar o carrinho.';
+      _error = 'Não foi possível atualizar o carrinho.';
       debugPrint('[CartProvider] mutation error: $error');
       notifyListeners();
     }

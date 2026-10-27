@@ -7,6 +7,8 @@ class SearchWidget extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final bool showBackButton;
   final VoidCallback? onBack;
+  final VoidCallback? onFilter;
+  final bool filterActive;
 
   const SearchWidget({
     super.key,
@@ -16,6 +18,8 @@ class SearchWidget extends StatelessWidget {
     this.onSubmitted,
     this.showBackButton = false,
     this.onBack,
+    this.onFilter,
+    this.filterActive = false,
   });
 
   static const Color _red = Color(0xFFC0392B);
@@ -88,6 +92,29 @@ class SearchWidget extends StatelessWidget {
               ),
             ),
           ),
+          if (onFilter != null) ...[
+            const SizedBox(width: 8),
+            Semantics(
+              button: true,
+              label: filterActive ? 'Alterar filtros ativos' : 'Abrir filtros',
+              child: IconButton(
+                onPressed: onFilter,
+                style: IconButton.styleFrom(
+                  fixedSize: const Size(44, 44),
+                  backgroundColor: filterActive
+                      ? _red
+                      : const Color(0xFFE0E0E0),
+                  foregroundColor: filterActive ? Colors.white : Colors.black54,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: Icon(
+                  filterActive ? Icons.filter_alt : Icons.filter_alt_outlined,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

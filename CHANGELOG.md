@@ -7,6 +7,56 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## [3.4.0] - 2026-10-26 - Conformidade com a especificação
+
+### Adicionado
+
+- Retirada no balcão escolhida por unidade no checkout, sem endereço nem taxa de entrega, com instruções e código do cliente no pedido.
+- Filtro de marca combinado com nome, categoria e faixa de preço nas telas de cortes e do açougue.
+- Campo opcional de contato, com até 150 caracteres, na abertura de chamados de suporte e no detalhe do chamado.
+- Consentimento de analytics controlado pelo usuário nas configurações, desativado por padrão.
+- Respostas do assistente de receitas exibidas progressivamente por streaming, com retorno ao envio comum se o streaming falhar antes do primeiro trecho.
+- Cabeçalho `x-client-platform: mobile` em todas as requisições, inclusive autenticação, renovação de sessão e streaming.
+
+### Alterado
+
+- Histórico de pedidos completo, sem o limite de 90 dias, com carregamento incremental.
+- Quantidades do carrinho, da sacola, da home e do açougue limitadas ao estoque real informado pela API.
+- A tela de bloqueio mostra a contagem regressiva com o prazo informado pelo servidor.
+- Ganhos do entregador atualizados pelo evento em tempo real, ao reconectar e ao voltar ao app, sem consulta a cada 30 segundos.
+- A permissão de notificações é pedida em um momento contextual, e não mais ao abrir o aplicativo.
+- Falhas em avaliações, pagamentos, pedidos, unidades e geração do relatório em PDF exibem mensagens amigáveis, sem detalhes técnicos.
+
+## [3.3.0] - 2026-10-20 - Fechamento de lacunas funcionais
+
+### Complemento da especificacao original (23/10/2026)
+
+- Politica de senha compartilhada e validacao de login pelo backend com bloqueio central.
+- Busca manual de unidades por cidade ou regiao sem exigir GPS.
+- Central de chamados com conversa, encerramento, reabertura e recuperacao de erro.
+- Gestao de despesas do entregador e exportacao dos proprios dados pelo compartilhamento do sistema.
+- Formularios verificados com fonte ampliada, tela estreita e teclado; botoes com altura adaptativa.
+- Validacao: 183 testes Flutter aprovados e flutter analyze sem problemas.
+
+### Adicionado
+
+- Filtros de busca combináveis por categoria, marca e faixa de preço, inclusive sem texto digitado.
+- Preferências de notificações sincronizadas com a API para pedidos, entregas, promoções e sistema.
+
+### Alterado
+
+- Horários de agendamento passam a vir da capacidade autoritativa do backend e consideram todas as unidades presentes no carrinho.
+- Token de push só é registrado quando o sistema operacional autoriza ou concede permissão provisória para notificações.
+- Falhas ao carregar filtros, preferências e horários exibem estado recuperável sem manter a tela bloqueada.
+- Versão do aplicativo atualizada para 3.3.0+1.
+
+### Correcoes da revisao
+
+- Busca por filtros omite o texto vazio para respeitar a validacao da API.
+- Precos nao finitos sao rejeitados; filtros possuem teste de layout com texto ampliado e teclado.
+- Preferencias serializam gravacoes e ignoram respostas de uma sessao encerrada.
+- Respostas de busca apos o descarte do provider nao atualizam a interface.
+
 ## [3.2.0] - 2026-10-18 - Termos e privacidade
 
 ### Adicionado

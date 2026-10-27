@@ -17,6 +17,17 @@ class UnitLocationSelector extends StatelessWidget {
     );
     if (!context.mounted) return;
     switch (choice) {
+      case 'city':
+        final values = await showDialog<List<String>>(
+          context: context,
+          builder: (_) => const _CityLocationDialog(),
+        );
+        if (values != null && context.mounted) {
+          await units.useCity(
+            values[0],
+            region: values[1].isEmpty ? null : values[1],
+          );
+        }
       case 'device':
         await units.useCurrentLocation();
       case 'manual':
@@ -181,6 +192,15 @@ class _LocationChoiceSheet extends StatelessWidget {
                 selected: units.locationMode == UnitLocationMode.manual,
                 onTap: () => Navigator.pop(context, 'manual'),
               ),
+              const SizedBox(height: 10),
+              _LocationOption(
+                icon: Icons.location_city,
+                title: 'Buscar por cidade ou região',
+                description:
+                    'Informe a cidade e, se desejar, estado ou bairro.',
+                selected: false,
+                onTap: () => Navigator.pop(context, 'city'),
+              ),
               if (units.hasSavedLocation) ...[
                 const SizedBox(height: 10),
                 _LocationOption(
@@ -297,5 +317,69 @@ class _LocationOption extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+class _CityLocationDialog extends StatefulWidget {
+  const _CityLocationDialog();
+  @override
+  State<_CityLocationDialog> createState() => _CityLocationDialogState();
+}
+
+class _CityLocationDialogState extends State<_CityLocationDialog> {
+  final _form = GlobalKey<FormState>();
+  final _city = TextEditingController();
+  final _region = TextEditingController();
+  @override
+  void dispose() {
+    _city.dispose();
+    _region.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Buscar por cidade ou região'),
+    content: Form(
+      key: _form,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: _city,
+              maxLength: 100,
+              decoration: const InputDecoration(labelText: 'Cidade (opcional)'),
+              validator: (value) =>
+                  (value == null || value.trim().isEmpty) &&
+                      _region.text.trim().isEmpty
+                  ? 'Informe cidade ou região'
+                  : null,
+            ),
+            TextFormField(
+              controller: _region,
+              maxLength: 100,
+              decoration: const InputDecoration(
+                labelText: 'Estado ou bairro (opcional)',
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancelar'),
+      ),
+      TextButton(
+        onPressed: () {
+          if (_form.currentState!.validate()) {
+            Navigator.pop(context, [_city.text, _region.text]);
+          }
+        },
+        child: const Text('Buscar'),
+      ),
+    ],
   );
 }

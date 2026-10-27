@@ -12,6 +12,54 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_marketplace_repository.dart';
 
 void main() {
+  test('combines name, brand, category, price and unit filters', () async {
+    final repository = _repository(
+      MockClient((request) async {
+        expect(request.url.queryParameters, containsPair('q', 'picanha'));
+        expect(request.url.queryParameters, containsPair('brand', 'Swift'));
+        expect(
+          request.url.queryParameters,
+          containsPair('category', 'Bovinos'),
+        );
+        expect(request.url.queryParameters, containsPair('unit_id', '3'));
+        expect(request.url.queryParameters, containsPair('min_price', '10.0'));
+        expect(request.url.queryParameters, containsPair('max_price', '50.0'));
+        return http.Response(
+          jsonEncode({
+            'data': [],
+            'meta': {'page': 1, 'limit': 20, 'total': 0, 'totalPages': 1},
+          }),
+          200,
+        );
+      }),
+    );
+    await repository.search(
+      'picanha',
+      brand: 'Swift',
+      category: 'Bovinos',
+      unitId: '3',
+      minPrice: 10,
+      maxPrice: 50,
+    );
+  });
+
+  test('omits empty text when searching by filters only', () async {
+    final repository = _repository(
+      MockClient((request) async {
+        expect(request.url.queryParameters.containsKey('q'), isFalse);
+        expect(request.url.queryParameters['brand'], 'Swift');
+        return http.Response(
+          jsonEncode({
+            'data': <Object?>[],
+            'meta': {'page': 1, 'limit': 20, 'total': 0, 'totalPages': 1},
+          }),
+          200,
+        );
+      }),
+    );
+    await repository.search('   ', brand: 'Swift');
+  });
+
   test('loads public units without an authenticated session', () async {
     final repository = _repository(
       MockClient((request) async {
@@ -94,6 +142,78 @@ void main() {
     expect(page.items.single.imageUrl, 'http://10.0.2.2:3001/uploads/test.png');
     expect(page.items.single.stockQuantity, 4);
     expect(page.items.single.unitName, 'Loja');
+  });
+
+  test(
+    'loads available brands and sends the selected brand to search',
+    () async {
+      var calls = 0;
+      final repository = _repository(
+        MockClient((request) async {
+          calls++;
+          if (request.url.path == '/search/brands') {
+            expect(request.headers.containsKey('authorization'), isFalse);
+            return http.Response(jsonEncode(['Friboi', 'Swift']), 200);
+          }
+          expect(request.url.path, '/search');
+          expect(request.url.queryParameters['q'], 'picanha');
+          expect(request.url.queryParameters['brand'], 'Swift');
+          expect(request.url.queryParameters['category'], 'Bovinos');
+          expect(request.url.queryParameters['min_price'], '30.0');
+          expect(request.url.queryParameters['max_price'], '100.0');
+          return http.Response(
+            jsonEncode({
+              'data': <Object?>[],
+              'meta': {'page': 1, 'limit': 20, 'total': 0, 'totalPages': 1},
+            }),
+            200,
+          );
+        }),
+      );
+      expect(await repository.listBrands(), ['Friboi', 'Swift']);
+      await repository.search(
+        'picanha',
+        category: 'Bovinos',
+        brand: 'Swift',
+        minPrice: 30,
+        maxPrice: 100,
+      );
+      expect(calls, 2);
+    },
+  );
+
+  test('loads common scheduling slots for all cart units', () async {
+    final repository = _repository(
+      MockClient((request) async {
+        expect(request.url.path, '/orders/available-slots');
+        expect(request.url.queryParameters['unit_ids'], '7,9');
+        expect(request.url.queryParameters['date'], '2026-10-21');
+        expect(request.headers.containsKey('authorization'), isFalse);
+        return http.Response(
+          jsonEncode([
+            {
+              'starts_at': '2026-10-21T11:00:00.000Z',
+              'time': '08:00',
+              'remaining_capacity': 3,
+            },
+            {
+              'starts_at': '2026-10-21T11:30:00.000Z',
+              'time': '08:30',
+              'remaining_capacity': 5,
+            },
+          ]),
+          200,
+        );
+      }),
+    );
+
+    expect(
+      await repository.listAvailableScheduleSlots([
+        '7',
+        '9',
+      ], DateTime(2026, 10, 21)),
+      ['08:00', '08:30'],
+    );
   });
 }
 

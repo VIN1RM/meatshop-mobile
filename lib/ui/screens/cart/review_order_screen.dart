@@ -189,7 +189,16 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                         _pageTitle(),
                         const SizedBox(height: 16),
 
-                        if (address != null) _buildAddressCard(address),
+                        if (!_summary.pickupOnly && address != null)
+                          _buildAddressCard(address),
+                        if (_summary.unitDeliveryTypes.containsValue('PICKUP'))
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Retirada no balcao: sem taxa de entrega. Apresente o codigo do pedido na unidade.',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
                         const SizedBox(height: 16),
 
                         if (widget.summary.isScheduled &&
@@ -275,7 +284,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'EndereÃ§o de entrega',
+            'Endereço de entrega',
             style: TextStyle(
               color: Color(0xFF1A1A1A),
               fontSize: 15,
@@ -285,8 +294,8 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           const SizedBox(height: 6),
           Text(
             '${address.street}, ${address.number}'
-            '${address.complement.isNotEmpty ? ' â€“ ${address.complement}' : ''}\n'
-            '${address.neighborhood} Â· ${address.city}, ${address.state}',
+            '${address.complement.isNotEmpty ? ' – ${address.complement}' : ''}\n'
+            '${address.neighborhood} · ${address.city}, ${address.state}',
             style: const TextStyle(
               color: Color(0xFF555555),
               fontSize: 13,
@@ -303,7 +312,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       '',
       'janeiro',
       'fevereiro',
-      'marÃ§o',
+      'março',
       'abril',
       'maio',
       'junho',
@@ -338,7 +347,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 ),
               ),
               Text(
-                '${d.day} de ${months[d.month]} Â· ${widget.summary.scheduledTime ?? ''}',
+                '${d.day} de ${months[d.month]} · ${widget.summary.scheduledTime ?? ''}',
                 style: const TextStyle(color: Color(0xFF555555), fontSize: 12),
               ),
             ],
@@ -351,7 +360,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   Widget _buildUnitGroup(String unitId, List items, CartProvider cart) {
     final unitName = items.isNotEmpty && items.first.unitName.isNotEmpty
         ? items.first.unitName
-        : 'AÃ§ougue';
+        : 'Açougue';
     final official = _quote?.groups
         .where((g) => g.unitId == unitId)
         .firstOrNull;
@@ -555,7 +564,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                             ),
                           )
                         : Text(
-                            fee != null ? _fmt(fee) : 'IndisponÃ­vel',
+                            fee != null ? _fmt(fee) : 'Indisponível',
                             style: TextStyle(
                               color: fee != null
                                   ? const Color(0xFF1A1A1A)

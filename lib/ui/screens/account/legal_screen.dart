@@ -4,7 +4,7 @@ import '../../widgets/buttons_widget.dart';
 import '../../widgets/legal_section.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'support_screen.dart';
 import '../../../data/repositories/legal_repository.dart';
 import '../../../models/legal_document.dart';
 import '../../widgets/legal_document_list.dart';
@@ -303,14 +303,8 @@ class _LegalScreenState extends State<LegalScreen> {
   );
 
   Future<void> _contact() async {
-    final opened = await launchUrl(
-      Uri(scheme: 'mailto', path: 'viniciusrodri0809@gmail.com'),
-    );
-    if (!opened && mounted) {
-      setState(
-        () =>
-            _error = 'Envie sua solicitação para viniciusrodri0809@gmail.com.',
-      );
-    }
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SupportScreen()));
   }
 }

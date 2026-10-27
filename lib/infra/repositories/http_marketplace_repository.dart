@@ -24,6 +24,8 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     double? latitude,
     double? longitude,
     double? radiusKm,
+    String? city,
+    String? region,
   }) => _client.get(
     '/units',
     authenticated: false,
@@ -33,6 +35,8 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       'lat': ?latitude,
       'lng': ?longitude,
       'radius_km': ?radiusKm,
+      'city': ?city,
+      'region': ?region,
     },
     decode: (json) => Page.fromJson(json, _unit),
   );
@@ -98,6 +102,33 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       );
 
   @override
+  Future<List<String>> listAvailableScheduleSlots(
+    List<String> unitIds,
+    DateTime date,
+  ) => _client.get(
+    '/orders/available-slots',
+    authenticated: false,
+    query: {'unit_ids': unitIds.join(','), 'date': _dateKey(date)},
+    decode: (json) => _list(json, (item) => _string(item, 'time')),
+  );
+
+  @override
+  Future<List<String>> listBrands({
+    String? unitId,
+    String? categoryId,
+    String? category,
+  }) => _client.get(
+    '/search/brands',
+    authenticated: false,
+    query: {
+      'unit_id': ?unitId,
+      'category_id': ?categoryId,
+      'category': ?category,
+    },
+    decode: _stringList,
+  );
+
+  @override
   Future<Page<ReviewModel>> listReviews({
     String? unitId,
     String? productId,
@@ -121,21 +152,25 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     String query, {
     String? unitId,
     String? categoryId,
+    String? category,
     double? minPrice,
     double? maxPrice,
+    String? brand,
     int page = 1,
     int limit = 20,
   }) => _client.get(
     '/search',
     authenticated: false,
     query: {
-      'q': query,
+      if (query.trim().isNotEmpty) 'q': query.trim(),
       'page': page,
       'limit': limit,
       'unit_id': ?unitId,
       'category_id': ?categoryId,
+      'category': ?category,
       'min_price': ?minPrice,
       'max_price': ?maxPrice,
+      'brand': ?brand,
     },
     decode: (json) => Page.fromJson(json, _searchResult),
   );
@@ -179,7 +214,7 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     unitId: '${json['unit_id']}',
     unitName: _nullableString(json['unit_name']),
     categoryId: '${json['category_id']}',
-    stockQuantity: (json['stock_quantity'] as num?)?.toInt() ?? 0,
+    stockQuantity: double.tryParse('${json['stock_quantity'] ?? 0}') ?? 0,
   );
   PromotionModel _promotion(Map<String, Object?> json) {
     final product = json['product'] is Map<String, Object?>
@@ -205,6 +240,11 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       endsAt: DateTime.parse(_string(json, 'ends_at')),
       active: json['active'] == true,
       productName: _nullableString(product['name']),
+      productStockQuantity:
+          double.tryParse(
+            '${(product['stock'] as Map?)?['quantity'] ?? product['stock_quantity'] ?? 0}',
+          ) ??
+          0,
       productImageUrl: _config.resolveAsset(
         _nullableString(product['image_url']),
       ),
@@ -267,6 +307,13 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     return value.map((item) => decode(_map(item))).toList(growable: false);
   }
 
+  static List<String> _stringList(Object? value) {
+    if (value is! List || value.any((item) => item is! String)) {
+      throw _malformed();
+    }
+    return value.cast<String>();
+  }
+
   static Map<String, Object?> _map(Object? value) {
     if (value is Map<String, Object?>) return value;
     throw _malformed();
@@ -279,6 +326,10 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
   }
 
   static String _nullableString(Object? value) => value is String ? value : '';
+  static String _dateKey(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
   static double _number(Map<String, Object?> json, String key) {
     final value = json[key];
     if (value is num) return value.toDouble();
