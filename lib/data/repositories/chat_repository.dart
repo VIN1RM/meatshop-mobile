@@ -13,6 +13,8 @@ abstract interface class ChatRepository {
     int orderId,
     ChatChannel channel, {
     required int currentUserId,
+    int page = 1,
+    int limit = 100,
   });
   Future<ChatMessage> send(int orderId, ChatChannel channel, String message);
   Future<void> markRead(int orderId, ChatChannel channel);

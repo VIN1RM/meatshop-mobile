@@ -1,3 +1,4 @@
+import '../../dialogs/delivery_code_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
@@ -275,37 +276,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
     BuildContext context,
     DeliveryProvider provider,
   ) async {
-    final controller = TextEditingController();
-    final code = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Código do cliente'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: '000000'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = controller.text.trim();
-              if (RegExp(r'^\d{6}$').hasMatch(value)) {
-                Navigator.pop(dialogContext, value);
-              }
-            },
-            child: const Text('Confirmar entrega'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
+    final code = await DeliveryCodeDialog.show(context);
     if (code != null && context.mounted) {
       await _perform(context, () async {
         await provider.confirmDelivery(code);

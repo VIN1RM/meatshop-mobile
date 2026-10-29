@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -198,9 +199,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             label: 'Nome completo',
                             hint: 'João da Silva',
                             icon: Icons.person_outline,
-                            validator: (v) => v == null || v.trim().isEmpty
-                                ? 'Informe o nome'
-                                : null,
+                            validator: FieldValidations.name,
                           ),
 
                           SizedBox(height: sh * 0.018),
@@ -211,13 +210,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             hint: 'seu@email.com',
                             icon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Informe o e-mail';
-                              }
-                              if (!v.contains('@')) return 'E-mail inválido';
-                              return null;
-                            },
+                            validator: FieldValidations.email,
                           ),
 
                           SizedBox(height: sh * 0.018),
@@ -229,15 +222,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             icon: Icons.phone_outlined,
                             keyboardType: TextInputType.phone,
                             inputFormatters: [PhoneInputFormatter()],
-                            validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Informe o celular';
-                              }
-                              if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                                return 'Celular inválido';
-                              }
-                              return null;
-                            },
+                            validator: FieldValidations.mobilePhone,
                           ),
 
                           SizedBox(height: sh * 0.018),

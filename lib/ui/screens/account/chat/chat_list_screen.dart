@@ -1,3 +1,4 @@
+import '../../../widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/models/chat_model.dart';
@@ -64,43 +65,73 @@ class ChatListScreen extends StatelessWidget {
                           );
                         }
 
+                        if (provider.conversations.isEmpty &&
+                            provider.error != null) {
+                          return Center(
+                            child: ChatLoadError(
+                              message: provider.error!,
+                              onRetry: provider.retry,
+                            ),
+                          );
+                        }
                         if (provider.conversations.isEmpty) {
                           return _buildEmpty();
                         }
 
-                        return ListView(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
+                        return RefreshIndicator(
+                          onRefresh: provider.refresh,
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            children: [
+                              if (provider.error != null)
+                                ChatLoadError(
+                                  message: provider.error!,
+                                  onRetry: provider.retry,
+                                ),
+                              const Text(
+                                'CHATS',
+                                style: TextStyle(
+                                  color: Color(0xFFF5F5F5),
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Todas as suas conversas',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ...provider.conversations.map(
+                                (conv) => _ConversationTile(
+                                  conversation: conv,
+                                  currentUserId: currentUserId,
+                                  currentUserName: currentUserName,
+                                  currentUserType: activeType,
+                                ),
+                              ),
+                              if (provider.hasMore)
+                                TextButton(
+                                  onPressed: provider.loadingMore
+                                      ? null
+                                      : provider.loadMore,
+                                  child: Text(
+                                    provider.loadingMore
+                                        ? 'Carregando conversas…'
+                                        : 'Carregar mais conversas',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                            ],
                           ),
-                          children: [
-                            const Text(
-                              'CHATS',
-                              style: TextStyle(
-                                color: Color(0xFFF5F5F5),
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Todas as suas conversas',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            ...provider.conversations.map(
-                              (conv) => _ConversationTile(
-                                conversation: conv,
-                                currentUserId: currentUserId,
-                                currentUserName: currentUserName,
-                                currentUserType: activeType,
-                              ),
-                            ),
-                          ],
                         );
                       },
                     ),

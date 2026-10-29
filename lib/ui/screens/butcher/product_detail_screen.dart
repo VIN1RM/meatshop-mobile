@@ -1,3 +1,5 @@
+import '../../../data/repositories/product_images_repository.dart';
+import '../account/image_gallery_screen.dart';
 import 'package:meatshop_mobile/core/utils/product_quantity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -255,16 +257,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildHeroBanner(ProductModel product) {
     return Stack(
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 240,
-          child: product.imageUrl.isNotEmpty
-              ? Image.network(
-                  product.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => _heroBannerFallback(),
-                )
-              : _heroBannerFallback(),
+        Semantics(
+          label: 'Visualizar fotos do produto',
+          button: true,
+          child: GestureDetector(
+            onTap: () {
+              final repository = context.read<MarketplaceContext>().repository;
+              ImageGalleryScreen.show(
+                context,
+                images: product.allImageUrls,
+                title: product.name,
+                initialImage: product.imageUrl,
+                loadImages: repository is ProductImagesRepository
+                    ? () => (repository as ProductImagesRepository)
+                          .getProductImages(product.id)
+                    : null,
+              );
+            },
+            child: SizedBox(
+              width: double.infinity,
+              height: 240,
+              child: product.imageUrl.isNotEmpty
+                  ? Image.network(
+                      product.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _heroBannerFallback(),
+                    )
+                  : _heroBannerFallback(),
+            ),
+          ),
         ),
 
         Positioned(

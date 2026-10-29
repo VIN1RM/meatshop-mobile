@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/enums/vehicle_type.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_person_info_model.dart';
 import 'package:meatshop_mobile/services/delivery_person_info_service.dart';
@@ -242,20 +243,8 @@ class _DeliveryPersonCardState extends State<DeliveryPersonCard> {
     );
   }
 
-  String _vehicleTypeLabel(String type) {
-    switch (type.toUpperCase()) {
-      case 'MOTORCYCLE':
-        return 'Moto';
-      case 'BIKE':
-        return 'Bicicleta';
-      case 'CAR':
-        return 'Carro';
-      case 'SCOOTER':
-        return 'Scooter';
-      default:
-        return type;
-    }
-  }
+  String _vehicleTypeLabel(String type) =>
+      VehicleType.tryParse(type)?.label ?? 'Veículo não informado';
 }
 
 class _Avatar extends StatelessWidget {

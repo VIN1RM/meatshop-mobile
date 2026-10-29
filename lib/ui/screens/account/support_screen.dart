@@ -1,3 +1,6 @@
+import '../../widgets/app_header.dart';
+import '../../widgets/app_surface.dart';
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../data/repositories/support_repository.dart';
@@ -52,13 +55,16 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppColors.background,
-    appBar: AppBar(title: const Text('Meus chamados')),
-    floatingActionButton: FloatingActionButton(
-      onPressed: _create,
-      tooltip: 'Novo chamado',
-      child: const Icon(Icons.add),
+  Widget build(BuildContext context) => _SupportPage(
+    title: 'Meus chamados',
+    description: 'Acompanhe suas solicitações e converse com nossa equipe.',
+    action: Tooltip(
+      message: 'Novo chamado',
+      child: PrimaryButton(
+        label: 'Novo chamado',
+        icon: Icons.add,
+        onPressed: _create,
+      ),
     ),
     body: _loading
         ? const Center(child: CircularProgressIndicator())
@@ -87,7 +93,25 @@ class _SupportScreenState extends State<SupportScreen> {
                   ),
                 for (final ticket in _tickets)
                   Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    elevation: 0,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: const BorderSide(color: Color(0xFFE0E0E0)),
+                    ),
                     child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      leading: const CircleAvatar(
+                        backgroundColor: Color(0xFFF8E9E7),
+                        child: Icon(
+                          Icons.support_agent,
+                          color: AppColors.redPrimary,
+                        ),
+                      ),
                       title: Text(ticket.subject),
                       subtitle: Text(
                         '#${ticket.id} - ${_status(ticket.status)}',
@@ -105,6 +129,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   ),
                 Wrap(
                   alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     TextButton(
                       onPressed: _page > 1
@@ -183,6 +208,9 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
           () => _error =
               'Não foi possível enviar. Seu texto foi preservado; tente novamente.',
         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_error!), backgroundColor: AppColors.redDark),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -190,8 +218,15 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Novo chamado')),
+  Widget build(BuildContext context) => _SupportPage(
+    title: 'Novo chamado',
+    action: PrimaryButton(
+      label: 'Enviar chamado',
+      onPressed: _save,
+      isLoading: _saving,
+    ),
+    description:
+        'Conte o que aconteceu. Quanto mais detalhes, melhor poderemos ajudar.',
     body: Form(
       key: _form,
       child: ListView(
@@ -213,23 +248,31 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             ],
             onChanged: _saving ? null : (v) => setState(() => _category = v!),
           ),
+          const SizedBox(height: 20),
           TextFormField(
             controller: _subject,
             enabled: !_saving,
             maxLength: 150,
             decoration: const InputDecoration(labelText: 'Assunto'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Informe o assunto' : null,
+            validator: (v) => FieldValidations.text(
+              v,
+              requiredMessage: 'Informe o assunto',
+              maximumLength: 150,
+            ),
           ),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _contact,
             enabled: !_saving,
             maxLength: 150,
             decoration: const InputDecoration(labelText: 'Contato (opcional)'),
-            validator: (value) => (value?.trim().length ?? 0) > 150
-                ? 'Use ate 150 caracteres'
-                : null,
+            validator: (value) => FieldValidations.text(
+              value,
+              maximumLength: 150,
+              optional: true,
+            ),
           ),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _description,
             enabled: !_saving,
@@ -237,18 +280,11 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             minLines: 4,
             maxLines: 10,
             decoration: const InputDecoration(labelText: 'Descreva o problema'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Descreva o problema' : null,
-          ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+            validator: (v) => FieldValidations.text(
+              v,
+              requiredMessage: 'Descreva o problema',
+              maximumLength: 2000,
             ),
-          PrimaryButton(
-            label: 'Enviar chamado',
-            onPressed: _save,
-            isLoading: _saving,
           ),
         ],
       ),
@@ -324,8 +360,9 @@ class _TicketScreenState extends State<_TicketScreen> {
   Widget build(BuildContext context) {
     final repo = context.read<SupportRepository>();
     final ticket = _ticket;
-    return Scaffold(
-      appBar: AppBar(title: Text('Chamado #${widget.id}')),
+    return _SupportPage(
+      title: 'Chamado #${widget.id}',
+      description: 'Veja as mensagens e acompanhe a resposta da equipe.',
       body: ticket == null && _error == null
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -415,4 +452,128 @@ class _TicketScreenState extends State<_TicketScreen> {
             ),
     );
   }
+}
+
+class _SupportPage extends StatelessWidget {
+  const _SupportPage({
+    required this.title,
+    required this.description,
+    required this.body,
+    this.action,
+  });
+  final String title;
+  final String description;
+  final Widget body;
+  final Widget? action;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFF2E2E2E),
+    bottomNavigationBar: action == null
+        ? null
+        : SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                12,
+                16,
+                16 + MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: Center(
+                heightFactor: 1,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 688),
+                  child: action!,
+                ),
+              ),
+            ),
+          ),
+    body: Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 130,
+          child: Image.asset(
+            'assets/images/background.png',
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => const SizedBox.shrink(),
+          ),
+        ),
+        SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const AppHeader(showBack: true),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (constraints.maxHeight > 280)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                12,
+                                16,
+                                16,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    description,
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 13,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Theme(
+                                  data: appSurfaceTheme(context),
+                                  child: ColoredBox(
+                                    color: const Color(0xFFF5F5F5),
+                                    child: body,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }

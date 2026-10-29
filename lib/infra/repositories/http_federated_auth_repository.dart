@@ -1,3 +1,4 @@
+import '../../core/utils/field_validations.dart';
 import 'dart:convert';
 import '../../core/auth/session_coordinator.dart';
 import '../../core/auth/session_tokens.dart';
@@ -79,7 +80,7 @@ final class HttpFederatedAuthRepository implements FederatedAuthRepository {
     body: {
       'name': name.trim(),
       'cpf': cpf.replaceAll(RegExp(r'\D'), ''),
-      'phone': phone.replaceAll(RegExp(r'\D'), ''),
+      'phone': FieldValidations.normalizeMobilePhone(phone),
       'app_profile': appProfile.name.toUpperCase(),
     },
     decode: _decodeMe,

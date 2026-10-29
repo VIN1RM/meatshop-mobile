@@ -155,6 +155,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
     _chatOrderId = orderId;
     _chatChannel = channel;
     await connect();
+    if (_chatOrderId != orderId || _chatChannel != channel) return;
     _chatSocket?.emit('chat:join', {
       'order_id': orderId,
       'participant_type': channel.apiValue,
@@ -186,6 +187,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
   Future<void> subscribeDelivery(int orderId) async {
     _deliveryOrderIds[orderId] = (_deliveryOrderIds[orderId] ?? 0) + 1;
     await connect();
+    if (!_deliveryOrderIds.containsKey(orderId)) return;
     _deliverySocket?.emit('delivery:subscribe-order', {'orderId': orderId});
   }
 

@@ -55,9 +55,11 @@ final class HttpChatRepository implements ChatRepository {
     int orderId,
     ChatChannel channel, {
     required int currentUserId,
+    int page = 1,
+    int limit = 100,
   }) => _client.get(
     '/orders/$orderId/chat',
-    query: {'participant_type': channel.apiValue, 'page': 1, 'limit': 100},
+    query: {'participant_type': channel.apiValue, 'page': page, 'limit': limit},
     decode: (value) {
       if (value is! List<Object?>) throw _malformed();
       return value

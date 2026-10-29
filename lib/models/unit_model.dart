@@ -1,3 +1,5 @@
+import '../core/utils/image_urls.dart';
+
 class UnitModel {
   final String id;
   final String name;
@@ -12,6 +14,10 @@ class UnitModel {
   final String adminId;
   final String imageUrl;
   final String coverUrl;
+  final List<String> galleryUrls;
+  final double? averagePricePerKg;
+  List<String> get allImageUrls =>
+      uniqueImageUrls([imageUrl, coverUrl, ...galleryUrls]);
   final DateTime createdAt;
   final double averageRating;
   final double? latitude;
@@ -35,6 +41,8 @@ class UnitModel {
     required this.adminId,
     required this.imageUrl,
     this.coverUrl = '',
+    this.galleryUrls = const [],
+    this.averagePricePerKg,
     required this.createdAt,
     this.averageRating = 0.0,
     this.latitude,
@@ -60,6 +68,8 @@ class UnitModel {
       'admin_ref': null,
       'image_url': imageUrl,
       'cover_url': coverUrl,
+      'gallery_urls': galleryUrls,
+      'average_price_per_kg': averagePricePerKg,
       'created_at': createdAt,
       'average_rating': averageRating,
       'latitude': latitude,
@@ -83,6 +93,8 @@ class UnitModel {
       adminId: map['admin_id'] ?? '',
       imageUrl: map['image_url'] ?? '',
       coverUrl: map['cover_url'] ?? '',
+      galleryUrls: readImageUrls(map['gallery_urls']),
+      averagePricePerKg: double.tryParse('${map['average_price_per_kg']}'),
       createdAt: (map['created_at'] as dynamic)?.toDate() ?? DateTime.now(),
       averageRating: (map['average_rating'] as num?)?.toDouble() ?? 0.0,
       latitude: double.tryParse('${map['latitude']}'),

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 
 class SearchFilterSelection {
@@ -321,11 +322,8 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
     );
   }
 
-  static double? _parsePrice(String value) {
-    final normalized = value.trim().replaceAll(',', '.');
-    final parsed = normalized.isEmpty ? null : double.tryParse(normalized);
-    return parsed != null && parsed.isFinite ? parsed : null;
-  }
+  static double? _parsePrice(String value) =>
+      FieldValidations.parseMoney(value);
 
   static String _displayPrice(double? value) {
     if (value == null) return '';

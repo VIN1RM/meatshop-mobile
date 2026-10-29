@@ -1,3 +1,4 @@
+import '../../../core/utils/unit_price_order.dart';
 import 'package:flutter/material.dart';
 import '../../components/maps/unit_location_selector.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -75,8 +76,9 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
           (a, b) => a.averageRating.compareTo(b.averageRating),
         );
       case ButcherSortOrder.priceDescending:
+        filteredUnits.sort((a, b) => compareUnitPrice(a, b, descending: true));
       case ButcherSortOrder.priceAscending:
-        break;
+        filteredUnits.sort(compareUnitPrice);
     }
 
     return filteredUnits;

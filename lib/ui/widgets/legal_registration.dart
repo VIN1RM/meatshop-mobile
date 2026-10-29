@@ -71,10 +71,18 @@ class _LegalRegistrationState extends State<LegalRegistration> {
           ),
         ),
       ),
+      const Padding(
+        padding: EdgeInsets.only(bottom: 12),
+        child: Text(
+          'Leia os documentos abaixo e marque o aceite para continuar.',
+          style: TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
+        ),
+      ),
       LegalDocumentList(documents: documents),
       LegalConsentTile(
         value: _accepted,
         dark: true,
+        highlightRequired: true,
         onChanged: (value) {
           setState(() => _accepted = value);
           widget.onChanged(

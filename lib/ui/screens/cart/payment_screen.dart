@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -120,10 +121,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final methods = {for (final id in units) id: _methodFor(id)};
     final singleCash = units.length == 1 && methods[units.first] == 'cash';
     final raw = _change.text.trim();
-    final normalized = raw.contains(',')
-        ? raw.replaceAll('.', '').replaceAll(',', '.')
-        : raw;
-    final amount = double.tryParse(normalized);
+    final amount = FieldValidations.parseMoney(raw);
     if (singleCash &&
         raw.isNotEmpty &&
         (amount == null || !amount.isFinite || amount < widget.total)) {

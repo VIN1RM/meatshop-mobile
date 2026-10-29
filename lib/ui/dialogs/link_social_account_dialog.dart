@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 
 class LinkSocialAccountDialog extends StatefulWidget {
@@ -46,7 +47,7 @@ class _LinkSocialAccountDialogState extends State<LinkSocialAccountDialog> {
 
   void _confirm() {
     final password = _passwordController.text;
-    if (password.isEmpty) {
+    if (FieldValidations.existingPassword(password) != null) {
       setState(() => _errorMessage = 'Digite a senha da conta existente.');
       return;
     }

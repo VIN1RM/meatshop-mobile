@@ -121,6 +121,55 @@ void main() {
       );
     },
   );
+  testWidgets(
+    'registration consent is prominent, explicit and clickable with large text',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      List<int>? accepted;
+      await tester.pumpWidget(
+        Provider<LegalRepository>.value(
+          value: _LegalRepository(),
+          child: MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(1.8)),
+              child: child!,
+            ),
+            home: Scaffold(
+              backgroundColor: const Color(0xFF424242),
+              body: SingleChildScrollView(
+                child: LegalRegistration(onChanged: (ids) => accepted = ids),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(accepted, isNull);
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
+      final consent = find.text(
+        'Li e aceito os Termos de Uso e declaro ciência da Política de Privacidade.',
+      );
+      await tester.ensureVisible(consent);
+      expect(find.textContaining('Obrigatório:'), findsOneWidget);
+      await tester.tap(consent);
+      await tester.pumpAndSettle();
+      expect(accepted, [1, 2]);
+      expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
+      expect(
+        find.text('Selecionado. Você pode continuar o cadastro.'),
+        findsOneWidget,
+      );
+      await tester.tap(consent);
+      await tester.pumpAndSettle();
+      expect(accepted, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 final class _LegalRepository implements LegalRepository {

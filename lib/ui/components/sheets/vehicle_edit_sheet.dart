@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/core/enums/vehicle_type.dart';
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -81,30 +83,13 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
       description: 'Convencional ou elétrica, ideal para centros urbanos.',
       fields: ['Modelo', 'Cor', 'Ano'],
     ),
-    _VehicleOption(
-      label: 'Patinete',
-      icon: Icons.electric_scooter_outlined,
-      description: 'Ideal para regiões planas e áreas centrais.',
-      fields: ['Modelo', 'Cor', 'Ano'],
-    ),
   ];
 
   @override
   void initState() {
     super.initState();
 
-    final labelMap = {
-      'MOTORCYCLE': 'Moto',
-      'BIKE': 'Bicicleta',
-      'CAR': 'Carro',
-      'SCOOTER': 'Patinete',
-
-      'Moto': 'Moto',
-      'Bicicleta': 'Bicicleta',
-      'Carro': 'Carro',
-      'Patinete': 'Patinete',
-    };
-    final label = labelMap[widget.vehicleType];
+    final label = VehicleType.tryParse(widget.vehicleType)?.label;
     _selectedVehicleType = label != null
         ? _vehicleTypes.firstWhere(
             (v) => v.label == label,
@@ -259,8 +244,6 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
         return 'Ex: Caloi Elite';
       case 'Carro':
         return 'Ex: Fiat Uno';
-      case 'Patinete':
-        return 'Ex: Xiaomi Pro 2';
       default:
         return '';
     }
@@ -722,19 +705,12 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               borderSide: const BorderSide(color: _red, width: 1.5),
             ),
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Campo obrigatório';
-            }
-            if (label == 'Ano') {
-              final year = int.tryParse(value);
-              if (year == null ||
-                  year < 1950 ||
-                  year > DateTime.now().year + 1) {
-                return 'Informe um ano válido';
-              }
-            }
-            return null;
+          validator: (value) => switch (label) {
+            'Ano' => FieldValidations.vehicleYear(value),
+            'Placa' => FieldValidations.licensePlate(value),
+            'Modelo' => FieldValidations.text(value, maximumLength: 80),
+            'Cor' => FieldValidations.text(value, maximumLength: 30),
+            _ => FieldValidations.required(value),
           },
         ),
       ],

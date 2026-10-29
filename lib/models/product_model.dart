@@ -1,3 +1,5 @@
+import '../core/utils/image_urls.dart';
+
 class ProductModel {
   final String id;
   final String name;
@@ -7,6 +9,8 @@ class ProductModel {
   final bool active;
   final String brand;
   final String imageUrl;
+  final List<String> galleryUrls;
+  List<String> get allImageUrls => uniqueImageUrls([imageUrl, ...galleryUrls]);
   final String unitId;
   final String unitName;
   final String categoryId;
@@ -22,6 +26,7 @@ class ProductModel {
     required this.active,
     required this.brand,
     required this.imageUrl,
+    this.galleryUrls = const [],
     required this.unitId,
     required this.unitName,
     required this.categoryId,
@@ -48,6 +53,7 @@ class ProductModel {
       active: (data['active'] as bool?) ?? true,
       brand: (data['brand'] as String?) ?? '',
       imageUrl: (data['image_url'] as String?) ?? '',
+      galleryUrls: readImageUrls(data['images'] ?? data['gallery_urls']),
       unitId: (data['unit_id'] as String?) ?? '',
       unitName: '',
       categoryId: (data['category_id'] as String?) ?? '',
@@ -70,6 +76,7 @@ class ProductModel {
     active: active,
     brand: brand ?? this.brand,
     imageUrl: imageUrl ?? this.imageUrl,
+    galleryUrls: galleryUrls,
     unitId: unitId,
     unitName: unitName ?? this.unitName,
     categoryId: categoryId,

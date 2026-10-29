@@ -1,6 +1,8 @@
+import 'package:meatshop_mobile/core/enums/vehicle_type.dart';
+import '../../widgets/buttons_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/providers/delivery/vehicle_provider.dart';
 import 'package:meatshop_mobile/ui/components/sheets/vehicle_edit_sheet.dart';
 import 'package:meatshop_mobile/ui/widgets/app_header.dart';
@@ -21,7 +23,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final uid = context.read<AuthProvider>().currentUser?.uid;
       if (uid != null) {
         context.read<VehicleProvider>().loadVehicle(uid);
       }
@@ -79,7 +81,10 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                                 ),
                                 TextButton(
                                   onPressed: () => provider.loadVehicle(
-                                    FirebaseAuth.instance.currentUser?.uid ??
+                                    context
+                                            .read<AuthProvider>()
+                                            .currentUser
+                                            ?.uid ??
                                         '',
                                   ),
                                   child: const Text('Tentar novamente'),
@@ -97,7 +102,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                                 ),
                               const SizedBox(height: 24),
                               if (provider.error == null)
-                                OutlinedButton.icon(
+                                PrimaryButton(
                                   onPressed: () {
                                     provider.prepareNewVehicle();
                                     showModalBottomSheet(
@@ -110,14 +115,8 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                                       ),
                                     );
                                   },
-                                  icon: const Icon(
-                                    Icons.add,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    'Adicionar veículo',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
+                                  icon: Icons.add,
+                                  label: 'Adicionar veículo',
                                 ),
                             ],
                           ),
@@ -145,6 +144,8 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
 
   Widget _buildVehicleCard(BuildContext context, Map<String, dynamic> vehicle) {
     return Container(
+      key: ValueKey('vehicle-${vehicle['id']}'),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
@@ -198,9 +199,8 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      vehicle['type']?.isNotEmpty == true
-                          ? vehicle['type']!
-                          : 'Nenhum veículo cadastrado',
+                      VehicleType.tryParse(vehicle['type'])?.label ??
+                          'Veículo não informado',
                       style: const TextStyle(
                         color: Color(0xFF1A1A1A),
 
@@ -209,8 +209,10 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const Text(
-                      'Veículo principal',
+                    Text(
+                      vehicle['is_active'] == true
+                          ? 'Veículo principal'
+                          : 'Veículo adicional',
                       style: TextStyle(color: Color(0xFF888888), fontSize: 12),
                     ),
                   ],
@@ -223,7 +225,14 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
           const Divider(height: 1, color: Color(0xFFE0E0E0)),
           const SizedBox(height: 16),
 
-          _infoRow('Tipo:', vehicle['type'] ?? '—'),
+          _infoRow(
+            'Tipo:',
+            VehicleType.tryParse(vehicle['type'])?.label ?? '—',
+          ),
+          if ('${vehicle['model'] ?? ''}'.isNotEmpty)
+            _infoRow('Modelo:', '${vehicle['model']}'),
+          if ('${vehicle['plate'] ?? ''}'.isNotEmpty)
+            _infoRow('Placa:', '${vehicle['plate']}'),
 
           const SizedBox(height: 18),
 
@@ -239,7 +248,7 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                 ),
               );
               if (context.mounted) {
-                final uid = FirebaseAuth.instance.currentUser?.uid;
+                final uid = context.read<AuthProvider>().currentUser?.uid;
                 if (uid != null) {
                   context.read<VehicleProvider>().loadVehicle(uid);
                 }
@@ -250,24 +259,28 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
               children: const [
                 Icon(Icons.edit_outlined, color: _red, size: 14),
                 SizedBox(width: 4),
-                Text(
-                  'Editar veículo',
-                  style: TextStyle(
-                    color: _red,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                Flexible(
+                  child: Text(
+                    'Editar veículo',
+                    style: TextStyle(
+                      color: _red,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               if (vehicle['is_active'] != true)
                 TextButton.icon(
                   onPressed: () async {
-                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    final uid = context.read<AuthProvider>().currentUser?.uid;
                     final id = (vehicle['id'] as num?)?.toInt();
                     if (uid != null && id != null) {
                       try {
@@ -288,14 +301,13 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                   icon: const Icon(Icons.check_circle_outline),
                   label: const Text('Tornar principal'),
                 ),
-              const Spacer(),
               if (vehicle['is_active'] != true)
                 TextButton.icon(
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.red.shade700,
                   ),
                   onPressed: () async {
-                    final uid = FirebaseAuth.instance.currentUser?.uid;
+                    final uid = context.read<AuthProvider>().currentUser?.uid;
                     final id = (vehicle['id'] as num?)?.toInt();
                     if (uid != null && id != null) {
                       try {

@@ -12,6 +12,31 @@ import 'package:meatshop_mobile/infra/http/json_http_transport.dart';
 import 'package:meatshop_mobile/infra/repositories/http_marketplace_repository.dart';
 
 void main() {
+  test(
+    'loads every product image and resolves relative URLs without duplicating the cover',
+    () async {
+      final repository = _repository(
+        MockClient((request) async {
+          expect(request.url.path, '/products/12');
+          return http.Response(
+            jsonEncode({
+              'product': {'image_url': '/uploads/cover.png'},
+              'images': [
+                {'image_url': '/uploads/cover.png'},
+                {'image_url': '/uploads/side.png'},
+              ],
+            }),
+            200,
+          );
+        }),
+      );
+      final images = await repository.getProductImages('12');
+      expect(images, hasLength(2));
+      expect(images.first, endsWith('/uploads/cover.png'));
+      expect(images.last, endsWith('/uploads/side.png'));
+    },
+  );
+
   test('combines name, brand, category, price and unit filters', () async {
     final repository = _repository(
       MockClient((request) async {
@@ -86,6 +111,8 @@ void main() {
                 'neighborhood': null,
                 'image_url': '/uploads/test.png',
                 'cover_url': 'https://cdn.example.com/cover.png',
+                'gallery_urls': ['/uploads/gallery.png'],
+                'average_price_per_kg': 42.75,
               },
             ],
             'meta': {'page': 1, 'limit': 50, 'total': 1, 'totalPages': 1},
@@ -101,6 +128,10 @@ void main() {
     );
     expect(page.items.single.imageUrl, 'http://10.0.2.2:3001/uploads/test.png');
     expect(page.items.single.coverUrl, 'https://cdn.example.com/cover.png');
+    expect(page.items.single.galleryUrls, [
+      'http://10.0.2.2:3001/uploads/gallery.png',
+    ]);
+    expect(page.items.single.averagePricePerKg, 42.75);
     expect(page.items.single.id, '3');
     expect(page.items.single.name, 'Carnes Centro');
     expect(page.items.single.latitude, -8.05);

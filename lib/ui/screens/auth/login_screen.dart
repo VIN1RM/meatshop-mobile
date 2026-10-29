@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
@@ -126,12 +127,10 @@ class _LoginPageState extends State<LoginPage> {
                             label: 'Usuário',
                             hint: 'seu@email.com',
                             keyboardType: TextInputType.emailAddress,
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Informe o usuário';
-                              }
-                              return null;
-                            },
+                            validator: (v) => FieldValidations.email(
+                              v,
+                              requiredMessage: 'Informe o usuário',
+                            ),
                           ),
 
                           SizedBox(height: sh * 0.022),
@@ -155,15 +154,10 @@ class _LoginPageState extends State<LoginPage> {
                                 );
                               },
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Informe a senha';
-                              }
-                              if (v.length < 6) {
-                                return 'Mínimo 6 caracteres';
-                              }
-                              return null;
-                            },
+                            validator: (v) => FieldValidations.existingPassword(
+                              v,
+                              minimumLength: 6,
+                            ),
                           ),
 
                           SizedBox(height: sh * 0.020),

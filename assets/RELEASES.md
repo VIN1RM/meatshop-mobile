@@ -17,6 +17,13 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - Se a conta for bloqueada por tentativas de login, veja quanto tempo falta para tentar de novo.
 - Mensagens de erro mais claras.
 
+## [3.3.0] - 20 de outubro de 2026 - Busca, agendamento e preferências
+
+- Busca combinada por categoria, marca e faixa de preço.
+- Agendamento integrado à disponibilidade e à capacidade de cada açougue.
+- Preferências de notificações salvas na conta para pedidos, entregas, promoções e sistema.
+- Registro de notificações push condicionado à permissão do aparelho.
+
 ## [3.2.0] - 18 de outubro de 2026 - Termos e privacidade
 
 - Termos e privacidade com visual padronizado, documentos mais legíveis e controles de leitura sempre acessíveis.

@@ -57,7 +57,10 @@ void main() {
       await service.register('BIKE', data, photos: [photo, photo, photo]);
       expect(repository.saved, hasLength(1));
       expect(repository.uploads, 3);
-      expect(VehicleRegistrationService.type('Patinete'), 'SCOOTER');
+      expect(
+        () => VehicleRegistrationService.type('Patinete'),
+        throwsArgumentError,
+      );
       expect(
         () => VehicleRegistrationService.type('ON_FOOT'),
         throwsArgumentError,

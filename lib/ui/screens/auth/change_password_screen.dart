@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:meatshop_mobile/core/auth/password_policy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -52,15 +53,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     });
   }
 
-  String? _validateNewPassword(String? v) {
-    if (v == null || v.isEmpty) return 'Informe a nova senha';
-    if (!_hasMinLength) return 'Mínimo 8 caracteres';
-    if (!_hasUpperCase) return 'Adicione uma letra maiúscula';
-    if (!_hasLowerCase) return 'Adicione uma letra minúscula';
-    if (!_hasNumber) return 'Adicione um número';
-    if (!_hasSpecialChar) return 'Adicione um caractere especial';
-    return null;
-  }
+  String? _validateNewPassword(String? v) =>
+      FieldValidations.newPassword(v, requiredMessage: 'Informe a nova senha');
 
   void _onChangePassword() async {
     if (!_formKey.currentState!.validate()) return;
@@ -184,13 +178,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             label: 'E-mail cadastrado',
                             hint: 'seu@email.com',
                             icon: Icons.email_outlined,
-                            validator: (v) {
-                              if (v == null || v.trim().isEmpty) {
-                                return 'Informe o e-mail';
-                              }
-                              if (!v.contains('@')) return 'E-mail inválido';
-                              return null;
-                            },
+                            validator: FieldValidations.email,
                           ),
                           SizedBox(height: sh * 0.03),
                           _sectionTitle('Senha Atual'),
@@ -213,12 +201,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                                 () => _obscureCurrent = !_obscureCurrent,
                               ),
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Informe a senha atual';
-                              }
-                              return null;
-                            },
+                            validator: (v) => FieldValidations.existingPassword(
+                              v,
+                              requiredMessage: 'Informe a senha atual',
+                            ),
                           ),
                           SizedBox(height: sh * 0.03),
                           _sectionTitle('Informe a Nova Senha'),
@@ -264,15 +250,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                                 () => _obscureConfirm = !_obscureConfirm,
                               ),
                             ),
-                            validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Confirme a nova senha';
-                              }
-                              if (v != _newPasswordController.text) {
-                                return 'As senhas não coincidem';
-                              }
-                              return null;
-                            },
+                            validator: (v) =>
+                                FieldValidations.passwordConfirmation(
+                                  v,
+                                  _newPasswordController.text,
+                                  requiredMessage: 'Confirme a nova senha',
+                                ),
                           ),
                           SizedBox(height: sh * 0.04),
                           PrimaryButton(
