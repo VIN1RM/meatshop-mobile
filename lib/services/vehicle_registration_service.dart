@@ -1,3 +1,4 @@
+import '../core/utils/field_validations.dart';
 import 'dart:convert';
 import 'dart:io';
 import '../data/repositories/delivery_repository.dart';
@@ -27,7 +28,7 @@ final class VehicleRegistrationService {
   }) async {
     final category = type('${data['type'] ?? selected}');
     final year = int.tryParse('${data['year'] ?? ''}');
-    if (year == null || year < 1950 || year > DateTime.now().year + 1) {
+    if (FieldValidations.vehicleYear('${data['year'] ?? ''}') != null) {
       throw ArgumentError('Informe o ano do veículo.');
     }
     await repository.register(category == 'SCOOTER' ? 'MOTORCYCLE' : category);

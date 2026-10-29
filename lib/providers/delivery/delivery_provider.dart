@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'location_sharing_controller.dart';
@@ -197,10 +198,10 @@ class DeliveryProvider extends ChangeNotifier {
 
     try {
       _lastError = null;
-      if (customerCode == null || customerCode.length != 6) {
+      if (FieldValidations.verificationCode(customerCode) != null) {
         throw ArgumentError('Customer code is required');
       }
-      await repository.finish(_activeOrder!.id, customerCode);
+      await repository.finish(_activeOrder!.id, customerCode!);
       _activeOrder!.status = DeliveryOrderStatus.delivered;
       _activeOrder = null;
       _pickupCode = null;

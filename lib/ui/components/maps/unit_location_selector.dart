@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -350,11 +351,10 @@ class _CityLocationDialogState extends State<_CityLocationDialog> {
               controller: _city,
               maxLength: 100,
               decoration: const InputDecoration(labelText: 'Cidade (opcional)'),
-              validator: (value) =>
-                  (value == null || value.trim().isEmpty) &&
-                      _region.text.trim().isEmpty
-                  ? 'Informe cidade ou região'
-                  : null,
+              validator: (value) => FieldValidations.requiredAny([
+                value,
+                _region.text,
+              ], message: 'Informe cidade ou região'),
             ),
             TextFormField(
               controller: _region,

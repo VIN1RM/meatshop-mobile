@@ -1,3 +1,4 @@
+import '../../core/utils/field_validations.dart';
 import 'dart:typed_data';
 
 import '../../core/config/api_config.dart';
@@ -28,7 +29,7 @@ final class HttpProfileRepository implements ProfileRepository {
     body: {
       'name': name.trim(),
       'email': email.trim(),
-      'phone': phone.replaceAll(RegExp(r'\D'), ''),
+      'phone': FieldValidations.normalizeMobilePhone(phone),
     },
     decode: (json) => _user(_map(_map(json)['user'])),
   );

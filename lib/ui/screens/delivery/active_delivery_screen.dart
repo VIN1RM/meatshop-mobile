@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
@@ -296,7 +297,7 @@ class ActiveDeliveryScreen extends StatelessWidget {
           FilledButton(
             onPressed: () {
               final value = controller.text.trim();
-              if (RegExp(r'^\d{6}$').hasMatch(value)) {
+              if (FieldValidations.verificationCode(value) == null) {
                 Navigator.pop(dialogContext, value);
               }
             },

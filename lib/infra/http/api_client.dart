@@ -124,31 +124,30 @@ final class ApiClient {
     CancellationToken? cancellationToken,
   }) async {
     await _session.initialize();
-    try {
-      return decode(
-        await _sendMultipart(
-          path: path,
-          bytes: bytes,
-          fileName: fileName,
-          contentType: contentType,
-          cancellationToken: cancellationToken,
-        ),
+    final generation = _session.generation;
+    Future<T> send() async {
+      final response = await _sendMultipart(
+        path: path,
+        bytes: bytes,
+        fileName: fileName,
+        contentType: contentType,
+        cancellationToken: cancellationToken,
       );
+      _requireGeneration(generation);
+      return decode(response);
+    }
+
+    try {
+      return await send();
     } on ApiFailure catch (failure) {
+      _requireGeneration(generation);
       if (failure.kind != ApiFailureKind.unauthorized ||
           _session.current == null) {
         rethrow;
       }
       await _session.refresh();
-      return decode(
-        await _sendMultipart(
-          path: path,
-          bytes: bytes,
-          fileName: fileName,
-          contentType: contentType,
-          cancellationToken: cancellationToken,
-        ),
-      );
+      _requireGeneration(generation);
+      return send();
     }
   }
 
@@ -164,6 +163,7 @@ final class ApiClient {
     Duration? timeout,
   }) async {
     await _session.initialize();
+    final generation = _session.generation;
     try {
       final response = await _send(
         method: method,
@@ -175,8 +175,10 @@ final class ApiClient {
         headers: headers,
         timeout: timeout,
       );
+      if (authenticated) _requireGeneration(generation);
       return decode(response);
     } on ApiFailure catch (failure) {
+      if (authenticated) _requireGeneration(generation);
       if (authenticated && failure.code == 'LEGAL_ACCEPTANCE_REQUIRED') {
         legalRequirements.add(null);
       }
@@ -186,6 +188,7 @@ final class ApiClient {
         rethrow;
       }
       await _session.refresh();
+      _requireGeneration(generation);
       final response = await _send(
         method: method,
         path: path,
@@ -196,6 +199,7 @@ final class ApiClient {
         headers: headers,
         timeout: timeout,
       );
+      if (authenticated) _requireGeneration(generation);
       return decode(response);
     }
   }
@@ -213,11 +217,24 @@ final class ApiClient {
         code: 'SESSION_REQUIRED',
       );
     }
-    yield* _transport.streamSse(
+    final generation = _session.generation;
+    await for (final event in _transport.streamSse(
       path: path,
       body: body,
       headers: {'authorization': 'Bearer ${_session.current!.accessToken}'},
       cancellationToken: cancellationToken,
+    )) {
+      _requireGeneration(generation);
+      yield event;
+    }
+  }
+
+  void _requireGeneration(int generation) {
+    if (_session.generation == generation) return;
+    throw const ApiFailure(
+      kind: ApiFailureKind.cancelled,
+      message: 'A sessão mudou. Tente novamente.',
+      code: 'SESSION_CHANGED',
     );
   }
 

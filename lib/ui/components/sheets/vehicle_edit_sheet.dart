@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -722,19 +723,12 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
               borderSide: const BorderSide(color: _red, width: 1.5),
             ),
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Campo obrigatório';
-            }
-            if (label == 'Ano') {
-              final year = int.tryParse(value);
-              if (year == null ||
-                  year < 1950 ||
-                  year > DateTime.now().year + 1) {
-                return 'Informe um ano válido';
-              }
-            }
-            return null;
+          validator: (value) => switch (label) {
+            'Ano' => FieldValidations.vehicleYear(value),
+            'Placa' => FieldValidations.licensePlate(value),
+            'Modelo' => FieldValidations.text(value, maximumLength: 80),
+            'Cor' => FieldValidations.text(value, maximumLength: 30),
+            _ => FieldValidations.required(value),
           },
         ),
       ],

@@ -7,6 +7,7 @@ import 'package:meatshop_mobile/ui/screens/delivery/expenses_screen.dart';
 
 class _Expenses implements DeliveryExpenseRepository {
   int saves = 0;
+  double? savedAmount;
   @override
   Future<DeliveryExpensePage> list({
     required String from,
@@ -22,6 +23,7 @@ class _Expenses implements DeliveryExpenseRepository {
     required String date,
   }) async {
     saves++;
+    savedAmount = amount;
   }
 
   @override
@@ -87,4 +89,27 @@ void main() {
     }
     expect(tester.takeException(), isNull);
   });
+  testWidgets(
+    'saves a formatted Brazilian amount using the same parser as validation',
+    (tester) async {
+      final repository = _Expenses();
+      await tester.pumpWidget(
+        Provider<DeliveryExpenseRepository>.value(
+          value: repository,
+          child: const MaterialApp(home: ExpensesScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Nova despesa'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField).at(0), 'Combustível');
+      await tester.enterText(find.byType(TextFormField).at(1), '1.234,56');
+      await tester.ensureVisible(find.text('Salvar despesa'));
+      await tester.tap(find.text('Salvar despesa'));
+      await tester.pumpAndSettle();
+      expect(repository.saves, 1);
+      expect(repository.savedAmount, 1234.56);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

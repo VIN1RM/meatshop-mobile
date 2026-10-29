@@ -1,3 +1,4 @@
+import 'field_validations.dart';
 import 'package:flutter/services.dart';
 
 class CpfInputFormatter extends TextInputFormatter {
@@ -95,7 +96,8 @@ String _maskCnpj(String d) {
   return b.toString();
 }
 
-String _maskPhone(String d) {
+String _maskPhone(String raw) {
+  final d = FieldValidations.normalizeMobilePhone(raw);
   final n = d.length;
   if (n == 0) return '';
   final b = StringBuffer();

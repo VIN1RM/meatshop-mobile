@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart';
@@ -309,10 +310,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               controller: _nameController,
               hint: 'Seu nome',
               icon: Icons.person_outline,
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Informe o nome';
-                return null;
-              },
+              validator: FieldValidations.name,
             ),
             const SizedBox(height: 12),
             _buildField(
@@ -323,13 +321,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               icon: Icons.badge_outlined,
               keyboardType: TextInputType.number,
               formatters: [CpfInputFormatter()],
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Informe o CPF';
-                if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                  return 'CPF inválido';
-                }
-                return null;
-              },
+              validator: FieldValidations.cpf,
             ),
             const SizedBox(height: 12),
             _buildField(
@@ -340,13 +332,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               formatters: [PhoneInputFormatter()],
-              validator: (v) {
-                if (v == null || v.isEmpty) return 'Informe o celular';
-                if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                  return 'Celular inválido';
-                }
-                return null;
-              },
+              validator: FieldValidations.mobilePhone,
             ),
           ],
 

@@ -1,3 +1,4 @@
+import '../../../widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
 import 'package:meatshop_mobile/models/chat_model.dart';
@@ -23,6 +24,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  String? _lastMessageId;
   ChatArgs? _args;
   ChatProvider? _chatProvider;
 
@@ -69,6 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _messageController.text;
     try {
       await _chatProvider?.sendMessage(text);
+      if (!mounted) return;
       _messageController.clear();
       _chatProvider?.setTyping(false);
       _scrollToBottom();
@@ -82,7 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+      if (mounted && _scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 250),
@@ -240,17 +243,57 @@ class _ChatScreenState extends State<ChatScreen> {
           return const Center(child: CircularProgressIndicator(color: _red));
         }
 
-        if (provider.messages.isEmpty) {
-          return _buildEmptyState();
+        if (provider.messages.isEmpty && provider.error != null) {
+          return Center(
+            child: ChatLoadError(
+              message: provider.error!,
+              onRetry: provider.retry,
+            ),
+          );
         }
+        if (provider.messages.isEmpty) return _buildEmptyState();
 
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+        final lastId = provider.messages.last.id;
+        final nearBottom =
+            !_scrollController.hasClients ||
+            _scrollController.position.extentAfter < 80;
+        if (_lastMessageId != lastId &&
+            (_lastMessageId == null || nearBottom)) {
+          _scrollToBottom();
+        }
+        _lastMessageId = lastId;
 
         return ListView.builder(
           controller: _scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          itemCount: provider.messages.length,
-          itemBuilder: (context, i) {
+          itemCount: provider.messages.length + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Column(
+                children: [
+                  if (provider.error != null)
+                    ChatLoadError(
+                      message: provider.error!,
+                      onRetry: provider.olderFailed
+                          ? () => _loadOlder(provider)
+                          : provider.retry,
+                    ),
+                  if (provider.hasOlder)
+                    TextButton(
+                      onPressed: provider.loadingOlder
+                          ? null
+                          : () => _loadOlder(provider),
+                      child: Text(
+                        provider.loadingOlder
+                            ? 'Carregando mensagens…'
+                            : 'Carregar mensagens anteriores',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                ],
+              );
+            }
+            final i = index - 1;
             final msg = provider.messages[i];
             final isMe = provider.isMyMessage(msg);
             final showDate =
@@ -278,6 +321,27 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
+  }
+
+  Future<void> _loadOlder(ChatProvider provider) async {
+    final previousExtent = _scrollController.hasClients
+        ? _scrollController.position.maxScrollExtent
+        : 0.0;
+    final previousOffset = _scrollController.hasClients
+        ? _scrollController.offset
+        : 0.0;
+    await provider.loadOlder();
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final position = _scrollController.position;
+      _scrollController.jumpTo(
+        (previousOffset + position.maxScrollExtent - previousExtent).clamp(
+          position.minScrollExtent,
+          position.maxScrollExtent,
+        ),
+      );
+    });
   }
 
   bool _isSameDay(DateTime a, DateTime b) =>

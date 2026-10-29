@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -265,7 +266,7 @@ class _ExpenseFormState extends State<_ExpenseForm> {
         id: widget.expense?.id,
         category: _category,
         description: _description.text,
-        amount: double.parse(_amount.text.trim().replaceAll(',', '.')),
+        amount: FieldValidations.parseMoney(_amount.text)!,
         date: DateFormat('yyyy-MM-dd').format(_date),
       );
       if (mounted) Navigator.pop(context, true);
@@ -310,25 +311,18 @@ class _ExpenseFormState extends State<_ExpenseForm> {
             enabled: !_saving,
             maxLength: 300,
             decoration: const InputDecoration(labelText: 'Descrição'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Informe a descrição' : null,
+            validator: (v) => FieldValidations.text(
+              v,
+              requiredMessage: 'Informe a descrição',
+              maximumLength: 300,
+            ),
           ),
           TextFormField(
             controller: _amount,
             enabled: !_saving,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(labelText: r'Valor (R$)'),
-            validator: (v) {
-              final raw = (v ?? '').trim().replaceAll(',', '.');
-              final value = double.tryParse(raw);
-              return value == null ||
-                      !value.isFinite ||
-                      value <= 0 ||
-                      value > 9999999999.99 ||
-                      !RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(raw)
-                  ? 'Informe um valor positivo com até duas casas decimais'
-                  : null;
-            },
+            validator: FieldValidations.money,
           ),
           ListTile(
             title: const Text('Data da despesa'),

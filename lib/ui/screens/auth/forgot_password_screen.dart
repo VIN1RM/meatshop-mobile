@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -234,13 +235,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             fontSize: 12,
                           ),
                         ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Informe o e-mail';
-                          }
-                          if (!v.contains('@')) return 'E-mail inválido';
-                          return null;
-                        },
+                        validator: FieldValidations.email,
                       ),
 
                       SizedBox(height: sh * 0.04),

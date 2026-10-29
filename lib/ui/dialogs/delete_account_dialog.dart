@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 
@@ -32,7 +33,8 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
 
   void _confirm() {
     final password = _passwordController.text.trim();
-    if (AuthService.instance.requiresPassword && password.isEmpty) {
+    if (AuthService.instance.requiresPassword &&
+        FieldValidations.existingPassword(password) != null) {
       setState(() => _errorMessage = 'Digite sua senha para confirmar.');
       return;
     }

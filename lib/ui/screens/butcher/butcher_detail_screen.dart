@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
@@ -881,7 +882,7 @@ class _ProductFiltersState extends State<_ProductFilters> {
           children: [
             TextButton(
               onPressed: () {
-                final price = double.tryParse(_price.text.replaceAll(',', '.'));
+                final price = FieldValidations.parseMoney(_price.text);
                 if (_price.text.trim().isNotEmpty &&
                     (price == null || price < 0)) {
                   ScaffoldMessenger.of(context).showSnackBar(

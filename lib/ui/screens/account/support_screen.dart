@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../data/repositories/support_repository.dart';
@@ -218,17 +219,22 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             enabled: !_saving,
             maxLength: 150,
             decoration: const InputDecoration(labelText: 'Assunto'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Informe o assunto' : null,
+            validator: (v) => FieldValidations.text(
+              v,
+              requiredMessage: 'Informe o assunto',
+              maximumLength: 150,
+            ),
           ),
           TextFormField(
             controller: _contact,
             enabled: !_saving,
             maxLength: 150,
             decoration: const InputDecoration(labelText: 'Contato (opcional)'),
-            validator: (value) => (value?.trim().length ?? 0) > 150
-                ? 'Use ate 150 caracteres'
-                : null,
+            validator: (value) => FieldValidations.text(
+              value,
+              maximumLength: 150,
+              optional: true,
+            ),
           ),
           TextFormField(
             controller: _description,
@@ -237,8 +243,11 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             minLines: 4,
             maxLines: 10,
             decoration: const InputDecoration(labelText: 'Descreva o problema'),
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Descreva o problema' : null,
+            validator: (v) => FieldValidations.text(
+              v,
+              requiredMessage: 'Descreva o problema',
+              maximumLength: 2000,
+            ),
           ),
           if (_error != null)
             Padding(

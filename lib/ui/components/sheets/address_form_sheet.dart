@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
@@ -205,9 +206,10 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                       controller: _labelCtrl,
                       label: 'Apelido (ex: Casa, Trabalho)',
                       icon: Icons.label_outline,
-                      validator: (v) => (v == null || v.isEmpty)
-                          ? 'Informe um apelido'
-                          : null,
+                      validator: (v) => FieldValidations.text(
+                        v,
+                        requiredMessage: 'Informe um apelido',
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -270,8 +272,11 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                       controller: _streetCtrl,
                       label: 'Rua / Avenida',
                       icon: Icons.signpost_outlined,
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Informe a rua' : null,
+                      validator: (v) => FieldValidations.text(
+                        v,
+                        requiredMessage: 'Informe a rua',
+                        maximumLength: 150,
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -283,8 +288,11 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                             controller: _numberCtrl,
                             label: 'Número',
                             icon: Icons.tag,
-                            validator: (v) =>
-                                (v == null || v.isEmpty) ? 'Obrigatório' : null,
+                            validator: (v) => FieldValidations.text(
+                              v,
+                              requiredMessage: 'Obrigatório',
+                              maximumLength: 20,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -304,8 +312,11 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                       controller: _neighborhoodCtrl,
                       label: 'Bairro',
                       icon: Icons.map_outlined,
-                      validator: (v) =>
-                          (v == null || v.isEmpty) ? 'Informe o bairro' : null,
+                      validator: (v) => FieldValidations.text(
+                        v,
+                        requiredMessage: 'Informe o bairro',
+                        maximumLength: 100,
+                      ),
                     ),
                     const SizedBox(height: 12),
 
@@ -317,9 +328,11 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                             controller: _cityCtrl,
                             label: 'Cidade',
                             icon: Icons.location_city_outlined,
-                            validator: (v) => (v == null || v.isEmpty)
-                                ? 'Informe a cidade'
-                                : null,
+                            validator: (v) => FieldValidations.text(
+                              v,
+                              requiredMessage: 'Informe a cidade',
+                              maximumLength: 80,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -335,11 +348,7 @@ class _AddressFormSheetState extends State<AddressFormSheet> {
                               ),
                               LengthLimitingTextInputFormatter(2),
                             ],
-                            validator: (v) {
-                              final value = v?.trim() ?? '';
-                              if (value.length != 2) return 'UF inválida';
-                              return null;
-                            },
+                            validator: FieldValidations.state,
                           ),
                         ),
                       ],
@@ -424,12 +433,7 @@ class _CepField extends StatelessWidget {
           onCompleted(v);
         }
       },
-      validator: (v) {
-        if (v == null || v.replaceAll(RegExp(r'\D'), '').length < 8) {
-          return 'CEP inválido';
-        }
-        return null;
-      },
+      validator: FieldValidations.cep,
       decoration: InputDecoration(
         labelText: 'CEP',
         helperText: externalError == null

@@ -1,8 +1,9 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:meatshop_mobile/core/auth/password_policy.dart';
 import '../../widgets/legal_registration.dart';
 import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
 import 'package:meatshop_mobile/core/utils/input_masks.dart'
-    show PhoneInputFormatter;
+    show PhoneInputFormatter, CpfInputFormatter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -93,15 +94,8 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  String? _validatePassword(String? v) {
-    if (v == null || v.isEmpty) return 'Informe a senha';
-    if (!_hasMinLength) return 'Mínimo 8 caracteres';
-    if (!_hasUpperCase) return 'Adicione uma letra maiúscula';
-    if (!_hasLowerCase) return 'Adicione uma letra minúscula';
-    if (!_hasNumber) return 'Adicione um número';
-    if (!_hasSpecialChar) return 'Adicione um caractere especial';
-    return null;
-  }
+  String? _validatePassword(String? v) =>
+      FieldValidations.newPassword(v, requiredMessage: 'Informe a senha');
 
   void _onRegister() async {
     if (!_formKey.currentState!.validate()) return;
@@ -286,9 +280,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         label: 'Nome completo',
                         hint: 'João da Silva',
                         icon: Icons.person_outline,
-                        validator: (v) => v == null || v.trim().isEmpty
-                            ? 'Informe o nome'
-                            : null,
+                        validator: FieldValidations.name,
                       ),
 
                       SizedBox(height: sh * 0.018),
@@ -299,13 +291,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         hint: 'seu@email.com',
                         icon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Informe o e-mail';
-                          }
-                          if (!v.contains('@')) return 'E-mail inválido';
-                          return null;
-                        },
+                        validator: FieldValidations.email,
                       ),
 
                       SizedBox(height: sh * 0.018),
@@ -317,13 +303,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         icon: Icons.badge_outlined,
                         keyboardType: TextInputType.number,
                         inputFormatters: [CpfInputFormatter()],
-                        validator: (v) {
-                          if (v == null || v.isEmpty) return 'Informe o CPF';
-                          if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                            return 'CPF inválido';
-                          }
-                          return null;
-                        },
+                        validator: FieldValidations.cpf,
                       ),
 
                       SizedBox(height: sh * 0.018),
@@ -335,15 +315,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         icon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                         inputFormatters: [PhoneInputFormatter()],
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Informe o celular';
-                          }
-                          if (v.replaceAll(RegExp(r'\D'), '').length < 11) {
-                            return 'Celular inválido';
-                          }
-                          return null;
-                        },
+                        validator: FieldValidations.mobilePhone,
                       ),
 
                       SizedBox(height: sh * 0.018),
@@ -394,13 +366,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             () => _obscureConfirm = !_obscureConfirm,
                           ),
                         ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) return 'Confirme a senha';
-                          if (v != _passwordController.text) {
-                            return 'As senhas não coincidem';
-                          }
-                          return null;
-                        },
+                        validator: (v) => FieldValidations.passwordConfirmation(
+                          v,
+                          _passwordController.text,
+                          requiredMessage: 'Confirme a senha',
+                        ),
                       ),
 
                       SizedBox(height: sh * 0.03),
@@ -728,26 +698,5 @@ class UpperCaseTextFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     return newValue.copyWith(text: newValue.text.toUpperCase());
-  }
-}
-
-class CpfInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-    final buffer = StringBuffer();
-    for (int i = 0; i < digits.length && i < 11; i++) {
-      if (i == 3 || i == 6) buffer.write('.');
-      if (i == 9) buffer.write('-');
-      buffer.write(digits[i]);
-    }
-    final text = buffer.toString();
-    return newValue.copyWith(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
-    );
   }
 }

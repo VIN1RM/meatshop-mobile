@@ -114,6 +114,30 @@ void main() {
       expect(call, 3);
     },
   );
+  test('requests the selected history page and page size', () async {
+    final repository = HttpChatRepository(
+      _client(
+        MockClient((request) async {
+          expect(request.url.queryParameters, {
+            'participant_type': 'UNIT',
+            'page': '3',
+            'limit': '25',
+          });
+          return _json([_message]);
+        }),
+      ),
+    );
+    expect(
+      await repository.history(
+        42,
+        ChatChannel.unit,
+        currentUserId: 7,
+        page: 3,
+        limit: 25,
+      ),
+      hasLength(1),
+    );
+  });
 }
 
 const _message = <String, Object?>{

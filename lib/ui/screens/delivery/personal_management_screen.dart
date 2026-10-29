@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'expenses_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -108,9 +109,7 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final val = double.tryParse(
-                      controller.text.replaceAll(',', '.'),
-                    );
+                    final val = FieldValidations.parseMoney(controller.text);
                     if (val != null && val > 0) {
                       try {
                         await ep.updateGoalTarget(goal, val);
