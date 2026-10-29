@@ -1,3 +1,4 @@
+import '../../dialogs/app_dialog.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
@@ -339,8 +340,11 @@ class _CityLocationDialogState extends State<_CityLocationDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Buscar por cidade ou região'),
+  Widget build(BuildContext context) => AppDialog(
+    icon: Icons.location_searching,
+    title: 'Buscar por cidade ou região',
+    description:
+        'Encontre açougues informando a cidade, o estado ou o bairro. Não é necessário liberar o GPS.',
     content: Form(
       key: _form,
       child: SingleChildScrollView(

@@ -17,12 +17,19 @@ class UnitService {
     String? city,
     String? region,
   }) async {
-    return (await _marketplace.listUnits(
-      latitude: latitude,
-      longitude: longitude,
-      radiusKm: radiusKm,
-      city: city,
-      region: region,
-    )).items;
+    final units = <UnitModel>[];
+    var page = 1;
+    while (true) {
+      final result = await _marketplace.listUnits(
+        page: page++,
+        latitude: latitude,
+        longitude: longitude,
+        radiusKm: radiusKm,
+        city: city,
+        region: region,
+      );
+      units.addAll(result.items);
+      if (!result.meta.hasNextPage) return units;
+    }
   }
 }

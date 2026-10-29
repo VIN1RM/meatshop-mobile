@@ -1,3 +1,5 @@
+import '../../data/repositories/product_images_repository.dart';
+import '../../core/utils/image_urls.dart';
 import '../../core/config/api_config.dart';
 import '../../core/enums/search_type_enum.dart';
 import '../../core/network/api_failure.dart';
@@ -12,7 +14,8 @@ import '../../models/search_model.dart';
 import '../../models/unit_model.dart';
 import '../http/api_client.dart';
 
-final class HttpMarketplaceRepository implements MarketplaceRepository {
+final class HttpMarketplaceRepository
+    implements MarketplaceRepository, ProductImagesRepository {
   HttpMarketplaceRepository(this._client, this._config);
   final ApiConfig _config;
   final ApiClient _client;
@@ -39,6 +42,20 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
       'region': ?region,
     },
     decode: (json) => Page.fromJson(json, _unit),
+  );
+
+  @override
+  Future<List<String>> getProductImages(String productId) => _client.get(
+    '/products/$productId',
+    authenticated: false,
+    decode: (json) {
+      final data = _map(json);
+      final product = _map(data['product']);
+      return uniqueImageUrls([
+        _config.resolveAsset(_nullableString(product['image_url'])),
+        ...readImageUrls(data['images']).map(_config.resolveAsset),
+      ]);
+    },
   );
 
   @override
@@ -189,6 +206,10 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     adminId: '',
     imageUrl: _config.resolveAsset(_nullableString(json['image_url'])),
     coverUrl: _config.resolveAsset(_nullableString(json['cover_url'])),
+    galleryUrls: readImageUrls(
+      json['gallery_urls'],
+    ).map(_config.resolveAsset).toList(),
+    averagePricePerKg: double.tryParse('${json['average_price_per_kg']}'),
     createdAt: DateTime.fromMillisecondsSinceEpoch(0),
     averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0,
     latitude: double.tryParse('${json['latitude']}'),
@@ -211,6 +232,9 @@ final class HttpMarketplaceRepository implements MarketplaceRepository {
     active: json['active'] == true,
     brand: _nullableString(json['brand']),
     imageUrl: _config.resolveAsset(_nullableString(json['image_url'])),
+    galleryUrls: readImageUrls(
+      json['images'] ?? json['gallery_urls'],
+    ).map(_config.resolveAsset).toList(),
     unitId: '${json['unit_id']}',
     unitName: _nullableString(json['unit_name']),
     categoryId: '${json['category_id']}',

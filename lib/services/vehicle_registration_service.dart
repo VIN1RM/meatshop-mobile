@@ -1,3 +1,4 @@
+import '../core/enums/vehicle_type.dart';
 import '../core/utils/field_validations.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -7,16 +8,9 @@ final class VehicleRegistrationService {
   VehicleRegistrationService(this.repository);
   final DeliveryRepository repository;
   static String type(String value) {
-    final normalized = value.toUpperCase();
-    if (normalized.contains('BIKE') || normalized.contains('BICI')) {
-      return 'BIKE';
-    }
-    if (normalized.contains('CAR')) return 'CAR';
-    if (normalized.contains('SCOOTER') || normalized.contains('PATINETE')) {
-      return 'SCOOTER';
-    }
-    if (normalized.contains('MOTO')) return 'MOTORCYCLE';
-    throw ArgumentError('Tipo de veículo inválido.');
+    final vehicle = VehicleType.tryParse(value);
+    if (vehicle == null) throw ArgumentError('Tipo de veículo inválido.');
+    return vehicle.apiValue;
   }
 
   static String plate(Object? value) =>
@@ -31,7 +25,7 @@ final class VehicleRegistrationService {
     if (FieldValidations.vehicleYear('${data['year'] ?? ''}') != null) {
       throw ArgumentError('Informe o ano do veículo.');
     }
-    await repository.register(category == 'SCOOTER' ? 'MOTORCYCLE' : category);
+    await repository.register(category);
     final vehicles = await repository.vehicles();
     final found = vehicles
         .where(

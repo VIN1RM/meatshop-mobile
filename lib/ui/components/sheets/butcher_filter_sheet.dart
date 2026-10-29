@@ -260,7 +260,15 @@ class _ButcherFilterSheetState extends State<ButcherFilterSheet> {
               ),
 
               const SizedBox(height: 20),
-              _sectionLabel('Preço'),
+              _sectionLabel('Preço médio por kg'),
+              const Text(
+                'Média dos preços de catálogo dos produtos disponíveis por peso. Açougues sem produtos comparáveis aparecem por último.',
+                style: TextStyle(
+                  color: Color(0xFF666666),
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
               const SizedBox(height: 10),
               Row(
                 children: [

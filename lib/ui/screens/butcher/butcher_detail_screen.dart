@@ -1,3 +1,4 @@
+import '../account/image_gallery_screen.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
@@ -72,8 +73,26 @@ class _ButcherDetailView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeroBanner(unit),
+                      _buildHeroBanner(context, unit),
                       _buildInfoCard(unit),
+                      if (unit.allImageUrls.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: OutlinedButton.icon(
+                            onPressed: () => ImageGalleryScreen.show(
+                              context,
+                              images: unit.allImageUrls,
+                              title: unit.name,
+                            ),
+                            icon: const Icon(Icons.photo_library_outlined),
+                            label: Text(
+                              'Ver fotos do açougue (${unit.allImageUrls.length})',
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 20),
                       _buildDivider(),
                       const SizedBox(height: 20),
@@ -174,22 +193,35 @@ class _ButcherDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroBanner(UnitModel unit) {
+  Widget _buildHeroBanner(BuildContext context, UnitModel unit) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.bottomCenter,
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 180,
-          child: unit.coverUrl.isNotEmpty
-              ? Image.network(
-                  unit.coverUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                )
-              : const SizedBox.shrink(),
+        Semantics(
+          label: 'Visualizar fotos do açougue',
+          button: true,
+          child: GestureDetector(
+            onTap: () => ImageGalleryScreen.show(
+              context,
+              images: unit.allImageUrls,
+              title: unit.name,
+              initialImage: unit.coverUrl,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 180,
+              child: unit.coverUrl.isNotEmpty
+                  ? Image.network(
+                      unit.coverUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
         ),
+
         Positioned(
           bottom: -40,
           child: Container(
@@ -200,15 +232,23 @@ class _ButcherDetailView extends StatelessWidget {
               border: Border.all(color: _pageBg, width: 3),
               color: const Color(0xFF1A1A1A),
             ),
-            child: ClipOval(
-              child: unit.imageUrl.isNotEmpty
-                  ? Image.network(
-                      unit.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) =>
-                          const Icon(Icons.store, color: _white, size: 40),
-                    )
-                  : const Icon(Icons.store, color: _white, size: 40),
+            child: GestureDetector(
+              onTap: () => ImageGalleryScreen.show(
+                context,
+                images: unit.allImageUrls,
+                title: unit.name,
+                initialImage: unit.imageUrl,
+              ),
+              child: ClipOval(
+                child: unit.imageUrl.isNotEmpty
+                    ? Image.network(
+                        unit.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.store, color: _white, size: 40),
+                      )
+                    : const Icon(Icons.store, color: _white, size: 40),
+              ),
             ),
           ),
         ),

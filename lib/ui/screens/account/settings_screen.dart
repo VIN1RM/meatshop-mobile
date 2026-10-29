@@ -1,6 +1,5 @@
 import 'support_screen.dart';
-import '../../../data/repositories/personal_data_repository.dart';
-import '../../../services/personal_data_export_service.dart';
+import '../../dialogs/personal_data_export_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/services/firebase_identity_service.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
@@ -31,28 +30,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     VersionService().getAppVersion().then((v) {
       if (mounted) setState(() => _appVersion = 'v$v');
     });
-  }
-
-  bool _exporting = false;
-  Future<void> _exportData() async {
-    if (_exporting) return;
-    _exporting = true;
-    try {
-      final data = await context.read<PersonalDataRepository>().export();
-      if (mounted) await PersonalDataExportService.share(data);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Não foi possível exportar os dados. Tente novamente.',
-            ),
-          ),
-        );
-      }
-    } finally {
-      _exporting = false;
-    }
   }
 
   @override
@@ -90,6 +67,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _pageTitle(),
                         const SizedBox(height: 20),
                         _sectionLabel('NOTIFICAÇÕES'),
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          child: Text(
+                            'Escolha quais alertas push deseja receber. O histórico do aplicativo pode continuar exibindo avisos.',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 10),
                         Consumer<UserPreferencesProvider>(
                           builder: (context, prefs, _) {
@@ -123,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   icon: Icons.delivery_dining_outlined,
                                   label: 'Entrega',
                                   subtitle:
-                                      'Status do entregador em tempo real',
+                                      'Atualizações de retirada e entrega',
                                   value: prefs.notifDelivery,
                                   onChanged: (v) => _savePreference(
                                     prefs.setNotifDelivery(uid, v),
@@ -159,6 +147,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                         const SizedBox(height: 20),
 
+                        _sectionLabel('SUPORTE E DADOS'),
+                        const SizedBox(height: 10),
                         _buildCard(
                           children: [
                             _buildNavItem(
@@ -170,10 +160,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
                             ),
+                            _divider(),
                             _buildNavItem(
                               icon: Icons.download_outlined,
                               label: 'Exportar meus dados',
-                              onTap: _exportData,
+                              onTap: () =>
+                                  PersonalDataExportDialog.show(context),
                             ),
                           ],
                         ),

@@ -1,3 +1,4 @@
+import '../../core/enums/vehicle_type.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
@@ -144,15 +145,9 @@ class VehicleProvider extends ChangeNotifier {
   }
 
   String _vehicleType(String? value) {
-    final normalized = (value ?? '').toUpperCase();
-    if (normalized.contains('BIKE') || normalized.contains('BICI')) {
-      return 'BIKE';
-    }
-    if (normalized.contains('CAR')) return 'CAR';
-    if (normalized.contains('SCOOTER') || normalized.contains('PATINETE')) {
-      return 'SCOOTER';
-    }
-    return 'MOTORCYCLE';
+    final type = VehicleType.tryParse(value);
+    if (type == null) throw ArgumentError('Tipo de veículo inválido.');
+    return type.apiValue;
   }
 
   String _fileName(String url) {

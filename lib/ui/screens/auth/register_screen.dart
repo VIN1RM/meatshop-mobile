@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/vehicle_type_selector.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:meatshop_mobile/core/auth/password_policy.dart';
 import '../../widgets/legal_registration.dart';
@@ -37,19 +38,6 @@ class _RegisterPageState extends State<RegisterPage> {
   Map<String, dynamic>? _vehicleData;
 
   String? _selectedVehicle;
-  final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'SCOOTER'];
-  final Map<String, String> _vehicleLabels = {
-    'MOTORCYCLE': 'Moto',
-    'BIKE': 'Bicicleta',
-    'CAR': 'Carro',
-    'SCOOTER': 'Patinete',
-  };
-  final Map<String, IconData> _vehicleIcons = {
-    'MOTORCYCLE': Icons.two_wheeler,
-    'BIKE': Icons.directions_bike,
-    'CAR': Icons.directions_car,
-    'SCOOTER': Icons.electric_scooter,
-  };
 
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -388,81 +376,34 @@ class _RegisterPageState extends State<RegisterPage> {
                         _sectionTitle('Tipo de Veículo'),
                         SizedBox(height: sh * 0.015),
 
-                        GridView.count(
-                          crossAxisCount: 2,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 2.2,
-                          children: _vehicles.map((v) {
-                            final selected = _selectedVehicle == v;
-                            return GestureDetector(
-                              onTap: () async {
-                                final result =
-                                    await showModalBottomSheet<
-                                      Map<String, dynamic>
-                                    >(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      backgroundColor: Colors.transparent,
-                                      builder: (_) => VehicleEditModal(
-                                        vehicleType: v,
-                                        persistChanges: false,
-                                      ),
-                                    );
-                                if (result != null && mounted) {
-                                  setState(() {
-                                    _selectedVehicle =
-                                        VehicleRegistrationService.type(
-                                          '${result["type"] ?? v}',
-                                        );
-                                    _vehicleData = result;
-                                  });
-                                }
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                decoration: BoxDecoration(
-                                  color: selected
-                                      ? const Color(
-                                          0xFFC0392B,
-                                        ).withValues(alpha: 0.15)
-                                      : const Color(0xFF525252),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: selected
-                                        ? const Color(0xFFC0392B)
-                                        : Colors.transparent,
-                                    width: 1.5,
+                        VehicleTypeSelector(
+                          selectedValue: _selectedVehicle,
+                          onSelected: (value) async {
+                            final result =
+                                await showModalBottomSheet<
+                                  Map<String, dynamic>
+                                >(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (_) => VehicleEditModal(
+                                    vehicleType: value,
+                                    persistChanges: false,
+                                    initialData: _selectedVehicle == value
+                                        ? _vehicleData
+                                        : null,
                                   ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      _vehicleIcons[v],
-                                      color: selected
-                                          ? const Color(0xFFC0392B)
-                                          : Colors.white60,
-                                      size: 22,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _vehicleLabels[v]!,
-                                      style: TextStyle(
-                                        color: selected
-                                            ? const Color(0xFFC0392B)
-                                            : Colors.white60,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                                );
+                            if (result != null && mounted) {
+                              setState(() {
+                                _selectedVehicle =
+                                    VehicleRegistrationService.type(
+                                      '${result["type"] ?? value}',
+                                    );
+                                _vehicleData = result;
+                              });
+                            }
+                          },
                         ),
 
                         if (_selectedVehicle == null && _isLoading)

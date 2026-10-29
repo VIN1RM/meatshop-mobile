@@ -64,20 +64,26 @@ class LegalConsentTile extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.dark = false,
+    this.highlightRequired = false,
   });
   final bool value;
   final ValueChanged<bool>? onChanged;
   final bool dark;
+  final bool highlightRequired;
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
+  Widget build(BuildContext context) => AnimatedContainer(
+    duration: const Duration(milliseconds: 180),
     decoration: BoxDecoration(
-      color: value
+      color: highlightRequired
+          ? (value ? const Color(0xFFFFF1F2) : AppColors.white)
+          : value
           ? AppColors.redPrimary.withValues(alpha: dark ? 0.2 : 0.06)
           : Colors.transparent,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: value
+        width: highlightRequired ? 2 : 1,
+        color: highlightRequired || value
             ? AppColors.redPrimary
             : (dark ? Colors.white24 : Colors.black12),
       ),
@@ -89,16 +95,39 @@ class LegalConsentTile extends StatelessWidget {
           : (value) => onChanged!(value == true),
       activeColor: AppColors.redPrimary,
       checkColor: AppColors.white,
+      side: highlightRequired
+          ? const BorderSide(color: AppColors.redPrimary, width: 2)
+          : null,
       controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       title: Text(
         'Li e aceito os Termos de Uso e declaro ciência da Política de Privacidade.',
         style: TextStyle(
-          color: dark ? AppColors.white : AppColors.dark,
-          fontSize: 13,
+          color: highlightRequired
+              ? AppColors.dark
+              : dark
+              ? AppColors.white
+              : AppColors.dark,
+          fontSize: highlightRequired ? 14 : 13,
+          fontWeight: highlightRequired ? FontWeight.w700 : FontWeight.normal,
           height: 1.5,
         ),
       ),
+      subtitle: highlightRequired
+          ? Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                value
+                    ? 'Selecionado. Você pode continuar o cadastro.'
+                    : 'Obrigatório: toque na caixa ou neste cartão para marcar o aceite.',
+                style: const TextStyle(
+                  color: AppColors.dark,
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+            )
+          : null,
     ),
   );
 }

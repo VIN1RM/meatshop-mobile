@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/core/enums/vehicle_type.dart';
+import 'package:meatshop_mobile/ui/widgets/vehicle_type_selector.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:meatshop_mobile/services/vehicle_registration_service.dart';
 import 'package:flutter/material.dart';
@@ -51,20 +53,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   late final bool _addressWasMissing;
   late final bool _vehicleWasMissing;
 
-  final List<String> _vehicles = ['MOTORCYCLE', 'BIKE', 'CAR', 'SCOOTER'];
-  final Map<String, String> _vehicleLabels = {
-    'MOTORCYCLE': 'Moto',
-    'BIKE': 'Bicicleta',
-    'CAR': 'Carro',
-    'SCOOTER': 'Patinete',
-  };
-  final Map<String, IconData> _vehicleIcons = {
-    'MOTORCYCLE': Icons.two_wheeler,
-    'BIKE': Icons.directions_bike,
-    'CAR': Icons.directions_car,
-    'SCOOTER': Icons.electric_scooter,
-  };
-
   @override
   void initState() {
     super.initState();
@@ -91,15 +79,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     }
   }
 
-  String? _normalizeVehicleType(Object? value) {
-    return switch (value?.toString().toUpperCase()) {
-      'MOTO' || 'MOTORCYCLE' => 'MOTORCYCLE',
-      'BICICLETA' || 'BIKE' => 'BIKE',
-      'CARRO' || 'CAR' => 'CAR',
-      'PATINETE' || 'SCOOTER' => 'SCOOTER',
-      _ => null,
-    };
-  }
+  String? _normalizeVehicleType(Object? value) =>
+      VehicleType.tryParse(value)?.apiValue;
 
   String _applyMask(TextInputFormatter formatter, String rawValue) {
     if (rawValue.isEmpty) return rawValue;
@@ -538,70 +519,28 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   }
 
   Widget _buildVehicleSelection() {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 10,
-      childAspectRatio: 2,
-      children: _vehicles.map((v) {
-        final selected = _selectedVehicle == v;
-        return GestureDetector(
-          onTap: () async {
-            final result = await showModalBottomSheet<Map<String, dynamic>>(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => VehicleEditModal(
-                vehicleType: v,
-                persistChanges: false,
-                initialData: _vehicleData,
-              ),
-            );
-            if (result != null && mounted) {
-              setState(() {
-                _selectedVehicle = VehicleRegistrationService.type(
-                  '${result["type"] ?? v}',
-                );
-                _vehicleData = result;
-              });
-            }
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            decoration: BoxDecoration(
-              color: selected
-                  ? const Color(0xFFC0392B).withValues(alpha: 0.15)
-                  : const Color(0xFF525252),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: selected ? const Color(0xFFC0392B) : Colors.transparent,
-                width: 1.5,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _vehicleIcons[v],
-                  color: selected ? const Color(0xFFC0392B) : Colors.white60,
-                  size: 20,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  _vehicleLabels[v]!,
-                  style: TextStyle(
-                    color: selected ? const Color(0xFFC0392B) : Colors.white60,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
+    return VehicleTypeSelector(
+      selectedValue: _selectedVehicle,
+      onSelected: (value) async {
+        final result = await showModalBottomSheet<Map<String, dynamic>>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => VehicleEditModal(
+            vehicleType: value,
+            persistChanges: false,
+            initialData: _selectedVehicle == value ? _vehicleData : null,
           ),
         );
-      }).toList(),
+        if (result != null && mounted) {
+          setState(() {
+            _selectedVehicle = VehicleRegistrationService.type(
+              '${result["type"] ?? value}',
+            );
+            _vehicleData = result;
+          });
+        }
+      },
     );
   }
 
