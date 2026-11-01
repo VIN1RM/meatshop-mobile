@@ -91,29 +91,15 @@ void main() {
     },
   );
   test(
-    'exports only the current account without accepting a user identifier',
+    'loads retention policy without opening administrative exports',
     () async {
       final repo = HttpPersonalDataRepository(
         _client((request) async {
-          expect(request.url.path, '/users/me/export');
-          expect(request.url.query, isEmpty);
-          return http.Response(
-            jsonEncode({
-              'version': 1,
-              'data': {
-                'profile': [
-                  {'email': 'own@example.invalid'},
-                ],
-              },
-            }),
-            200,
-          );
+          expect(request.url.path, '/users/me/retention-policy');
+          return http.Response(jsonEncode({'version': 1}), 200);
         }),
       );
-      expect(
-        jsonDecode(await repo.export())['data']['profile'][0]['email'],
-        'own@example.invalid',
-      );
+      expect(await repo.retentionPolicy(), {'version': 1});
     },
   );
 }

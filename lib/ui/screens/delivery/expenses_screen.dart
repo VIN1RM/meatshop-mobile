@@ -1,3 +1,5 @@
+import '../../../models/delivery_export_model.dart';
+import '../../widgets/delivery_export_button.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -102,7 +104,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppColors.background,
-    appBar: AppBar(title: const Text('Minhas despesas')),
+    appBar: AppBar(
+      title: const Text('Minhas despesas'),
+      actions: [
+        DeliveryExportButton(
+          report: DeliveryReportType.expenses,
+          from: DateTime(_month.year, _month.month, 1),
+          to: DateTime(_month.year, _month.month + 1, 0),
+          label: 'Exportar',
+        ),
+      ],
+    ),
     floatingActionButton: FloatingActionButton(
       onPressed: _loading ? null : () => _edit(),
       tooltip: 'Nova despesa',

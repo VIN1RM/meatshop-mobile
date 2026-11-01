@@ -1,37 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meatshop_mobile/ui/dialogs/delivery_code_dialog.dart';
-import 'package:meatshop_mobile/ui/dialogs/personal_data_export_dialog.dart';
+import 'package:meatshop_mobile/ui/dialogs/delivery_export/delivery_export_dialog.dart';
+import 'package:meatshop_mobile/models/delivery_export_model.dart';
+import '../helpers/delivery_export_fakes.dart';
 import 'package:meatshop_mobile/ui/screens/account/image_gallery_screen.dart';
 
 void main() {
-  testWidgets(
-    'export formats are informational and do not require a repository',
-    (tester) async {
-      tester.view.physicalSize = const Size(320, 640);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: PersonalDataExportDialog())),
-      );
-      expect(find.text('JSON'), findsOneWidget);
-      expect(find.text('Excel'), findsOneWidget);
-      expect(find.text('PDF'), findsOneWidget);
-      expect(
-        find.textContaining('ainda não estão disponíveis'),
-        findsOneWidget,
-      );
-      expect(
-        find
-            .byType(ListTile)
-            .evaluate()
-            .every((element) => (element.widget as ListTile).onTap == null),
-        isTrue,
-      );
-      expect(tester.takeException(), isNull);
-    },
-  );
+  testWidgets('personal exports fit a narrow viewport with working formats', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: DeliveryExportDialog(
+            repository: FakeDeliveryExportRepository(),
+            isAllowed: () => true,
+            report: DeliveryReportType.personal,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Excel (.xlsx)'), findsOneWidget);
+    expect(find.textContaining('JSON'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets(
     'delivery confirmation validates the code before dismissing the branded dialog',
     (tester) async {

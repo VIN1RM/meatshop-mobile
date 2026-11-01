@@ -31,6 +31,7 @@ final class JsonHttpTransport {
 
   Future<Object?> send({
     required String method,
+    bool binary = false,
     required String path,
     Map<String, Object?> query = const {},
     Map<String, String> headers = const {},
@@ -42,6 +43,7 @@ final class JsonHttpTransport {
     final uri = _config.resolve(path, query);
     final encodedBody = body == null ? null : utf8.encode(jsonEncode(body));
     return _execute(
+      binary: binary,
       cancellationToken: cancellationToken,
       timeout: timeout,
       buildRequest: (abortTrigger) {
@@ -52,7 +54,9 @@ final class JsonHttpTransport {
                 abortTrigger: abortTrigger,
               )
               ..headers.addAll({
-                'accept': 'application/json',
+                'accept': binary
+                    ? 'application/pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    : 'application/json',
                 if (body != null)
                   'content-type': 'application/json; charset=utf-8',
                 ...dynamicHeaders,
@@ -103,6 +107,7 @@ final class JsonHttpTransport {
   }
 
   Future<Object?> _execute({
+    bool binary = false,
     required http.AbortableRequest Function(Future<void>) buildRequest,
     CancellationToken? cancellationToken,
     Duration? timeout,
@@ -121,11 +126,14 @@ final class JsonHttpTransport {
     try {
       final streamedResponse = await _client.send(buildRequest(abort.future));
       final response = await http.Response.fromStream(streamedResponse);
-      final payload = _decodeBody(response);
+      final success = response.statusCode >= 200 && response.statusCode < 300;
+      final payload = success && binary
+          ? response.bodyBytes
+          : _decodeBody(response);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw _failureFromResponse(response, payload);
       }
-      return ApiAssetResolver(_config).resolve(payload);
+      return binary ? payload : ApiAssetResolver(_config).resolve(payload);
     } on http.RequestAbortedException catch (_) {
       throw _abortedFailure(timedOut);
     } on http.ClientException catch (_) {

@@ -1,3 +1,5 @@
+import '../data/repositories/delivery_export_repository.dart';
+import 'repositories/http_delivery_export_repository.dart';
 import '../data/repositories/support_repository.dart';
 import '../data/repositories/personal_data_repository.dart';
 import '../data/repositories/delivery_expense_repository.dart';
@@ -66,6 +68,7 @@ final class ApiFoundation {
     required this.support,
     required this.personalData,
     required this.deliveryExpenses,
+    required this.deliveryExports,
   }) : _transport = transport;
 
   factory ApiFoundation.fromEnvironment() {
@@ -113,6 +116,7 @@ final class ApiFoundation {
       support: HttpSupportRepository(client),
       personalData: HttpPersonalDataRepository(client),
       deliveryExpenses: HttpDeliveryExpenseRepository(client),
+      deliveryExports: HttpDeliveryExportRepository(client),
       aiAssistant: HttpAiAssistantRepository(client, secureStorage),
     );
   }
@@ -138,6 +142,7 @@ final class ApiFoundation {
   final SupportRepository support;
   final PersonalDataRepository personalData;
   final DeliveryExpenseRepository deliveryExpenses;
+  final DeliveryExportRepository deliveryExports;
 
   Future<void> initialize() => session.initialize();
 
