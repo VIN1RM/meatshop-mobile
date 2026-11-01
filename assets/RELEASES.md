@@ -17,6 +17,8 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 - As exportações ficam disponíveis apenas no perfil de entregador.
 
 ### Melhorias
+- Nomes dos arquivos exportados em português.
+- Tela Minhas despesas com o mesmo visual das demais telas de conta.
 - Mensagens claras quando não for possível gerar ou compartilhar o arquivo.
 - Proteção para não compartilhar dados de outra conta ao trocar de perfil ou sair.
 

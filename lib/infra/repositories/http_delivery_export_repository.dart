@@ -38,7 +38,7 @@ class HttpDeliveryExportRepository implements DeliveryExportRepository {
     return DeliveryExportFile(
       bytes: bytes,
       fileName:
-          'meatshop-entregador-${request.report.name}.${request.format.name}',
+          'meatshop-entregador-${request.report.fileLabel}.${request.format.name}',
       mimeType: pdf
           ? 'application/pdf'
           : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

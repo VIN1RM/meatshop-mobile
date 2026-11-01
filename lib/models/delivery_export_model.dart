@@ -13,6 +13,16 @@ enum DeliveryReportType {
 enum DeliveryExportFormat { xlsx, pdf }
 
 extension DeliveryReportLabels on DeliveryReportType {
+  String get fileLabel => switch (this) {
+    DeliveryReportType.earnings => 'ganhos',
+    DeliveryReportType.history => 'historico-de-entregas',
+    DeliveryReportType.expenses => 'despesas',
+    DeliveryReportType.financial => 'demonstrativo-financeiro',
+    DeliveryReportType.settlements => 'acertos-recebidos',
+    DeliveryReportType.personal => 'dados-pessoais',
+    DeliveryReportType.support => 'atendimentos',
+  };
+
   String get label => switch (this) {
     DeliveryReportType.earnings => 'Meus ganhos',
     DeliveryReportType.history => 'Histórico de entregas',

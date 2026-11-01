@@ -42,7 +42,7 @@ void main() {
         fixture.client,
       ).export(request);
       expect(utf8.decode(file.bytes), '%PDF-test');
-      expect(file.fileName, endsWith('.pdf'));
+      expect(file.fileName, 'meatshop-entregador-ganhos.pdf');
     },
   );
   test(
@@ -64,7 +64,7 @@ void main() {
           format: DeliveryExportFormat.xlsx,
         ),
       );
-      expect(file.fileName, endsWith('.xlsx'));
+      expect(file.fileName, 'meatshop-entregador-dados-pessoais.xlsx');
       expect(fixture.refresher.calls, 1);
       expect(calls, 2);
     },

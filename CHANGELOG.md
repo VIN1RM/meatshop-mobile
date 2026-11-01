@@ -9,6 +9,9 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ## [3.5.0] - 2026-11-01 - Exportações pessoais do entregador
 
+- Nomes de arquivos exportados em português brasileiro.
+- Minhas despesas e formulário alinhados ao padrão visual de conta, com cabeçalho, cartões, botões e confirmação de exclusão reutilizáveis.
+
 - Excel e PDF de ganhos, histórico de entregas, despesas, demonstrativo financeiro, acertos recebidos, dados pessoais e atendimentos.
 - Acesso pessoal do entregador separado dos relatórios administrativos, sem seleção de unidade.
 - Arquivos e cálculos gerados no backend; compartilhamento pelo sistema do aparelho.
