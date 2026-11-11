@@ -59,11 +59,7 @@ class DeliveryExportRequest {
       'from': exportDate(from!),
       'to': exportDate(to!),
     },
-    if ([
-      DeliveryReportType.earnings,
-      DeliveryReportType.history,
-    ].contains(report))
-      'payment': payment,
+    if (report == DeliveryReportType.earnings) 'payment': payment,
     if (report == DeliveryReportType.expenses &&
         category != null &&
         category!.isNotEmpty)

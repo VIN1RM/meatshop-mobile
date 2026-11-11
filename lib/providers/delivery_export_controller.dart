@@ -61,11 +61,17 @@ class DeliveryExportController extends ChangeNotifier {
       cancellationToken: cancellation,
     );
     if (!_current(cancellation, account)) return;
-    final shared = await shareFile(file, origin);
+    final outcome = await shareFile(file, origin);
     if (_current(cancellation, account)) {
-      status = shared
-          ? 'Arquivo preparado. Compartilhamento solicitado.'
-          : 'Compartilhamento cancelado. Você pode tentar novamente.';
+      switch (outcome) {
+        case DeliveryShareOutcome.success:
+          status = 'Arquivo preparado e enviado para compartilhamento.';
+        case DeliveryShareOutcome.dismissed:
+          status = 'Compartilhamento cancelado. Você pode tentar novamente.';
+        case DeliveryShareOutcome.unavailable:
+          error =
+              'O compartilhamento não está disponível neste dispositivo. Tente novamente após instalar ou habilitar um aplicativo compatível.';
+      }
     }
   }
 

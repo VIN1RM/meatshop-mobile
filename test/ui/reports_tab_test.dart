@@ -3,10 +3,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/delivery_export_model.dart';
 import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/services/report_export_service.dart';
 import 'package:meatshop_mobile/ui/dialogs/delivery_export/delivery_export_dialog.dart';
 import '../helpers/delivery_export_fakes.dart';
 
 void main() {
+  test('history does not send the earnings payment filter', () {
+    final query = DeliveryExportRequest(
+      report: DeliveryReportType.history,
+      format: DeliveryExportFormat.xlsx,
+      from: DateTime(2026, 11, 1),
+      to: DateTime(2026, 11, 30),
+      payment: 'received',
+    ).toQuery();
+    expect(query, isNot(contains('payment')));
+  });
+
   testWidgets('offers only Excel/PDF without user or unit selection', (
     tester,
   ) async {
@@ -63,7 +75,7 @@ void main() {
               repository: repo,
               isAllowed: () => true,
               report: DeliveryReportType.personal,
-              shareFile: (_, _) async => true,
+              shareFile: (_, _) async => DeliveryShareOutcome.success,
             ),
           ),
         ),

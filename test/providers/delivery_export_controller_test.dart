@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/models/delivery_export_model.dart';
 import 'package:meatshop_mobile/providers/delivery_export_controller.dart';
+import 'package:meatshop_mobile/services/report_export_service.dart';
 import '../helpers/delivery_export_fakes.dart';
 
 void main() {
@@ -22,7 +23,7 @@ void main() {
       isAllowed: () => true,
       shareFile: (_, _) async {
         shares++;
-        return true;
+        return DeliveryShareOutcome.success;
       },
     );
     final running = controller.export(request, origin);
@@ -45,7 +46,7 @@ void main() {
         isAllowed: () => allowed,
         shareFile: (_, _) async {
           shares++;
-          return true;
+          return DeliveryShareOutcome.success;
         },
       );
       final running = controller.export(request, origin);
@@ -70,7 +71,7 @@ void main() {
         isAllowed: () => true,
         shareFile: (_, _) async {
           shares++;
-          return true;
+          return DeliveryShareOutcome.success;
         },
       );
       final running = controller.export(request, origin);
@@ -91,7 +92,7 @@ void main() {
         isAllowed: () => true,
         shareFile: (_, _) async {
           if (fail) throw Exception('/private/device/file.pdf');
-          return true;
+          return DeliveryShareOutcome.success;
         },
       );
       await controller.export(request, origin);
@@ -100,10 +101,28 @@ void main() {
       fail = false;
       await controller.export(request, origin);
       expect(controller.error, isNull);
-      expect(controller.status, contains('Compartilhamento solicitado'));
+      expect(controller.status, contains('enviado para compartilhamento'));
       controller.dispose();
     },
   );
+  test('distinguishes cancelled and unavailable native sharing', () async {
+    final repo = FakeDeliveryExportRepository();
+    var outcome = DeliveryShareOutcome.dismissed;
+    final controller = DeliveryExportController(
+      repository: repo,
+      isAllowed: () => true,
+      shareFile: (_, _) async => outcome,
+    );
+    await controller.export(request, origin);
+    expect(controller.status, contains('cancelado'));
+    expect(controller.error, isNull);
+
+    outcome = DeliveryShareOutcome.unavailable;
+    await controller.export(request, origin);
+    expect(controller.status, isNull);
+    expect(controller.error, contains('não está disponível'));
+    controller.dispose();
+  });
   test(
     'preserves friendly API messages and validates reversed dates before sending',
     () async {

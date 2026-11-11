@@ -47,7 +47,7 @@ class DeliveryExportFilters extends StatelessWidget {
   }
 
   (String, Map<String, String>) _options() => switch (report) {
-    DeliveryReportType.earnings || DeliveryReportType.history => (
+    DeliveryReportType.earnings => (
       'Recebimentos',
       {
         'all': 'Todos',
