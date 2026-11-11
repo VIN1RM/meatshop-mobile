@@ -41,6 +41,7 @@ class DeliveryExportDialog extends StatefulWidget {
     final user = auth.backendUserId;
     return showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (_) => DeliveryExportDialog(
         repository: context.read<DeliveryExportRepository>(),
         report: report,
@@ -93,11 +94,15 @@ class _DeliveryExportDialogState extends State<DeliveryExportDialog> {
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _controller,
-    builder: (context, _) => AppDialog(
-      title: 'Exportar relatório pessoal',
-      icon: Icons.download_outlined,
-      description: 'Exporte e compartilhe seus dados pessoais de entregador.',
-      content: _content(),
+    builder: (context, _) => PopScope(
+      canPop: !_controller.busy,
+      child: AppDialog(
+        title: 'Exportar relatório pessoal',
+        icon: Icons.download_outlined,
+        description: 'Exporte e compartilhe seus dados pessoais de entregador.',
+        canClose: !_controller.busy,
+        content: _content(),
+      ),
     ),
   );
 
@@ -147,27 +152,79 @@ class _DeliveryExportDialogState extends State<DeliveryExportDialog> {
 
   List<Widget> _help() => [
     if (_report == DeliveryReportType.personal)
-      const Padding(
-        padding: EdgeInsets.only(bottom: 16),
-        child: Text(
-          'Inclui os dados pessoais completos da sua conta. Não usa filtro de período.',
-        ),
+      _helpNotice(
+        'Inclui os dados pessoais completos da sua conta. Não usa filtro de período.',
       ),
     if (_report == DeliveryReportType.financial)
-      const Padding(
-        padding: EdgeInsets.only(bottom: 16),
-        child: Text(
-          'Ganhos usam a conclusão da entrega. Recebimentos usam a data do acerto. Resultado de caixa é o recebido menos as despesas do período.',
-        ),
+      _helpNotice(
+        'Ganhos usam a conclusão da entrega. Recebimentos usam a data do acerto. Resultado de caixa é o recebido menos as despesas do período.',
       ),
   ];
 
-  Widget _message(String message, bool error) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Text(
-      message,
-      style: TextStyle(color: error ? AppColors.redPrimary : Colors.black87),
-      semanticsLabel: message,
+  Widget _helpNotice(String message) => Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF8E9E7),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: 1),
+          child: Icon(
+            Icons.info_outline,
+            size: 18,
+            color: AppColors.redPrimary,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            message,
+            style: const TextStyle(color: AppColors.dark, height: 1.4),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _message(String message, bool error) => Semantics(
+    liveRegion: true,
+    container: true,
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: error ? const Color(0xFFFFEBEE) : const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: error ? const Color(0xFFFFCDD2) : const Color(0xFFC8E6C9),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            error ? Icons.error_outline : Icons.check_circle_outline,
+            size: 20,
+            color: error ? AppColors.redPrimary : const Color(0xFF2E7D32),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: error
+                    ? const Color(0xFFB71C1C)
+                    : const Color(0xFF1B5E20),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     ),
   );
 

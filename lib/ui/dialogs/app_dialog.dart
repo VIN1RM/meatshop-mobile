@@ -10,12 +10,14 @@ class AppDialog extends StatelessWidget {
     required this.content,
     this.description,
     this.actions = const [],
+    this.canClose = true,
   });
   final String title;
   final IconData icon;
   final String? description;
   final Widget content;
   final List<Widget> actions;
+  final bool canClose;
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -55,8 +57,11 @@ class AppDialog extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: 'Fechar',
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close, color: AppColors.dark),
+                    onPressed: canClose ? () => Navigator.pop(context) : null,
+                    icon: Icon(
+                      Icons.close,
+                      color: canClose ? AppColors.dark : Colors.black26,
+                    ),
                   ),
                 ],
               ),
