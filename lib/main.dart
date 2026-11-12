@@ -1,3 +1,4 @@
+import 'data/repositories/delivery_export_repository.dart';
 import 'data/repositories/support_repository.dart';
 import 'data/repositories/personal_data_repository.dart';
 import 'data/repositories/delivery_expense_repository.dart';
@@ -104,6 +105,9 @@ class _MeatShopAppState extends State<MeatShopApp> {
     return MultiProvider(
       providers: [
         if (apiFoundation != null) ...[
+          Provider<DeliveryExportRepository>.value(
+            value: apiFoundation!.deliveryExports,
+          ),
           Provider<SupportRepository>.value(value: apiFoundation!.support),
           Provider<PersonalDataRepository>.value(
             value: apiFoundation!.personalData,

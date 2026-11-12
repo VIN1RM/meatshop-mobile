@@ -160,13 +160,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
                             ),
-                            _divider(),
-                            _buildNavItem(
-                              icon: Icons.download_outlined,
-                              label: 'Exportar meus dados',
-                              onTap: () =>
-                                  PersonalDataExportDialog.show(context),
-                            ),
+                            if (context.watch<AuthProvider>().isDelivery) ...[
+                              _divider(),
+                              _buildNavItem(
+                                icon: Icons.download_outlined,
+                                label: 'Exportar meus dados',
+                                onTap: () =>
+                                    PersonalDataExportDialog.show(context),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 20),

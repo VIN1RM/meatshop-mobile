@@ -47,6 +47,27 @@ final class ApiClient {
     cancellationToken: cancellationToken,
   );
 
+  Future<Uint8List> download(
+    String path, {
+    Map<String, Object?> query = const {},
+    CancellationToken? cancellationToken,
+  }) => _request(
+    method: 'GET',
+    path: path,
+    query: query,
+    authenticated: true,
+    binary: true,
+    cancellationToken: cancellationToken,
+    timeout: const Duration(seconds: 90),
+    decode: (value) => value is Uint8List
+        ? value
+        : throw const ApiFailure(
+            kind: ApiFailureKind.malformedResponse,
+            message: 'O servidor retornou um arquivo inválido.',
+            code: 'MALFORMED_EXPORT',
+          ),
+  );
+
   Future<T> post<T>(
     String path, {
     required T Function(Object? json) decode,
@@ -152,6 +173,7 @@ final class ApiClient {
   }
 
   Future<T> _request<T>({
+    bool binary = false,
     required String method,
     required String path,
     required T Function(Object? json) decode,
@@ -166,6 +188,7 @@ final class ApiClient {
     final generation = _session.generation;
     try {
       final response = await _send(
+        binary: binary,
         method: method,
         path: path,
         query: query,
@@ -190,6 +213,7 @@ final class ApiClient {
       await _session.refresh();
       _requireGeneration(generation);
       final response = await _send(
+        binary: binary,
         method: method,
         path: path,
         query: query,
@@ -239,6 +263,7 @@ final class ApiClient {
   }
 
   Future<Object?> _send({
+    bool binary = false,
     required String method,
     required String path,
     required bool authenticated,
@@ -257,6 +282,7 @@ final class ApiClient {
       );
     }
     return _transport.send(
+      binary: binary,
       method: method,
       path: path,
       query: query,

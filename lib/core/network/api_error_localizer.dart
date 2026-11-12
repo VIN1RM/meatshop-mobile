@@ -1,5 +1,16 @@
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
+    'EXPORT_TOO_LARGE':
+        'Este relatório tem muitos registros. Reduza o período e tente novamente.',
+    'EXPORT_INVALID_PERIOD':
+        'Informe um período válido, com a data inicial antes da data final.',
+    'EXPORT_INVALID_FILTERS':
+        'Confira os filtros disponíveis para este relatório.',
+    'DELIVERY_EXPORT_FORBIDDEN':
+        'Esta exportação está disponível apenas para a conta do entregador.',
+    'EXPORT_FAILED':
+        'Não foi possível preparar o arquivo. Tente novamente em instantes.',
+    'MALFORMED_EXPORT': 'O arquivo recebido está inválido. Tente novamente.',
     'DELIVERY_LOCATION_REQUIRED':
         'Confirme o ponto do endereço e da unidade no mapa para solicitar entrega.',
     'DELIVERY_LOCATION_CONFIRMATION_REQUIRED':
