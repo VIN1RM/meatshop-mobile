@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/review_model.dart';
 import 'package:meatshop_mobile/services/review_service.dart';
@@ -130,9 +131,9 @@ class _ProductReviewsScreenState extends State<ProductReviewsScreen> {
 
     if (_reviews.isEmpty) {
       return const Center(
-        child: Text(
-          'Nenhuma avaliação ainda.',
-          style: TextStyle(color: Colors.white38, fontSize: 15),
+        child: AppEmptyState(
+          title: 'Nenhuma avaliação ainda.',
+          icon: Icons.star_outline_rounded,
         ),
       );
     }

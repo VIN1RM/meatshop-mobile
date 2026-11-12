@@ -175,7 +175,7 @@ void main() {
       await tester.tap(find.text('Excluir despesa').last);
       await tester.pumpAndSettle();
       expect(repository.removes, 1);
-      expect(find.text('Nenhuma despesa neste mês.'), findsOneWidget);
+      expect(find.text('Nenhuma despesa neste mês'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

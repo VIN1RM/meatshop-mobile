@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:provider/provider.dart';
@@ -304,41 +305,18 @@ class _CutsViewState extends State<_CutsView> {
   }
 
   Widget _buildEmptyState(ProductsProvider provider, bool filterActive) {
-    final isPriceFiltered = provider.priceRange != ProductPriceRange.all;
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.search_off_rounded, color: Colors.white24, size: 48),
-          const SizedBox(height: 12),
-          Text(
-            isPriceFiltered
-                ? 'Nenhum corte nessa faixa de preço.'
-                : 'Nenhum corte encontrado.',
-            style: const TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-          if (filterActive) ...[
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => provider.updateFilters(
-                order: ProductSortOrder.nameAZ,
-                range: ProductPriceRange.all,
-              ),
-              child: const Text(
-                'Limpar filtros',
-                style: TextStyle(
-                  color: Color(0xFFC0392B),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                  decorationColor: Color(0xFFC0392B),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
+    return AppEmptyState(
+      title: 'Nenhum corte encontrado',
+      icon: Icons.search_off_rounded,
+      description:
+          'Experimente outra busca ou amplie os filtros para encontrar mais produtos.',
+      actionLabel: filterActive ? 'Limpar filtros' : null,
+      onAction: filterActive
+          ? () => provider.updateFilters(
+              order: ProductSortOrder.nameAZ,
+              range: ProductPriceRange.all,
+            )
+          : null,
     );
   }
 

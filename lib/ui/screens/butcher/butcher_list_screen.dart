@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../core/utils/unit_price_order.dart';
 import 'package:flutter/material.dart';
 import '../../components/maps/unit_location_selector.dart';
@@ -269,9 +270,9 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
                             }
                             if (provider.units.isEmpty) {
                               return const Center(
-                                child: Text(
-                                  'Nenhum açougue disponível.',
-                                  style: TextStyle(color: Colors.white38),
+                                child: AppEmptyState(
+                                  title: 'Nenhum açougue disponível.',
+                                  icon: Icons.storefront_outlined,
                                 ),
                               );
                             }
@@ -280,46 +281,21 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
                               provider,
                             );
                             if (filteredUnits.isEmpty) {
-                              return Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.search_off_rounded,
-                                      color: Colors.white24,
-                                      size: 48,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      _filter.openNowOnly
-                                          ? 'Nenhum açougue aberto agora.'
-                                          : 'Nenhum resultado encontrado.',
-                                      style: const TextStyle(
-                                        color: Colors.white38,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    if (_filterActive) ...[
-                                      const SizedBox(height: 8),
-                                      GestureDetector(
-                                        onTap: () => setState(
-                                          () => _filter = const ButcherFilter(),
-                                        ),
-                                        child: const Text(
-                                          'Limpar filtros',
-                                          style: TextStyle(
-                                            color: Color(0xFFC0392B),
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            decoration:
-                                                TextDecoration.underline,
-                                            decorationColor: Color(0xFFC0392B),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
+                              return AppEmptyState(
+                                title: _filter.openNowOnly
+                                    ? 'Nenhum açougue aberto agora'
+                                    : 'Nenhum resultado encontrado',
+                                description:
+                                    'Altere os filtros ou a região de busca para encontrar outras unidades.',
+                                icon: Icons.storefront_outlined,
+                                actionLabel: _filterActive
+                                    ? 'Limpar filtros'
+                                    : null,
+                                onAction: _filterActive
+                                    ? () => setState(
+                                        () => _filter = const ButcherFilter(),
+                                      )
+                                    : null,
                               );
                             }
                             return ListView.builder(

@@ -1,3 +1,5 @@
+import 'support_ticket_screen.dart';
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../widgets/account_page.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +58,8 @@ class _SupportScreenState extends State<SupportScreen> {
   @override
   Widget build(BuildContext context) => AccountPage(
     title: 'Meus chamados',
+    surfaceColor: Colors.transparent,
+    dark: true,
     description: 'Acompanhe suas solicitações e converse com nossa equipe.',
     action: Tooltip(
       message: 'Novo chamado',
@@ -68,36 +72,36 @@ class _SupportScreenState extends State<SupportScreen> {
     body: _loading
         ? const Center(child: CircularProgressIndicator())
         : _error != null
-        ? Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(_error!),
-                TextButton(
-                  onPressed: _load,
-                  child: const Text('Tentar novamente'),
-                ),
-              ],
-            ),
+        ? AppEmptyState(
+            title: 'Não foi possível carregar os chamados',
+            description: _error,
+            icon: Icons.wifi_off_outlined,
+            actionLabel: 'Tentar novamente',
+            onAction: _load,
           )
         : RefreshIndicator(
             onRefresh: _load,
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
               children: [
                 if (_tickets.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('Nenhum chamado encontrado.'),
+                  AppEmptyState(
+                    title: 'Você ainda não tem chamados',
+                    description:
+                        'Precisa de ajuda com um pedido ou com o aplicativo? Fale com nossa equipe.',
+                    icon: Icons.support_agent,
+                    actionLabel: 'Abrir um chamado',
+                    onAction: _create,
                   ),
                 for (final ticket in _tickets)
                   Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     elevation: 0,
-                    color: Colors.white,
+                    color: const Color(0xFF383838),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
-                      side: const BorderSide(color: Color(0xFFE0E0E0)),
+                      side: const BorderSide(color: Color(0xFF484848)),
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
@@ -105,7 +109,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         vertical: 10,
                       ),
                       leading: const CircleAvatar(
-                        backgroundColor: Color(0xFFF8E9E7),
+                        backgroundColor: Color(0xFF492F2C),
                         child: Icon(
                           Icons.support_agent,
                           color: AppColors.redPrimary,
@@ -119,38 +123,39 @@ class _SupportScreenState extends State<SupportScreen> {
                       onTap: () async {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => _TicketScreen(id: ticket.id),
+                            builder: (_) => SupportTicketScreen(id: ticket.id),
                           ),
                         );
                         if (mounted) await _load();
                       },
                     ),
                   ),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: _page > 1
-                          ? () {
-                              _page--;
-                              _load();
-                            }
-                          : null,
-                      child: const Text('Anterior'),
-                    ),
-                    Text('$_page'),
-                    TextButton(
-                      onPressed: _tickets.length == 30
-                          ? () {
-                              _page++;
-                              _load();
-                            }
-                          : null,
-                      child: const Text('Próxima'),
-                    ),
-                  ],
-                ),
+                if (_tickets.isNotEmpty || _page > 1)
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: _page > 1
+                            ? () {
+                                _page--;
+                                _load();
+                              }
+                            : null,
+                        child: const Text('Anterior'),
+                      ),
+                      Text('$_page'),
+                      TextButton(
+                        onPressed: _tickets.length == 30
+                            ? () {
+                                _page++;
+                                _load();
+                              }
+                            : null,
+                        child: const Text('Próxima'),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -219,6 +224,8 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
   @override
   Widget build(BuildContext context) => AccountPage(
     title: 'Novo chamado',
+    surfaceColor: Colors.transparent,
+    dark: true,
     action: PrimaryButton(
       label: 'Enviar chamado',
       onPressed: _save,
@@ -234,6 +241,7 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
           DropdownButtonFormField<String>(
             isExpanded: true,
             initialValue: _category,
+            dropdownColor: const Color(0xFF383838),
             decoration: const InputDecoration(labelText: 'Categoria'),
             items: const [
               DropdownMenuItem(
@@ -252,7 +260,11 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             controller: _subject,
             enabled: !_saving,
             maxLength: 150,
-            decoration: const InputDecoration(labelText: 'Assunto'),
+            decoration: const InputDecoration(
+              labelText: 'Assunto',
+              hintText: 'Ex.: Preciso de ajuda com meu pedido',
+              prefixIcon: Icon(Icons.subject_outlined),
+            ),
             validator: (v) => FieldValidations.text(
               v,
               requiredMessage: 'Informe o assunto',
@@ -264,7 +276,11 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             controller: _contact,
             enabled: !_saving,
             maxLength: 150,
-            decoration: const InputDecoration(labelText: 'Contato (opcional)'),
+            decoration: const InputDecoration(
+              labelText: 'Contato (opcional)',
+              hintText: 'Ex.: seu e-mail ou telefone',
+              prefixIcon: Icon(Icons.contact_mail_outlined),
+            ),
             validator: (value) => FieldValidations.text(
               value,
               maximumLength: 150,
@@ -278,7 +294,12 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             maxLength: 2000,
             minLines: 4,
             maxLines: 10,
-            decoration: const InputDecoration(labelText: 'Descreva o problema'),
+            decoration: const InputDecoration(
+              labelText: 'Descreva o problema',
+              hintText:
+                  'Informe o pedido, o que aconteceu e como podemos ajudar.',
+              alignLabelWithHint: true,
+            ),
             validator: (v) => FieldValidations.text(
               v,
               requiredMessage: 'Descreva o problema',
@@ -289,166 +310,4 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
       ),
     ),
   );
-}
-
-class _TicketScreen extends StatefulWidget {
-  const _TicketScreen({required this.id});
-  final int id;
-  @override
-  State<_TicketScreen> createState() => _TicketScreenState();
-}
-
-class _TicketScreenState extends State<_TicketScreen> {
-  SupportTicketModel? _ticket;
-  final _message = TextEditingController();
-  String? _error;
-  bool _busy = false;
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  @override
-  void dispose() {
-    _message.dispose();
-    super.dispose();
-  }
-
-  Future<void> _load() async {
-    try {
-      final value = await context.read<SupportRepository>().get(widget.id);
-      if (mounted) {
-        setState(() {
-          _ticket = value;
-          _error = null;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _error = 'Não foi possível carregar a conversa.');
-      }
-    }
-  }
-
-  Future<void> _act(
-    Future<void> Function() action, {
-    bool clear = false,
-  }) async {
-    if (_busy) return;
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      await action();
-      if (mounted) {
-        if (clear) _message.clear();
-        await _load();
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _error = 'Não foi possível concluir. Tente novamente.');
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final repo = context.read<SupportRepository>();
-    final ticket = _ticket;
-    return AccountPage(
-      title: 'Chamado #${widget.id}',
-      description: 'Veja as mensagens e acompanhe a resposta da equipe.',
-      body: ticket == null && _error == null
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                if (_error != null) ...[
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                  TextButton(
-                    onPressed: _busy ? null : _load,
-                    child: const Text('Atualizar'),
-                  ),
-                ],
-                if (ticket != null) ...[
-                  Text(
-                    ticket.subject,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  Text(_status(ticket.status)),
-                  if (ticket.contact?.isNotEmpty == true)
-                    Text('Contato: ${ticket.contact}'),
-                  for (final message in ticket.messages)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              message.text.isEmpty
-                                  ? 'Anexo enviado'
-                                  : message.text,
-                            ),
-                            Text(
-                              MaterialLocalizations.of(
-                                context,
-                              ).formatCompactDate(message.createdAt.toLocal()),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (ticket.status != 'CLOSED') ...[
-                    TextField(
-                      controller: _message,
-                      enabled: !_busy,
-                      maxLength: 2000,
-                      minLines: 2,
-                      maxLines: 6,
-                      decoration: const InputDecoration(
-                        labelText: 'Sua resposta',
-                      ),
-                    ),
-                    PrimaryButton(
-                      label: 'Enviar resposta',
-                      isLoading: _busy,
-                      onPressed: () {
-                        if (_message.text.trim().isNotEmpty) {
-                          _act(
-                            () => repo.send(widget.id, _message.text),
-                            clear: true,
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                  TextButton(
-                    onPressed: _busy
-                        ? null
-                        : () => _act(
-                            () => ticket.status == 'CLOSED'
-                                ? repo.reopen(widget.id)
-                                : repo.close(widget.id),
-                          ),
-                    child: Text(
-                      ticket.status == 'CLOSED'
-                          ? 'Reabrir chamado'
-                          : 'Encerrar chamado',
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: _busy ? null : _load,
-                    child: const Text('Atualizar conversa'),
-                  ),
-                ],
-              ],
-            ),
-    );
-  }
 }

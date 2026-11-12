@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_surface.dart';
 import '../../dialogs/app_dialog.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,10 @@ class UnitLocationSelector extends StatelessWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (sheet) => _LocationChoiceSheet(units: units),
+      builder: (sheet) => Theme(
+        data: appSurfaceTheme(sheet),
+        child: _LocationChoiceSheet(units: units),
+      ),
     );
     if (!context.mounted) return;
     switch (choice) {
@@ -56,14 +60,70 @@ class UnitLocationSelector extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextButton.icon(
-            style: TextButton.styleFrom(foregroundColor: Colors.white),
-            onPressed: () => _choose(context, units),
-            icon: const Icon(Icons.place_outlined, size: 20),
-            label: Text(
-              units.locating ? 'Obtendo localização…' : units.locationLabel,
+          Material(
+            color: const Color(0xFF3A3A3A),
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: units.locating ? null : () => _choose(context, units),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC0392B).withValues(alpha: .18),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.place_outlined,
+                        color: Color(0xFFFFA99F),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Açougues perto de você',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            units.locating
+                                ? 'Buscando localização…'
+                                : units.locationLabel,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Alterar região de busca',
+                            style: TextStyle(
+                              color: Color(0xFFFFA99F),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.white70,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
+          const SizedBox(height: 8),
           if (units.hasDeliveryLocation)
             const Text(
               'Busca até 25 km, respeitando a área de entrega de cada açougue.',
@@ -248,7 +308,7 @@ class _LocationOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: selected ? const Color(0xFFFBEDEB) : const Color(0xFFEAEAEA),
+    color: selected ? const Color(0xFFFBEDEB) : Colors.white,
     borderRadius: BorderRadius.circular(14),
     child: InkWell(
       onTap: onTap,

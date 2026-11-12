@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import '../../components/maps/unit_location_selector.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
@@ -276,13 +277,13 @@ class _HomeBodyState extends State<HomeBody> {
         }
 
         if (provider.promotions.isEmpty) {
-          return const SizedBox(
-            height: 210,
-            child: Center(
-              child: Text(
-                'Nenhuma promoção disponível',
-                style: TextStyle(color: Colors.white38),
-              ),
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: AppEmptyState(
+              title: 'Novas ofertas em breve',
+              icon: Icons.local_offer_outlined,
+              description:
+                  'Enquanto isso, explore os cortes e os açougues disponíveis.',
             ),
           );
         }
@@ -461,11 +462,78 @@ class _HomeBodyState extends State<HomeBody> {
           );
         }
         if (provider.units.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Nenhum açougue disponível.',
-              style: TextStyle(color: Colors.white38),
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: const Color(0xFF343434),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withValues(alpha: .06)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.travel_explore_rounded,
+                          color: Color(0xFFCE8178),
+                          size: 24,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Nenhum açougue nesta região',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Amplie sua busca para conhecer outras unidades disponíveis.',
+                              style: TextStyle(
+                                color: Colors.white60,
+                                height: 1.5,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton.icon(
+                    onPressed: provider.error != null
+                        ? provider.loadUnits
+                        : provider.showAllUnits,
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFFFA99F),
+                    ),
+                    icon: Icon(
+                      provider.error != null
+                          ? Icons.refresh
+                          : Icons.arrow_forward_rounded,
+                      size: 17,
+                    ),
+                    label: Text(
+                      provider.error != null
+                          ? 'Tentar novamente'
+                          : 'Explorar todos os açougues',
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }

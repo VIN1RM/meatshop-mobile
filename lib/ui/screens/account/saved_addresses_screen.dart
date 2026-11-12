@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
@@ -53,9 +54,9 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
     );
   }
 
-  void _deleteAddress(String id) {
+  Future<void> _deleteAddress(String id) async {
     if (_uid == null) return;
-    context.read<AddressProvider>().delete(_uid!, id);
+    await context.read<AddressProvider>().delete(_uid!, id);
   }
 
   void _openAddressSheet({AddressModel? address}) {
@@ -169,14 +170,18 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
     );
   }
 
-  void _confirmDelete(AddressModel address) {
-    showDialog(
+  Future<void> _confirmDelete(AddressModel address) async {
+    final removed = await showDialog<bool>(
+      barrierDismissible: false,
       context: context,
       builder: (_) => RemoveAddressDialog(
         address: address,
         onConfirm: () => _deleteAddress(address.id),
       ),
     );
+    if (removed == true && mounted) {
+      CustomSnackBar.success('Endereço removido.', context: context);
+    }
   }
 }
 
@@ -416,20 +421,11 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.location_off_outlined, color: Colors.white24, size: 56),
-            SizedBox(height: 12),
-            Text(
-              'Nenhum endereço salvo ainda.',
-              style: TextStyle(color: Colors.white38, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
+    return const AppEmptyState(
+      title: 'Nenhum endereço salvo',
+      icon: Icons.location_on_outlined,
+      description:
+          'Adicione seu endereço para calcular o frete e receber suas compras.',
     );
   }
 }

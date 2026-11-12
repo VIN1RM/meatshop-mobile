@@ -14,7 +14,7 @@ abstract final class ApiErrorLocalizer {
     'DELIVERY_LOCATION_REQUIRED':
         'Confirme o ponto do endereço e da unidade no mapa para solicitar entrega.',
     'DELIVERY_LOCATION_CONFIRMATION_REQUIRED':
-        'Confirme a entrada no mapa antes de solicitar entrega. A unidade também precisa ter seu ponto confirmado.',
+        'O ponto de entrega ainda não foi confirmado. Revise seu endereço no mapa; se ele já estiver confirmado, a unidade precisa confirmar o próprio ponto.',
     'OUTSIDE_DELIVERY_AREA':
         'Este endereço está fora da área de entrega da unidade.',
     'PIN_TOO_FAR':
@@ -72,6 +72,15 @@ abstract final class ApiErrorLocalizer {
         'O código de entrega foi bloqueado temporariamente.',
     'DELIVERY_CODE_EXPIRED': 'O código de entrega expirou.',
     'INVALID_DELIVERY_CODE': 'O código de entrega é inválido.',
+    'COUPON_INACTIVE':
+        'Este cupom está inativo. Use outro código ou remova o cupom.',
+    'COUPON_NOT_STARTED': 'Este cupom ainda não está no período de validade.',
+    'COUPON_EXPIRED': 'Este cupom expirou. Use outro código ou remova o cupom.',
+    'COUPON_USER_LIMIT_REACHED': 'Você já atingiu o limite de uso deste cupom.',
+    'SCHEDULE_SLOT_FULL':
+        'Este horário acabou de ficar sem vagas. Volte e escolha outro horário.',
+    'INVALID_SCHEDULE_SLOT':
+        'Este horário não está disponível. Volte e escolha outra opção.',
     'COUPON_NOT_FOUND': 'Cupom não encontrado.',
     'COUPON_ALREADY_EXISTS': 'Este cupom já existe.',
     'COUPON_MINIMUM_NOT_REACHED':

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
@@ -338,42 +339,21 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.search, color: Colors.white12, size: 64),
-          SizedBox(height: 12),
-          Text(
-            'Busque por produto, categoria ou açougue',
-            style: TextStyle(color: Colors.white24, fontSize: 14),
-          ),
-        ],
-      ),
+    return const AppEmptyState(
+      title: 'O que você procura?',
+      icon: Icons.search_rounded,
+      description:
+          'Busque por produto, categoria ou açougue. Você também pode combinar os filtros.',
     );
   }
 
   Widget _buildNoResults(SearchProvider provider) {
-    final criteria = <String>[
-      if (provider.query.trim().isNotEmpty) '"${provider.query}"',
-      if (provider.selectedCategory != null)
-        'categoria ${provider.selectedCategory}',
-      if (provider.selectedBrand != null) 'marca ${provider.selectedBrand}',
-      if (provider.minPrice != null || provider.maxPrice != null)
-        _priceRangeLabel(provider).toLowerCase(),
-    ].join(', ');
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.search_off, color: Colors.white12, size: 64),
-          const SizedBox(height: 12),
-          Text(
-            'Nada encontrado para $criteria',
-            style: const TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-        ],
-      ),
+    return AppEmptyState(
+      title: 'Não encontramos resultados',
+      icon: Icons.search_off_rounded,
+      description: provider.query.trim().isEmpty
+          ? 'Tente ampliar a faixa de preço ou mudar os filtros.'
+          : 'Tente outro termo no lugar de "${provider.query}" ou ajuste os filtros.',
     );
   }
 }

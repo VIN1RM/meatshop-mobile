@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/utils/image_urls.dart';
@@ -112,12 +113,14 @@ class _ImageGalleryScreenState extends State<ImageGalleryScreen> {
           Expanded(
             child: _images.isEmpty
                 ? Center(
-                    child: Text(
-                      _loading
-                          ? 'Carregando fotos…'
-                          : 'Nenhuma foto cadastrada.',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
+                    child: _loading
+                        ? const CircularProgressIndicator()
+                        : const AppEmptyState(
+                            title: 'Nenhuma foto cadastrada',
+                            icon: Icons.photo_library_outlined,
+                            description:
+                                'As fotos deste açougue aparecerão aqui quando forem publicadas.',
+                          ),
                   )
                 : PageView.builder(
                     controller: _pages,

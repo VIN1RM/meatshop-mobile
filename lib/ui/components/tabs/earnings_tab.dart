@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 import 'package:meatshop_mobile/models/delivery_goal_model.dart';
@@ -64,9 +65,9 @@ class EarningsTab extends StatelessWidget {
           if (goals.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                'Nenhuma meta cadastrada.',
-                style: TextStyle(color: Colors.white60, fontSize: 13),
+              child: AppEmptyState(
+                title: 'Nenhuma meta cadastrada.',
+                icon: Icons.inbox_outlined,
               ),
             )
           else
@@ -195,9 +196,9 @@ class _EarningsList extends StatelessWidget {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
         child: Center(
-          child: Text(
-            'Nenhum ganho registrado ainda.',
-            style: TextStyle(color: Colors.white60, fontSize: 13),
+          child: AppEmptyState(
+            title: 'Nenhum ganho registrado ainda.',
+            icon: Icons.inbox_outlined,
           ),
         ),
       );

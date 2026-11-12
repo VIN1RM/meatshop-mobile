@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/ui/widgets/checkout_coupon_field.dart';
+import 'package:meatshop_mobile/ui/widgets/app_surface.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -27,9 +29,12 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   bool _feesReady = false;
   CheckoutQuote? _quote;
   String? _feeError;
+  String? _feeErrorCode;
   int _quoteGeneration = 0;
   final Map<String, String> _methods = {};
   final Map<String, String> _coupons = {};
+  final Set<String> _couponDrafts = {};
+  final Map<String, String> _couponErrors = {};
   bool _online = false;
   final Map<String, bool> _unitOnline = {};
   String _methodFor(String unit) {
@@ -73,6 +78,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       _feesReady = false;
       _quote = null;
       _feeError = null;
+      _feeErrorCode = null;
       _feeByUnit = {};
     });
     final orderProvider = context.read<OrderProvider>();
@@ -128,9 +134,60 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     } catch (error) {
       if (!mounted || generation != _quoteGeneration) return;
       setState(() {
+        _feeErrorCode = error is ApiFailure ? error.code : null;
         _feeError = error is ApiFailure
             ? error.message
             : 'Não foi possível calcular a entrega. Tente novamente.';
+      });
+    } finally {
+      if (mounted && generation == _quoteGeneration) {
+        setState(() => _calculatingFees = false);
+      }
+    }
+  }
+
+  Future<void> _applyCoupon(String unitId, String code) async {
+    if (_calculatingFees) return;
+    final generation = ++_quoteGeneration;
+    final candidate = {..._coupons};
+    if (code.isEmpty) {
+      candidate.remove(unitId);
+    } else {
+      candidate[unitId] = code;
+    }
+    setState(() {
+      _calculatingFees = true;
+      _couponErrors.remove(unitId);
+    });
+    try {
+      final quote = await context.read<OrderProvider>().quote(
+        _summary.copyWith(couponCodes: candidate),
+      );
+      if (!mounted || generation != _quoteGeneration) return;
+      if (quote == null || quote.groups.isEmpty) {
+        throw StateError('Incomplete quote');
+      }
+      setState(() {
+        _coupons
+          ..clear()
+          ..addAll(candidate);
+        _quote = quote;
+        _feeByUnit = {
+          for (final group in quote.groups) group.unitId: group.deliveryFee,
+        };
+        _feesReady = true;
+        _feeError = null;
+        _feeErrorCode = null;
+        _couponDrafts.remove(unitId);
+      });
+    } catch (error) {
+      if (!mounted || generation != _quoteGeneration) return;
+      setState(() {
+        _couponDrafts.add(unitId);
+        _couponErrors[unitId] =
+            error is ApiFailure && error.code?.startsWith('COUPON_') == true
+            ? error.message
+            : 'Não foi possível validar este cupom. Tente novamente ou remova o código.';
       });
     } finally {
       if (mounted && generation == _quoteGeneration) {
@@ -178,7 +235,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           SafeArea(
             child: Column(
               children: [
-                const AppHeader(),
+                const AppHeader(showBack: true),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -211,25 +268,65 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                           (e) => _buildUnitGroup(e.key, e.value, cart),
                         ),
 
-                        _buildPaymentCard(),
                         const SizedBox(height: 16),
 
                         if (_feeError != null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF1EF),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFFF2C9C4),
+                              ),
+                            ),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const Row(
+                                  children: [
+                                    Icon(Icons.info_outline, color: _red),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Revise antes de confirmar',
+                                        style: TextStyle(
+                                          color: Color(0xFF1A1A1A),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
                                 Text(
                                   _feeError!,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                                TextButton(
-                                  onPressed: _calculateFees,
-                                  child: const Text(
-                                    'Tentar calcular novamente',
-                                    style: TextStyle(color: Colors.white),
+                                  style: const TextStyle(
+                                    color: Color(0xFF7D3028),
+                                    height: 1.5,
                                   ),
                                 ),
+                                const SizedBox(height: 10),
+                                TextButton.icon(
+                                  onPressed: _calculateFees,
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Atualizar cotação'),
+                                ),
+                                if (_feeErrorCode?.startsWith(
+                                      'DELIVERY_LOCATION',
+                                    ) ==
+                                    true)
+                                  TextButton.icon(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    icon: const Icon(
+                                      Icons.edit_location_alt_outlined,
+                                    ),
+                                    label: const Text(
+                                      'Voltar e revisar a entrega',
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -242,6 +339,14 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                           grandTotal,
                         ),
                         const SizedBox(height: 32),
+                        if (_couponDrafts.isNotEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Aplique ou remova o cupom digitado para confirmar o pedido.',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
                         _buildConfirmButton(context, grandTotal),
                         const SizedBox(height: 32),
                       ],
@@ -357,7 +462,12 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildUnitGroup(String unitId, List items, CartProvider cart) {
+  Widget _buildUnitGroup(String unitId, List items, CartProvider cart) => Theme(
+    data: appSurfaceTheme(context),
+    child: _unitGroup(unitId, items, cart),
+  );
+
+  Widget _unitGroup(String unitId, List items, CartProvider cart) {
     final unitName = items.isNotEmpty && items.first.unitName.isNotEmpty
         ? items.first.unitName
         : 'Açougue';
@@ -456,25 +566,22 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                           }
                         },
                 ),
-                TextFormField(
-                  initialValue: _coupons[unitId],
-                  decoration: const InputDecoration(
-                    labelText: 'Cupom deste açougue',
-                    helperText: 'Digite e confirme para atualizar a cotação',
-                  ),
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (value) {
-                    final code = value.trim();
-                    if (code.isEmpty) {
-                      _coupons.remove(unitId);
+                CheckoutCouponField(
+                  key: ValueKey('coupon-$unitId'),
+                  code: _coupons[unitId],
+                  error: _couponErrors[unitId],
+                  busy: _calculatingFees,
+                  discount: official?.discountAmount ?? 0,
+                  onDraftChanged: (dirty) => setState(() {
+                    _couponErrors.remove(unitId);
+                    if (dirty) {
+                      _couponDrafts.add(unitId);
                     } else {
-                      _coupons[unitId] = code;
+                      _couponDrafts.remove(unitId);
                     }
-                    _calculateFees();
-                  },
+                  }),
+                  onApply: (code) => _applyCoupon(unitId, code),
                 ),
-                if (official != null && official.discountAmount > 0)
-                  Text('Desconto: ${_fmt(official.discountAmount)}'),
               ],
             ),
           ),
@@ -583,78 +690,6 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _buildPaymentCard() {
-    String label;
-    IconData icon;
-
-    switch (widget.summary.paymentMethod) {
-      case 'pix':
-        label = 'Pix';
-        icon = Icons.pix;
-        break;
-      case 'credit':
-        label = 'Cartão de crédito no Mercado Pago';
-        icon = Icons.credit_card;
-        break;
-      case 'debit':
-        label = 'Cartão de débito no Mercado Pago';
-        icon = Icons.credit_card_outlined;
-        break;
-      case 'cash':
-        label = 'Dinheiro na entrega';
-        icon = Icons.money;
-        break;
-      case 'machine':
-        label = 'Maquininha na entrega';
-        icon = Icons.point_of_sale;
-        break;
-      default:
-        label = widget.summary.paymentMethod;
-        icon = Icons.payment;
-    }
-
-    if (_summary.unitPaymentMethods.isNotEmpty) {
-      label = 'Confira as formas escolhidas para cada açougue acima';
-      icon = Icons.payment;
-    }
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: _red, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Forma de pagamento',
-                  style: TextStyle(
-                    color: Color(0xFF1A1A1A),
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                ),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Color(0xFF555555),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTotals(double subtotal, double grandTotal) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -665,11 +700,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             children: [
               const Text(
                 'Subtotal',
-                style: TextStyle(color: Colors.white54, fontSize: 15),
+                style: TextStyle(color: Colors.white, fontSize: 15),
               ),
               Text(
                 _fmt(subtotal),
-                style: const TextStyle(color: Colors.white54, fontSize: 15),
+                style: const TextStyle(color: Colors.white, fontSize: 15),
               ),
             ],
           ),
@@ -679,7 +714,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             children: [
               const Text(
                 'Entrega',
-                style: TextStyle(color: Colors.white54, fontSize: 15),
+                style: TextStyle(color: Colors.white, fontSize: 15),
               ),
               _calculatingFees
                   ? const SizedBox(
@@ -692,10 +727,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                     )
                   : Text(
                       _feesReady ? _fmt(_totalDeliveryFee) : 'Indisponível',
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 15,
-                      ),
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
                     ),
             ],
           ),
@@ -742,7 +774,10 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
     final canConfirm =
-        _feesReady && !_calculatingFees && !orderProvider.isLoading;
+        _feesReady &&
+        _couponDrafts.isEmpty &&
+        !_calculatingFees &&
+        !orderProvider.isLoading;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

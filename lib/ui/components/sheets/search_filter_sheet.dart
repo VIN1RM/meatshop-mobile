@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_surface.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 
@@ -45,13 +46,16 @@ class SearchFilterSheet extends StatefulWidget {
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (_) => SearchFilterSheet(
-      categories: categories,
-      brands: brands,
-      selectedCategory: selectedCategory,
-      selectedBrand: selectedBrand,
-      minPrice: minPrice,
-      maxPrice: maxPrice,
+    builder: (context) => Theme(
+      data: appSurfaceTheme(context),
+      child: SearchFilterSheet(
+        categories: categories,
+        brands: brands,
+        selectedCategory: selectedCategory,
+        selectedBrand: selectedBrand,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+      ),
     ),
   );
 
@@ -206,6 +210,14 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: _clear,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _red,
+                          minimumSize: const Size(0, 52),
+                          side: const BorderSide(color: _red),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
                         child: const Text('Limpar'),
                       ),
                     ),
@@ -213,7 +225,14 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
                     Expanded(
                       flex: 2,
                       child: FilledButton(
-                        style: FilledButton.styleFrom(backgroundColor: _red),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _red,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(0, 52),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
                         onPressed: _apply,
                         child: const Text('Aplicar filtros'),
                       ),
@@ -275,6 +294,7 @@ class _SearchFilterSheetState extends State<SearchFilterSheet> {
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
     decoration: InputDecoration(
       labelText: label,
+      hintText: label == 'Mínimo' ? 'Ex.: 20,00' : 'Ex.: 100,00',
       prefixText: 'R\$ ',
       border: const OutlineInputBorder(),
     ),

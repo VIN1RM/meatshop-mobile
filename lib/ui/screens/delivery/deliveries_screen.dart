@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'delivery_availability_control.dart';
 import 'location_sharing_consent.dart';
 import 'package:flutter/material.dart';
@@ -60,41 +61,23 @@ class DeliveriesTab extends StatelessWidget {
   }
 
   Widget _buildEmpty(DeliveryProvider provider) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.delivery_dining_outlined,
-            color: Color.fromARGB(174, 255, 255, 255),
-            size: 64,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            provider.lastError ??
-                (provider.isAvailable
-                    ? 'Nenhuma oferta disponível'
-                    : 'Você está offline'),
-            style: TextStyle(
-              color: Color.fromARGB(255, 255, 255, 255),
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            provider.isAvailable
-                ? 'As ofertas aparecem quando o açougue marca o pedido como pronto.'
-                : 'Ative sua disponibilidade para receber ofertas de entrega.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Color.fromARGB(181, 255, 255, 255),
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ReloadButton(provider: provider),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AppEmptyState(
+          title:
+              provider.lastError ??
+              (provider.isAvailable
+                  ? 'Nenhuma oferta disponível'
+                  : 'Você está offline'),
+          icon: Icons.delivery_dining,
+          description: provider.isAvailable
+              ? 'As ofertas aparecem quando o açougue marca o pedido como pronto.'
+              : 'Ative sua disponibilidade para receber ofertas de entrega.',
+        ),
+        const SizedBox(height: 16),
+        ReloadButton(provider: provider),
+      ],
     );
   }
 

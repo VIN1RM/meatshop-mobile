@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
 import '../fallback/order_processing_screen.dart';
@@ -394,7 +395,9 @@ class _ActiveOrderCard extends StatelessWidget {
               runSpacing: 4,
               children: [
                 _InfoChip(
-                  icon: Icons.local_shipping_outlined,
+                  icon: order.deliveryType == 'PICKUP'
+                      ? Icons.storefront_outlined
+                      : Icons.local_shipping_outlined,
                   label: order.deliveryType == 'DELIVERY'
                       ? 'Entrega'
                       : 'Retirada',
@@ -415,17 +418,17 @@ class _ActiveOrderCard extends StatelessWidget {
               width: double.infinity,
               height: 40,
               child: ElevatedButton.icon(
-                onPressed: order.deliveryType != 'DELIVERY'
-                    ? null
-                    : () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              OrderTrackingScreen(orderId: int.parse(order.id)),
-                        ),
-                      ),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        OrderTrackingScreen(orderId: int.parse(order.id)),
+                  ),
+                ),
                 icon: Icon(Icons.location_on_rounded, size: 16, color: red),
                 label: Text(
-                  'Acompanhar entrega',
+                  order.deliveryType == 'PICKUP'
+                      ? 'Ver retirada e código'
+                      : 'Acompanhar entrega',
                   style: TextStyle(
                     color: red,
                     fontSize: 13,
@@ -1109,19 +1112,12 @@ class _EmptyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Text(
-          message,
-          style: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
-          textAlign: TextAlign.center,
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: AppEmptyState(
+        title: message,
+        icon: Icons.shopping_bag_outlined,
+        description: 'Acompanhe aqui suas compras, entregas e retiradas.',
       ),
     );
   }
