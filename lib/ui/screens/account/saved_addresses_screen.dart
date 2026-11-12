@@ -54,9 +54,9 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
     );
   }
 
-  void _deleteAddress(String id) {
+  Future<void> _deleteAddress(String id) async {
     if (_uid == null) return;
-    context.read<AddressProvider>().delete(_uid!, id);
+    await context.read<AddressProvider>().delete(_uid!, id);
   }
 
   void _openAddressSheet({AddressModel? address}) {
@@ -170,14 +170,18 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
     );
   }
 
-  void _confirmDelete(AddressModel address) {
-    showDialog(
+  Future<void> _confirmDelete(AddressModel address) async {
+    final removed = await showDialog<bool>(
+      barrierDismissible: false,
       context: context,
       builder: (_) => RemoveAddressDialog(
         address: address,
         onConfirm: () => _deleteAddress(address.id),
       ),
     );
+    if (removed == true && mounted) {
+      CustomSnackBar.success('Endereço removido.', context: context);
+    }
   }
 }
 

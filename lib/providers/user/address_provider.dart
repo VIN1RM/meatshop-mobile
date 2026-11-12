@@ -23,7 +23,7 @@ class AddressProvider extends ChangeNotifier {
     try {
       final addresses = await _repository.list();
       if (generation != _generation) return;
-      _addresses = addresses;
+      _addresses = List<AddressModel>.of(addresses);
     } catch (error) {
       if (generation != _generation) return;
       _error = 'Erro ao carregar endereços.';
