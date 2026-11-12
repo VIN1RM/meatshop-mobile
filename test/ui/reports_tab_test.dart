@@ -1,61 +1,120 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
-import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
-import 'package:meatshop_mobile/models/delivery_goal_model.dart';
-import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
-import 'package:meatshop_mobile/ui/components/tabs/reports_tab.dart';
-
-class _EmptyEarnings extends Fake implements DeliveryRepository {
-  @override
-  Future<List<DeliveryEarningModel>> earnings() async => [];
-
-  @override
-  Future<List<DeliveryGoalModel>> goals() async => [];
-}
+import 'package:provider/provider.dart';
+import 'package:meatshop_mobile/models/delivery_export_model.dart';
+import 'package:meatshop_mobile/providers/auth/auth_provider.dart';
+import 'package:meatshop_mobile/services/report_export_service.dart';
+import 'package:meatshop_mobile/ui/dialogs/delivery_export/delivery_export_dialog.dart';
+import '../helpers/delivery_export_fakes.dart';
 
 void main() {
-  testWidgets(
-    'shows a friendly message without technical details when PDF export fails',
-    (tester) async {
-      const technicalDetail =
-          'FileSystemException: Cannot open file, path = /data/user/0/report.pdf';
-      final provider = DeliveryEarningsProvider(repository: _EmptyEarnings());
-      Future<void> failingExport({
-        required String period,
-        required List<DeliveryEarningModel> earnings,
-        required Map<String, String> summary,
-      }) => Future<void>.error(const FileSystemFailure(technicalDetail));
+  test('history does not send the earnings payment filter', () {
+    final query = DeliveryExportRequest(
+      report: DeliveryReportType.history,
+      format: DeliveryExportFormat.xlsx,
+      from: DateTime(2026, 11, 1),
+      to: DateTime(2026, 11, 30),
+      payment: 'received',
+    ).toQuery();
+    expect(query, isNot(contains('payment')));
+  });
 
+  testWidgets('offers only Excel/PDF without user or unit selection', (
+    tester,
+  ) async {
+    final repo = FakeDeliveryExportRepository();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: DeliveryExportDialog(repository: repo, isAllowed: () => true),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Excel (.xlsx)'));
+    await tester.pumpAndSettle();
+    expect(find.text('PDF (.pdf)'), findsOneWidget);
+    expect(find.textContaining('JSON'), findsNothing);
+    expect(find.textContaining('CSV'), findsNothing);
+    expect(find.text('Unidade'), findsNothing);
+  });
+  testWidgets('shows a safe failure and enables retry for download errors', (
+    tester,
+  ) async {
+    final repo = FakeDeliveryExportRepository()
+      ..failure = Exception('FileSystemException: /private/report.pdf');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: DeliveryExportDialog(
+            repository: repo,
+            isAllowed: () => true,
+            from: DateTime(2026, 11, 1),
+            to: DateTime(2026, 11, 30),
+          ),
+        ),
+      ),
+    );
+    await tester.ensureVisible(find.text('Gerar e compartilhar'));
+    await tester.tap(find.text('Gerar e compartilhar'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Tente novamente'), findsOneWidget);
+    expect(find.textContaining('FileSystemException'), findsNothing);
+    await tester.ensureVisible(find.text('Gerar e compartilhar'));
+    await tester.tap(find.text('Gerar e compartilhar'));
+    await tester.pumpAndSettle();
+    expect(repo.calls, 2);
+  });
+  testWidgets(
+    'personal export has no date filter and uses the personal report',
+    (tester) async {
+      final repo = FakeDeliveryExportRepository();
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ReportsTab(
-              period: 'Mensal',
-              onPeriodChanged: (_) {},
-              earningsProvider: provider,
-              exportPdf: failingExport,
+            body: DeliveryExportDialog(
+              repository: repo,
+              isAllowed: () => true,
+              report: DeliveryReportType.personal,
+              shareFile: (_, _) async => DeliveryShareOutcome.success,
             ),
           ),
         ),
       );
-      await tester.tap(find.text('Exportar relatório'));
+      expect(find.textContaining('De:'), findsNothing);
+      expect(find.textContaining('Até:'), findsNothing);
+      await tester.tap(find.text('Gerar e compartilhar'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Exportar como PDF'));
-      await tester.pumpAndSettle();
-
-      expect(find.text(ReportsTab.pdfExportFailureMessage), findsOneWidget);
-      expect(find.textContaining('FileSystemException'), findsNothing);
-      provider.dispose();
+      expect(repo.lastRequest!.toQuery(), {
+        'report': 'personal',
+        'format': 'xlsx',
+      });
     },
   );
+  testWidgets('does not open the export dialog for a client profile', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider<AuthProvider>.value(
+        value: _ClientAuth(),
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => DeliveryExportDialog.show(context),
+              child: const Text('Abrir'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Abrir'));
+    await tester.pumpAndSettle();
+    expect(find.text('Exportar relatório pessoal'), findsNothing);
+  });
 }
 
-class FileSystemFailure implements Exception {
-  const FileSystemFailure(this.message);
-
-  final String message;
-
+class _ClientAuth extends ChangeNotifier implements AuthProvider {
   @override
-  String toString() => message;
+  bool get isDelivery => false;
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

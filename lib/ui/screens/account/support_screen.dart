@@ -1,5 +1,4 @@
-import '../../widgets/app_header.dart';
-import '../../widgets/app_surface.dart';
+import '../../widgets/account_page.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -55,7 +54,7 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => _SupportPage(
+  Widget build(BuildContext context) => AccountPage(
     title: 'Meus chamados',
     description: 'Acompanhe suas solicitações e converse com nossa equipe.',
     action: Tooltip(
@@ -218,7 +217,7 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => _SupportPage(
+  Widget build(BuildContext context) => AccountPage(
     title: 'Novo chamado',
     action: PrimaryButton(
       label: 'Enviar chamado',
@@ -360,7 +359,7 @@ class _TicketScreenState extends State<_TicketScreen> {
   Widget build(BuildContext context) {
     final repo = context.read<SupportRepository>();
     final ticket = _ticket;
-    return _SupportPage(
+    return AccountPage(
       title: 'Chamado #${widget.id}',
       description: 'Veja as mensagens e acompanhe a resposta da equipe.',
       body: ticket == null && _error == null
@@ -452,128 +451,4 @@ class _TicketScreenState extends State<_TicketScreen> {
             ),
     );
   }
-}
-
-class _SupportPage extends StatelessWidget {
-  const _SupportPage({
-    required this.title,
-    required this.description,
-    required this.body,
-    this.action,
-  });
-  final String title;
-  final String description;
-  final Widget body;
-  final Widget? action;
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF2E2E2E),
-    bottomNavigationBar: action == null
-        ? null
-        : SafeArea(
-            top: false,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                16,
-                12,
-                16,
-                16 + MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: Center(
-                heightFactor: 1,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 688),
-                  child: action!,
-                ),
-              ),
-            ),
-          ),
-    body: Stack(
-      children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 130,
-          child: Image.asset(
-            'assets/images/background.png',
-            fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => const SizedBox.shrink(),
-          ),
-        ),
-        SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const AppHeader(showBack: true),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) => Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 720),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (constraints.maxHeight > 280)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                16,
-                                12,
-                                16,
-                                16,
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    description,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 13,
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Theme(
-                                  data: appSurfaceTheme(context),
-                                  child: ColoredBox(
-                                    color: const Color(0xFFF5F5F5),
-                                    child: body,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
 }

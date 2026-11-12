@@ -4,6 +4,25 @@ Este arquivo contém o resumo de todas as novidades e melhorias do aplicativo, e
 
 ---
 
+## [3.5.0] - 1º de novembro de 2026
+
+### Relatórios pessoais do entregador
+
+### Novidades
+- Exporte seus ganhos, entregas, despesas e acertos em Excel ou PDF.
+- Veja o demonstrativo financeiro com recebimentos, pendências e despesas separados.
+- Escolha o período do relatório e os filtros disponíveis.
+- Compartilhe os arquivos ou salve usando as opções do aparelho.
+- Exporte seus dados pessoais e seus atendimentos pelo perfil de entregador.
+- As exportações ficam disponíveis apenas no perfil de entregador.
+
+### Melhorias
+- Nomes dos arquivos exportados em português.
+- Tela Minhas despesas com o mesmo visual das demais telas de conta.
+- Mensagens claras quando não for possível gerar ou compartilhar o arquivo.
+- Proteção para não compartilhar dados de outra conta ao trocar de perfil ou sair.
+
+
 ## [3.4.0] - 26 de outubro de 2026 - Mais escolha e mais segurança
 
 - Retire seu pedido direto no balcão do açougue, sem taxa de entrega.

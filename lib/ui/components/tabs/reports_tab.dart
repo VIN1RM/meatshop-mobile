@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
-import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
+import '../../widgets/delivery_export_button.dart';
 import 'package:meatshop_mobile/providers/delivery_earnings_provider.dart';
-import 'package:meatshop_mobile/services/report_export_service.dart';
 import 'package:meatshop_mobile/ui/widgets/earning_row.dart';
 import 'package:meatshop_mobile/ui/widgets/summary_grid.dart';
-
-typedef PdfReportExporter =
-    Future<void> Function({
-      required String period,
-      required List<DeliveryEarningModel> earnings,
-      required Map<String, String> summary,
-    });
 
 class ReportsTab extends StatelessWidget {
   const ReportsTab({
@@ -19,18 +11,13 @@ class ReportsTab extends StatelessWidget {
     required this.period,
     required this.onPeriodChanged,
     required this.earningsProvider,
-    this.exportPdf = ReportExportService.exportPdf,
   });
 
   final String period;
   final void Function(String) onPeriodChanged;
   final DeliveryEarningsProvider earningsProvider;
-  final PdfReportExporter exportPdf;
 
   static const Color _red = Color(0xFFC0392B);
-  static const String pdfExportFailureMessage =
-      'Não foi possível gerar o PDF. Tente novamente.';
-
   Map<String, String> _buildSummary() {
     final total = earningsProvider.totalForPeriod(period);
     final deliveries = earningsProvider.deliveriesForPeriod(period);
@@ -46,84 +33,16 @@ class ReportsTab extends StatelessWidget {
     };
   }
 
-  void _showExportSheet(BuildContext context) {
-    final summary = _buildSummary();
-    final earnings = earningsProvider.earningsForPeriod(period);
+  DateTime _exportTo() {
+    final now = BusinessClock.now();
+    return DateTime(now.year, now.month, now.day);
+  }
 
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDDDDDD),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Exportar relatório',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF1A1A1A),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Período: $period',
-              style: const TextStyle(color: Color(0xFF888888), fontSize: 13),
-            ),
-            const SizedBox(height: 20),
-            _ExportOption(
-              icon: Icons.picture_as_pdf_outlined,
-              label: 'Exportar como PDF',
-              onTap: () {
-                Navigator.pop(context);
-                exportPdf(
-                  period: period,
-                  earnings: earnings,
-                  summary: summary,
-                ).catchError((Object error) {
-                  debugPrint('PDF report export error: $error');
-                  if (!context.mounted) return;
-                  CustomSnackBar.error(
-                    pdfExportFailureMessage,
-                    context: context,
-                  );
-                });
-              },
-            ),
-            const SizedBox(height: 10),
-            _ExportOption(
-              icon: Icons.table_chart_outlined,
-              label: 'Exportar como CSV',
-              onTap: () {
-                Navigator.pop(context);
-                ReportExportService.exportCsv(
-                  period: period,
-                  earnings: earnings,
-                  summary: summary,
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  DateTime _exportFrom() {
+    final now = _exportTo();
+    return period == 'Mensal'
+        ? DateTime(now.year, now.month, 1)
+        : DateTime(now.year, now.month, now.day - 6);
   }
 
   @override
@@ -169,36 +88,7 @@ class ReportsTab extends StatelessWidget {
           const SizedBox(height: 20),
           SummaryGrid(data: summary),
           const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () => _showExportSheet(context),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: _red.withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.download_outlined, color: _red, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Exportar relatório',
-                    style: TextStyle(
-                      color: _red,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          DeliveryExportButton(from: _exportFrom(), to: _exportTo()),
           const SizedBox(height: 24),
           const Text(
             'ENTREGAS DO PERÍODO',
@@ -245,58 +135,6 @@ class ReportsTab extends StatelessWidget {
             ),
           const SizedBox(height: 24),
         ],
-      ),
-    );
-  }
-}
-
-class _ExportOption extends StatelessWidget {
-  const _ExportOption({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  static const Color _red = Color(0xFFC0392B);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _red.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: _red, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1A1A),
-              ),
-            ),
-            const Spacer(),
-            const Icon(Icons.chevron_right, color: Color(0xFFBBBBBB), size: 20),
-          ],
-        ),
       ),
     );
   }

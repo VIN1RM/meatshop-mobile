@@ -1,10 +1,29 @@
+# MeatShop Mobile — versão 3.5.0
+
+## Exportações pessoais do entregador
+
+Em Gestão pessoal → Relatórios → Exportar relatório, o entregador pode gerar Excel (.xlsx) ou PDF (.pdf) de ganhos, histórico de entregas concluídas, despesas, demonstrativo financeiro, acertos recebidos, dados pessoais e atendimentos. Configurações → Exportar meus dados abre o relatório pessoal, e Minhas despesas possui atalho próprio.
+
+As exportações não estão disponíveis no perfil de cliente. Não há escolha de usuário, entregador ou unidade: a API usa a identidade da sessão autenticada. Os relatórios incluem todas as atividades pessoais que atendem aos filtros.
+
+O backend calcula os valores e gera os arquivos com ExcelJS/PDFKit. O aplicativo recebe os bytes e abre o compartilhamento do sistema; a opção de salvar depende dos aplicativos disponíveis no aparelho. CSV e JSON não são oferecidos. O limite é de 10 mil linhas por seção e 10 mil campos para os dados pessoais, com mensagem para refinar o período ou procurar suporte.
+
+O demonstrativo separa ganhos pela conclusão da entrega, recebimentos pela data do acerto e despesas pela data informada. Resultado de caixa corresponde aos recebimentos menos as despesas do período. A cópia de dados pessoais usa o conteúdo completo da própria conta, sem filtro de período.
+
+O download reutiliza autenticação, renovação de sessão, mensagens localizadas e cancelamento. Ao fechar o diálogo, trocar de conta ou sair do perfil de entregador, um arquivo pendente não é compartilhado. Consulte [CHANGELOG.md](CHANGELOG.md) e [notas de lançamento](assets/RELEASES.md).
+
+Para a API local no emulador Android, use `--dart-define=MEATSHOP_ENV=development --dart-define=MEATSHOP_API_URL=http://10.0.2.2:3001`. Em aparelho físico, use o endereço da máquina na rede local.
+
+---
+
+
 # 🥩 MeatShop - Mobile
 
 > Conectando clientes, açougues e entregadores em uma plataforma prática e segura.
 
-**Versão:** 3.4.0+2 (em desenvolvimento)
+**Versão:** 3.5.0+3 (em desenvolvimento)
 
-**Última atualização do desenvolvimento:** 28 de outubro de 2026
+**Última atualização do desenvolvimento:** 1º de novembro de 2026
 
 **Autor:** Vinícius Rodrigues
 
