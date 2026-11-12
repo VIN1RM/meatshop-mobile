@@ -492,6 +492,7 @@ class _ButcherDetailView extends StatelessWidget {
             padding: EdgeInsets.symmetric(vertical: 32),
             child: Center(
               child: AppEmptyState(
+                brightness: Brightness.light,
                 title: 'Nenhum produto disponível.',
                 icon: Icons.storefront_outlined,
               ),
@@ -598,6 +599,7 @@ class _ButcherDetailView extends StatelessWidget {
 
   Widget _buildEmptyReviews() {
     return const AppEmptyState(
+      brightness: Brightness.light,
       title: 'Nenhuma avaliação ainda',
       icon: Icons.star_outline_rounded,
       description:

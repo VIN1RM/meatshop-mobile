@@ -813,6 +813,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildEmptyProductReviews() {
     return const AppEmptyState(
+      brightness: Brightness.light,
       title: 'Nenhuma avaliação ainda',
       icon: Icons.star_outline_rounded,
       description:

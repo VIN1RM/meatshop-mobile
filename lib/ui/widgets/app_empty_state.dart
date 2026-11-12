@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'buttons_widget.dart';
 
-/// A quiet, dark empty state that belongs to the page rather than a white card.
+/// An empty state with an explicit palette matching its surrounding surface.
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
     super.key,
@@ -10,19 +10,22 @@ class AppEmptyState extends StatelessWidget {
     this.icon = Icons.inbox_outlined,
     this.actionLabel,
     this.onAction,
+    this.brightness = Brightness.dark,
   });
   final String title;
   final String? description;
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final Brightness brightness;
+  bool get _light => brightness == Brightness.light;
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
       decoration: BoxDecoration(
-        color: const Color(0xFF2E2E2E),
+        color: _light ? const Color(0xFFEFEFEF) : const Color(0xFF2E2E2E),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -33,8 +36,14 @@ class AppEmptyState extends StatelessWidget {
             height: 76,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: .025),
-              border: Border.all(color: Colors.white.withValues(alpha: .06)),
+              color: (_light ? Colors.black : Colors.white).withValues(
+                alpha: .025,
+              ),
+              border: Border.all(
+                color: (_light ? Colors.black : Colors.white).withValues(
+                  alpha: .06,
+                ),
+              ),
             ),
             alignment: Alignment.center,
             child: Container(
@@ -42,17 +51,23 @@ class AppEmptyState extends StatelessWidget {
               height: 54,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.redPrimary.withValues(alpha: .12),
+                color: AppColors.redPrimary.withValues(
+                  alpha: _light ? .07 : .12,
+                ),
               ),
-              child: Icon(icon, size: 26, color: const Color(0xFFE78176)),
+              child: Icon(
+                icon,
+                size: 26,
+                color: _light ? AppColors.redPrimary : const Color(0xFFE78176),
+              ),
             ),
           ),
           const SizedBox(height: 18),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: _light ? AppColors.dark : Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w600,
               height: 1.35,
@@ -63,8 +78,8 @@ class AppEmptyState extends StatelessWidget {
             Text(
               description!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white60,
+              style: TextStyle(
+                color: _light ? const Color(0xFF666666) : Colors.white60,
                 fontSize: 13,
                 height: 1.6,
               ),
@@ -75,7 +90,9 @@ class AppEmptyState extends StatelessWidget {
             TextButton.icon(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFFFA99F),
+                foregroundColor: _light
+                    ? AppColors.redPrimary
+                    : const Color(0xFFFFA99F),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 18,
                   vertical: 12,
