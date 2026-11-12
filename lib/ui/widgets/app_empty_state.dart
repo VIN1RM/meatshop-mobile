@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'buttons_widget.dart';
 
-/// Shared presentation for empty lists, with an optional next step.
+/// A quiet, dark empty state that belongs to the page rather than a white card.
 class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
     super.key,
@@ -18,50 +18,75 @@ class AppEmptyState extends StatelessWidget {
   final VoidCallback? onAction;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: const Color(0xFFEAEAEA)),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.redPrimary.withValues(alpha: .08),
-            borderRadius: BorderRadius.circular(18),
+  Widget build(BuildContext context) => SingleChildScrollView(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2E2E2E),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 76,
+            height: 76,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: .025),
+              border: Border.all(color: Colors.white.withValues(alpha: .06)),
+            ),
+            alignment: Alignment.center,
+            child: Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.redPrimary.withValues(alpha: .12),
+              ),
+              child: Icon(icon, size: 26, color: const Color(0xFFE78176)),
+            ),
           ),
-          child: Icon(icon, size: 30, color: AppColors.redPrimary),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: AppColors.dark,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          description ??
-              'Os registros aparecerão aqui assim que estiverem disponíveis.',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Color(0xFF666666),
-            fontSize: 13,
-            height: 1.5,
-          ),
-        ),
-        if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: 18),
-          PrimaryButton(label: actionLabel!, onPressed: onAction),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              height: 1.35,
+            ),
+          ),
+          if (description != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              description!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white60,
+                fontSize: 13,
+                height: 1.6,
+              ),
+            ),
+          ],
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 20),
+            TextButton.icon(
+              onPressed: onAction,
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFFFA99F),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
+              ),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+              label: Text(actionLabel!),
+            ),
+          ],
         ],
-      ],
+      ),
     ),
   );
 }

@@ -41,6 +41,7 @@ void main() {
       expect(find.textContaining('Rua da Loja'), findsOneWidget);
       expect(deliveries.trackingCalls, 0);
       expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Gerar novo código'));
       await tester.tap(find.text('Gerar novo código'));
       await tester.pumpAndSettle();
       expect(deliveries.regeneratedPurpose, isFalse);

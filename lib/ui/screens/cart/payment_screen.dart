@@ -275,13 +275,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                     groups.length,
                                   ),
                                 Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: OutlinedButton.icon(
+                                  alignment: Alignment.center,
+                                  child: FilledButton.icon(
                                     onPressed: _loading ? null : _load,
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                        color: Colors.white38,
-                                      ),
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: _red,
                                       minimumSize: const Size(0, 48),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(14),

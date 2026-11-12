@@ -61,13 +61,78 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     cart.dispose();
   });
+  testWidgets(
+    'an unknown coupon stays inline and preserves the previous total and freight',
+    (tester) async {
+      tester.view.physicalSize = const Size(600, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final orders = _Orders()..failFirst = false;
+      final cart = CartProvider(uid: 'test', repository: _Cart());
+      await cart.loadCart();
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: cart),
+            ChangeNotifierProvider(
+              create: (_) => OrderProvider(repository: orders),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => AddressProvider(repository: _Addresses()),
+            ),
+          ],
+          child: const MaterialApp(
+            home: ReviewOrderScreen(
+              summary: CheckoutSummaryModel(
+                addressId: '7',
+                isScheduled: false,
+                paymentMethod: 'cash',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.textContaining('5,80'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, 'NAOEXISTE');
+      await tester.tap(find.text('Aplicar cupom'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cupom não encontrado.'), findsOneWidget);
+      expect(find.text('Revise antes de confirmar'), findsNothing);
+      expect(find.text('Indisponível'), findsNothing);
+      expect(find.textContaining('5,80'), findsOneWidget);
+      expect(find.textContaining('4,30'), findsNWidgets(2));
+      final confirm = find.widgetWithText(ElevatedButton, 'Confirmar pedido');
+      expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
+      await tester.tap(find.byTooltip('Remover cupom'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cupom não encontrado.'), findsNothing);
+      expect(tester.widget<ElevatedButton>(confirm).onPressed, isNotNull);
+      expect(orders.lastCoupons, isEmpty);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      cart.dispose();
+    },
+  );
 }
 
 class _Orders implements OrderRepository {
   int calls = 0;
+  bool failFirst = true;
+  Map<String, String> lastCoupons = {};
   @override
   Future<CheckoutQuote> quote(CheckoutSummaryModel summary) async {
-    if (++calls == 1) {
+    lastCoupons = Map.of(summary.coupons);
+    if (summary.coupons.values.contains('NAOEXISTE')) {
+      throw const ApiFailure(
+        kind: ApiFailureKind.validation,
+        statusCode: 400,
+        code: 'COUPON_NOT_FOUND',
+        message: 'Cupom não encontrado.',
+      );
+    }
+    if (++calls == 1 && failFirst) {
       throw const ApiFailure(
         kind: ApiFailureKind.validation,
         message: 'Falha ao calcular entrega.',

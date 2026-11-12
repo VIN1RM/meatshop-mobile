@@ -1,3 +1,4 @@
+import 'pickup_order_page.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -218,7 +219,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           lng.abs() <= 180;
       setState(() {
         _unit = unit;
-        _unitError = valid ? null : 'Localização da unidade indisponível.';
+        _unitError = valid || _pickup
+            ? null
+            : 'Localização da unidade indisponível.';
       });
       if (valid && _follow && !_pickup) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -263,6 +266,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_pickup) {
+      return PickupOrderPage(
+        order: _order!,
+        unit: _unit,
+        error: _error ?? _unitError,
+        generatingCode: _generatingCode,
+        onRegenerate: _regenerateCode,
+        onRefresh: _refresh,
+      );
+    }
     final destination = _order?.destination;
     final dest = destination?.lat != null && destination?.lng != null
         ? LatLng(destination!.lat!, destination.lng!)
@@ -477,20 +490,6 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           ? const Center(
                               child: CircularProgressIndicator(
                                 color: AppColors.redPrimary,
-                              ),
-                            )
-                          : _pickup
-                          ? const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(24),
-                                child: Text(
-                                  'Retirada no balcão\n\nAguarde o pedido ficar pronto. Apresente o código do cliente à equipe da unidade para confirmar a retirada. Não há frete.',
-                                  style: TextStyle(
-                                    color: AppColors.dark,
-                                    height: 1.5,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
                               ),
                             )
                           : FlutterMap(

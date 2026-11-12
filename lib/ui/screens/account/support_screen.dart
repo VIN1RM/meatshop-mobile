@@ -58,6 +58,7 @@ class _SupportScreenState extends State<SupportScreen> {
   Widget build(BuildContext context) => AccountPage(
     title: 'Meus chamados',
     surfaceColor: Colors.transparent,
+    dark: true,
     description: 'Acompanhe suas solicitações e converse com nossa equipe.',
     action: Tooltip(
       message: 'Novo chamado',
@@ -96,10 +97,10 @@ class _SupportScreenState extends State<SupportScreen> {
                   Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     elevation: 0,
-                    color: Colors.white,
+                    color: const Color(0xFF383838),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
-                      side: const BorderSide(color: Color(0xFFE0E0E0)),
+                      side: const BorderSide(color: Color(0xFF484848)),
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.symmetric(
@@ -107,7 +108,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         vertical: 10,
                       ),
                       leading: const CircleAvatar(
-                        backgroundColor: Color(0xFFF8E9E7),
+                        backgroundColor: Color(0xFF492F2C),
                         child: Icon(
                           Icons.support_agent,
                           color: AppColors.redPrimary,
@@ -222,7 +223,8 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
   @override
   Widget build(BuildContext context) => AccountPage(
     title: 'Novo chamado',
-    surfaceColor: Colors.white,
+    surfaceColor: Colors.transparent,
+    dark: true,
     action: PrimaryButton(
       label: 'Enviar chamado',
       onPressed: _save,
@@ -238,6 +240,7 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
           DropdownButtonFormField<String>(
             isExpanded: true,
             initialValue: _category,
+            dropdownColor: const Color(0xFF383838),
             decoration: const InputDecoration(labelText: 'Categoria'),
             items: const [
               DropdownMenuItem(
@@ -378,7 +381,8 @@ class _TicketScreenState extends State<_TicketScreen> {
     final ticket = _ticket;
     return AccountPage(
       title: 'Chamado #${widget.id}',
-      surfaceColor: Colors.white,
+      surfaceColor: Colors.transparent,
+      dark: true,
       description: 'Veja as mensagens e acompanhe a resposta da equipe.',
       body: ticket == null && _error == null
           ? const Center(child: CircularProgressIndicator())

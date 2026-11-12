@@ -34,6 +34,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   final Map<String, String> _methods = {};
   final Map<String, String> _coupons = {};
   final Set<String> _couponDrafts = {};
+  final Map<String, String> _couponErrors = {};
   bool _online = false;
   final Map<String, bool> _unitOnline = {};
   String _methodFor(String unit) {
@@ -137,6 +138,56 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         _feeError = error is ApiFailure
             ? error.message
             : 'Não foi possível calcular a entrega. Tente novamente.';
+      });
+    } finally {
+      if (mounted && generation == _quoteGeneration) {
+        setState(() => _calculatingFees = false);
+      }
+    }
+  }
+
+  Future<void> _applyCoupon(String unitId, String code) async {
+    if (_calculatingFees) return;
+    final generation = ++_quoteGeneration;
+    final candidate = {..._coupons};
+    if (code.isEmpty) {
+      candidate.remove(unitId);
+    } else {
+      candidate[unitId] = code;
+    }
+    setState(() {
+      _calculatingFees = true;
+      _couponErrors.remove(unitId);
+    });
+    try {
+      final quote = await context.read<OrderProvider>().quote(
+        _summary.copyWith(couponCodes: candidate),
+      );
+      if (!mounted || generation != _quoteGeneration) return;
+      if (quote == null || quote.groups.isEmpty) {
+        throw StateError('Incomplete quote');
+      }
+      setState(() {
+        _coupons
+          ..clear()
+          ..addAll(candidate);
+        _quote = quote;
+        _feeByUnit = {
+          for (final group in quote.groups) group.unitId: group.deliveryFee,
+        };
+        _feesReady = true;
+        _feeError = null;
+        _feeErrorCode = null;
+        _couponDrafts.remove(unitId);
+      });
+    } catch (error) {
+      if (!mounted || generation != _quoteGeneration) return;
+      setState(() {
+        _couponDrafts.add(unitId);
+        _couponErrors[unitId] =
+            error is ApiFailure && error.code?.startsWith('COUPON_') == true
+            ? error.message
+            : 'Não foi possível validar este cupom. Tente novamente ou remova o código.';
       });
     } finally {
       if (mounted && generation == _quoteGeneration) {
@@ -518,23 +569,18 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 CheckoutCouponField(
                   key: ValueKey('coupon-$unitId'),
                   code: _coupons[unitId],
+                  error: _couponErrors[unitId],
                   busy: _calculatingFees,
                   discount: official?.discountAmount ?? 0,
                   onDraftChanged: (dirty) => setState(() {
+                    _couponErrors.remove(unitId);
                     if (dirty) {
                       _couponDrafts.add(unitId);
                     } else {
                       _couponDrafts.remove(unitId);
                     }
                   }),
-                  onApply: (code) {
-                    if (code.isEmpty) {
-                      _coupons.remove(unitId);
-                    } else {
-                      _coupons[unitId] = code;
-                    }
-                    _calculateFees();
-                  },
+                  onApply: (code) => _applyCoupon(unitId, code),
                 ),
               ],
             ),

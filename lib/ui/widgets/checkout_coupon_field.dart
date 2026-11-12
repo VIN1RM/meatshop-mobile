@@ -9,8 +9,10 @@ class CheckoutCouponField extends StatefulWidget {
     required this.discount,
     required this.onApply,
     required this.onDraftChanged,
+    this.error,
   });
   final String? code;
+  final String? error;
   final bool busy;
   final double discount;
   final ValueChanged<String> onApply;
@@ -49,10 +51,25 @@ class _CheckoutCouponFieldState extends State<CheckoutCouponField> {
           widget.onDraftChanged(value.trim() != (widget.code ?? ''));
           setState(() {});
         },
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: 'Cupom de desconto',
           hintText: 'Ex.: BEMVINDO10',
-          prefixIcon: Icon(Icons.local_offer_outlined),
+          prefixIcon: const Icon(Icons.local_offer_outlined),
+          errorText: widget.error,
+          errorMaxLines: 3,
+          suffixIcon: _controller.text.isNotEmpty
+              ? IconButton(
+                  tooltip: 'Remover cupom',
+                  onPressed: widget.busy
+                      ? null
+                      : () {
+                          _controller.clear();
+                          _apply();
+                          setState(() {});
+                        },
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                )
+              : null,
           helperText: 'O desconto será confirmado antes de finalizar.',
           helperMaxLines: 2,
         ),
@@ -80,7 +97,9 @@ class _CheckoutCouponFieldState extends State<CheckoutCouponField> {
           ),
         ),
       ),
-      if (widget.discount > 0 && _controller.text.trim() == widget.code) ...[
+      if (widget.error == null &&
+          widget.discount > 0 &&
+          _controller.text.trim() == widget.code) ...[
         const SizedBox(height: 10),
         Row(
           children: [
