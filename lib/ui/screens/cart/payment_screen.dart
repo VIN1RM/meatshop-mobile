@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -93,7 +94,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         _onlineUnits = {};
         _methods.updateAll((_, method) => _isOffline(method) ? method : 'cash');
         _availabilityError =
-            'Não foi possível verificar os pagamentos online. Você pode tentar novamente ou escolher pagar na entrega.';
+            'Não foi possível verificar os pagamentos online. Você pode tentar novamente ou escolher pagar presencialmente.';
       });
     } finally {
       if (mounted && generation == _loadGeneration) {
@@ -261,9 +262,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                     Icons.wifi_off_outlined,
                                   ),
                                 if (groups.isEmpty)
-                                  _notice(
-                                    'Seu carrinho está vazio. Adicione produtos para escolher como pagar.',
-                                    Icons.shopping_bag_outlined,
+                                  const AppEmptyState(
+                                    title: 'Seu carrinho está vazio',
+                                    icon: Icons.shopping_bag_outlined,
+                                    description:
+                                        'Adicione produtos para escolher como pagar.',
                                   ),
                                 for (final entry in groups.entries)
                                   _unitCard(
@@ -273,9 +276,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                   ),
                                 Align(
                                   alignment: Alignment.centerLeft,
-                                  child: TextButton.icon(
+                                  child: OutlinedButton.icon(
                                     onPressed: _loading ? null : _load,
-                                    style: TextButton.styleFrom(
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(
+                                        color: Colors.white38,
+                                      ),
+                                      minimumSize: const Size(0, 48),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
                                       foregroundColor: Colors.white,
                                       disabledForegroundColor: Colors.white38,
                                     ),
@@ -387,7 +397,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   const SizedBox(width: 6),
                   const Expanded(
                     child: Text(
-                      'Este açougue está recebendo apenas na entrega no momento.',
+                      'Este açougue aceita pagamento presencial em dinheiro ou maquininha.',
                       style: TextStyle(
                         color: Color(0xFF666666),
                         fontSize: 12,
@@ -443,7 +453,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               unitId,
               'machine',
               'Maquininha',
-              'Cartão na entrega',
+              'Maquininha ao receber',
               Icons.point_of_sale_outlined,
             ),
             if (method == 'machine')

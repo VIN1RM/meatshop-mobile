@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import '../../components/maps/unit_location_selector.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
@@ -276,13 +277,13 @@ class _HomeBodyState extends State<HomeBody> {
         }
 
         if (provider.promotions.isEmpty) {
-          return const SizedBox(
-            height: 210,
-            child: Center(
-              child: Text(
-                'Nenhuma promoção disponível',
-                style: TextStyle(color: Colors.white38),
-              ),
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: AppEmptyState(
+              title: 'Novas ofertas em breve',
+              icon: Icons.local_offer_outlined,
+              description:
+                  'Enquanto isso, explore os cortes e os açougues disponíveis.',
             ),
           );
         }
@@ -463,9 +464,11 @@ class _HomeBodyState extends State<HomeBody> {
         if (provider.units.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Nenhum açougue disponível.',
-              style: TextStyle(color: Colors.white38),
+            child: AppEmptyState(
+              title: 'Nenhum açougue nesta região',
+              icon: Icons.storefront_outlined,
+              description:
+                  'Altere a região acima ou escolha ver todos os açougues.',
             ),
           );
         }

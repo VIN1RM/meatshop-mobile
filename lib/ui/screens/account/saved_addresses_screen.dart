@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
@@ -416,20 +417,11 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.location_off_outlined, color: Colors.white24, size: 56),
-            SizedBox(height: 12),
-            Text(
-              'Nenhum endereço salvo ainda.',
-              style: TextStyle(color: Colors.white38, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
+    return const AppEmptyState(
+      title: 'Nenhum endereço salvo',
+      icon: Icons.location_on_outlined,
+      description:
+          'Adicione seu endereço para calcular o frete e receber suas compras.',
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
@@ -37,30 +38,90 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
         units.every((id) => _deliveryTypes[id] == 'PICKUP');
   }
 
-  Widget _fulfilmentChoices() => Padding(
+  Widget _fulfilmentChoices() => ConstrainedBox(
+    constraints: BoxConstraints(
+      maxHeight: MediaQuery.sizeOf(context).height * .34,
+    ),
+    child: SingleChildScrollView(child: _fulfilmentOptions()),
+  );
+
+  Widget _fulfilmentOptions() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16),
     child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const Text(
+          'Como deseja receber?',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Escolha uma opção para cada açougue.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        const SizedBox(height: 12),
         for (final entry in context.watch<CartProvider>().itemsByUnit.entries)
-          DropdownButtonFormField<String>(
-            key: ValueKey('fulfilment-${entry.key}'),
-            initialValue: _deliveryTypes[entry.key] ?? 'DELIVERY',
-            dropdownColor: const Color(0xFF3A3A3A),
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-            decoration: InputDecoration(
-              labelText: entry.value.first.unitName,
-              labelStyle: const TextStyle(color: Colors.white70),
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3A3A3A),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white12),
             ),
-            items: const [
-              DropdownMenuItem(value: 'DELIVERY', child: Text('Entrega')),
-              DropdownMenuItem(
-                value: 'PICKUP',
-                child: Text('Retirada no balcao (sem taxa)'),
-              ),
-            ],
-            onChanged: (value) => setState(() {
-              _deliveryTypes[entry.key] = value!;
-            }),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  entry.value.first.unitName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SegmentedButton<String>(
+                  showSelectedIcon: false,
+                  style: SegmentedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    selectedForegroundColor: Colors.white,
+                    selectedBackgroundColor: _red,
+                    side: const BorderSide(color: Colors.white38),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  segments: const [
+                    ButtonSegment(
+                      value: 'DELIVERY',
+                      icon: Icon(Icons.delivery_dining),
+                      label: Text('Entrega'),
+                    ),
+                    ButtonSegment(
+                      value: 'PICKUP',
+                      icon: Icon(Icons.storefront_outlined),
+                      label: Text('Retirada'),
+                    ),
+                  ],
+                  selected: {_deliveryTypes[entry.key] ?? 'DELIVERY'},
+                  onSelectionChanged: (value) =>
+                      setState(() => _deliveryTypes[entry.key] = value.first),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  _deliveryTypes[entry.key] == 'PICKUP'
+                      ? 'Sem frete. Retire na unidade quando o pedido estiver pronto.'
+                      : 'Receba no endereço escolhido. O frete será calculado no resumo.',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
           ),
       ],
     ),
@@ -544,27 +605,10 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   Widget _buildEmptyAddresses() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.location_off_outlined,
-            color: Colors.white24,
-            size: 48,
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Nenhum endereço salvo.',
-            style: TextStyle(color: Colors.white54, fontSize: 14),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Adicione um endereço para continuar.',
-            style: TextStyle(color: Colors.white38, fontSize: 12),
-          ),
-        ],
-      ),
+    return AppEmptyState(
+      title: 'Nenhum endereço salvo',
+      icon: Icons.location_on_outlined,
+      description: 'Cadastre um endereço para calcular a entrega.',
     );
   }
 
@@ -654,6 +698,11 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
           _buildDatePickerButton(),
           const SizedBox(height: 24),
           _sectionLabel('Escolha uma faixa de horários'),
+          const SizedBox(height: 8),
+          const Text(
+            'Os horários respeitam o funcionamento e as vagas dos açougues do pedido.',
+            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+          ),
           const SizedBox(height: 14),
           _buildTimeSlots(),
           if (_selectedDate != null && _selectedTime != null)

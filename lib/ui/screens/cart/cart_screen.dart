@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/utils/product_quantity.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -92,24 +93,18 @@ class _CartScreenState extends State<CartScreen> {
                       }
 
                       if (provider.items.isEmpty) {
-                        return const Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.shopping_cart_outlined,
-                                color: Colors.white24,
-                                size: 64,
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                'Seu carrinho está vazio',
-                                style: TextStyle(
-                                  color: Colors.white38,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
+                        return Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: AppEmptyState(
+                            title: 'Seu carrinho está vazio',
+                            icon: Icons.shopping_bag_outlined,
+                            description:
+                                'Escolha seus cortes favoritos e reúna tudo por aqui.',
+                            actionLabel: 'Explorar açougues',
+                            onAction: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.butchers,
+                            ),
                           ),
                         );
                       }

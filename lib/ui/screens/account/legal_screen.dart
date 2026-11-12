@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buttons_widget.dart';
@@ -240,9 +241,9 @@ class _LegalScreenState extends State<LegalScreen> {
     child: _history.isEmpty
         ? const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
-            child: Text(
-              'Nenhuma confirmação registrada.',
-              style: TextStyle(color: Colors.black54, fontSize: 13),
+            child: AppEmptyState(
+              title: 'Nenhuma confirmação registrada.',
+              icon: Icons.inbox_outlined,
             ),
           )
         : Column(children: _history.map(_historyRecord).toList()),

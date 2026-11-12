@@ -1,3 +1,4 @@
+import '../../../routes/app_routes.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -156,7 +157,12 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                                 Row(
                                   children: [
                                     IconButton.outlined(
-                                      onPressed: () => Navigator.pop(context),
+                                      onPressed: () => Navigator.of(context)
+                                          .pushNamedAndRemoveUntil(
+                                            AppRoutes.shell,
+                                            (route) => false,
+                                            arguments: 3,
+                                          ),
                                       tooltip: 'Voltar',
                                       style: IconButton.styleFrom(
                                         foregroundColor: Colors.white,
@@ -235,6 +241,22 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
+                              OutlinedButton.icon(
+                                onPressed: () => Navigator.of(context)
+                                    .pushNamedAndRemoveUntil(
+                                      AppRoutes.shell,
+                                      (route) => false,
+                                      arguments: 3,
+                                    ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  side: const BorderSide(color: Colors.white38),
+                                  minimumSize: const Size(0, 48),
+                                ),
+                                icon: const Icon(Icons.shopping_bag_outlined),
+                                label: const Text('Ir para meus pedidos'),
+                              ),
+                              const SizedBox(height: 12),
                               const Text(
                                 'Os pagamentos são atualizados automaticamente.',
                                 textAlign: TextAlign.center,

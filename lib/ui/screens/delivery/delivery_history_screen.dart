@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 import 'package:meatshop_mobile/providers/delivery/delivery_provider.dart';
@@ -170,28 +171,11 @@ class _EmptyHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.history, color: Colors.white12, size: 56),
-          SizedBox(height: 16),
-          Text(
-            'Nenhuma entrega ainda',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 6),
-          Text(
-            'Suas entregas do último mês aparecerão aqui',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38, fontSize: 13),
-          ),
-        ],
-      ),
+    return const AppEmptyState(
+      title: 'Nenhuma entrega ainda',
+      icon: Icons.delivery_dining,
+      description:
+          'Suas entregas concluídas e os detalhes de cada serviço aparecerão aqui.',
     );
   }
 }

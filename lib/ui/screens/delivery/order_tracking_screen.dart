@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
@@ -163,27 +164,11 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
   }
 
   Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.receipt_long_outlined, color: Colors.white24, size: 56),
-          const SizedBox(height: 16),
-          const Text(
-            'Nenhum pedido em andamento',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Seus pedidos ativos aparecerão aqui',
-            style: TextStyle(color: Colors.white30, fontSize: 13),
-          ),
-        ],
-      ),
+    return const AppEmptyState(
+      title: 'Nenhum pedido em andamento',
+      icon: Icons.delivery_dining,
+      description:
+          'Aceite uma oferta disponível para acompanhar sua próxima entrega.',
     );
   }
 

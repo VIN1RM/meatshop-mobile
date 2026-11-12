@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import '../../widgets/delivery_export_button.dart';
@@ -104,9 +105,9 @@ class ReportsTab extends StatelessWidget {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
-                child: Text(
-                  'Nenhuma entrega no período.',
-                  style: TextStyle(color: Color(0xFF999999), fontSize: 13),
+                child: AppEmptyState(
+                  title: 'Nenhuma entrega no período.',
+                  icon: Icons.inbox_outlined,
                 ),
               ),
             )

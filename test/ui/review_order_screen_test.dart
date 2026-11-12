@@ -51,7 +51,7 @@ void main() {
     final confirm = find.widgetWithText(ElevatedButton, 'Confirmar pedido');
     expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
     expect(find.textContaining('0,00'), findsNothing);
-    await tester.tap(find.text('Tentar calcular novamente'));
+    await tester.tap(find.text('Atualizar cotação'));
     await tester.pumpAndSettle();
     expect(orders.calls, 2);
     expect(find.text('Falha ao calcular entrega.'), findsNothing);

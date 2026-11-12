@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
@@ -348,27 +349,10 @@ class _ChatScreenState extends State<ChatScreen> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.chat_bubble_outline,
-            color: Colors.white12,
-            size: 48,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Nenhuma mensagem ainda',
-            style: TextStyle(color: Colors.white38, fontSize: 14),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Inicie a conversa com ${_args?.otherUserName ?? ''}',
-            style: const TextStyle(color: Colors.white24, fontSize: 12),
-          ),
-        ],
-      ),
+    return const AppEmptyState(
+      title: 'Comece a conversa',
+      icon: Icons.chat_bubble_outline,
+      description: 'Envie uma mensagem para tirar dúvidas sobre seu pedido.',
     );
   }
 

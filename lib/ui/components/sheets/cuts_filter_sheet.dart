@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_surface.dart';
 import 'package:flutter/material.dart';
 
 enum CutsOrder { nameAZ, nameZA, priceHigh, priceLow }
@@ -56,9 +57,12 @@ class CutsFilterSheet extends StatefulWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => CutsFilterSheet(
-        currentFilter: currentFilter,
-        onApply: (filter) => Navigator.pop(context, filter),
+      builder: (context) => Theme(
+        data: appSurfaceTheme(context),
+        child: CutsFilterSheet(
+          currentFilter: currentFilter,
+          onApply: (filter) => Navigator.pop(context, filter),
+        ),
       ),
     );
   }
@@ -70,7 +74,7 @@ class CutsFilterSheet extends StatefulWidget {
 class _CutsFilterSheetState extends State<CutsFilterSheet> {
   static const Color _red = Color(0xFFC0392B);
   static const Color _bg = Color(0xFFF5F5F5);
-  static const Color _surface = Color(0xFFEAEAEA);
+  static const Color _surface = Colors.white;
   static const Color _dark = Color(0xFF1A1A1A);
   static const Color _grey = Color(0xFF555555);
   static const Color _white = Colors.white;
@@ -110,7 +114,11 @@ class _CutsFilterSheetState extends State<CutsFilterSheet> {
               TextFormField(
                 key: ValueKey(_filter.brand.isEmpty),
                 initialValue: _filter.brand,
-                decoration: const InputDecoration(labelText: 'Marca'),
+                decoration: const InputDecoration(
+                  labelText: 'Marca',
+                  hintText: 'Ex.: Friboi',
+                  prefixIcon: Icon(Icons.sell_outlined),
+                ),
                 onChanged: (value) =>
                     _filter = _filter.copyWith(brand: value.trim()),
               ),

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/delivery_expense_model.dart';
@@ -170,24 +171,9 @@ class ExpenseTile extends StatelessWidget {
 class ExpenseEmptyState extends StatelessWidget {
   const ExpenseEmptyState({super.key});
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 28, horizontal: 12),
-    child: Column(
-      children: [
-        Icon(Icons.receipt_long_outlined, color: AppColors.grey, size: 40),
-        SizedBox(height: 12),
-        Text(
-          'Nenhuma despesa neste mês.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        SizedBox(height: 6),
-        Text(
-          'Adicione uma despesa para acompanhar seus gastos.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF555555)),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) => const AppEmptyState(
+    title: 'Nenhuma despesa neste mês',
+    icon: Icons.receipt_long_outlined,
+    description: 'Adicione uma despesa para acompanhar seus gastos.',
   );
 }

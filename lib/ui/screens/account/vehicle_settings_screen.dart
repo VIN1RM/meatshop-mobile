@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/enums/vehicle_type.dart';
 import '../../widgets/buttons_widget.dart';
 import 'package:flutter/material.dart';
@@ -92,9 +93,9 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
                               ],
                               if (provider.vehicles.isEmpty &&
                                   provider.error == null)
-                                const Text(
-                                  'Nenhum veículo cadastrado.',
-                                  style: TextStyle(color: Colors.white38),
+                                const AppEmptyState(
+                                  title: 'Nenhum veículo cadastrado.',
+                                  icon: Icons.inbox_outlined,
                                 )
                               else
                                 ...provider.vehicles.map(

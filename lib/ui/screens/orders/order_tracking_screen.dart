@@ -46,6 +46,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         widget.orderId,
         pickup: false,
       );
+      if (!mounted) return;
       await _refresh();
     } catch (_) {
       if (mounted) {
@@ -148,6 +149,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         _error = null;
       });
       if (firstLoad &&
+          !_pickup &&
           order.destination?.lat != null &&
           order.destination?.lng != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -167,6 +169,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         _timer?.cancel();
         return;
       }
+      if (_pickup) return;
       final point = await deliveries.latestTracking(widget.orderId);
       if (!mounted) return;
       if (point != null) {
@@ -217,7 +220,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         _unit = unit;
         _unitError = valid ? null : 'Localização da unidade indisponível.';
       });
-      if (valid && _follow) {
+      if (valid && _follow && !_pickup) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || !_follow) return;
           final destination = _order?.destination;
@@ -321,7 +324,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           onPressed: _refresh,
                           icon: const Icon(Icons.refresh_rounded),
                           color: Colors.white,
-                          tooltip: 'Atualizar entrega',
+                          tooltip: _pickup
+                              ? 'Atualizar retirada'
+                              : 'Atualizar entrega',
                         ),
                       ],
                     ),
@@ -343,6 +348,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             Icon(
                               _ended
                                   ? Icons.check_circle_outline
+                                  : _pickup
+                                  ? Icons.storefront_outlined
                                   : Icons.delivery_dining,
                               color: AppColors.redPrimary,
                               size: 22,
@@ -363,7 +370,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          destination?.fullAddress ?? 'Carregando destino…',
+                          _pickup
+                              ? (_unit?.formattedAddress ??
+                                    'Carregando endereço da unidade…')
+                              : destination?.fullAddress ??
+                                    'Carregando destino…',
                           style: const TextStyle(
                             color: Color(0xFF555555),
                             fontSize: 12,
@@ -372,13 +383,22 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                         if (!_ended && _order != null) ...[
                           const SizedBox(height: 10),
-                          const Text(
-                            'Codigo do cliente',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          Text(
+                            _pickup
+                                ? 'Código de retirada'
+                                : 'Código de entrega',
+                            style: const TextStyle(
+                              color: AppColors.dark,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
-                            _order!.deliveryCode ?? 'Ainda não disponível',
+                            _order!.deliveryCode ??
+                                (_pickup
+                                    ? 'Toque para gerar'
+                                    : 'Ainda não disponível'),
                             style: const TextStyle(
+                              color: AppColors.dark,
                               fontSize: 24,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 3,
@@ -386,14 +406,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           ),
                           Text(
                             _pickup
-                                ? 'Apresente este codigo no balcao para retirar seu pedido.'
+                                ? 'Apresente este código no balcão para retirar seu pedido.'
                                 : 'Informe ao entregador somente depois de receber o pedido.',
+                            style: const TextStyle(
+                              color: Color(0xFF555555),
+                              height: 1.4,
+                            ),
                           ),
                           TextButton(
                             onPressed: _generatingCode ? null : _regenerateCode,
                             child: Text(
                               _generatingCode
                                   ? 'Gerando…'
+                                  : _pickup && _order?.deliveryCode == null
+                                  ? 'Gerar código de retirada'
                                   : 'Gerar novo código',
                             ),
                           ),
@@ -447,12 +473,22 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ],
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: _pickup
+                      child: _order == null
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.redPrimary,
+                              ),
+                            )
+                          : _pickup
                           ? const Center(
                               child: Padding(
                                 padding: EdgeInsets.all(24),
                                 child: Text(
-                                  'Retirada no balcao\n\nAguarde o pedido ficar pronto e apresente seu codigo na unidade. Nao ha taxa de entrega.',
+                                  'Retirada no balcão\n\nAguarde o pedido ficar pronto. Apresente o código do cliente à equipe da unidade para confirmar a retirada. Não há frete.',
+                                  style: TextStyle(
+                                    color: AppColors.dark,
+                                    height: 1.5,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -571,9 +607,13 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: PrimaryButton(
-                      label: 'Seguir entregador',
-                      icon: Icons.my_location_rounded,
-                      onPressed: point == null
+                      label: _pickup ? 'Atualizar pedido' : 'Seguir entregador',
+                      icon: _pickup
+                          ? Icons.refresh_rounded
+                          : Icons.my_location_rounded,
+                      onPressed: _pickup
+                          ? _refresh
+                          : point == null
                           ? null
                           : () {
                               setState(() => _follow = true);

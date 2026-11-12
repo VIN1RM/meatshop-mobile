@@ -9,11 +9,13 @@ class AccountPage extends StatelessWidget {
     required this.description,
     required this.body,
     this.action,
+    this.surfaceColor = const Color(0xFFF5F5F5),
   });
   final String title;
   final String description;
   final Widget body;
   final Widget? action;
+  final Color surfaceColor;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -80,10 +82,7 @@ class AccountPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   child: Theme(
                     data: appSurfaceTheme(context),
-                    child: ColoredBox(
-                      color: const Color(0xFFF5F5F5),
-                      child: body,
-                    ),
+                    child: ColoredBox(color: surfaceColor, child: body),
                   ),
                 ),
               ),

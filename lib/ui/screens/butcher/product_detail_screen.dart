@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../data/repositories/product_images_repository.dart';
 import '../account/image_gallery_screen.dart';
 import 'package:meatshop_mobile/core/utils/product_quantity.dart';
@@ -811,58 +812,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildEmptyProductReviews() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _red.withValues(alpha: 0.15), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: _red.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.star_outline_rounded,
-              color: _red,
-              size: 28,
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Nenhuma avaliação ainda',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1A1A1A),
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Seja o primeiro a avaliar este produto\napós seu pedido!',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: Color(0xFF888888),
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
+    return const AppEmptyState(
+      title: 'Nenhuma avaliação ainda',
+      icon: Icons.star_outline_rounded,
+      description:
+          'Depois de receber o produto, conte como foi sua experiência.',
     );
   }
 

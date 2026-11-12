@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../widgets/account_page.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +57,7 @@ class _SupportScreenState extends State<SupportScreen> {
   @override
   Widget build(BuildContext context) => AccountPage(
     title: 'Meus chamados',
+    surfaceColor: Colors.transparent,
     description: 'Acompanhe suas solicitações e converse com nossa equipe.',
     action: Tooltip(
       message: 'Novo chamado',
@@ -68,27 +70,27 @@ class _SupportScreenState extends State<SupportScreen> {
     body: _loading
         ? const Center(child: CircularProgressIndicator())
         : _error != null
-        ? Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(_error!),
-                TextButton(
-                  onPressed: _load,
-                  child: const Text('Tentar novamente'),
-                ),
-              ],
-            ),
+        ? AppEmptyState(
+            title: 'Não foi possível carregar os chamados',
+            description: _error,
+            icon: Icons.wifi_off_outlined,
+            actionLabel: 'Tentar novamente',
+            onAction: _load,
           )
         : RefreshIndicator(
             onRefresh: _load,
             child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
               children: [
                 if (_tickets.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('Nenhum chamado encontrado.'),
+                  AppEmptyState(
+                    title: 'Você ainda não tem chamados',
+                    description:
+                        'Precisa de ajuda com um pedido ou com o aplicativo? Fale com nossa equipe.',
+                    icon: Icons.support_agent,
+                    actionLabel: 'Abrir um chamado',
+                    onAction: _create,
                   ),
                 for (final ticket in _tickets)
                   Card(
@@ -126,31 +128,32 @@ class _SupportScreenState extends State<SupportScreen> {
                       },
                     ),
                   ),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    TextButton(
-                      onPressed: _page > 1
-                          ? () {
-                              _page--;
-                              _load();
-                            }
-                          : null,
-                      child: const Text('Anterior'),
-                    ),
-                    Text('$_page'),
-                    TextButton(
-                      onPressed: _tickets.length == 30
-                          ? () {
-                              _page++;
-                              _load();
-                            }
-                          : null,
-                      child: const Text('Próxima'),
-                    ),
-                  ],
-                ),
+                if (_tickets.isNotEmpty || _page > 1)
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: _page > 1
+                            ? () {
+                                _page--;
+                                _load();
+                              }
+                            : null,
+                        child: const Text('Anterior'),
+                      ),
+                      Text('$_page'),
+                      TextButton(
+                        onPressed: _tickets.length == 30
+                            ? () {
+                                _page++;
+                                _load();
+                              }
+                            : null,
+                        child: const Text('Próxima'),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -219,6 +222,7 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
   @override
   Widget build(BuildContext context) => AccountPage(
     title: 'Novo chamado',
+    surfaceColor: Colors.white,
     action: PrimaryButton(
       label: 'Enviar chamado',
       onPressed: _save,
@@ -252,7 +256,11 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             controller: _subject,
             enabled: !_saving,
             maxLength: 150,
-            decoration: const InputDecoration(labelText: 'Assunto'),
+            decoration: const InputDecoration(
+              labelText: 'Assunto',
+              hintText: 'Ex.: Preciso de ajuda com meu pedido',
+              prefixIcon: Icon(Icons.subject_outlined),
+            ),
             validator: (v) => FieldValidations.text(
               v,
               requiredMessage: 'Informe o assunto',
@@ -264,7 +272,11 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             controller: _contact,
             enabled: !_saving,
             maxLength: 150,
-            decoration: const InputDecoration(labelText: 'Contato (opcional)'),
+            decoration: const InputDecoration(
+              labelText: 'Contato (opcional)',
+              hintText: 'Ex.: seu e-mail ou telefone',
+              prefixIcon: Icon(Icons.contact_mail_outlined),
+            ),
             validator: (value) => FieldValidations.text(
               value,
               maximumLength: 150,
@@ -278,7 +290,12 @@ class _NewTicketScreenState extends State<_NewTicketScreen> {
             maxLength: 2000,
             minLines: 4,
             maxLines: 10,
-            decoration: const InputDecoration(labelText: 'Descreva o problema'),
+            decoration: const InputDecoration(
+              labelText: 'Descreva o problema',
+              hintText:
+                  'Informe o pedido, o que aconteceu e como podemos ajudar.',
+              alignLabelWithHint: true,
+            ),
             validator: (v) => FieldValidations.text(
               v,
               requiredMessage: 'Descreva o problema',
@@ -361,6 +378,7 @@ class _TicketScreenState extends State<_TicketScreen> {
     final ticket = _ticket;
     return AccountPage(
       title: 'Chamado #${widget.id}',
+      surfaceColor: Colors.white,
       description: 'Veja as mensagens e acompanhe a resposta da equipe.',
       body: ticket == null && _error == null
           ? const Center(child: CircularProgressIndicator())

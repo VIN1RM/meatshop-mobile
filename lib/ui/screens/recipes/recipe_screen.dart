@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
 import 'package:meatshop_mobile/providers/recipe_provider.dart';
@@ -116,9 +117,9 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
       case RecipeLoadState.loaded:
         if (provider.recipes.isEmpty) {
           return const Center(
-            child: Text(
-              'Nenhuma receita disponível.',
-              style: TextStyle(color: Colors.white70),
+            child: AppEmptyState(
+              title: 'Nenhuma receita disponível.',
+              icon: Icons.restaurant_menu,
             ),
           );
         }

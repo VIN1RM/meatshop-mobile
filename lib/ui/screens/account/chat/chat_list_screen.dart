@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/chat_args.dart';
@@ -146,23 +147,11 @@ class ChatListScreen extends StatelessWidget {
   }
 
   Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.chat_bubble_outline, color: Colors.white12, size: 52),
-          SizedBox(height: 12),
-          Text(
-            'Nenhuma conversa ainda',
-            style: TextStyle(color: Colors.white38, fontSize: 15),
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Inicie um chat pelo pedido ou pelo açougue',
-            style: TextStyle(color: Colors.white24, fontSize: 12),
-          ),
-        ],
-      ),
+    return const AppEmptyState(
+      title: 'Nenhuma conversa ainda',
+      icon: Icons.chat_bubble_outline,
+      description:
+          'Abra uma conversa pelo pedido ou pelo açougue para falar com a equipe.',
     );
   }
 }
