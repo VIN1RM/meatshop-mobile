@@ -72,6 +72,8 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
 
   @override
   Widget build(BuildContext context) => AccountPage(
+    dark: true,
+    surfaceColor: const Color(0xFF2E2E2E),
     title: widget.expense == null ? 'Nova despesa' : 'Editar despesa',
     description:
         'Preencha os dados do gasto para manter seu controle atualizado.',
@@ -85,7 +87,7 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
   );
 
   Widget _fields() => Theme(
-    data: appSurfaceTheme(context),
+    data: appDarkSurfaceTheme(context),
     child: Form(
       key: _form,
       child: ListView(

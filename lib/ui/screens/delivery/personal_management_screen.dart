@@ -169,13 +169,39 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
             child: Column(
               children: [
                 const AppHeader(),
-                TextButton.icon(
-                  style: TextButton.styleFrom(foregroundColor: Colors.white),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ExpensesScreen()),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Material(
+                    color: const Color(0xFF383838),
+                    borderRadius: BorderRadius.circular(14),
+                    clipBehavior: Clip.antiAlias,
+                    child: ListTile(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ExpensesScreen(),
+                        ),
+                      ),
+                      leading: const Icon(
+                        Icons.receipt_long_outlined,
+                        color: Color(0xFFE78176),
+                      ),
+                      title: const Text(
+                        'Minhas despesas',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      subtitle: const Text(
+                        'Organize os gastos das suas entregas',
+                        style: TextStyle(color: Colors.white60, fontSize: 12),
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.white70,
+                      ),
+                    ),
                   ),
-                  icon: const Icon(Icons.receipt_long),
-                  label: const Text('Minhas despesas'),
                 ),
                 Container(
                   color: const Color(0xFF2E2E2E),

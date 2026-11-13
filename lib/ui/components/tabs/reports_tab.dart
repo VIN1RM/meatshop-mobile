@@ -89,7 +89,9 @@ class ReportsTab extends StatelessWidget {
           const SizedBox(height: 20),
           SummaryGrid(data: summary),
           const SizedBox(height: 20),
-          DeliveryExportButton(from: _exportFrom(), to: _exportTo()),
+          Center(
+            child: DeliveryExportButton(from: _exportFrom(), to: _exportTo()),
+          ),
           const SizedBox(height: 24),
           const Text(
             'ENTREGAS DO PERÍODO',
