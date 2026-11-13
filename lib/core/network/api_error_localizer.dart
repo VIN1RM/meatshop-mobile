@@ -1,5 +1,13 @@
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
+    'INVALID_DELIVERY_CODE':
+        'Código incorreto. Confira os seis dígitos e tente novamente.',
+    'DELIVERY_CODE_EXPIRED': 'O código expirou. Gere um novo código no pedido.',
+    'DELIVERY_CODE_LOCKED': 'Muitas tentativas incorretas. Aguarde 15 minutos.',
+    'PICKUP_PAYMENT_REQUIRED':
+        'O açougue precisa confirmar o pagamento antes de liberar a retirada.',
+    'PICKUP_CODE_REQUIRED':
+        'Apresente seu código de retirada à equipe do açougue.',
     'EXPORT_TOO_LARGE':
         'Este relatório tem muitos registros. Reduza o período e tente novamente.',
     'EXPORT_INVALID_PERIOD':
@@ -68,10 +76,6 @@ abstract final class ApiErrorLocalizer {
     'INSUFFICIENT_STOCK': 'Não há estoque suficiente para este produto.',
     'INVALID_IDEMPOTENCY_KEY':
         'Não foi possível confirmar a operação. Tente novamente.',
-    'DELIVERY_CODE_LOCKED':
-        'O código de entrega foi bloqueado temporariamente.',
-    'DELIVERY_CODE_EXPIRED': 'O código de entrega expirou.',
-    'INVALID_DELIVERY_CODE': 'O código de entrega é inválido.',
     'COUPON_INACTIVE':
         'Este cupom está inativo. Use outro código ou remova o cupom.',
     'COUPON_NOT_STARTED': 'Este cupom ainda não está no período de validade.',

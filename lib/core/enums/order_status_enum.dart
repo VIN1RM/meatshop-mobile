@@ -51,6 +51,12 @@ extension OrderStatusX on OrderStatus {
     }
   }
 
+  String labelFor({bool pickup = false}) {
+    if (pickup && this == OrderStatus.ready) return 'Pronto para retirada';
+    if (pickup && this == OrderStatus.delivered) return 'Retirado';
+    return label;
+  }
+
   bool get canCancel =>
       this == OrderStatus.pending || this == OrderStatus.confirmed;
 

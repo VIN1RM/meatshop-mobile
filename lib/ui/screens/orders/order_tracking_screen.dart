@@ -40,7 +40,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   bool _busy = false;
   bool _generatingCode = false;
   Future<void> _regenerateCode() async {
-    if (_generatingCode) return;
+    if (_generatingCode || _order?.canShowCustomerCode != true) return;
     setState(() => _generatingCode = true);
     try {
       await context.read<DeliveryRepository>().regenerateCode(

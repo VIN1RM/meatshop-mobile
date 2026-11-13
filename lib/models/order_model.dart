@@ -1,3 +1,4 @@
+import '../core/enums/order_status_enum.dart';
 import 'address_model.dart';
 
 class OrderItemModel {
@@ -52,6 +53,15 @@ class OrderModel {
   final String? refundStatus;
   final double refundedAmount;
   final double? changeFor;
+  bool get isPickup => deliveryType == 'PICKUP';
+  String get statusLabel =>
+      OrderStatusX.fromString(status).labelFor(pickup: isPickup);
+  String get fulfilmentLabel =>
+      isPickup ? 'Retirada no balcão' : 'Entrega no endereço';
+  bool get isFinished => const {'DELIVERED', 'CANCELLED'}.contains(status);
+  bool get canShowCustomerCode =>
+      !isFinished && (!isPickup || status == 'READY');
+
   bool get isOfflinePayment =>
       const {'Cash', 'Card on Delivery'}.contains(paymentMethod);
   bool get canPay =>
@@ -65,7 +75,8 @@ class OrderModel {
     'CREDIT' || 'CREDIT_CARD' => 'Cartão de crédito',
     'DEBIT' || 'DEBIT_CARD' => 'Cartão de débito',
     'CASH' => 'Dinheiro',
-    'CARD ON DELIVERY' => 'Maquininha na entrega',
+    'CARD ON DELIVERY' =>
+      isPickup ? 'Maquininha no balcão' : 'Maquininha na entrega',
     'MERCADO PAGO BALANCE' => 'Saldo Mercado Pago',
     'BANK SLIP' => 'Boleto',
     _ => paymentMethod.isEmpty ? 'Não informado' : paymentMethod,
@@ -81,7 +92,10 @@ class OrderModel {
       'PARTIALLY_REFUNDED' => 'Reembolsado parcialmente',
       'CHARGED_BACK' => 'Pagamento contestado',
       'CANCELLED' => 'Pagamento cancelado',
-      _ => isOfflinePayment ? 'A pagar na entrega' : 'Aguardando pagamento',
+      _ =>
+        isOfflinePayment
+            ? (isPickup ? 'A pagar no balcão' : 'A pagar na entrega')
+            : 'Aguardando pagamento',
     };
   }
 

@@ -213,11 +213,6 @@ const _kSteps = [
   OrderStatus.delivered,
 ];
 
-int _stepIndex(OrderStatus status) {
-  final i = _kSteps.indexOf(status);
-  return i < 0 ? 0 : i;
-}
-
 class _OrderCard extends StatelessWidget {
   const _OrderCard({
     required this.order,
@@ -237,7 +232,7 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCancelled = order.isCancelled;
-    final statusInfo = _statusInfo(order.status);
+    final statusInfo = _statusInfo(order);
     final canCancel = OrderStatusX.fromString(order.status).canCancel;
 
     return Opacity(
@@ -329,6 +324,7 @@ class _OrderCard extends StatelessWidget {
                 child: _StatusStepper(
                   status: order.status,
                   activeColor: statusInfo.color,
+                  pickup: order.isPickup,
                 ),
               ),
               if (order.status == 'OUT_FOR_DELIVERY' &&
@@ -479,29 +475,41 @@ class _OrderCard extends StatelessWidget {
   String _deliveryTypeLabel(String type) =>
       type == 'DELIVERY' ? 'Entrega em casa' : 'Retirada no local';
 
-  _StatusData _statusInfo(String status) {
-    final s = OrderStatusX.fromString(status);
-    return _StatusData(s.label, s.color, s.icon);
+  _StatusData _statusInfo(OrderModel order) {
+    final s = OrderStatusX.fromString(order.status);
+    return _StatusData(
+      order.statusLabel,
+      s.color,
+      order.isPickup ? Icons.storefront_outlined : s.icon,
+    );
   }
 }
 
 class _StatusStepper extends StatelessWidget {
-  const _StatusStepper({required this.status, required this.activeColor});
+  const _StatusStepper({
+    required this.status,
+    required this.activeColor,
+    required this.pickup,
+  });
 
   final String status;
   final Color activeColor;
+  final bool pickup;
 
   @override
   Widget build(BuildContext context) {
     final parsed = OrderStatusX.fromString(status);
-    final current = _stepIndex(parsed);
+    final steps = _kSteps
+        .where((s) => !pickup || s != OrderStatus.outForDelivery)
+        .toList();
+    final current = steps.indexOf(parsed);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LayoutBuilder(
           builder: (context, constraints) {
-            final total = _kSteps.length;
+            final total = steps.length;
             final stepW = constraints.maxWidth / total;
             return Stack(
               children: [
@@ -517,9 +525,7 @@ class _StatusStepper extends StatelessWidget {
                   duration: const Duration(milliseconds: 400),
                   curve: Curves.easeInOut,
                   height: 3,
-                  width: current == 0
-                      ? stepW * 0.5
-                      : stepW * current + stepW * 0.5,
+                  width: current < 0 ? 0 : stepW * (current + 0.5),
                   decoration: BoxDecoration(
                     color: activeColor,
                     borderRadius: BorderRadius.circular(2),
@@ -532,14 +538,14 @@ class _StatusStepper extends StatelessWidget {
         const SizedBox(height: 6),
 
         Row(
-          children: List.generate(_kSteps.length, (i) {
+          children: List.generate(steps.length, (i) {
             final done = i <= current;
             return Expanded(
               child: Text(
-                _stepLabel(_kSteps[i]),
+                _stepLabel(steps[i]),
                 textAlign: i == 0
                     ? TextAlign.left
-                    : i == _kSteps.length - 1
+                    : i == steps.length - 1
                     ? TextAlign.right
                     : TextAlign.center,
                 style: TextStyle(
@@ -568,7 +574,7 @@ class _StatusStepper extends StatelessWidget {
       case OrderStatus.outForDelivery:
         return 'Em rota';
       case OrderStatus.delivered:
-        return 'Entregue';
+        return pickup ? 'Retirado' : 'Entregue';
       default:
         return '';
     }
