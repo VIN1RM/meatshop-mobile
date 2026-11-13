@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
@@ -225,44 +226,49 @@ class _HistoryCard extends StatelessWidget {
 
 class _CardHeader extends StatelessWidget {
   const _CardHeader({required this.order});
-
   final DeliveryOrder order;
-
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        children: [
-          const _StatusIcon(),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pedido #${order.id}',
-                  style: const TextStyle(
-                    color: Color(0xFF1A1A1A),
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+    child: Column(
+      children: [
+        Row(
+          children: [
+            const _StatusIcon(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Pedido #${order.id}',
+                    style: const TextStyle(
+                      color: Color(0xFF1A1A1A),
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  order.clientName,
-                  style: const TextStyle(
-                    color: Color(0xFF555555),
-                    fontSize: 13,
+                  Text(
+                    order.clientName,
+                    style: const TextStyle(
+                      color: Color(0xFF555555),
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-              ],
+                  const Text(
+                    'Entregue',
+                    style: TextStyle(color: Color(0xFF25834D), fontSize: 11),
+                  ),
+                ],
+              ),
             ),
-          ),
-          _CardTotal(total: order.total),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+        const SizedBox(height: 12),
+        _CardTotal(total: order.deliveryFee),
+      ],
+    ),
+  );
 }
 
 class _StatusIcon extends StatelessWidget {
@@ -288,29 +294,27 @@ class _StatusIcon extends StatelessWidget {
 
 class _CardTotal extends StatelessWidget {
   const _CardTotal({required this.total});
-
   final double total;
-
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          'R\$ ${total.toStringAsFixed(2)}',
-          style: const TextStyle(
-            color: Color(0xFF2ECC71),
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
+  Widget build(BuildContext context) => Row(
+    children: [
+      const Expanded(
+        child: Text(
+          'Ganho na entrega',
+          style: TextStyle(color: Color(0xFF666666), fontSize: 12),
         ),
-        const Text(
-          'Entregue',
-          style: TextStyle(color: Color(0xFF888888), fontSize: 11),
+      ),
+      const SizedBox(width: 12),
+      Text(
+        NumberFormat.currency(locale: 'pt_BR', symbol: r'R$').format(total),
+        style: const TextStyle(
+          color: Color(0xFF25834D),
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }
 
 class _CardAddress extends StatelessWidget {

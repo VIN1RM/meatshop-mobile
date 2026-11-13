@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_order_model.dart';
 
@@ -75,56 +76,79 @@ class _SheetHandle extends StatelessWidget {
 
 class _SheetHeader extends StatelessWidget {
   const _SheetHeader({required this.order});
-
   final DeliveryOrder order;
-
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2ECC71).withValues(alpha: 0.12),
-            shape: BoxShape.circle,
+  Widget build(BuildContext context) => Column(
+    children: [
+      Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFF2ECC71).withValues(alpha: .12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_circle_outline,
+              color: Color(0xFF25834D),
+              size: 20,
+            ),
           ),
-          child: const Icon(
-            Icons.check_circle_outline,
-            color: Color(0xFF2ECC71),
-            size: 20,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pedido #${order.id}',
+                  style: const TextStyle(
+                    color: Color(0xFF1A1A1A),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Text(
+                  'Entregue',
+                  style: TextStyle(color: Color(0xFF25834D), fontSize: 13),
+                ),
+              ],
+            ),
           ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2ECC71).withValues(alpha: .08),
+          borderRadius: BorderRadius.circular(12),
         ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
+            const Expanded(
+              child: Text(
+                'Ganho na entrega',
+                style: TextStyle(color: Color(0xFF555555), fontSize: 13),
+              ),
+            ),
+            const SizedBox(width: 12),
             Text(
-              'Pedido #${order.id}',
+              NumberFormat.currency(
+                locale: 'pt_BR',
+                symbol: r'R$',
+              ).format(order.deliveryFee),
               style: const TextStyle(
-                color: Color(0xFF1A1A1A),
+                color: Color(0xFF25834D),
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const Text(
-              'Entregue',
-              style: TextStyle(color: Color(0xFF2ECC71), fontSize: 13),
-            ),
           ],
         ),
-        const Spacer(),
-        Text(
-          'R\$ ${order.total.toStringAsFixed(2)}',
-          style: const TextStyle(
-            color: Color(0xFF2ECC71),
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }
 
 class _SheetUnitSection extends StatelessWidget {
@@ -183,6 +207,15 @@ class _SheetDeliverySection extends StatelessWidget {
           icon: Icons.fastfood_outlined,
           label: 'Itens',
           value: order.items,
+        ),
+        const SizedBox(height: 14),
+        _DetailRow(
+          icon: Icons.receipt_long_outlined,
+          label: 'Total do pedido',
+          value: NumberFormat.currency(
+            locale: 'pt_BR',
+            symbol: r'R$',
+          ).format(order.total),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 
@@ -19,7 +20,13 @@ class EarningRow extends StatelessWidget {
       final m = entry.createdAt.minute.toString().padLeft(2, '0');
       return '$h:$m';
     }
-    return 'Ontem';
+    if (DateUtils.dateOnly(
+          now,
+        ).difference(DateUtils.dateOnly(entry.createdAt)).inDays ==
+        1) {
+      return 'Ontem';
+    }
+    return DateFormat('dd/MM/yyyy').format(entry.createdAt);
   }
 
   @override
@@ -46,7 +53,10 @@ class EarningRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       entry.label,
@@ -60,7 +70,6 @@ class EarningRow extends StatelessWidget {
                         entry.createdAt.isAfter(
                           DateTime.now().subtract(const Duration(minutes: 30)),
                         )) ...[
-                      const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 5,
@@ -94,7 +103,10 @@ class EarningRow extends StatelessWidget {
             ),
           ),
           Text(
-            'R\$ ${entry.amount.toStringAsFixed(2).replaceAll('.', ',')}',
+            NumberFormat.currency(
+              locale: 'pt_BR',
+              symbol: r'R$',
+            ).format(entry.amount),
             style: const TextStyle(
               color: Color(0xFF1A1A1A),
               fontSize: 14,
