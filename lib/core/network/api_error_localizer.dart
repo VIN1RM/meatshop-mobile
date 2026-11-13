@@ -1,5 +1,7 @@
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
+    'UNIT_LOCATION_CONFIRMATION_REQUIRED':
+        'A unidade precisa confirmar sua localização no mapa para oferecer entrega. Entre em contato com o açougue ou escolha retirada no balcão.',
     'INVALID_DELIVERY_CODE':
         'Código incorreto. Confira os seis dígitos e tente novamente.',
     'DELIVERY_CODE_EXPIRED': 'O código expirou. Gere um novo código no pedido.',
@@ -22,7 +24,7 @@ abstract final class ApiErrorLocalizer {
     'DELIVERY_LOCATION_REQUIRED':
         'Confirme o ponto do endereço e da unidade no mapa para solicitar entrega.',
     'DELIVERY_LOCATION_CONFIRMATION_REQUIRED':
-        'O ponto de entrega ainda não foi confirmado. Revise seu endereço no mapa; se ele já estiver confirmado, a unidade precisa confirmar o próprio ponto.',
+        'Confirme a entrada do seu endereço no mapa para calcular a entrega.',
     'OUTSIDE_DELIVERY_AREA':
         'Este endereço está fora da área de entrega da unidade.',
     'PIN_TOO_FAR':

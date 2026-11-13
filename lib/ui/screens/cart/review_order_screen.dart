@@ -261,11 +261,17 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                           ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: TextButton.icon(
-                            onPressed: () =>
-                                Navigator.pop(context, 'edit-fulfilment'),
-                            icon: const Icon(Icons.edit_location_alt_outlined),
-                            label: const Text('Alterar entrega ou retirada'),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: _reviewActionStyle,
+                              onPressed: () =>
+                                  Navigator.pop(context, 'edit-fulfilment'),
+                              icon: const Icon(
+                                Icons.edit_location_alt_outlined,
+                              ),
+                              label: const Text('Alterar entrega ou retirada'),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -296,14 +302,20 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Row(
+                                Row(
                                   children: [
-                                    Icon(Icons.info_outline, color: _red),
-                                    SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.info_outline,
+                                      color: Color(0xFFFFA99F),
+                                    ),
+                                    const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        'Revise antes de confirmar',
-                                        style: TextStyle(
+                                        _feeErrorCode ==
+                                                'UNIT_LOCATION_CONFIRMATION_REQUIRED'
+                                            ? 'Localização do açougue pendente'
+                                            : 'Revise antes de confirmar',
+                                        style: const TextStyle(
                                           color: Color(0xFFFFFFFF),
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -320,24 +332,47 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                TextButton.icon(
-                                  onPressed: _calculateFees,
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Atualizar cotação'),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton.icon(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: _red,
+                                      foregroundColor: Colors.white,
+                                      minimumSize: const Size(0, 48),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    onPressed: _calculateFees,
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Atualizar cotação'),
+                                  ),
                                 ),
                                 if (_feeErrorCode?.startsWith(
-                                      'DELIVERY_LOCATION',
-                                    ) ==
-                                    true)
-                                  TextButton.icon(
-                                    onPressed: () => Navigator.of(
-                                      context,
-                                    ).pop('edit-fulfilment'),
-                                    icon: const Icon(
-                                      Icons.edit_location_alt_outlined,
-                                    ),
-                                    label: const Text(
-                                      'Voltar e revisar a entrega',
+                                          'DELIVERY_LOCATION',
+                                        ) ==
+                                        true ||
+                                    _feeErrorCode ==
+                                        'UNIT_LOCATION_CONFIRMATION_REQUIRED')
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        style: _reviewActionStyle,
+                                        onPressed: () => Navigator.of(
+                                          context,
+                                        ).pop('edit-fulfilment'),
+                                        icon: const Icon(
+                                          Icons.edit_location_alt_outlined,
+                                        ),
+                                        label: Text(
+                                          _feeErrorCode ==
+                                                  'UNIT_LOCATION_CONFIRMATION_REQUIRED'
+                                              ? 'Ver opções de recebimento'
+                                              : 'Voltar e revisar a entrega',
+                                        ),
+                                      ),
                                     ),
                                   ),
                               ],
@@ -373,6 +408,16 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       ),
     );
   }
+
+  ButtonStyle get _reviewActionStyle => OutlinedButton.styleFrom(
+    foregroundColor: Colors.white,
+    backgroundColor: const Color(0xFF383838),
+    side: const BorderSide(color: Colors.white30),
+    minimumSize: const Size(0, 48),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    textStyle: const TextStyle(fontWeight: FontWeight.w700),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  );
 
   Widget _pageTitle() => const Padding(
     padding: EdgeInsets.symmetric(horizontal: 16),
@@ -539,6 +584,9 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                     style: const TextStyle(color: Colors.white70),
                   ),
                   trailing: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFFFA99F),
+                    ),
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Alterar'),
                   ),

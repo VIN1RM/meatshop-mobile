@@ -62,6 +62,67 @@ void main() {
     cart.dispose();
   });
   testWidgets(
+    'unit location error offers fulfilment choices without blaming the customer address',
+    (tester) async {
+      tester.view.physicalSize = const Size(600, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final orders = _Orders()
+        ..failureCode = 'UNIT_LOCATION_CONFIRMATION_REQUIRED';
+      final cart = CartProvider(uid: 'test', repository: _Cart());
+      await cart.loadCart();
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: cart),
+            ChangeNotifierProvider(
+              create: (_) => OrderProvider(repository: orders),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => AddressProvider(repository: _Addresses()),
+            ),
+          ],
+          child: const MaterialApp(
+            home: ReviewOrderScreen(
+              summary: CheckoutSummaryModel(
+                addressId: '7',
+                isScheduled: false,
+                paymentMethod: 'cash',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('Localização do açougue pendente'), findsOneWidget);
+      expect(find.text('Ver opções de recebimento'), findsOneWidget);
+      expect(find.text('Voltar e revisar a entrega'), findsNothing);
+      expect(
+        find.widgetWithText(OutlinedButton, 'Alterar entrega ou retirada'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(FilledButton, 'Atualizar cotação'),
+        findsOneWidget,
+      );
+      expect(find.text('Falha ao calcular entrega.'), findsOneWidget);
+      final confirm = find.widgetWithText(ElevatedButton, 'Confirmar pedido');
+      expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
+      expect(find.textContaining('0,00'), findsNothing);
+      await tester.tap(find.text('Atualizar cotação'));
+      await tester.pumpAndSettle();
+      expect(orders.calls, 2);
+      expect(find.text('Falha ao calcular entrega.'), findsNothing);
+      expect(tester.widget<ElevatedButton>(confirm).onPressed, isNotNull);
+      expect(find.textContaining('4,30'), findsOneWidget);
+      expect(find.textContaining('5,80'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      cart.dispose();
+    },
+  );
+  testWidgets(
     'an unknown coupon stays inline and preserves the previous total and freight',
     (tester) async {
       tester.view.physicalSize = const Size(600, 1400);
@@ -122,6 +183,7 @@ void main() {
 class _Orders implements OrderRepository {
   int calls = 0;
   bool failFirst = true;
+  String? failureCode;
   Map<String, String> lastCoupons = {};
   @override
   Future<CheckoutQuote> quote(CheckoutSummaryModel summary) async {
@@ -135,8 +197,9 @@ class _Orders implements OrderRepository {
       );
     }
     if (++calls == 1 && failFirst) {
-      throw const ApiFailure(
+      throw ApiFailure(
         kind: ApiFailureKind.validation,
+        code: failureCode,
         message: 'Falha ao calcular entrega.',
       );
     }
