@@ -25,6 +25,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
   final Map<int, int> _deliveryOrderIds = {};
 
   final _chatMessages = StreamController<Map<String, Object?>>.broadcast();
+  final _chatInboxUpdates = StreamController<Map<String, Object?>>.broadcast();
   final _chatReads = StreamController<Map<String, Object?>>.broadcast();
   final _chatTyping = StreamController<Map<String, Object?>>.broadcast();
   final _deliveryLocations = StreamController<Map<String, Object?>>.broadcast();
@@ -33,6 +34,8 @@ final class BackendRealtimeClient implements RealtimeRepository {
 
   @override
   Stream<Map<String, Object?>> get chatMessages => _chatMessages.stream;
+  @override
+  Stream<Map<String, Object?>> get chatInboxUpdates => _chatInboxUpdates.stream;
   @override
   Stream<Map<String, Object?>> get chatReads => _chatReads.stream;
   @override
@@ -92,6 +95,11 @@ final class BackendRealtimeClient implements RealtimeRepository {
         _recoverSession(socket, error);
       }
     });
+    socket.on('chat:ready', (_) {
+      _connection.add(RealtimeConnectionState.connected);
+      _restoreSubscriptions(socket);
+    });
+    socket.on('chat:inbox:updated', (data) => _addMap(_chatInboxUpdates, data));
     socket.on('chat:message', (data) => _addMap(_chatMessages, data));
     socket.on('chat:read', (data) => _addMap(_chatReads, data));
     socket.on('chat:typing', (data) => _addMap(_chatTyping, data));
@@ -226,6 +234,7 @@ final class BackendRealtimeClient implements RealtimeRepository {
     _chatSocket?.dispose();
     _deliverySocket?.dispose();
     _chatMessages.close();
+    _chatInboxUpdates.close();
     _chatReads.close();
     _chatTyping.close();
     _deliveryLocations.close();

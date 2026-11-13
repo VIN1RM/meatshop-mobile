@@ -24,8 +24,11 @@ class InboxRepository extends Fake implements ChatRepository {
 }
 
 class InboxRealtime extends Fake implements RealtimeRepository {
+  final updates = StreamController<Map<String, Object?>>.broadcast();
   @override
   Future<void> connect() async {}
+  @override
+  Stream<Map<String, Object?>> get chatInboxUpdates => updates.stream;
   @override
   Stream<Map<String, Object?>> get chatMessages => const Stream.empty();
   @override
@@ -33,6 +36,30 @@ class InboxRealtime extends Fake implements RealtimeRepository {
 }
 
 void main() {
+  testWidgets('refreshes on inbox events without opening a message room', (
+    tester,
+  ) async {
+    final repository = InboxRepository();
+    final realtime = InboxRealtime();
+    final provider = ChatListProvider(
+      repository: repository,
+      realtime: realtime,
+      currentUserId: '13',
+      backendUserId: 13,
+      activeType: ChatParticipantType.delivery,
+    );
+    await tester.pump();
+    expect(repository.calls, 1);
+    realtime.updates.add({'order_id': 42, 'reason': 'message'});
+    await tester.pump();
+    expect(repository.calls, 2);
+    realtime.updates.add({'order_id': 42, 'reason': 'read'});
+    await tester.pump();
+    expect(repository.calls, 3);
+    provider.dispose();
+    await realtime.updates.close();
+  });
+
   testWidgets(
     'refreshes conversations outside the room and stops after leaving the screen',
     (tester) async {

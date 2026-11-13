@@ -180,22 +180,25 @@ class _ConversationTile extends StatelessWidget {
     final hasUnread = unread > 0;
 
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(
-        context,
-        AppRoutes.chat,
-        arguments: ChatArgs(
-          currentUserId: currentUserId,
-          currentUserName: currentUserName,
-          currentUserType: currentUserType,
-          otherUserId: other.userId,
-          otherUserName: other.name,
-          otherUserType: other.type,
-          otherUserPhoto: other.photoUrl,
-          orderId: conversation.orderId,
-          channel: conversation.channel,
-          closed: conversation.closed,
-        ),
-      ),
+      onTap: () async {
+        await Navigator.pushNamed(
+          context,
+          AppRoutes.chat,
+          arguments: ChatArgs(
+            currentUserId: currentUserId,
+            currentUserName: currentUserName,
+            currentUserType: currentUserType,
+            otherUserId: other.userId,
+            otherUserName: other.name,
+            otherUserType: other.type,
+            otherUserPhoto: other.photoUrl,
+            orderId: conversation.orderId,
+            channel: conversation.channel,
+            closed: conversation.closed,
+          ),
+        );
+        if (context.mounted) await context.read<ChatListProvider>().refresh();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -238,6 +241,27 @@ class _ConversationTile extends StatelessWidget {
                         ),
                     ],
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${other.type.label}${conversation.orderId == null ? '' : ' • Pedido #${conversation.orderId}'}',
+                    style: const TextStyle(
+                      color: Color(0xFF666666),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (hasUnread)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '$unread ${unread == 1 ? 'mensagem não lida' : 'mensagens não lidas'}',
+                        style: const TextStyle(
+                          color: _red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   if (conversation.lastMessage != null) ...[
                     const SizedBox(height: 2),
                     Text(

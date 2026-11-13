@@ -17,7 +17,18 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _chatProvider?.setVisible(state == AppLifecycleState.resumed);
+  }
+
   static const Color _red = Color(0xFFC0392B);
   static const Color _pageBg = Color(0xFF2E2E2E);
   static const Color _surface = Color(0xFF424242);
@@ -62,6 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _messageController.dispose();
     _scrollController.dispose();
     _chatProvider?.dispose();
@@ -104,6 +116,10 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
 
+    _chatProvider!.setVisible(
+      WidgetsBinding.instance.lifecycleState == null ||
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,
+    );
     return ChangeNotifierProvider.value(
       value: _chatProvider!,
       child: Scaffold(

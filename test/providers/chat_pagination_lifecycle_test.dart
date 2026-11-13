@@ -78,6 +78,8 @@ class Realtime extends Fake implements RealtimeRepository {
   final events = StreamController<Map<String, Object?>>.broadcast();
   final states = StreamController<RealtimeConnectionState>.broadcast();
   @override
+  Stream<Map<String, Object?>> get chatInboxUpdates => const Stream.empty();
+  @override
   Stream<Map<String, Object?>> get chatMessages => events.stream;
   @override
   Stream<Map<String, Object?>> get chatReads => const Stream.empty();
@@ -93,7 +95,12 @@ class Realtime extends Fake implements RealtimeRepository {
   void leaveChat(int orderId, ChatChannel channel) {}
 }
 
-ChatProvider room(Repository repository, Realtime realtime) => ChatProvider(
+ChatProvider room(
+  Repository repository,
+  Realtime realtime, {
+  bool closed = false,
+}) => ChatProvider(
+  closed: closed,
   repository: repository,
   realtime: realtime,
   currentUserId: '1',
@@ -109,6 +116,21 @@ ChatProvider room(Repository repository, Realtime realtime) => ChatProvider(
 );
 
 void main() {
+  testWidgets(
+    'background chats remain unread and closed history is read after returning',
+    (tester) async {
+      final repository = Repository();
+      final provider = room(repository, Realtime(), closed: true);
+      provider.setVisible(false);
+      await tester.pump();
+      expect(repository.reads, 0);
+      provider.setVisible(true);
+      await tester.pump();
+      expect(repository.reads, 1);
+      provider.dispose();
+    },
+  );
+
   testWidgets(
     'loads older history once, deduplicates and keeps chronological order',
     (tester) async {
@@ -261,12 +283,13 @@ void main() {
       realtime: realtime,
       currentUserId: '1',
     );
-    addTearDown(provider.dispose);
+
     await tester.pump();
     expect(tester.takeException(), isNull);
     repository.fail = false;
     realtime.events.add({});
     await tester.pump();
     expect(provider.total, 3);
+    provider.dispose();
   });
 }

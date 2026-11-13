@@ -29,6 +29,7 @@ class ChatListProvider extends ChangeNotifier {
   bool _loading = true;
   bool _loadingMore = false;
   bool _fetching = false;
+  bool _refreshQueued = false;
   bool _hasMore = false;
   bool _moreFailed = false;
   int _pages = 1;
@@ -56,6 +57,9 @@ class ChatListProvider extends ChangeNotifier {
     _loadBackend();
     _connect();
     _subscriptions.add(
+      _realtime.chatInboxUpdates.listen((_) => _loadBackend(silent: true)),
+    );
+    _subscriptions.add(
       _realtime.chatMessages.listen((_) => _loadBackend(silent: true)),
     );
     _subscriptions.add(
@@ -78,10 +82,11 @@ class ChatListProvider extends ChangeNotifier {
   Future<void> loadMore() => _loadBackend(more: true, silent: true);
 
   Future<void> _loadBackend({bool silent = false, bool more = false}) async {
-    if (_inboxDisposed ||
-        _fetching ||
-        backendUserId == null ||
-        (more && !_hasMore)) {
+    if (_fetching) {
+      if (!more) _refreshQueued = true;
+      return;
+    }
+    if (_inboxDisposed || backendUserId == null || (more && !_hasMore)) {
       return;
     }
     _fetching = true;
@@ -136,6 +141,10 @@ class ChatListProvider extends ChangeNotifier {
         _loading = false;
         _loadingMore = false;
         notifyListeners();
+        if (_refreshQueued) {
+          _refreshQueued = false;
+          unawaited(_loadBackend(silent: true));
+        }
       }
     }
   }
@@ -245,8 +254,15 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> retry() => _reconcile();
 
+  bool _visible = true;
+  void setVisible(bool value) {
+    final changed = _visible != value;
+    _visible = value;
+    if (changed && value && !_loading) unawaited(_reconcile());
+  }
+
   Future<void> _markRead() async {
-    if (_disposed || closed) return;
+    if (_disposed || !_visible) return;
     try {
       await _repository.markRead(orderId!, channel!);
     } catch (_) {}
@@ -331,7 +347,11 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void _onRead(Map<String, Object?> data) {
-    if (_disposed || !_sameConversation(data)) return;
+    if (_disposed ||
+        !_sameConversation(data) ||
+        data['reader_id'] == backendUserId) {
+      return;
+    }
     _messages = _messages
         .map(
           (message) => message.mine
@@ -453,6 +473,8 @@ class ChatUnreadProvider extends ChangeNotifier {
   bool _disposed = false;
   bool _refreshing = false;
   StreamSubscription<Map<String, Object?>>? _messageSubscription;
+  StreamSubscription<Map<String, Object?>>? _inboxSubscription;
+  Timer? _unreadTimer;
 
   int get total => _total;
   bool get hasUnread => _total > 0;
@@ -461,6 +483,11 @@ class ChatUnreadProvider extends ChangeNotifier {
     _refresh();
     _connect();
     _messageSubscription = _realtime.chatMessages.listen((_) => _refresh());
+    _inboxSubscription = _realtime.chatInboxUpdates.listen((_) => _refresh());
+    _unreadTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _refresh(),
+    );
   }
 
   Future<void> _connect() async {
@@ -487,6 +514,8 @@ class ChatUnreadProvider extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _messageSubscription?.cancel();
+    _inboxSubscription?.cancel();
+    _unreadTimer?.cancel();
     super.dispose();
   }
 }
