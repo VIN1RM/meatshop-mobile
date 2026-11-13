@@ -153,7 +153,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ..._overview(),
         const Text(
           'Lançamentos',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            letterSpacing: .2,
+          ),
         ),
         const SizedBox(height: 12),
         if (_result?.items.isEmpty ?? true) const ExpenseEmptyState(),
