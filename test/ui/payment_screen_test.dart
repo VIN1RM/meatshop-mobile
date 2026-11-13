@@ -16,6 +16,7 @@ void main() {
     WidgetTester tester,
     _Orders orders, {
     int units = 2,
+    Map<String, String> deliveryTypes = const {},
     Size size = const Size(600, 1400),
     double textScale = 1,
   }) async {
@@ -43,7 +44,11 @@ void main() {
             ).copyWith(textScaler: TextScaler.linear(textScale)),
             child: child!,
           ),
-          home: PaymentScreen(total: units * 20, addressId: '7'),
+          home: PaymentScreen(
+            total: units * 20,
+            addressId: '7',
+            unitDeliveryTypes: deliveryTypes,
+          ),
         ),
       ),
     );
@@ -67,8 +72,7 @@ void main() {
         of: second,
         matching: find.widgetWithText(TextButton, 'Pagar online'),
       );
-      await tester.ensureVisible(secondOnline);
-      expect(tester.widget<TextButton>(secondOnline).onPressed, isNull);
+      expect(secondOnline, findsNothing);
       await tester.ensureVisible(firstOnline);
       await tester.tap(firstOnline);
       await tester.pumpAndSettle();
@@ -126,13 +130,29 @@ void main() {
             .onPressed,
         isNotNull,
       );
-      expect(
-        tester
-            .widget<TextButton>(find.widgetWithText(TextButton, 'Pagar online'))
-            .onPressed,
-        isNull,
-      );
+      expect(find.text('Pagar online'), findsNothing);
       expect(find.byKey(const ValueKey('payment-1-cash')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      cart.dispose();
+    },
+  );
+
+  testWidgets(
+    'pickup keeps online available and describes payment at the counter',
+    (tester) async {
+      final cart = await render(
+        tester,
+        _Orders(),
+        units: 1,
+        deliveryTypes: {'1': 'PICKUP'},
+      );
+      expect(find.text('Na retirada'), findsOneWidget);
+      expect(find.text('Na entrega'), findsNothing);
+      expect(find.text('Pague no balcão ao retirar'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'Pagar online'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('payment-1-pix')), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       cart.dispose();

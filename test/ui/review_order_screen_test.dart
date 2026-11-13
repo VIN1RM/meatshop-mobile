@@ -56,7 +56,7 @@ void main() {
     expect(orders.calls, 2);
     expect(find.text('Falha ao calcular entrega.'), findsNothing);
     expect(tester.widget<ElevatedButton>(confirm).onPressed, isNotNull);
-    expect(find.textContaining('4,30'), findsNWidgets(2));
+    expect(find.textContaining('4,30'), findsOneWidget);
     expect(find.textContaining('5,80'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     cart.dispose();
@@ -95,6 +95,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('5,80'), findsOneWidget);
+      await tester.tap(find.text('Adicionar cupom'));
+      await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).first, 'NAOEXISTE');
       await tester.tap(find.text('Aplicar cupom'));
       await tester.pumpAndSettle();
@@ -102,7 +104,7 @@ void main() {
       expect(find.text('Revise antes de confirmar'), findsNothing);
       expect(find.text('Indisponível'), findsNothing);
       expect(find.textContaining('5,80'), findsOneWidget);
-      expect(find.textContaining('4,30'), findsNWidgets(2));
+      expect(find.textContaining('4,30'), findsOneWidget);
       final confirm = find.widgetWithText(ElevatedButton, 'Confirmar pedido');
       expect(tester.widget<ElevatedButton>(confirm).onPressed, isNull);
       await tester.tap(find.byTooltip('Remover cupom'));

@@ -1,3 +1,4 @@
+import '../../widgets/checkout_step_header.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
@@ -353,20 +354,10 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     );
   }
 
-  Widget _pageTitle() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        'ENTREGA',
-        style: TextStyle(
-          color: _white,
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
+  Widget _pageTitle() => const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16),
+    child: CheckoutStepHeader(title: 'ENTREGA'),
+  );
 
   Widget _buildTabs() {
     return Padding(
