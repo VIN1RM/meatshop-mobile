@@ -1,6 +1,6 @@
+import 'butcher_catalog_controls.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../account/image_gallery_screen.dart';
-import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 import 'package:meatshop_mobile/models/unit_model.dart';
@@ -62,6 +62,13 @@ class _ButcherDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final catalog = context.watch<ButcherProvider>();
+    if (catalog.isLoading) {
+      return Scaffold(
+        backgroundColor: _pageBg,
+        body: _ButcherDetailShimmer(hasCover: unit.coverUrl.isNotEmpty),
+      );
+    }
     return Scaffold(
       backgroundColor: _pageBg,
       body: Stack(
@@ -78,37 +85,93 @@ class _ButcherDetailView extends StatelessWidget {
                       _buildInfoCard(unit),
                       if (unit.allImageUrls.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: OutlinedButton.icon(
-                            onPressed: () => ImageGalleryScreen.show(
-                              context,
-                              images: unit.allImageUrls,
-                              title: unit.name,
-                            ),
-                            icon: const Icon(Icons.photo_library_outlined),
-                            label: Text(
-                              'Ver fotos do açougue (${unit.allImageUrls.length})',
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          child: Center(
+                            child: FilledButton.icon(
+                              onPressed: () => ImageGalleryScreen.show(
+                                context,
+                                images: unit.allImageUrls,
+                                title: unit.name,
+                              ),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: _red,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size(0, 48),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.photo_library_outlined,
+                                size: 20,
+                              ),
+                              label: Text(
+                                'Ver fotos do açougue (${unit.allImageUrls.length})',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      const SizedBox(height: 20),
-                      _buildDivider(),
-                      const SizedBox(height: 20),
-                      _buildPromocoesSection(context),
-                      const SizedBox(height: 20),
-                      _buildDivider(),
-                      const SizedBox(height: 20),
-                      _buildSectionTitle('Produtos'),
-                      _ProductFilters(),
-                      const SizedBox(height: 20),
-                      _buildProductList(context),
-                      const SizedBox(height: 20),
-                      _buildDivider(),
-                      const SizedBox(height: 20),
-                      _buildReviewsSection(context),
+                      if (catalog.warning != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  catalog.warning!,
+                                  style: const TextStyle(
+                                    color: _textGray,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: catalog.loadProducts,
+                                child: const Text('Tentar novamente'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (catalog.error != null)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: AppEmptyState(
+                            brightness: Brightness.light,
+                            title: catalog.error!,
+                            icon: Icons.wifi_off_rounded,
+                            actionLabel: 'Tentar novamente',
+                            onAction: catalog.loadProducts,
+                          ),
+                        )
+                      else ...[
+                        if (catalog.promotions.isNotEmpty) ...[
+                          const SizedBox(height: 28),
+                          _buildPromocoesSection(context),
+                        ],
+                        if (catalog.hasCatalog) ...[
+                          const SizedBox(height: 28),
+                          _buildSectionTitle('Produtos'),
+                          const ButcherCatalogControls(),
+                          const SizedBox(height: 16),
+                          _buildProductList(context),
+                        ],
+                        if (catalog.reviews.isNotEmpty) ...[
+                          const SizedBox(height: 28),
+                          _buildReviewsSection(context),
+                        ],
+                      ],
+                      SizedBox(
+                        height: context.watch<CartProvider>().items.isEmpty
+                            ? 32
+                            : 120,
+                      ),
                     ],
                   ),
                 ),
@@ -183,35 +246,28 @@ class _ButcherDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Divider(
-        color: _red.withValues(alpha: 0.25),
-        thickness: 0.8,
-        height: 1,
-      ),
-    );
-  }
-
   Widget _buildHeroBanner(BuildContext context, UnitModel unit) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.bottomCenter,
       children: [
         Semantics(
-          label: 'Visualizar fotos do açougue',
-          button: true,
+          label: unit.allImageUrls.isEmpty
+              ? unit.name
+              : 'Visualizar fotos do açougue',
+          button: unit.allImageUrls.isNotEmpty,
           child: GestureDetector(
-            onTap: () => ImageGalleryScreen.show(
-              context,
-              images: unit.allImageUrls,
-              title: unit.name,
-              initialImage: unit.coverUrl,
-            ),
+            onTap: unit.allImageUrls.isEmpty
+                ? null
+                : () => ImageGalleryScreen.show(
+                    context,
+                    images: unit.allImageUrls,
+                    title: unit.name,
+                    initialImage: unit.coverUrl,
+                  ),
             child: SizedBox(
               width: double.infinity,
-              height: 180,
+              height: unit.coverUrl.isEmpty ? 88 : 180,
               child: unit.coverUrl.isNotEmpty
                   ? Image.network(
                       unit.coverUrl,
@@ -224,6 +280,19 @@ class _ButcherDetailView extends StatelessWidget {
         ),
 
         Positioned(
+          top: MediaQuery.paddingOf(context).top + 8,
+          left: 16,
+          child: Material(
+            color: Colors.white,
+            shape: const CircleBorder(),
+            child: IconButton(
+              tooltip: 'Voltar',
+              onPressed: () => Navigator.maybePop(context),
+              icon: const Icon(Icons.arrow_back, color: _textDark),
+            ),
+          ),
+        ),
+        Positioned(
           bottom: -40,
           child: Container(
             width: 86,
@@ -234,12 +303,14 @@ class _ButcherDetailView extends StatelessWidget {
               color: const Color(0xFF1A1A1A),
             ),
             child: GestureDetector(
-              onTap: () => ImageGalleryScreen.show(
-                context,
-                images: unit.allImageUrls,
-                title: unit.name,
-                initialImage: unit.imageUrl,
-              ),
+              onTap: unit.allImageUrls.isEmpty
+                  ? null
+                  : () => ImageGalleryScreen.show(
+                      context,
+                      images: unit.allImageUrls,
+                      title: unit.name,
+                      initialImage: unit.imageUrl,
+                    ),
               child: ClipOval(
                 child: unit.imageUrl.isNotEmpty
                     ? Image.network(
@@ -259,6 +330,7 @@ class _ButcherDetailView extends StatelessWidget {
 
   Widget _buildInfoCard(UnitModel unit) {
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.fromLTRB(16, 52, 16, 0),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
       decoration: BoxDecoration(
@@ -276,6 +348,7 @@ class _ButcherDetailView extends StatelessWidget {
         children: [
           Text(
             unit.name,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -283,25 +356,32 @@ class _ButcherDetailView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Divider(color: Color(0xFFEEEEEE), height: 1),
-          const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.location_on_outlined, color: _red, size: 16),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  unit.formattedAddress,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: _textGray,
-                    height: 1.4,
+          if ([
+            unit.street,
+            unit.neighborhood,
+            unit.city,
+            unit.state,
+          ].any((value) => value.trim().isNotEmpty)) ...[
+            const Divider(color: Color(0xFFEEEEEE), height: 1),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.location_on_outlined, color: _red, size: 16),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    unit.formattedAddress,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: _textGray,
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
           Consumer<ButcherProvider>(
             builder: (_, provider, _) =>
                 BusinessHoursBanner(hours: provider.todayHours),
@@ -463,49 +543,51 @@ class _ButcherDetailView extends StatelessWidget {
   }
 
   Widget _buildProductList(BuildContext context) {
-    return Consumer<ButcherProvider>(
-      builder: (_, provider, _) {
-        if (provider.isLoading) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(
-              child: CircularProgressIndicator(color: Color(0xFFBE2C1B)),
+    final provider = context.watch<ButcherProvider>();
+    if (provider.items.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: AppEmptyState(
+          brightness: Brightness.light,
+          title: 'Nenhum produto encontrado',
+          description: 'Tente outro nome ou ajuste os filtros.',
+          icon: Icons.search_off,
+          actionLabel: 'Limpar filtros',
+          onAction: () => provider.applyFilters(),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final group in provider.groupedProducts.entries) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    group.key,
+                    style: const TextStyle(
+                      color: _textDark,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  group.value.length.toString(),
+                  style: const TextStyle(color: _textGray, fontSize: 13),
+                ),
+              ],
             ),
-          );
-        }
-
-        if (provider.error != null) {
-          return Padding(
-            padding: const EdgeInsets.all(24),
-            child: Center(
-              child: Text(
-                provider.error!,
-                style: const TextStyle(color: _textGray),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-
-        if (provider.items.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(
-              child: AppEmptyState(
-                brightness: Brightness.light,
-                title: 'Nenhum produto disponível.',
-                icon: Icons.storefront_outlined,
-              ),
-            ),
-          );
-        }
-
-        return Column(
-          children: provider.items
-              .map((p) => _buildProductItem(context, p))
-              .toList(),
-        );
-      },
+          ),
+          for (final product in group.value)
+            _buildProductItem(context, product),
+          const SizedBox(height: 8),
+        ],
+      ],
     );
   }
 
@@ -576,9 +658,7 @@ class _ButcherDetailView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            if (provider.reviews.isEmpty)
-              _buildEmptyReviews()
-            else ...[
+            if (provider.reviews.isNotEmpty) ...[
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -590,20 +670,9 @@ class _ButcherDetailView extends StatelessWidget {
               ),
               if (provider.reviews.length < 3) _buildFewReviewsCta(),
             ],
-            const SizedBox(height: 100),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildEmptyReviews() {
-    return const AppEmptyState(
-      brightness: Brightness.light,
-      title: 'Nenhuma avaliação ainda',
-      icon: Icons.star_outline_rounded,
-      description:
-          'As opiniões dos clientes aparecerão aqui após as primeiras compras.',
     );
   }
 
@@ -636,74 +705,101 @@ class _ButcherDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildProductItem(BuildContext context, ProductModel product) {
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(
-        context,
-        AppRoutes.productDetail,
-        arguments: product,
-      ),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE6E6E6),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                width: 60,
-                height: 60,
-                child: product.imageUrl.isNotEmpty
-                    ? Image.network(
-                        product.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _imageFallback(),
-                      )
-                    : _imageFallback(),
-              ),
+  Widget _buildProductItem(BuildContext context, ProductModel product) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+        child: Material(
+          color: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFE3E3E3)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => Navigator.pushNamed(
+              context,
+              AppRoutes.productDetail,
+              arguments: product,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                product.name,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: _textDark,
-                ),
-              ),
-            ),
-            RichText(
-              text: TextSpan(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
                 children: [
-                  TextSpan(
-                    text: product.formattedPrice,
-                    style: const TextStyle(
-                      color: _textDark,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: product.imageUrl.isEmpty
+                          ? _imageFallback()
+                          : Image.network(
+                              product.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => _imageFallback(),
+                            ),
                     ),
                   ),
-                  TextSpan(
-                    text: '/${product.unitOfMeasure}',
-                    style: const TextStyle(
-                      color: _red,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.name,
+                          style: const TextStyle(
+                            color: _textDark,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (product.brand.trim().isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Text(
+                              product.brand,
+                              style: const TextStyle(
+                                color: _textGray,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 6),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: product.formattedPrice,
+                                style: const TextStyle(
+                                  color: _red,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              TextSpan(
+                                text: ' / ${product.unitOfMeasure}',
+                                style: const TextStyle(
+                                  color: _textGray,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: Color(0xFF999999),
+                    size: 20,
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   Widget _imageFallback() {
     return Container(
@@ -741,9 +837,11 @@ class _ButcherDetailLoaderState extends State<_ButcherDetailLoader> {
       future: _loader,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Scaffold(
-            backgroundColor: Color(0xFFEFEFEF),
-            body: _ButcherDetailShimmer(),
+          return Scaffold(
+            backgroundColor: const Color(0xFFEFEFEF),
+            body: _ButcherDetailShimmer(
+              hasCover: widget.unit.coverUrl.isNotEmpty,
+            ),
           );
         }
         return _ButcherDetailView(unit: widget.unit);
@@ -753,7 +851,8 @@ class _ButcherDetailLoaderState extends State<_ButcherDetailLoader> {
 }
 
 class _ButcherDetailShimmer extends StatelessWidget {
-  const _ButcherDetailShimmer();
+  const _ButcherDetailShimmer({required this.hasCover});
+  final bool hasCover;
 
   static const Color _base = Color(0xFFE0E0E0);
   static const Color _highlight = Color(0xFFF5F5F5);
@@ -768,7 +867,11 @@ class _ButcherDetailShimmer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(width: double.infinity, height: 180, color: Colors.white),
+            Container(
+              width: double.infinity,
+              height: hasCover ? 180 : 88,
+              color: Colors.white,
+            ),
             const SizedBox(height: 52),
 
             Container(
@@ -789,6 +892,35 @@ class _ButcherDetailShimmer extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              height: 110,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  for (var i = 0; i < 3; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Container(
+                        width: 80,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             _shimmerItem(),
             _shimmerItem(),
             _shimmerItem(),
@@ -831,83 +963,4 @@ class _ButcherDetailShimmer extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ProductFilters extends StatefulWidget {
-  @override
-  State<_ProductFilters> createState() => _ProductFiltersState();
-}
-
-class _ProductFiltersState extends State<_ProductFilters> {
-  final _name = TextEditingController();
-  final _brand = TextEditingController();
-  final _category = TextEditingController();
-  final _price = TextEditingController();
-  @override
-  void dispose() {
-    _name.dispose();
-    _brand.dispose();
-    _category.dispose();
-    _price.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      children: [
-        TextField(
-          controller: _name,
-          decoration: const InputDecoration(labelText: 'Nome do produto'),
-        ),
-        TextField(
-          controller: _brand,
-          decoration: const InputDecoration(labelText: 'Marca'),
-        ),
-        TextField(
-          controller: _category,
-          decoration: const InputDecoration(labelText: 'Categoria'),
-        ),
-        TextField(
-          controller: _price,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(labelText: 'Preco maximo (R\$)'),
-        ),
-        Wrap(
-          children: [
-            TextButton(
-              onPressed: () {
-                final price = FieldValidations.parseMoney(_price.text);
-                if (_price.text.trim().isNotEmpty &&
-                    (price == null || price < 0)) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Informe um preco valido.')),
-                  );
-                  return;
-                }
-                context.read<ButcherProvider>().applyFilters(
-                  name: _name.text.trim(),
-                  brand: _brand.text.trim(),
-                  category: _category.text.trim(),
-                  maxPrice: price,
-                );
-              },
-              child: const Text('Aplicar filtros'),
-            ),
-            TextButton(
-              onPressed: () {
-                _name.clear();
-                _brand.clear();
-                _category.clear();
-                _price.clear();
-                context.read<ButcherProvider>().applyFilters();
-              },
-              child: const Text('Limpar filtros'),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
 }

@@ -1,3 +1,4 @@
+import '../models/category_model.dart';
 import '../data/repositories/marketplace_repository.dart';
 import '../models/product_model.dart';
 
@@ -15,6 +16,8 @@ class ProductPage {
 class ProductService {
   ProductService({required MarketplaceRepository marketplace})
     : _marketplace = marketplace;
+  Future<List<CategoryModel>> categoriesForUnit(String unitId) =>
+      _marketplace.listCategories(unitId: unitId);
   static const int _pageSize = 10;
   final MarketplaceRepository _marketplace;
 
