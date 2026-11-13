@@ -1,3 +1,4 @@
+import '../../../widgets/chat_participant_avatar.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,6 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   static const Color _red = Color(0xFFC0392B);
   static const Color _pageBg = Color(0xFF2E2E2E);
-  static const Color _surface = Color(0xFF424242);
 
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -158,52 +158,58 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildParticipantHeader() {
-    final other = _args!;
-    final isUnit = other.otherUserType == ChatParticipantType.unit;
-    final accentColor = isUnit ? _red : const Color(0xFF27AE60);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 8),
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: accentColor, width: 2),
-            ),
-            child: ClipOval(child: _buildAvatar(other, accentColor)),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            other.otherUserName,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              other.otherUserType.label,
-              style: TextStyle(
-                fontSize: 11,
-                color: accentColor,
-                fontWeight: FontWeight.w600,
+  Widget _buildParticipantHeader() => Consumer<ChatProvider>(
+    builder: (context, provider, _) {
+      final args = _args!;
+      final type = provider.participant?.type ?? args.otherUserType;
+      final accent = type == ChatParticipantType.unit
+          ? _red
+          : const Color(0xFF27AE60);
+      return Padding(
+        padding: const EdgeInsets.only(top: 20, bottom: 8),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: accent, width: 2),
+              ),
+              child: ChatParticipantAvatar(
+                photoUrl: provider.participant?.photoUrl ?? args.otherUserPhoto,
+                type: type,
+                size: 60,
+                assetFallback: args.logoAsset,
               ),
             ),
-          ),
-          Consumer<ChatProvider>(
-            builder: (_, provider, _) => SizedBox(
+            const SizedBox(height: 8),
+            Text(
+              provider.participant?.name ?? args.otherUserName,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: .5,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: .15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                type.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: accent,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            SizedBox(
               height: 20,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
@@ -211,47 +217,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ? Text(
                         'digitando...',
                         key: const ValueKey('typing'),
-                        style: TextStyle(fontSize: 12, color: accentColor),
+                        style: TextStyle(fontSize: 12, color: accent),
                       )
                     : const SizedBox(key: ValueKey('idle')),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAvatar(ChatArgs args, Color accent) {
-    if (args.logoAsset != null) {
-      return Image.asset(
-        args.logoAsset!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _fallbackAvatar(args.otherUserType, accent),
+          ],
+        ),
       );
-    }
-    if (args.otherUserPhoto != null) {
-      return Image.network(
-        args.otherUserPhoto!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => _fallbackAvatar(args.otherUserType, accent),
-      );
-    }
-    return _fallbackAvatar(args.otherUserType, accent);
-  }
-
-  Widget _fallbackAvatar(ChatParticipantType type, Color accent) {
-    return Container(
-      color: _surface,
-      child: Icon(
-        type == ChatParticipantType.unit
-            ? Icons.storefront_outlined
-            : Icons.person_outline,
-        color: Colors.white,
-        size: 30,
-      ),
-    );
-  }
+    },
+  );
 
   Widget _buildMessageList() {
     return Consumer<ChatProvider>(

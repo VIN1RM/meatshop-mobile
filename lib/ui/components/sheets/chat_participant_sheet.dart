@@ -1,3 +1,7 @@
+import 'package:provider/provider.dart';
+import '../../../data/repositories/realtime_repository.dart';
+import '../../../models/chat_model.dart';
+import '../../widgets/chat_participant_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
 
@@ -6,8 +10,26 @@ class ChatParticipantDialog {
     required BuildContext context,
     required String unitName,
     String? secondaryName,
+    int? orderId,
+    ChatParticipantType currentUserType = ChatParticipantType.client,
     ChatParticipantType secondaryType = ChatParticipantType.client,
   }) {
+    Future<ChatParticipant?> profile(ChatParticipantType type) async {
+      if (orderId == null) return null;
+      try {
+        return await context.read<BackendRealtimeAccess>().chat?.participant(
+          orderId,
+          ChatChannel.between(currentUserType, type),
+        );
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final unitProfile = profile(ChatParticipantType.unit);
+    final secondaryProfile = secondaryName == null
+        ? null
+        : profile(secondaryType);
     return showModalBottomSheet<ChatParticipantType>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -15,6 +37,8 @@ class ChatParticipantDialog {
         unitName: unitName,
         secondaryName: secondaryName,
         secondaryType: secondaryType,
+        unitProfile: unitProfile,
+        secondaryProfile: secondaryProfile,
       ),
     );
   }
@@ -25,8 +49,12 @@ class _ChatParticipantSheet extends StatelessWidget {
     required this.unitName,
     required this.secondaryName,
     required this.secondaryType,
+    required this.unitProfile,
+    required this.secondaryProfile,
   });
 
+  final Future<ChatParticipant?>? unitProfile;
+  final Future<ChatParticipant?>? secondaryProfile;
   final String unitName;
   final String? secondaryName;
   final ChatParticipantType secondaryType;
@@ -73,7 +101,8 @@ class _ChatParticipantSheet extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               _ParticipantTile(
-                emoji: ChatParticipantType.unit.icon,
+                type: ChatParticipantType.unit,
+                participant: unitProfile,
                 label: ChatParticipantType.unit.label,
                 name: unitName,
                 accentColor: const Color(0xFFC0392B),
@@ -82,7 +111,8 @@ class _ChatParticipantSheet extends StatelessWidget {
               if (secondaryName != null) ...[
                 const SizedBox(height: 12),
                 _ParticipantTile(
-                  emoji: secondaryType.icon,
+                  type: secondaryType,
+                  participant: secondaryProfile,
                   label: secondaryType.label,
                   name: secondaryName!,
                   accentColor: const Color(0xFF27AE60),
@@ -107,21 +137,28 @@ class _ChatParticipantSheet extends StatelessWidget {
 
 class _ParticipantTile extends StatelessWidget {
   const _ParticipantTile({
-    required this.emoji,
+    required this.type,
+    this.participant,
     required this.label,
     required this.name,
     required this.accentColor,
     required this.onTap,
   });
 
-  final String emoji;
+  final ChatParticipantType type;
+  final Future<ChatParticipant?>? participant;
   final String label;
   final String name;
   final Color accentColor;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => FutureBuilder<ChatParticipant?>(
+    future: participant,
+    builder: (context, snapshot) => _content(context, snapshot.data),
+  );
+
+  Widget _content(BuildContext context, ChatParticipant? profile) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -136,7 +173,11 @@ class _ParticipantTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 22)),
+            ChatParticipantAvatar(
+              photoUrl: profile?.photoUrl,
+              type: type,
+              size: 42,
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -152,7 +193,7 @@ class _ParticipantTile extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    name,
+                    profile?.name ?? name,
                     style: const TextStyle(
                       color: Color(0xFF1A1A1A),
                       fontSize: 15,

@@ -223,11 +223,27 @@ class ChatProvider extends ChangeNotifier {
   bool get sending => _sending;
   bool get otherTyping => _otherTyping;
   String? get error => _error;
+  ChatParticipant? _participant;
+  ChatParticipant? get participant => _participant;
+
+  Future<void> _loadParticipant() async {
+    if (!backendEnabled || _disposed) return;
+    try {
+      final participant = await _repository.participant(orderId!, channel!);
+      if (_disposed) return;
+      _participant = participant;
+      notifyListeners();
+    } catch (_) {
+      // Keep the known identity and message flow available during an image/profile failure.
+    }
+  }
+
   bool get backendEnabled =>
       backendUserId != null && orderId != null && channel != null;
 
   Future<void> _init() async {
     if (backendEnabled) {
+      unawaited(_loadParticipant());
       final realtime = _realtime;
       _subscriptions.add(realtime.chatMessages.listen(_onRealtimeMessage));
       _subscriptions.add(realtime.chatReads.listen(_onRead));
@@ -252,7 +268,9 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> retry() => _reconcile();
+  Future<void> retry() async {
+    await Future.wait([_loadParticipant(), _reconcile()]);
+  }
 
   bool _visible = true;
   void setVisible(bool value) {

@@ -1,3 +1,4 @@
+import '../../../widgets/chat_participant_avatar.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
@@ -322,14 +323,9 @@ class _Avatar extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFFE0E0E0), width: 1.5),
           ),
-          child: ClipOval(
-            child: participant.photoUrl != null
-                ? Image.network(
-                    participant.photoUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _fallback(),
-                  )
-                : _fallback(),
+          child: ChatParticipantAvatar(
+            photoUrl: participant.photoUrl,
+            type: participant.type,
           ),
         ),
         if (unread > 0)
@@ -356,18 +352,6 @@ class _Avatar extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _fallback() {
-    final isUnit = participant.type == ChatParticipantType.unit;
-    return Container(
-      color: const Color(0xFFE0E0E0),
-      child: Icon(
-        isUnit ? Icons.storefront_outlined : Icons.person_outline,
-        color: const Color(0xFFBDBDBD),
-        size: 24,
-      ),
     );
   }
 }

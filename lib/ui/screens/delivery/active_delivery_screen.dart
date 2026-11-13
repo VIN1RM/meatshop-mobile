@@ -293,6 +293,8 @@ Future<void> _onOpenChat(BuildContext context, order) async {
   final participant = await ChatParticipantDialog.show(
     context: context,
     unitName: order.unitName,
+    orderId: order.id,
+    currentUserType: ChatParticipantType.delivery,
     secondaryName: order.clientName,
   );
 

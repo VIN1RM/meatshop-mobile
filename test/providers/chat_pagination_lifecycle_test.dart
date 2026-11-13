@@ -29,6 +29,21 @@ class Repository extends Fake implements ChatRepository {
   Completer<int>? pendingUnread;
   bool fail = false;
   int reads = 0;
+  bool photoFails = false;
+  Completer<ChatParticipant>? pendingParticipant;
+  @override
+  Future<ChatParticipant> participant(int orderId, ChatChannel channel) async {
+    if (fail || photoFails) throw StateError('Offline');
+    return pendingParticipant == null
+        ? const ChatParticipant(
+            userId: '2',
+            name: 'Açougue atualizado',
+            photoUrl: 'https://example.com/unit.png',
+            type: ChatParticipantType.unit,
+          )
+        : pendingParticipant!.future;
+  }
+
   @override
   Future<List<ChatMessage>> history(
     int orderId,
@@ -116,6 +131,49 @@ ChatProvider room(
 );
 
 void main() {
+  testWidgets('a profile image failure does not block the message history', (
+    tester,
+  ) async {
+    final repository = Repository()..photoFails = true;
+    final provider = room(repository, Realtime());
+    await tester.pump();
+    expect(provider.participant, isNull);
+    expect(provider.messages, isNotEmpty);
+    expect(provider.error, isNull);
+    provider.dispose();
+  });
+
+  testWidgets(
+    'loads the current participant photo even when navigation passed none',
+    (tester) async {
+      final repository = Repository();
+      final provider = room(repository, Realtime());
+      await tester.pump();
+      expect(provider.participant?.photoUrl, 'https://example.com/unit.png');
+      expect(provider.participant?.name, 'Açougue atualizado');
+      expect(provider.messages, isNotEmpty);
+      provider.dispose();
+    },
+  );
+  testWidgets(
+    'does not publish a profile response after leaving the conversation',
+    (tester) async {
+      final repository = Repository()..pendingParticipant = Completer();
+      final provider = room(repository, Realtime());
+      await tester.pump();
+      provider.dispose();
+      repository.pendingParticipant!.complete(
+        const ChatParticipant(
+          userId: '2',
+          name: 'Contato',
+          type: ChatParticipantType.unit,
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'background chats remain unread and closed history is read after returning',
     (tester) async {

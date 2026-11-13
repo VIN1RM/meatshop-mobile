@@ -13,6 +13,15 @@ class ChatParticipant {
     required this.type,
   });
 
+  factory ChatParticipant.fromApi(Map<String, Object?> data) => ChatParticipant(
+    userId: (data['id'] as num).toInt().toString(),
+    name: data['name'] as String,
+    photoUrl: (data['avatar_url'] as String?)?.trim(),
+    type: ChatParticipantType.values.firstWhere(
+      (type) => type.name.toUpperCase() == data['type'],
+    ),
+  );
+
   factory ChatParticipant.fromMap(String userId, Map<String, dynamic> map) {
     return ChatParticipant(
       userId: userId,

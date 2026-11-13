@@ -78,6 +78,7 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
     final participant = await ChatParticipantDialog.show(
       context: context,
       unitName: order.unitName,
+      orderId: int.tryParse(order.id),
       secondaryName: deliveryId == null
           ? null
           : order.deliveryPersonName?.trim().isNotEmpty == true
@@ -106,7 +107,6 @@ class _DeliveriesScreenState extends State<DeliveriesScreen> {
         otherUserId: receiverId,
         otherUserName: receiverName,
         otherUserType: participant,
-        otherUserPhoto: null,
         orderId: int.tryParse(order.id),
       ),
     );
