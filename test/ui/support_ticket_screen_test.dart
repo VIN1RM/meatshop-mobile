@@ -268,11 +268,12 @@ class _PagedSupport extends _Support implements PaginatedSupportRepository {
   @override
   Future<SupportMessagesPage> messages(int id, {required int beforeId}) async {
     cursors.add(beforeId);
-    if (cursors.length == 1)
+    if (cursors.length == 1) {
       throw const ApiFailure(
         kind: ApiFailureKind.network,
         message: 'Indisponível',
       );
+    }
     return SupportMessagesPage([
       SupportMessageModel(
         id: 1,
