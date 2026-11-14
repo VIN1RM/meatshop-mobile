@@ -129,10 +129,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final amount = FieldValidations.parseMoney(raw);
     if (singleCash &&
         raw.isNotEmpty &&
-        (amount == null || !amount.isFinite || amount < widget.total)) {
-      setState(
-        () => _changeError = 'Informe um valor para troco que cubra o pedido.',
-      );
+        (amount == null || !amount.isFinite || amount <= 0)) {
+      setState(() => _changeError = 'Informe um valor válido para o troco.');
       return;
     }
     final result = await Navigator.push<String>(
@@ -470,7 +468,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     prefixText: 'R\$ ',
                     filled: true,
                     fillColor: const Color(0xFF303030),
-                    helperText: 'Deixe em branco se for pagar o valor exato.',
+                    helperText:
+                        'Opcional. O valor será conferido com o total final na revisão.',
                     helperMaxLines: 2,
                     errorText: _changeError,
                     errorMaxLines: 3,

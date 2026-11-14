@@ -1,3 +1,6 @@
+import '../data/repositories/order_repository.dart';
+import '../models/order_model.dart';
+import '../ui/screens/account/support_ticket_screen.dart';
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../providers/auth/auth_provider.dart' as app_auth;
@@ -277,18 +280,37 @@ class NotificationService implements PushPermissionGateway {
       final path = '${item.payload?['action_url'] ?? ''}';
       final match = RegExp(r'^/orders/(\d+)$').firstMatch(path);
       final orderId = match == null ? null : int.tryParse(match.group(1)!);
-      if (item.type == NotificationType.promotion) {
+      final supportMatch = RegExp(r'^/support/(\d+)$').firstMatch(path);
+      if (supportMatch != null) {
+        nav.push(
+          MaterialPageRoute(
+            builder: (_) =>
+                SupportTicketScreen(id: int.parse(supportMatch.group(1)!)),
+          ),
+        );
+      } else if (item.type == NotificationType.promotion) {
         nav.pushNamed(AppRoutes.butchers);
       } else if (item.type == NotificationType.order ||
           item.type == NotificationType.delivery) {
         if (auth.isDelivery) {
           nav.pushNamedAndRemoveUntil(AppRoutes.deliveryShell, (_) => false);
         } else if (orderId != null) {
+          if (!context.mounted ||
+              !auth.isAuthenticated ||
+              auth.backendUserId != owner) {
+            return;
+          }
+          final order = await context.read<OrderRepository>().get('$orderId');
+          if (!context.mounted ||
+              !auth.isAuthenticated ||
+              auth.backendUserId != owner) {
+            return;
+          }
           nav.push(
             MaterialPageRoute(
-              builder: (_) => item!.type == NotificationType.delivery
-                  ? OrderTrackingScreen(orderId: orderId)
-                  : OrderProcessingScreen(orderIds: ['$orderId']),
+              builder: (_) => opensPayment(order)
+                  ? OrderProcessingScreen(orderIds: ['$orderId'])
+                  : OrderTrackingScreen(orderId: orderId),
             ),
           );
         } else {
@@ -309,6 +331,9 @@ class NotificationService implements PushPermissionGateway {
       _opening = false;
     }
   }
+
+  @visibleForTesting
+  static bool opensPayment(OrderModel order) => order.canPay;
 
   Future<String?> getToken() async {
     return _messaging.getToken();

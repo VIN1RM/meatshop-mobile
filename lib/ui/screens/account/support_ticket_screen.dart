@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/network/api_failure.dart';
@@ -21,15 +22,70 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
   String? _error;
   bool _busy = false;
   bool _refreshing = false;
+  Timer? _refreshTimer;
+  bool _initialized = false;
+  int? _cursor;
+  bool _loadingHistory = false;
+  String? _historyError;
+  List<SupportMessageModel> _messages = [];
+  List<SupportMessageModel> _merge(List<SupportMessageModel> incoming) {
+    final merged = <String, SupportMessageModel>{};
+    for (final item in [..._messages, ...incoming]) {
+      merged[item.id?.toString() ??
+              '${item.senderId}:${item.createdAt}:${item.text}'] =
+          item;
+    }
+    return merged.values.toList()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
+
+  Future<void> _loadEarlier() async {
+    final repo = context.read<SupportRepository>();
+    final cursor = _cursor;
+    if (repo is! PaginatedSupportRepository ||
+        cursor == null ||
+        _loadingHistory) {
+      return;
+    }
+    setState(() {
+      _loadingHistory = true;
+      _historyError = null;
+    });
+    try {
+      final page = await (repo as PaginatedSupportRepository).messages(
+        widget.id,
+        beforeId: cursor,
+      );
+      if (mounted) {
+        setState(() {
+          _messages = _merge(page.items);
+          _cursor = page.hasMore ? page.nextBeforeId : null;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _historyError =
+              'Não foi possível carregar as mensagens anteriores. Tente novamente.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loadingHistory = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _load();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (!_busy) unawaited(_load());
+    });
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _message.dispose();
     super.dispose();
   }
@@ -42,6 +98,13 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
       if (mounted) {
         setState(() {
           _ticket = ticket;
+          _messages = _merge(ticket.messages);
+          if (!_initialized) {
+            _cursor = ticket.messagesHasMore
+                ? ticket.messagesNextBeforeId
+                : null;
+            _initialized = true;
+          }
           _error = null;
         });
       }
@@ -128,6 +191,23 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
+                  if (_cursor != null)
+                    OutlinedButton(
+                      onPressed: _loadingHistory ? null : _loadEarlier,
+                      child: Text(
+                        _loadingHistory
+                            ? 'Carregando...'
+                            : 'Carregar mensagens anteriores',
+                      ),
+                    ),
+                  if (_historyError != null)
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        _historyError!,
+                        style: const TextStyle(color: Color(0xFFFFA99F)),
+                      ),
+                    ),
                   TicketSummaryCard(ticket: ticket),
                   const SizedBox(height: 20),
                   Row(
@@ -191,14 +271,14 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                       ),
                     ),
                   ],
-                  if (ticket.messages.isEmpty)
+                  if (_messages.isEmpty)
                     const AppEmptyState(
                       title: 'A conversa começa aqui',
                       icon: Icons.chat_bubble_outline,
                       description:
                           'As mensagens e as respostas da equipe aparecerão neste espaço.',
                     ),
-                  for (final message in ticket.messages)
+                  for (final message in _messages)
                     TicketMessageBubble(
                       message: message,
                       mine:

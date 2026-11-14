@@ -140,6 +140,33 @@ void main() {
     },
   );
 
+  testWidgets(
+    'history retry preserves the cursor, loaded messages and reply draft',
+    (tester) async {
+      final repository = _PagedSupport();
+      await _render(tester, repository);
+      await tester.enterText(find.byType(TextField), 'Rascunho preservado');
+      await tester.ensureVisible(find.text('Carregar mensagens anteriores'));
+      await tester.tap(find.text('Carregar mensagens anteriores'));
+      await tester.pumpAndSettle();
+      expect(repository.cursors, [31]);
+      expect(find.text('Rascunho preservado'), findsOneWidget);
+      await tester.tap(find.text('Carregar mensagens anteriores'));
+      await tester.pumpAndSettle();
+      expect(repository.cursors, [31, 31]);
+      expect(find.text('Mensagem anterior'), findsOneWidget);
+      expect(find.text('Mensagem recente'), findsOneWidget);
+      expect(find.text('Carregar mensagens anteriores'), findsNothing);
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pumpAndSettle();
+      expect(find.text('Mensagem anterior'), findsOneWidget);
+      expect(find.text('Mensagem recente'), findsOneWidget);
+      expect(find.text('Rascunho preservado'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
   test('decodes sender and ticket ownership from the API response', () {
     final ticket = SupportTicketModel.fromJson({
       'id': 8,
@@ -217,4 +244,42 @@ class _Support implements SupportRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _PagedSupport extends _Support implements PaginatedSupportRepository {
+  final cursors = <int>[];
+  @override
+  Future<SupportTicketModel> get(int id) async => SupportTicketModel(
+    id: id,
+    subject: 'Histórico',
+    status: 'OPEN',
+    userId: 63,
+    messagesHasMore: true,
+    messagesNextBeforeId: 31,
+    messages: [
+      SupportMessageModel(
+        id: 31,
+        text: 'Mensagem recente',
+        createdAt: DateTime(2026, 11, 12, 14),
+        senderId: 63,
+      ),
+    ],
+  );
+  @override
+  Future<SupportMessagesPage> messages(int id, {required int beforeId}) async {
+    cursors.add(beforeId);
+    if (cursors.length == 1)
+      throw const ApiFailure(
+        kind: ApiFailureKind.network,
+        message: 'Indisponível',
+      );
+    return SupportMessagesPage([
+      SupportMessageModel(
+        id: 1,
+        text: 'Mensagem anterior',
+        createdAt: DateTime(2026, 11, 12, 13),
+        senderId: 63,
+      ),
+    ], hasMore: false);
+  }
 }

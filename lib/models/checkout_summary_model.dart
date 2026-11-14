@@ -38,6 +38,7 @@ class CheckoutSummaryModel {
     Map<String, String>? couponCodes,
     String? defaultMethod,
     bool clearChange = false,
+    double? changeFor,
   }) => CheckoutSummaryModel(
     addressId: addressId,
     unitDeliveryTypes: unitDeliveryTypes,
@@ -45,7 +46,7 @@ class CheckoutSummaryModel {
     scheduledDate: scheduledDate,
     scheduledTime: scheduledTime,
     paymentMethod: defaultMethod ?? paymentMethod,
-    changeFor: clearChange ? null : changeFor,
+    changeFor: clearChange ? null : changeFor ?? this.changeFor,
     expectedTotal: total ?? expectedTotal,
     quoteToken: token ?? quoteToken,
     unitPaymentMethods: methods ?? unitPaymentMethods,

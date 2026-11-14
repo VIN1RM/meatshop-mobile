@@ -159,25 +159,21 @@ void main() {
     },
   );
 
-  testWidgets(
-    'rejects change below the order subtotal without leaving payment selection',
-    (tester) async {
-      final cart = await render(tester, _Orders(), units: 1);
-      await tester.enterText(
-        find.byKey(const ValueKey('payment-change')),
-        '10,00',
-      );
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Revisar pedido'));
-      await tester.pumpAndSettle();
-      expect(
-        find.text('Informe um valor para troco que cubra o pedido.'),
-        findsOneWidget,
-      );
-      expect(find.text('PAGAMENTO'), findsOneWidget);
-      await tester.pumpWidget(const SizedBox());
-      cart.dispose();
-    },
-  );
+  testWidgets('rejects nonpositive change without leaving payment selection', (
+    tester,
+  ) async {
+    final cart = await render(tester, _Orders(), units: 1);
+    await tester.enterText(
+      find.byKey(const ValueKey('payment-change')),
+      '0,00',
+    );
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Revisar pedido'));
+    await tester.pumpAndSettle();
+    expect(find.text('Informe um valor válido para o troco.'), findsOneWidget);
+    expect(find.text('PAGAMENTO'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    cart.dispose();
+  });
 }
 
 class _Orders implements OrderRepository, CheckoutCapabilities {

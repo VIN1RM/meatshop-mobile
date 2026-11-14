@@ -1,3 +1,5 @@
+import '../../../core/utils/field_validations.dart';
+import 'package:flutter/services.dart';
 import '../../widgets/chat_participant_avatar.dart';
 import '../../../core/enums/chat_enums.dart';
 import '../../widgets/checkout_step_header.dart';
@@ -48,8 +50,42 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         : chosen;
   }
 
+  late final TextEditingController _changeController = TextEditingController(
+    text:
+        widget.summary.changeFor?.toStringAsFixed(2).replaceAll('.', ',') ?? '',
+  );
+  double? _quotedChange;
+  double? get _changeValue =>
+      FieldValidations.parseMoney(_changeController.text.trim());
+  bool get _singleCash =>
+      context.read<CartProvider>().itemsByUnit.length == 1 &&
+      _methodFor(context.read<CartProvider>().itemsByUnit.keys.first) == 'cash';
+  bool get _changeDirty => _singleCash && _changeValue != _quotedChange;
+  String? get _changeError {
+    if (!_singleCash || _changeController.text.trim().isEmpty) return null;
+    final value = _changeValue;
+    if (value == null ||
+        !value.isFinite ||
+        value <= 0 ||
+        !RegExp(r'^\d+([,.]\d{1,2})?$').hasMatch(_changeController.text.trim())) {
+      return 'Informe um valor válido com até duas casas decimais.';
+    }
+    if (_quote != null && value < _quote!.totalAmount) {
+      return 'O troco deve cobrir o total de ${_fmt(_quote!.totalAmount)}.';
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    _changeController.dispose();
+    super.dispose();
+  }
+
   CheckoutSummaryModel get _summary => widget.summary.copyWith(
+    changeFor: _changeValue,
     clearChange:
+        _changeController.text.trim().isEmpty ||
         context.read<CartProvider>().itemsByUnit.length != 1 ||
         _methodFor(context.read<CartProvider>().itemsByUnit.keys.first) !=
             'cash',
@@ -133,6 +169,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         };
         _quote = quote;
         _feesReady = true;
+        _quotedChange = _changeValue;
       });
     } catch (error) {
       if (!mounted || generation != _quoteGeneration) return;
@@ -386,6 +423,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                               cart.total,
                           grandTotal,
                         ),
+                        if (_singleCash) _buildChangeCard(),
                         const SizedBox(height: 32),
                         if (_couponDrafts.isNotEmpty)
                           const Padding(
@@ -769,10 +807,64 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
+  Widget _buildChangeCard() => Theme(
+    data: appDarkSurfaceTheme(context),
+    child: Container(
+      margin: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF383838),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Pagamento em dinheiro',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const ValueKey('review-change'),
+            controller: _changeController,
+            enabled: !_calculatingFees,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+            ],
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: 'Troco para (opcional)',
+              hintText: 'Ex.: 100,00',
+              errorText: _changeError,
+              errorMaxLines: 3,
+              helperText: 'Deixe em branco para pagar o valor exato.',
+              helperMaxLines: 2,
+            ),
+          ),
+          if (_changeDirty) ...[
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed:
+                  _calculatingFees ||
+                      (_changeController.text.trim().isNotEmpty &&
+                          (_changeValue == null || _changeValue! <= 0))
+                  ? null
+                  : _calculateFees,
+              child: const Text('Atualizar troco'),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+
   Widget _buildConfirmButton(BuildContext context, double grandTotal) {
     final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
     final canConfirm =
+        _changeError == null &&
+        !_changeDirty &&
         _feesReady &&
         _couponDrafts.isEmpty &&
         !_calculatingFees &&

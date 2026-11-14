@@ -81,6 +81,13 @@ class ProductService {
       return const ProductPage(items: [], lastDoc: null, hasMore: false);
     }
     final pageNumber = startAfter is int ? startAfter : 1;
+    if (searchQuery.trim().isNotEmpty && categoryIds.length == 1) {
+      return filtered(
+        categoryId: categoryIds.first,
+        name: searchQuery.trim(),
+        page: pageNumber,
+      );
+    }
     final pages = await Future.wait(
       categoryIds.map(
         (id) => _marketplace.listProducts(
