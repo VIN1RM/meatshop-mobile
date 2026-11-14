@@ -1,3 +1,4 @@
+import 'chat_participant_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/enums/chat_enums.dart';
@@ -124,9 +125,7 @@ class _OrderContactActionsState extends State<OrderContactActions> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.order.isFinished
-                ? 'Conversas deste pedido'
-                : 'Precisa falar sobre o pedido?',
+            'Conversas do pedido',
             style: TextStyle(
               color: foreground,
               fontWeight: FontWeight.w700,
@@ -134,26 +133,36 @@ class _OrderContactActionsState extends State<OrderContactActions> {
             ),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 8,
-            children: [
-              _contact(
-                ChatParticipantType.unit,
-                widget.order.isFinished
-                    ? 'Ver conversa com açougue'
-                    : 'Falar com açougue',
-                Icons.storefront_outlined,
+          Material(
+            color: widget.dark ? const Color(0xFF383838) : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: widget.dark ? Colors.white12 : const Color(0xFFE6E3E2),
               ),
-              if (_hasCourier)
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
                 _contact(
-                  ChatParticipantType.delivery,
+                  ChatParticipantType.unit,
                   widget.order.isFinished
-                      ? 'Ver conversa com entregador'
-                      : 'Falar com entregador',
-                  Icons.delivery_dining,
+                      ? 'Ver conversa com açougue'
+                      : 'Falar com açougue',
+                  Icons.storefront_outlined,
                 ),
-            ],
+                if (_hasCourier)
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                if (_hasCourier)
+                  _contact(
+                    ChatParticipantType.delivery,
+                    widget.order.isFinished
+                        ? 'Ver conversa com entregador'
+                        : 'Falar com entregador',
+                    Icons.delivery_dining,
+                  ),
+              ],
+            ),
           ),
           if (!_hasCourier &&
               !widget.order.isPickup &&
@@ -182,29 +191,77 @@ class _OrderContactActionsState extends State<OrderContactActions> {
     );
   }
 
-  Widget _contact(
-    ChatParticipantType type,
-    String label,
-    IconData icon,
-  ) => OutlinedButton.icon(
-    onPressed: _opening == null ? () => _open(type) : null,
-    icon: _opening == type
-        ? const SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          )
-        : Icon(icon, size: 19),
-    label: Text(label),
-    style: OutlinedButton.styleFrom(
-      foregroundColor: widget.dark
-          ? const Color(0xFFFFA99F)
-          : const Color(0xFFC0392B),
-      side: BorderSide(
-        color: widget.dark ? const Color(0xFFCE8178) : const Color(0xFFC0392B),
+  Widget _contact(ChatParticipantType type, String label, IconData icon) {
+    final isUnit = type == ChatParticipantType.unit;
+    final accent = widget.dark
+        ? const Color(0xFFFFA99F)
+        : const Color(0xFFC0392B);
+    final name = isUnit
+        ? widget.order.unitName
+        : widget.order.deliveryPersonName;
+    return InkWell(
+      onTap: _opening == null ? () => _open(type) : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            ChatParticipantAvatar(
+              type: type,
+              photoUrl: isUnit ? widget.order.unitLogoUrl : null,
+              size: 36,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: widget.dark
+                          ? Colors.white
+                          : const Color(0xFF292929),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    name?.trim().isNotEmpty == true
+                        ? name!
+                        : (isUnit
+                              ? 'Equipe do açougue'
+                              : 'Responsável pela sua entrega'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: widget.dark
+                          ? Colors.white60
+                          : const Color(0xFF777777),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            if (_opening == type)
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: accent),
+              )
+            else
+              Icon(
+                widget.order.isFinished
+                    ? Icons.history_rounded
+                    : Icons.chat_bubble_outline_rounded,
+                color: accent,
+                size: 20,
+              ),
+          ],
+        ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ),
-  );
+    );
+  }
 }

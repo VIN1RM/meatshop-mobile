@@ -1,3 +1,4 @@
+import '../../widgets/customer_order_code_card.dart';
 import '../../widgets/order_contact_actions.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
@@ -415,6 +416,18 @@ class _ActiveOrderCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
+            if (order.canShowCustomerCode) ...[
+              CustomerOrderCodeCard(
+                order: order,
+                onOpen: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        OrderTrackingScreen(orderId: int.parse(order.id)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             OrderContactActions(order: order, dark: false, compact: true),
             const SizedBox(height: 12),
             SizedBox(

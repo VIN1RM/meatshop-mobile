@@ -1,3 +1,4 @@
+import '../../widgets/customer_order_code_card.dart';
 import '../../widgets/order_contact_actions.dart';
 import 'pickup_order_page.dart';
 import 'dart:async';
@@ -397,36 +398,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                         if (!_ended && _order != null) ...[
                           const SizedBox(height: 10),
-                          Text(
-                            _pickup
-                                ? 'Código de retirada'
-                                : 'Código de entrega',
-                            style: const TextStyle(
-                              color: AppColors.dark,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            _order!.deliveryCode ??
-                                (_pickup
-                                    ? 'Toque para gerar'
-                                    : 'Ainda não disponível'),
-                            style: const TextStyle(
-                              color: AppColors.dark,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                          Text(
-                            _pickup
-                                ? 'Apresente este código no balcão para retirar seu pedido.'
-                                : 'Informe ao entregador somente depois de receber o pedido.',
-                            style: const TextStyle(
-                              color: Color(0xFF555555),
-                              height: 1.4,
-                            ),
-                          ),
+                          CustomerOrderCodeCard(order: _order!),
                           TextButton(
                             onPressed: _generatingCode ? null : _regenerateCode,
                             child: Text(
