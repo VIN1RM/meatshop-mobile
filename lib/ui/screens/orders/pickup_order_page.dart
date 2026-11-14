@@ -1,3 +1,4 @@
+import '../../widgets/order_contact_actions.dart';
 import 'package:flutter/material.dart';
 import '../../../models/order_model.dart';
 import '../../../models/unit_model.dart';
@@ -28,7 +29,7 @@ class PickupOrderPage extends StatelessWidget {
     'CONFIRMED' => 'Pedido confirmado',
     'PREPARING' => 'Seu pedido está em preparo',
     'READY' => 'Pronto para retirada',
-    'DELIVERED' => 'Retirada concluída',
+    'DELIVERED' => 'Retirado',
     'CANCELLED' => 'Pedido cancelado',
     _ => 'Acompanhe seu pedido',
   };
@@ -208,7 +209,7 @@ class PickupOrderPage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (!_ended) ...[
+                        if (order.canShowCustomerCode) ...[
                           const SizedBox(height: 14),
                           _card(
                             child: Column(
@@ -283,6 +284,55 @@ class PickupOrderPage extends StatelessWidget {
                             ),
                           ),
                         ],
+                        if (!_ended && order.status != 'READY') ...[
+                          const SizedBox(height: 14),
+                          _card(
+                            child: const Text(
+                              'Seu código de retirada ficará disponível quando o pedido estiver pronto. Aguarde a confirmação antes de ir ao açougue.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+                        _card(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Pagamento',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                order.paymentMethodLabel,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                order.paymentStatusLabel,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Total: ${order.formattedTotal}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         if (error != null) ...[
                           const SizedBox(height: 16),
                           Text(
@@ -293,6 +343,8 @@ class PickupOrderPage extends StatelessWidget {
                             ),
                           ),
                         ],
+                        const SizedBox(height: 16),
+                        OrderContactActions(order: order),
                         const SizedBox(height: 24),
                         PrimaryButton(
                           label: 'Atualizar pedido',

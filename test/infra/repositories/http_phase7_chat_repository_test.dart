@@ -15,6 +15,37 @@ import 'package:meatshop_mobile/infra/repositories/http_chat_repository.dart';
 
 void main() {
   test(
+    'loads the authorized participant and resolves relative profile photos',
+    () async {
+      for (final type in ['UNIT', 'CLIENT', 'DELIVERY']) {
+        final repository = HttpChatRepository(
+          _client(
+            MockClient((request) async {
+              expect(request.url.path, '/orders/42/chat/participant');
+              expect(
+                request.url.queryParameters['participant_type'],
+                'UNIT_DELIVERY_PERSON',
+              );
+              return _json({
+                'id': 9,
+                'name': 'Contato',
+                'type': type,
+                'avatar_url': '/uploads/avatar.png',
+              });
+            }),
+          ),
+        );
+        final profile = await repository.participant(
+          42,
+          ChatChannel.unitDeliveryPerson,
+        );
+        expect(profile.photoUrl, 'http://localhost:3001/uploads/avatar.png');
+        expect(profile.type.name.toUpperCase(), type);
+      }
+    },
+  );
+
+  test(
     'lists conversations and preserves order, channel, and unread count',
     () async {
       final repository = HttpChatRepository(

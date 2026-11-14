@@ -1,3 +1,4 @@
+import 'image_gallery_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/enums/vehicle_type.dart';
 import '../../widgets/buttons_widget.dart';
@@ -144,6 +145,9 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
   }
 
   Widget _buildVehicleCard(BuildContext context, Map<String, dynamic> vehicle) {
+    final photos = List<String>.from(
+      vehicle['photo_urls'] ?? [],
+    ).where((url) => url.trim().isNotEmpty).toList();
     return Container(
       key: ValueKey('vehicle-${vehicle['id']}'),
       margin: const EdgeInsets.only(bottom: 16),
@@ -157,41 +161,49 @@ class _VehicleSettingsScreenState extends State<VehicleSettingsScreen> {
         children: [
           Row(
             children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _red.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: ClipOval(
-                  child: () {
-                    final photos = List<String>.from(
-                      vehicle['photo_urls'] ?? [],
-                    );
-                    if (photos.isNotEmpty) {
-                      final url = photos.first;
-                      if (url.startsWith('data:image')) {
-                        return Image.memory(
-                          base64Decode(url.split(',').last),
+              InkWell(
+                customBorder: const CircleBorder(),
+                onTap: photos.isEmpty
+                    ? null
+                    : () => ImageGalleryScreen.show(
+                        context,
+                        images: photos,
+                        title: 'Fotos do veículo',
+                        initialImage: photos.first,
+                      ),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _red.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: ClipOval(
+                    child: () {
+                      if (photos.isNotEmpty) {
+                        final url = photos.first;
+                        if (url.startsWith('data:image')) {
+                          return Image.memory(
+                            base64Decode(url.split(',').last),
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                          );
+                        }
+                        return Image.network(
+                          url,
                           width: 48,
                           height: 48,
                           fit: BoxFit.cover,
                         );
                       }
-                      return Image.network(
-                        url,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
+                      return Icon(
+                        _iconForVehicle(vehicle['type'] ?? ''),
+                        color: const Color(0xFFC0392B),
+                        size: 24,
                       );
-                    }
-                    return Icon(
-                      _iconForVehicle(vehicle['type'] ?? ''),
-                      color: const Color(0xFFC0392B),
-                      size: 24,
-                    );
-                  }(),
+                    }(),
+                  ),
                 ),
               ),
               const SizedBox(width: 14),

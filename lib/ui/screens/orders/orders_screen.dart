@@ -1,3 +1,5 @@
+import '../../widgets/customer_order_code_card.dart';
+import '../../widgets/order_contact_actions.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
@@ -279,7 +281,7 @@ class _ActiveOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusInfo = _activeStatusInfo(order.status, order.deliveryStatus);
+    final statusInfo = _activeStatusInfo(order);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -414,6 +416,20 @@ class _ActiveOrderCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
+            if (order.canShowCustomerCode) ...[
+              CustomerOrderCodeCard(
+                order: order,
+                onOpen: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        OrderTrackingScreen(orderId: int.parse(order.id)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            OrderContactActions(order: order, dark: false, compact: true),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               height: 40,
@@ -450,16 +466,20 @@ class _ActiveOrderCard extends StatelessWidget {
     );
   }
 
-  _StatusInfo _activeStatusInfo(String status, String deliveryStatus) {
-    if (deliveryStatus == 'ON_THE_WAY') {
+  _StatusInfo _activeStatusInfo(OrderModel order) {
+    if (!order.isPickup && order.deliveryStatus == 'ON_THE_WAY') {
       return _StatusInfo(
         label: 'A caminho',
         color: const Color(0xFF1565C0),
         icon: Icons.delivery_dining_rounded,
       );
     }
-    final s = OrderStatusX.fromString(status);
-    return _StatusInfo(label: s.label, color: s.color, icon: s.icon);
+    final s = OrderStatusX.fromString(order.status);
+    return _StatusInfo(
+      label: order.statusLabel,
+      color: s.color,
+      icon: order.isPickup ? Icons.storefront_outlined : s.icon,
+    );
   }
 }
 
@@ -625,7 +645,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                               color: statusColor,
                             ),
                             Text(
-                              isCancelled ? 'Cancelado' : 'Concluído',
+                              order.statusLabel,
                               style: TextStyle(
                                 fontSize: 11,
                                 color: statusColor,
@@ -681,6 +701,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                 icon: const Icon(Icons.payments_outlined),
                 label: Text(order.canPay ? 'Pagar pedido' : 'Ver pagamento'),
               ),
+              OrderContactActions(order: order, dark: false, compact: true),
               const SizedBox(height: 10),
               ...order.items
                   .take(_expanded ? 999 : 2)
@@ -770,7 +791,9 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                           Expanded(
                             child: _DetailItem(
                               icon: Icons.two_wheeler_rounded,
-                              label: 'Taxa de entrega',
+                              label: order.isPickup
+                                  ? 'Retirada sem taxa'
+                                  : 'Taxa de entrega',
                               value:
                                   'R\$ ${order.deliveryFee.toStringAsFixed(2).replaceAll('.', ',')}',
                             ),

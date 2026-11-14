@@ -1,3 +1,4 @@
+import '../models/category_model.dart';
 import '../data/repositories/marketplace_repository.dart';
 import '../models/product_model.dart';
 
@@ -15,6 +16,8 @@ class ProductPage {
 class ProductService {
   ProductService({required MarketplaceRepository marketplace})
     : _marketplace = marketplace;
+  Future<List<CategoryModel>> categoriesForUnit(String unitId) =>
+      _marketplace.listCategories(unitId: unitId);
   static const int _pageSize = 10;
   final MarketplaceRepository _marketplace;
 
@@ -78,6 +81,13 @@ class ProductService {
       return const ProductPage(items: [], lastDoc: null, hasMore: false);
     }
     final pageNumber = startAfter is int ? startAfter : 1;
+    if (searchQuery.trim().isNotEmpty && categoryIds.length == 1) {
+      return filtered(
+        categoryId: categoryIds.first,
+        name: searchQuery.trim(),
+        page: pageNumber,
+      );
+    }
     final pages = await Future.wait(
       categoryIds.map(
         (id) => _marketplace.listProducts(

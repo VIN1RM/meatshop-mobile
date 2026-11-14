@@ -2,7 +2,8 @@ import '../../data/repositories/support_repository.dart';
 import '../../models/support_ticket_model.dart';
 import '../http/api_client.dart';
 
-class HttpSupportRepository implements SupportRepository {
+class HttpSupportRepository
+    implements SupportRepository, PaginatedSupportRepository {
   HttpSupportRepository(this.client);
   final ApiClient client;
   @override
@@ -41,6 +42,26 @@ class HttpSupportRepository implements SupportRepository {
     decode: (json) =>
         SupportTicketModel.fromJson(Map<String, dynamic>.from(json as Map)),
   );
+  @override
+  Future<SupportMessagesPage> messages(int id, {required int beforeId}) =>
+      client.get(
+        '/support-tickets/$id/messages',
+        query: {'before_id': beforeId, 'limit': 30},
+        decode: (json) {
+          final data = Map<String, dynamic>.from(json as Map);
+          return SupportMessagesPage(
+            (data['items'] as List)
+                .map(
+                  (item) => SupportMessageModel.fromJson(
+                    Map<String, dynamic>.from(item as Map),
+                  ),
+                )
+                .toList(),
+            hasMore: data['has_more'] == true,
+            nextBeforeId: (data['next_before_id'] as num?)?.toInt(),
+          );
+        },
+      );
   @override
   Future<void> send(int id, String message) => client.post(
     '/support-tickets/$id/messages',

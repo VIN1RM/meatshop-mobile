@@ -5,6 +5,7 @@ enum RealtimeConnectionState { disconnected, connecting, connected }
 
 abstract interface class RealtimeRepository {
   Stream<Map<String, Object?>> get chatMessages;
+  Stream<Map<String, Object?>> get chatInboxUpdates;
   Stream<Map<String, Object?>> get chatReads;
   Stream<Map<String, Object?>> get chatTyping;
   Stream<Map<String, Object?>> get deliveryLocations;

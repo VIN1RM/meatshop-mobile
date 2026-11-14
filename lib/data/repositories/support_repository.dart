@@ -13,3 +13,7 @@ abstract interface class SupportRepository {
   Future<void> close(int id);
   Future<void> reopen(int id);
 }
+
+abstract interface class PaginatedSupportRepository {
+  Future<SupportMessagesPage> messages(int id, {required int beforeId});
+}

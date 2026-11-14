@@ -1,3 +1,8 @@
+import '../../../core/utils/field_validations.dart';
+import 'package:flutter/services.dart';
+import '../../widgets/chat_participant_avatar.dart';
+import '../../../core/enums/chat_enums.dart';
+import '../../widgets/checkout_step_header.dart';
 import 'package:meatshop_mobile/ui/widgets/checkout_coupon_field.dart';
 import 'package:meatshop_mobile/ui/widgets/app_surface.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
@@ -45,8 +50,42 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         : chosen;
   }
 
+  late final TextEditingController _changeController = TextEditingController(
+    text:
+        widget.summary.changeFor?.toStringAsFixed(2).replaceAll('.', ',') ?? '',
+  );
+  double? _quotedChange;
+  double? get _changeValue =>
+      FieldValidations.parseMoney(_changeController.text.trim());
+  bool get _singleCash =>
+      context.read<CartProvider>().itemsByUnit.length == 1 &&
+      _methodFor(context.read<CartProvider>().itemsByUnit.keys.first) == 'cash';
+  bool get _changeDirty => _singleCash && _changeValue != _quotedChange;
+  String? get _changeError {
+    if (!_singleCash || _changeController.text.trim().isEmpty) return null;
+    final value = _changeValue;
+    if (value == null ||
+        !value.isFinite ||
+        value <= 0 ||
+        !RegExp(r'^\d+([,.]\d{1,2})?$').hasMatch(_changeController.text.trim())) {
+      return 'Informe um valor válido com até duas casas decimais.';
+    }
+    if (_quote != null && value < _quote!.totalAmount) {
+      return 'O troco deve cobrir o total de ${_fmt(_quote!.totalAmount)}.';
+    }
+    return null;
+  }
+
+  @override
+  void dispose() {
+    _changeController.dispose();
+    super.dispose();
+  }
+
   CheckoutSummaryModel get _summary => widget.summary.copyWith(
+    changeFor: _changeValue,
     clearChange:
+        _changeController.text.trim().isEmpty ||
         context.read<CartProvider>().itemsByUnit.length != 1 ||
         _methodFor(context.read<CartProvider>().itemsByUnit.keys.first) !=
             'cash',
@@ -130,6 +169,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
         };
         _quote = quote;
         _feesReady = true;
+        _quotedChange = _changeValue;
       });
     } catch (error) {
       if (!mounted || generation != _quoteGeneration) return;
@@ -235,7 +275,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           SafeArea(
             child: Column(
               children: [
-                const AppHeader(showBack: true),
+                const AppHeader(),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -252,10 +292,25 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                           const Padding(
                             padding: EdgeInsets.all(16),
                             child: Text(
-                              'Retirada no balcao: sem taxa de entrega. Apresente o codigo do pedido na unidade.',
+                              'Retire no açougue e apresente o código disponível nos detalhes do pedido. Sem taxa de entrega.',
                               style: TextStyle(color: Colors.white),
                             ),
                           ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              style: _reviewActionStyle,
+                              onPressed: () =>
+                                  Navigator.pop(context, 'edit-fulfilment'),
+                              icon: const Icon(
+                                Icons.edit_location_alt_outlined,
+                              ),
+                              label: const Text('Alterar entrega ou retirada'),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 16),
 
                         if (widget.summary.isScheduled &&
@@ -275,7 +330,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 16),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFF1EF),
+                              color: const Color(0xFF422F2D),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: const Color(0xFFF2C9C4),
@@ -284,15 +339,21 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Row(
+                                Row(
                                   children: [
-                                    Icon(Icons.info_outline, color: _red),
-                                    SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.info_outline,
+                                      color: Color(0xFFFFA99F),
+                                    ),
+                                    const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        'Revise antes de confirmar',
-                                        style: TextStyle(
-                                          color: Color(0xFF1A1A1A),
+                                        _feeErrorCode ==
+                                                'UNIT_LOCATION_CONFIRMATION_REQUIRED'
+                                            ? 'Localização do açougue pendente'
+                                            : 'Revise antes de confirmar',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFFFFFF),
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
@@ -303,28 +364,52 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                                 Text(
                                   _feeError!,
                                   style: const TextStyle(
-                                    color: Color(0xFF7D3028),
+                                    color: Color(0xFFFFC4BB),
                                     height: 1.5,
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                TextButton.icon(
-                                  onPressed: _calculateFees,
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Atualizar cotação'),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FilledButton.icon(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: _red,
+                                      foregroundColor: Colors.white,
+                                      minimumSize: const Size(0, 48),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    onPressed: _calculateFees,
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Atualizar cotação'),
+                                  ),
                                 ),
                                 if (_feeErrorCode?.startsWith(
-                                      'DELIVERY_LOCATION',
-                                    ) ==
-                                    true)
-                                  TextButton.icon(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    icon: const Icon(
-                                      Icons.edit_location_alt_outlined,
-                                    ),
-                                    label: const Text(
-                                      'Voltar e revisar a entrega',
+                                          'DELIVERY_LOCATION',
+                                        ) ==
+                                        true ||
+                                    _feeErrorCode ==
+                                        'UNIT_LOCATION_CONFIRMATION_REQUIRED')
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        style: _reviewActionStyle,
+                                        onPressed: () => Navigator.of(
+                                          context,
+                                        ).pop('edit-fulfilment'),
+                                        icon: const Icon(
+                                          Icons.edit_location_alt_outlined,
+                                        ),
+                                        label: Text(
+                                          _feeErrorCode ==
+                                                  'UNIT_LOCATION_CONFIRMATION_REQUIRED'
+                                              ? 'Ver opções de recebimento'
+                                              : 'Voltar e revisar a entrega',
+                                        ),
+                                      ),
                                     ),
                                   ),
                               ],
@@ -338,6 +423,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                               cart.total,
                           grandTotal,
                         ),
+                        if (_singleCash) _buildChangeCard(),
                         const SizedBox(height: 32),
                         if (_couponDrafts.isNotEmpty)
                           const Padding(
@@ -361,20 +447,20 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
-  Widget _pageTitle() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        'RESUMO DO PEDIDO',
-        style: TextStyle(
-          color: _white,
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.0,
-        ),
-      ),
-    );
-  }
+  ButtonStyle get _reviewActionStyle => OutlinedButton.styleFrom(
+    foregroundColor: Colors.white,
+    backgroundColor: const Color(0xFF383838),
+    side: const BorderSide(color: Colors.white30),
+    minimumSize: const Size(0, 48),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    textStyle: const TextStyle(fontWeight: FontWeight.w700),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  );
+
+  Widget _pageTitle() => const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16),
+    child: CheckoutStepHeader(title: 'RESUMO DO PEDIDO'),
+  );
 
   Widget _buildAddressCard(dynamic address) {
     return Container(
@@ -382,7 +468,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: const Color(0xFF383838),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -391,7 +477,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
           const Text(
             'Endereço de entrega',
             style: TextStyle(
-              color: Color(0xFF1A1A1A),
+              color: Color(0xFFFFFFFF),
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
@@ -402,7 +488,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             '${address.complement.isNotEmpty ? ' – ${address.complement}' : ''}\n'
             '${address.neighborhood} · ${address.city}, ${address.state}',
             style: const TextStyle(
-              color: Color(0xFF555555),
+              color: Color(0xFFBBBBBB),
               fontSize: 13,
               height: 1.4,
             ),
@@ -433,7 +519,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: const Color(0xFF383838),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -446,14 +532,14 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
               const Text(
                 'Entrega agendada',
                 style: TextStyle(
-                  color: Color(0xFF1A1A1A),
+                  color: Color(0xFFFFFFFF),
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
               ),
               Text(
                 '${d.day} de ${months[d.month]} · ${widget.summary.scheduledTime ?? ''}',
-                style: const TextStyle(color: Color(0xFF555555), fontSize: 12),
+                style: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 12),
               ),
             ],
           ),
@@ -463,7 +549,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   }
 
   Widget _buildUnitGroup(String unitId, List items, CartProvider cart) => Theme(
-    data: appSurfaceTheme(context),
+    data: appDarkSurfaceTheme(context),
     child: _unitGroup(unitId, items, cart),
   );
 
@@ -474,14 +560,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     final official = _quote?.groups
         .where((g) => g.unitId == unitId)
         .firstOrNull;
-    final subtotal =
-        official?.subtotal ?? items.fold<double>(0, (s, i) => s + i.subtotal);
-    final fee = _feeByUnit[unitId];
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: const Color(0xFF383838),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -490,34 +573,17 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
             child: Row(
               children: [
-                ClipOval(
-                  child: SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: items.first.unitImageUrl.isNotEmpty
-                        ? Image.network(
-                            items.first.unitImageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.storefront_outlined,
-                                  color: Color(0xFF888888),
-                                  size: 20,
-                                ),
-                          )
-                        : const Icon(
-                            Icons.storefront_outlined,
-                            color: Color(0xFF888888),
-                            size: 20,
-                          ),
-                  ),
+                ChatParticipantAvatar(
+                  photoUrl: items.first.unitImageUrl,
+                  type: ChatParticipantType.unit,
+                  size: 40,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     unitName,
                     style: const TextStyle(
-                      color: Color(0xFF1A1A1A),
+                      color: Color(0xFFFFFFFF),
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
@@ -530,62 +596,70 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Column(
               children: [
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  initialValue: _methodFor(unitId),
-                  decoration: const InputDecoration(
-                    labelText: 'Pagamento deste açougue',
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.payments_outlined,
+                    color: Colors.white70,
                   ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: 'cash',
-                      child: Text('Dinheiro'),
+                  title: Text(
+                    switch (_methodFor(unitId)) {
+                      'cash' => 'Dinheiro',
+                      'machine' => 'Maquininha',
+                      'pix' => 'Pix',
+                      'credit' => 'Cartão de crédito',
+                      _ => 'Cartão de débito',
+                    },
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
                     ),
-                    const DropdownMenuItem(
-                      value: 'machine',
-                      child: Text('Maquininha'),
+                  ),
+                  subtitle: Text(
+                    widget.summary.unitDeliveryTypes[unitId] == 'PICKUP'
+                        ? 'Retirada no açougue'
+                        : 'Entrega no endereço',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  trailing: TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFFFA99F),
                     ),
-                    if (_unitOnline[unitId] ?? _online) ...[
-                      const DropdownMenuItem(value: 'pix', child: Text('Pix')),
-                      const DropdownMenuItem(
-                        value: 'credit',
-                        child: Text('Crédito'),
-                      ),
-                      const DropdownMenuItem(
-                        value: 'debit',
-                        child: Text('Débito'),
-                      ),
-                    ],
-                  ],
-                  onChanged: _calculatingFees
-                      ? null
-                      : (value) {
-                          if (value != null) {
-                            _methods[unitId] = value;
-                            _calculateFees();
-                          }
-                        },
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Alterar'),
+                  ),
                 ),
-                CheckoutCouponField(
-                  key: ValueKey('coupon-$unitId'),
-                  code: _coupons[unitId],
-                  error: _couponErrors[unitId],
-                  busy: _calculatingFees,
-                  discount: official?.discountAmount ?? 0,
-                  onDraftChanged: (dirty) => setState(() {
-                    _couponErrors.remove(unitId);
-                    if (dirty) {
-                      _couponDrafts.add(unitId);
-                    } else {
-                      _couponDrafts.remove(unitId);
-                    }
-                  }),
-                  onApply: (code) => _applyCoupon(unitId, code),
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  iconColor: Colors.white70,
+                  collapsedIconColor: Colors.white70,
+                  title: const Text(
+                    'Adicionar cupom',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  children: [
+                    CheckoutCouponField(
+                      key: ValueKey('coupon-$unitId'),
+                      code: _coupons[unitId],
+                      error: _couponErrors[unitId],
+                      busy: _calculatingFees,
+                      discount: official?.discountAmount ?? 0,
+                      onDraftChanged: (dirty) => setState(() {
+                        _couponErrors.remove(unitId);
+                        if (dirty) {
+                          _couponDrafts.add(unitId);
+                        } else {
+                          _couponDrafts.remove(unitId);
+                        }
+                      }),
+                      onApply: (code) => _applyCoupon(unitId, code),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
+          const Divider(height: 1, color: Color(0xFF4B4B4B)),
 
           ...items.map(
             (item) => Padding(
@@ -612,7 +686,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                     child: Text(
                       item.productName,
                       style: const TextStyle(
-                        color: Color(0xFF1A1A1A),
+                        color: Color(0xFFFFFFFF),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -631,60 +705,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
             ),
           ),
 
-          const Divider(height: 1, color: Color(0xFFE0E0E0)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Subtotal',
-                      style: TextStyle(color: Color(0xFF555555), fontSize: 13),
-                    ),
-                    Text(
-                      _fmt(subtotal),
-                      style: const TextStyle(
-                        color: Color(0xFF1A1A1A),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Taxa de entrega',
-                      style: TextStyle(color: Color(0xFF555555), fontSize: 13),
-                    ),
-                    _calculatingFees
-                        ? const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              color: _red,
-                              strokeWidth: 1.5,
-                            ),
-                          )
-                        : Text(
-                            fee != null ? _fmt(fee) : 'Indisponível',
-                            style: TextStyle(
-                              color: fee != null
-                                  ? const Color(0xFF1A1A1A)
-                                  : Colors.grey,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 14),
         ],
       ),
     );
@@ -692,9 +713,21 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
 
   Widget _buildTotals(double subtotal, double grandTotal) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       child: Column(
         children: [
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Valores do pedido',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -726,7 +759,11 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                       ),
                     )
                   : Text(
-                      _feesReady ? _fmt(_totalDeliveryFee) : 'Indisponível',
+                      widget.summary.pickupOnly
+                          ? 'Sem taxa'
+                          : _feesReady
+                          ? _fmt(_totalDeliveryFee)
+                          : 'Indisponível',
                       style: const TextStyle(color: Colors.white, fontSize: 15),
                     ),
             ],
@@ -756,7 +793,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
                 ),
               ),
               Text(
-                _feesReady ? _fmt(grandTotal) : 'Aguardando entrega',
+                _feesReady ? _fmt(grandTotal) : 'A calcular',
                 style: const TextStyle(
                   color: _white,
                   fontSize: 20,
@@ -770,10 +807,64 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     );
   }
 
+  Widget _buildChangeCard() => Theme(
+    data: appDarkSurfaceTheme(context),
+    child: Container(
+      margin: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF383838),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Pagamento em dinheiro',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            key: const ValueKey('review-change'),
+            controller: _changeController,
+            enabled: !_calculatingFees,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+            ],
+            onChanged: (_) => setState(() {}),
+            decoration: InputDecoration(
+              labelText: 'Troco para (opcional)',
+              hintText: 'Ex.: 100,00',
+              errorText: _changeError,
+              errorMaxLines: 3,
+              helperText: 'Deixe em branco para pagar o valor exato.',
+              helperMaxLines: 2,
+            ),
+          ),
+          if (_changeDirty) ...[
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed:
+                  _calculatingFees ||
+                      (_changeController.text.trim().isNotEmpty &&
+                          (_changeValue == null || _changeValue! <= 0))
+                  ? null
+                  : _calculateFees,
+              child: const Text('Atualizar troco'),
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
+
   Widget _buildConfirmButton(BuildContext context, double grandTotal) {
     final orderProvider = context.watch<OrderProvider>();
     final cart = context.read<CartProvider>();
     final canConfirm =
+        _changeError == null &&
+        !_changeDirty &&
         _feesReady &&
         _couponDrafts.isEmpty &&
         !_calculatingFees &&
@@ -843,7 +934,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
   }
 
   Widget _imageFallback() => Container(
-    color: const Color(0xFFE0E0E0),
+    color: const Color(0xFF4B4B4B),
     child: const Icon(Icons.image_outlined, color: Color(0xFFBDBDBD), size: 26),
   );
 

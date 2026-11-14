@@ -9,6 +9,14 @@ final class HttpChatRepository implements ChatRepository {
   final ApiClient _client;
 
   @override
+  Future<ChatParticipant> participant(int orderId, ChatChannel channel) =>
+      _client.get(
+        '/orders/$orderId/chat/participant',
+        query: {'participant_type': channel.apiValue},
+        decode: (value) => ChatParticipant.fromApi(_map(value)),
+      );
+
+  @override
   Future<List<ChatConversation>> conversations({
     required int currentUserId,
     required ChatParticipantType currentUserType,

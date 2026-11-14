@@ -137,7 +137,9 @@ class ProductsProvider extends ChangeNotifier {
   Future<void> _fetchNextPage() async {
     try {
       final filtered =
-          _brand.isNotEmpty || _priceRange != ProductPriceRange.all;
+          _searchQuery.trim().isNotEmpty ||
+          _brand.isNotEmpty ||
+          _priceRange != ProductPriceRange.all;
       final minPrice = switch (_priceRange) {
         ProductPriceRange.from20to50 => 20.01,
         ProductPriceRange.above50 => 50.01,

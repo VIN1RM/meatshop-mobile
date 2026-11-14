@@ -1,5 +1,6 @@
 class SupportMessageModel {
   const SupportMessageModel({
+    this.id,
     required this.text,
     required this.createdAt,
     this.senderId,
@@ -7,11 +8,13 @@ class SupportMessageModel {
   });
   factory SupportMessageModel.fromJson(Map<String, dynamic> json) =>
       SupportMessageModel(
+        id: (json['id'] as num?)?.toInt(),
         text: json['message'] as String? ?? '',
         senderId: (json['sender_id'] as num?)?.toInt(),
         senderName: (json['sender'] as Map?)?['name'] as String?,
         createdAt: DateTime.parse(json['created_at'] as String),
       );
+  final int? id;
   final String text;
   final int? senderId;
   final String? senderName;
@@ -26,6 +29,8 @@ class SupportTicketModel {
     this.contact,
     this.userId,
     this.messages = const [],
+    this.messagesHasMore = false,
+    this.messagesNextBeforeId,
   });
   factory SupportTicketModel.fromJson(Map<String, dynamic> json) =>
       SupportTicketModel(
@@ -34,6 +39,9 @@ class SupportTicketModel {
         status: json['status'] as String,
         contact: json['contact'] as String?,
         userId: (json['user_id'] as num?)?.toInt(),
+        messagesHasMore: json['messages_has_more'] == true,
+        messagesNextBeforeId: (json['messages_next_before_id'] as num?)
+            ?.toInt(),
         messages: (json['messages'] as List? ?? [])
             .map(
               (item) => SupportMessageModel.fromJson(
@@ -48,4 +56,17 @@ class SupportTicketModel {
   final String? contact;
   final int? userId;
   final List<SupportMessageModel> messages;
+  final bool messagesHasMore;
+  final int? messagesNextBeforeId;
+}
+
+class SupportMessagesPage {
+  const SupportMessagesPage(
+    this.items, {
+    required this.hasMore,
+    this.nextBeforeId,
+  });
+  final List<SupportMessageModel> items;
+  final bool hasMore;
+  final int? nextBeforeId;
 }

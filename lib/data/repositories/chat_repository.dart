@@ -2,6 +2,7 @@ import '../../core/enums/chat_enums.dart';
 import '../../models/chat_model.dart';
 
 abstract interface class ChatRepository {
+  Future<ChatParticipant> participant(int orderId, ChatChannel channel);
   Future<List<ChatConversation>> conversations({
     required int currentUserId,
     required ChatParticipantType currentUserType,

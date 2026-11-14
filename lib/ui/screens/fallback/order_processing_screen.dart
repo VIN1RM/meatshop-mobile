@@ -332,7 +332,9 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
       return 'Pagamento confirmado. Acompanhe o andamento em Meus pedidos.';
     }
     if (order.isOfflinePayment && order.paymentStatus == 'PENDING') {
-      return 'Pague ao receber. A confirmação aparece aqui após o registro do açougue.';
+      return order.isPickup
+          ? 'Pague no balcão ao retirar. Apresente seu código quando o pedido estiver pronto.'
+          : 'Pague ao receber. A confirmação aparece aqui após o registro do açougue.';
     }
     if (order.canPay) {
       return 'Conclua o pagamento no Mercado Pago. Ao voltar, atualizamos a situação do pedido.';

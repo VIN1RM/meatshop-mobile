@@ -1,3 +1,7 @@
+import '../../widgets/checkout_step_header.dart';
+import '../../widgets/app_surface.dart';
+import '../../widgets/chat_participant_avatar.dart';
+import '../../../core/enums/chat_enums.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +39,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   static const _red = Color(0xFFC0392B);
   static const _background = Color(0xFF2E2E2E);
-  static const _surface = Color(0xFFF5F5F5);
+  static const _surface = Color(0xFF383838);
   final _change = TextEditingController();
   final Map<String, String> _methods = {};
   Map<String, bool> _onlineUnits = {};
@@ -116,7 +120,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     final units = context.read<CartProvider>().itemsByUnit.keys.toList();
     if (_loading || units.isEmpty) return;
     final methods = {for (final id in units) id: _methodFor(id)};
@@ -125,13 +129,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final amount = FieldValidations.parseMoney(raw);
     if (singleCash &&
         raw.isNotEmpty &&
-        (amount == null || !amount.isFinite || amount < widget.total)) {
-      setState(
-        () => _changeError = 'Informe um valor para troco que cubra o pedido.',
-      );
+        (amount == null || !amount.isFinite || amount <= 0)) {
+      setState(() => _changeError = 'Informe um valor válido para o troco.');
       return;
     }
-    Navigator.push(
+    final result = await Navigator.push<String>(
       context,
       MaterialPageRoute(
         builder: (_) => ReviewOrderScreen(
@@ -148,6 +150,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
       ),
     );
+    if (mounted && result == 'edit-fulfilment') Navigator.pop(context);
   }
 
   String _money(double value) =>
@@ -193,36 +196,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 24,
                               ),
                               children: [
-                                Row(
-                                  children: [
-                                    IconButton.outlined(
-                                      onPressed: () => Navigator.pop(context),
-                                      tooltip: 'Voltar',
-                                      style: IconButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        side: const BorderSide(
-                                          color: Colors.white54,
-                                        ),
-                                      ),
-                                      icon: const Icon(
-                                        Icons.arrow_back,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Expanded(
-                                      child: Text(
-                                        'PAGAMENTO',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                const CheckoutStepHeader(title: 'PAGAMENTO'),
                                 const SizedBox(height: 16),
                                 Text(
                                   groups.length > 1
@@ -314,208 +288,217 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final method = _methodFor(unitId);
     final online = _onlineUnits[unitId] == true;
     final onlineSelected = !_isOffline(method);
+    final pickup = widget.unitDeliveryTypes[unitId] == 'PICKUP';
     final name = items.first.unitName.isEmpty
         ? 'Açougue'
         : items.first.unitName;
-    return Container(
-      key: ValueKey('payment-unit-$unitId'),
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  color: _red.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  name,
-                  style: const TextStyle(
-                    color: Color(0xFF1A1A1A),
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8E8E8),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.all(4),
-            child: Row(
+    return Theme(
+      data: appDarkSurfaceTheme(context),
+      child: Container(
+        key: ValueKey('payment-unit-$unitId'),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                _tab(
-                  'Pagar online',
-                  Icons.smartphone_outlined,
-                  onlineSelected,
-                  !_loading && online ? () => _choose(unitId, 'pix') : null,
+                ChatParticipantAvatar(
+                  photoUrl: items.first.unitImageUrl,
+                  type: ChatParticipantType.unit,
+                  size: 42,
                 ),
-                const SizedBox(width: 4),
-                _tab(
-                  'Na entrega',
-                  Icons.delivery_dining_outlined,
-                  !onlineSelected,
-                  !_loading ? () => _choose(unitId, 'cash') : null,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      color: Color(0xFFFFFFFF),
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          if (!_loading && !online && _availabilityError == null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: Color(0xFF777777),
-                  ),
-                  const SizedBox(width: 6),
-                  const Expanded(
-                    child: Text(
-                      'Este açougue aceita pagamento presencial em dinheiro ou maquininha.',
-                      style: TextStyle(
-                        color: Color(0xFF666666),
-                        fontSize: 12,
-                        height: 1.4,
+            const SizedBox(height: 16),
+            if (online)
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2E2E2E),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    _tab(
+                      'Pagar online',
+                      Icons.smartphone_outlined,
+                      onlineSelected,
+                      !_loading && online ? () => _choose(unitId, 'pix') : null,
+                    ),
+                    const SizedBox(width: 4),
+                    _tab(
+                      pickup ? 'Na retirada' : 'Na entrega',
+                      pickup
+                          ? Icons.storefront_outlined
+                          : Icons.delivery_dining_outlined,
+                      !onlineSelected,
+                      !_loading ? () => _choose(unitId, 'cash') : null,
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 12),
+            if (!_loading && !online && _availabilityError == null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Color(0xFFBBBBBB),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        pickup
+                            ? 'Pague no balcão ao retirar seu pedido.'
+                            : 'Pague ao receber, em dinheiro ou maquininha.',
+                        style: const TextStyle(
+                          color: Color(0xFFBBBBBB),
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          if (onlineSelected && online) ...[
-            _option(
-              unitId,
-              'pix',
-              'Pix',
-              'Pelo checkout Mercado Pago',
-              Icons.pix,
-            ),
-            _option(
-              unitId,
-              'credit',
-              'Cartão de crédito',
-              'Condições confirmadas no checkout',
-              Icons.credit_card,
-            ),
-            _option(
-              unitId,
-              'debit',
-              'Cartão de débito',
-              'Disponibilidade confirmada no checkout',
-              Icons.credit_card_outlined,
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text(
-                'Os dados do cartão e as opções de parcelamento são informados no ambiente seguro do Mercado Pago.',
-                style: TextStyle(
-                  color: Color(0xFF666666),
-                  fontSize: 12,
-                  height: 1.5,
+                  ],
                 ),
               ),
-            ),
-          ] else ...[
-            _option(
-              unitId,
-              'cash',
-              'Dinheiro',
-              'Pague ao receber seu pedido',
-              Icons.payments_outlined,
-            ),
-            _option(
-              unitId,
-              'machine',
-              'Maquininha',
-              'Maquininha ao receber',
-              Icons.point_of_sale_outlined,
-            ),
-            if (method == 'machine')
+            if (onlineSelected && online) ...[
+              _option(
+                unitId,
+                'pix',
+                'Pix',
+                'Pelo checkout Mercado Pago',
+                Icons.pix,
+              ),
+              _option(
+                unitId,
+                'credit',
+                'Cartão de crédito',
+                'Condições confirmadas no checkout',
+                Icons.credit_card,
+              ),
+              _option(
+                unitId,
+                'debit',
+                'Cartão de débito',
+                'Disponibilidade confirmada no checkout',
+                Icons.credit_card_outlined,
+              ),
               const Padding(
                 padding: EdgeInsets.only(top: 8),
                 child: Text(
-                  'Confirme com o açougue a disponibilidade da maquininha e as bandeiras aceitas.',
+                  'Os dados do cartão e as opções de parcelamento são informados no ambiente seguro do Mercado Pago.',
                   style: TextStyle(
-                    color: Color(0xFF666666),
+                    color: Color(0xFFBBBBBB),
                     fontSize: 12,
                     height: 1.5,
                   ),
                 ),
               ),
-            if (method == 'cash' && unitCount == 1) ...[
-              const SizedBox(height: 12),
-              TextField(
-                key: const ValueKey('payment-change'),
-                controller: _change,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
-                ],
-                onChanged: (_) {
-                  if (_changeError != null) setState(() => _changeError = null);
-                },
-                style: const TextStyle(color: Color(0xFF1A1A1A)),
-                decoration: InputDecoration(
-                  labelText: 'Troco para (opcional)',
-                  hintText: 'Ex.: 100,00',
-                  prefixText: 'R\$ ',
-                  filled: true,
-                  fillColor: Colors.white,
-                  helperText: 'Deixe em branco se for pagar o valor exato.',
-                  helperMaxLines: 2,
-                  errorText: _changeError,
-                  errorMaxLines: 3,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: _red),
-                  ),
-                ),
+            ] else ...[
+              _option(
+                unitId,
+                'cash',
+                'Dinheiro',
+                pickup
+                    ? 'Pague no balcão ao retirar'
+                    : 'Pague ao receber seu pedido',
+                Icons.payments_outlined,
               ),
+              _option(
+                unitId,
+                'machine',
+                'Maquininha',
+                pickup
+                    ? 'Cartão na maquininha do açougue'
+                    : 'Maquininha ao receber',
+                Icons.point_of_sale_outlined,
+              ),
+              if (method == 'machine')
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Confirme com o açougue a disponibilidade da maquininha e as bandeiras aceitas.',
+                    style: TextStyle(
+                      color: Color(0xFFBBBBBB),
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              if (method == 'cash' && unitCount == 1) ...[
+                const SizedBox(height: 12),
+                TextField(
+                  key: const ValueKey('payment-change'),
+                  controller: _change,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+                  ],
+                  onChanged: (_) {
+                    if (_changeError != null) {
+                      setState(() => _changeError = null);
+                    }
+                  },
+                  style: const TextStyle(color: Color(0xFFFFFFFF)),
+                  decoration: InputDecoration(
+                    labelText: 'Troco para (opcional)',
+                    hintText: 'Ex.: 100,00',
+                    prefixText: 'R\$ ',
+                    filled: true,
+                    fillColor: const Color(0xFF303030),
+                    helperText:
+                        'Opcional. O valor será conferido com o total final na revisão.',
+                    helperMaxLines: 2,
+                    errorText: _changeError,
+                    errorMaxLines: 3,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: _red),
+                    ),
+                  ),
+                ),
+              ],
+              if (method == 'cash' && unitCount > 1)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Separe o valor exato deste pedido. Você confere o total de cada açougue na próxima etapa.',
+                    style: TextStyle(
+                      color: Color(0xFFBBBBBB),
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
             ],
-            if (method == 'cash' && unitCount > 1)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text(
-                  'Separe o valor exato deste pedido. Você confere o total de cada açougue na próxima etapa.',
-                  style: TextStyle(
-                    color: Color(0xFF666666),
-                    fontSize: 12,
-                    height: 1.5,
-                  ),
-                ),
-              ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -532,7 +515,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         onPressed: onPressed,
         style: TextButton.styleFrom(
           backgroundColor: selected ? _red : Colors.transparent,
-          foregroundColor: selected ? Colors.white : const Color(0xFF666666),
+          foregroundColor: selected ? Colors.white : const Color(0xFFBBBBBB),
           disabledForegroundColor: selected
               ? Colors.white70
               : const Color(0xFF999999),
@@ -569,7 +552,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         selected: selected,
         button: true,
         child: Material(
-          color: selected ? const Color(0xFFFFF0ED) : Colors.white,
+          color: selected ? const Color(0xFF4B302D) : const Color(0xFF303030),
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             key: ValueKey('payment-$unitId-$value'),
@@ -579,7 +562,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: selected ? _red : const Color(0xFFE0E0E0),
+                  color: selected ? _red : const Color(0xFF555555),
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -587,7 +570,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 children: [
                   Icon(
                     icon,
-                    color: selected ? _red : const Color(0xFF777777),
+                    color: selected ? _red : const Color(0xFFBBBBBB),
                     size: 22,
                   ),
                   const SizedBox(width: 10),
@@ -598,7 +581,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Text(
                           label,
                           style: TextStyle(
-                            color: selected ? _red : const Color(0xFF222222),
+                            color: selected ? _red : const Color(0xFFFFFFFF),
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                           ),
@@ -607,7 +590,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Text(
                           subtitle,
                           style: const TextStyle(
-                            color: Color(0xFF777777),
+                            color: Color(0xFFBBBBBB),
                             fontSize: 12,
                             height: 1.4,
                           ),

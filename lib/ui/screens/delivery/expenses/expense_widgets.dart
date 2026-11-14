@@ -2,7 +2,6 @@ import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/delivery_expense_model.dart';
-import '../../../widgets/buttons_widget.dart';
 
 const expenseCategories = {
   'FUEL': 'Combustível',
@@ -33,19 +32,23 @@ class ExpenseMonthSelector extends StatelessWidget {
       IconButton(
         tooltip: 'Mês anterior',
         onPressed: busy ? null : () => onChange(-1),
-        icon: const Icon(Icons.chevron_left),
+        icon: const Icon(Icons.chevron_left, color: Colors.white70),
       ),
       Expanded(
         child: Column(
           children: [
             const Text(
               'Período',
-              style: TextStyle(color: Color(0xFF555555), fontSize: 12),
+              style: TextStyle(color: Colors.white60, fontSize: 12),
             ),
             Text(
               DateFormat('MMMM / yyyy', 'pt_BR').format(month),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
             ),
           ],
         ),
@@ -53,7 +56,7 @@ class ExpenseMonthSelector extends StatelessWidget {
       IconButton(
         tooltip: 'Próximo mês',
         onPressed: busy ? null : () => onChange(1),
-        icon: const Icon(Icons.chevron_right),
+        icon: const Icon(Icons.chevron_right, color: Colors.white70),
       ),
     ],
   );
@@ -66,24 +69,21 @@ class ExpenseSummary extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: const Color(0xFF383838),
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: const Color(0xFFE4E4E4)),
+      border: Border.all(color: const Color(0xFF494949)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.receipt_long_outlined, color: AppColors.redPrimary),
+        const Icon(Icons.receipt_long_outlined, color: Color(0xFFE78176)),
         const SizedBox(height: 12),
-        const Text(
-          'Despesas no mês',
-          style: TextStyle(color: Color(0xFF555555)),
-        ),
+        const Text('Despesas no mês', style: TextStyle(color: Colors.white60)),
         const SizedBox(height: 6),
         Text(
           expenseMoney(total),
           style: const TextStyle(
-            color: AppColors.dark,
+            color: Colors.white,
             fontWeight: FontWeight.w900,
             fontSize: 28,
           ),
@@ -106,12 +106,12 @@ class ExpenseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    color: Colors.white,
+    color: const Color(0xFF383838),
     elevation: 0,
     margin: const EdgeInsets.only(bottom: 12),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(14),
-      side: const BorderSide(color: Color(0xFFE4E4E4)),
+      side: const BorderSide(color: Color(0xFF494949)),
     ),
     child: Padding(
       padding: const EdgeInsets.all(12),
@@ -125,7 +125,7 @@ class ExpenseTile extends StatelessWidget {
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: AppColors.redPrimary,
+              color: Color(0xFFE78176),
             ),
           ),
           _actions(),
@@ -139,14 +139,14 @@ class ExpenseTile extends StatelessWidget {
       expense.description,
       style: const TextStyle(
         fontSize: 16,
-        color: AppColors.dark,
+        color: Colors.white,
         fontWeight: FontWeight.w700,
       ),
     ),
     const SizedBox(height: 6),
     Text(
       '${expenseCategories[expense.category] ?? expense.category} • ${DateFormat('dd/MM/yyyy').format(expense.date)}',
-      style: const TextStyle(color: Color(0xFF555555)),
+      style: const TextStyle(color: Colors.white60),
     ),
   ];
 
@@ -162,7 +162,7 @@ class ExpenseTile extends StatelessWidget {
       IconButton(
         tooltip: 'Excluir despesa',
         onPressed: onRemove,
-        icon: const Icon(Icons.delete_outline, color: AppColors.redPrimary),
+        icon: const Icon(Icons.delete_outline, color: Color(0xFFE78176)),
       ),
     ],
   );

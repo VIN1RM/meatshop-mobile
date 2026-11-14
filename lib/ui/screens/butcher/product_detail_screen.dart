@@ -596,7 +596,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             setState(() {
               _qtyController.text = _isGrams
                   ? (current + step).toInt().toString()
-                  : (current + step).toStringAsFixed(1);
+                  : (current + step).toStringAsFixed(_weight ? 2 : 0);
             });
           },
         ),

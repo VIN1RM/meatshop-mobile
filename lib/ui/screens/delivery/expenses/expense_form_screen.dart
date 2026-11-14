@@ -72,6 +72,8 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
 
   @override
   Widget build(BuildContext context) => AccountPage(
+    dark: true,
+    surfaceColor: const Color(0xFF2E2E2E),
     title: widget.expense == null ? 'Nova despesa' : 'Editar despesa',
     description:
         'Preencha os dados do gasto para manter seu controle atualizado.',
@@ -85,28 +87,79 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
   );
 
   Widget _fields() => Theme(
-    data: appSurfaceTheme(context),
+    data: appDarkSurfaceTheme(context),
     child: Form(
       key: _form,
       child: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          _categoryField(),
-          const SizedBox(height: 20),
-          _descriptionField(),
-          const SizedBox(height: 12),
-          _amountField(),
-          const SizedBox(height: 20),
-          _dateField(),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF333333),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(
+                  children: [
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      color: Color(0xFFE78176),
+                      size: 22,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Dados da despesa',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _label('Categoria'),
+                _categoryField(),
+                const SizedBox(height: 20),
+                _label('Descrição'),
+                _descriptionField(),
+                const SizedBox(height: 16),
+                _label('Valor da despesa'),
+                _amountField(),
+                const SizedBox(height: 20),
+                _label('Data da despesa'),
+                _dateField(),
+              ],
+            ),
+          ),
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: Text(
                 _error!,
-                style: const TextStyle(color: AppColors.redPrimary),
+                style: const TextStyle(color: Color(0xFFFFA99F), height: 1.4),
               ),
             ),
+          const SizedBox(height: 16),
         ],
+      ),
+    ),
+  );
+
+  Widget _label(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
       ),
     ),
   );
@@ -114,8 +167,10 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
   Widget _categoryField() => DropdownButtonFormField<String>(
     isExpanded: true,
     initialValue: _category,
+    dropdownColor: const Color(0xFF383838),
+    style: const TextStyle(color: Colors.white, fontSize: 15),
+    icon: const Icon(Icons.expand_more, color: Colors.white70),
     decoration: const InputDecoration(
-      labelText: 'Categoria',
       prefixIcon: Icon(Icons.category_outlined),
     ),
     items: expenseCategories.entries
@@ -131,11 +186,14 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
     controller: _description,
     enabled: !_saving,
     maxLength: 300,
+    minLines: 2,
+    maxLines: 3,
+    style: const TextStyle(color: Colors.white, fontSize: 15),
     textCapitalization: TextCapitalization.sentences,
     decoration: const InputDecoration(
-      labelText: 'Descrição',
       hintText: 'Ex.: abastecimento da moto',
-      prefixIcon: Icon(Icons.notes),
+      hintMaxLines: 2,
+      alignLabelWithHint: true,
     ),
     validator: (value) => FieldValidations.text(
       value,
@@ -147,24 +205,49 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
   Widget _amountField() => TextFormField(
     controller: _amount,
     enabled: !_saving,
+    style: const TextStyle(
+      color: Colors.white,
+      fontSize: 22,
+      fontWeight: FontWeight.w700,
+    ),
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
     decoration: const InputDecoration(
-      labelText: r'Valor (R$)',
       hintText: '0,00',
-      prefixIcon: Icon(Icons.payments_outlined),
+      prefixIcon: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        child: Text(
+          r'R$',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     ),
     validator: FieldValidations.money,
   );
 
-  Widget _dateField() => OutlinedButton.icon(
-    style: OutlinedButton.styleFrom(
-      padding: const EdgeInsets.all(16),
-      alignment: Alignment.centerLeft,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _dateField() => Builder(
+    builder: (fieldContext) => Semantics(
+      button: true,
+      label: 'Data da despesa',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: _saving ? null : _pickDate,
+        child: InputDecorator(
+          decoration: InputDecoration(
+            enabled: !_saving,
+            prefixIcon: const Icon(Icons.calendar_month_outlined),
+            suffixIcon: const Icon(Icons.expand_more, color: Colors.white70),
+          ),
+          child: Text(
+            DateFormat('dd/MM/yyyy').format(_date),
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+          ),
+        ),
+      ),
     ),
-    onPressed: _saving ? null : _pickDate,
-    icon: const Icon(Icons.calendar_month_outlined),
-    label: Text('Data da despesa: ${DateFormat('dd/MM/yyyy').format(_date)}'),
   );
 
   Future<void> _pickDate() async {
@@ -173,6 +256,8 @@ class _ExpenseFormState extends State<ExpenseFormScreen> {
       initialDate: _date,
       firstDate: DateTime(2000),
       lastDate: BusinessClock.now(),
+      builder: (context, child) =>
+          Theme(data: appDarkSurfaceTheme(context), child: child!),
     );
     if (date != null && mounted) setState(() => _date = date);
   }

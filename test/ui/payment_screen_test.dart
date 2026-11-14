@@ -16,6 +16,7 @@ void main() {
     WidgetTester tester,
     _Orders orders, {
     int units = 2,
+    Map<String, String> deliveryTypes = const {},
     Size size = const Size(600, 1400),
     double textScale = 1,
   }) async {
@@ -43,7 +44,11 @@ void main() {
             ).copyWith(textScaler: TextScaler.linear(textScale)),
             child: child!,
           ),
-          home: PaymentScreen(total: units * 20, addressId: '7'),
+          home: PaymentScreen(
+            total: units * 20,
+            addressId: '7',
+            unitDeliveryTypes: deliveryTypes,
+          ),
         ),
       ),
     );
@@ -67,8 +72,7 @@ void main() {
         of: second,
         matching: find.widgetWithText(TextButton, 'Pagar online'),
       );
-      await tester.ensureVisible(secondOnline);
-      expect(tester.widget<TextButton>(secondOnline).onPressed, isNull);
+      expect(secondOnline, findsNothing);
       await tester.ensureVisible(firstOnline);
       await tester.tap(firstOnline);
       await tester.pumpAndSettle();
@@ -126,12 +130,7 @@ void main() {
             .onPressed,
         isNotNull,
       );
-      expect(
-        tester
-            .widget<TextButton>(find.widgetWithText(TextButton, 'Pagar online'))
-            .onPressed,
-        isNull,
-      );
+      expect(find.text('Pagar online'), findsNothing);
       expect(find.byKey(const ValueKey('payment-1-cash')), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
@@ -140,24 +139,41 @@ void main() {
   );
 
   testWidgets(
-    'rejects change below the order subtotal without leaving payment selection',
+    'pickup keeps online available and describes payment at the counter',
     (tester) async {
-      final cart = await render(tester, _Orders(), units: 1);
-      await tester.enterText(
-        find.byKey(const ValueKey('payment-change')),
-        '10,00',
+      final cart = await render(
+        tester,
+        _Orders(),
+        units: 1,
+        deliveryTypes: {'1': 'PICKUP'},
       );
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Revisar pedido'));
+      expect(find.text('Na retirada'), findsOneWidget);
+      expect(find.text('Na entrega'), findsNothing);
+      expect(find.text('Pague no balcão ao retirar'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'Pagar online'));
       await tester.pumpAndSettle();
-      expect(
-        find.text('Informe um valor para troco que cubra o pedido.'),
-        findsOneWidget,
-      );
-      expect(find.text('PAGAMENTO'), findsOneWidget);
+      expect(find.byKey(const ValueKey('payment-1-pix')), findsOneWidget);
+      expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       cart.dispose();
     },
   );
+
+  testWidgets('rejects nonpositive change without leaving payment selection', (
+    tester,
+  ) async {
+    final cart = await render(tester, _Orders(), units: 1);
+    await tester.enterText(
+      find.byKey(const ValueKey('payment-change')),
+      '0,00',
+    );
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Revisar pedido'));
+    await tester.pumpAndSettle();
+    expect(find.text('Informe um valor válido para o troco.'), findsOneWidget);
+    expect(find.text('PAGAMENTO'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    cart.dispose();
+  });
 }
 
 class _Orders implements OrderRepository, CheckoutCapabilities {

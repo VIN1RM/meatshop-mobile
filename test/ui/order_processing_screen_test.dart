@@ -52,6 +52,16 @@ void main() {
     },
   );
 
+  testWidgets(
+    'pickup cash payment remains pending and explains payment at the counter',
+    (tester) async {
+      await render(tester, _Orders()..type = 'PICKUP');
+      expect(find.text('A pagar no balcão'), findsOneWidget);
+      expect(find.textContaining('Pague no balcão ao retirar'), findsOneWidget);
+      expect(find.text('A pagar na entrega'), findsNothing);
+      expect(find.text('Pago'), findsNothing);
+    },
+  );
   testWidgets('offers checkout only for payable online orders', (tester) async {
     await render(tester, _Orders()..method = 'Pix');
     expect(find.text('Pagar este açougue'), findsOneWidget);
@@ -95,6 +105,7 @@ void main() {
 }
 
 class _Orders implements OrderRepository {
+  String type = 'DELIVERY';
   String method = 'Cash';
   String paymentStatus = 'PENDING';
   String? refundStatus;
@@ -104,6 +115,7 @@ class _Orders implements OrderRepository {
     'unit_id': 1,
     'unit_name': 'Açougue do Daniel com nome completo da unidade Centro',
     'status': 'PENDING',
+    'delivery_type': type,
     'payment_status': paymentStatus,
     'total_amount': 3.31,
     'payment_due_at': DateTime.now()

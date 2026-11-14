@@ -1,3 +1,4 @@
+import '../../../widgets/chat_participant_avatar.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../widgets/chat_load_error.dart';
 import 'package:flutter/material.dart';
@@ -151,7 +152,7 @@ class ChatListScreen extends StatelessWidget {
       title: 'Nenhuma conversa ainda',
       icon: Icons.chat_bubble_outline,
       description:
-          'Abra uma conversa pelo pedido ou pelo açougue para falar com a equipe.',
+          'Em Meus pedidos, toque em Falar com açougue ou Falar com entregador para iniciar uma conversa sobre sua compra.',
     );
   }
 }
@@ -180,22 +181,25 @@ class _ConversationTile extends StatelessWidget {
     final hasUnread = unread > 0;
 
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(
-        context,
-        AppRoutes.chat,
-        arguments: ChatArgs(
-          currentUserId: currentUserId,
-          currentUserName: currentUserName,
-          currentUserType: currentUserType,
-          otherUserId: other.userId,
-          otherUserName: other.name,
-          otherUserType: other.type,
-          otherUserPhoto: other.photoUrl,
-          orderId: conversation.orderId,
-          channel: conversation.channel,
-          closed: conversation.closed,
-        ),
-      ),
+      onTap: () async {
+        await Navigator.pushNamed(
+          context,
+          AppRoutes.chat,
+          arguments: ChatArgs(
+            currentUserId: currentUserId,
+            currentUserName: currentUserName,
+            currentUserType: currentUserType,
+            otherUserId: other.userId,
+            otherUserName: other.name,
+            otherUserType: other.type,
+            otherUserPhoto: other.photoUrl,
+            orderId: conversation.orderId,
+            channel: conversation.channel,
+            closed: conversation.closed,
+          ),
+        );
+        if (context.mounted) await context.read<ChatListProvider>().refresh();
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -238,6 +242,27 @@ class _ConversationTile extends StatelessWidget {
                         ),
                     ],
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${other.type.label}${conversation.orderId == null ? '' : ' • Pedido #${conversation.orderId}'}',
+                    style: const TextStyle(
+                      color: Color(0xFF666666),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (hasUnread)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '$unread ${unread == 1 ? 'mensagem não lida' : 'mensagens não lidas'}',
+                        style: const TextStyle(
+                          color: _red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   if (conversation.lastMessage != null) ...[
                     const SizedBox(height: 2),
                     Text(
@@ -298,14 +323,9 @@ class _Avatar extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: const Color(0xFFE0E0E0), width: 1.5),
           ),
-          child: ClipOval(
-            child: participant.photoUrl != null
-                ? Image.network(
-                    participant.photoUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _fallback(),
-                  )
-                : _fallback(),
+          child: ChatParticipantAvatar(
+            photoUrl: participant.photoUrl,
+            type: participant.type,
           ),
         ),
         if (unread > 0)
@@ -332,18 +352,6 @@ class _Avatar extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _fallback() {
-    final isUnit = participant.type == ChatParticipantType.unit;
-    return Container(
-      color: const Color(0xFFE0E0E0),
-      child: Icon(
-        isUnit ? Icons.storefront_outlined : Icons.person_outline,
-        color: const Color(0xFFBDBDBD),
-        size: 24,
-      ),
     );
   }
 }

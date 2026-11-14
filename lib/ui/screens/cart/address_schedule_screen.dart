@@ -1,3 +1,4 @@
+import '../../widgets/checkout_step_header.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
@@ -161,12 +162,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
   }
 
   bool get _canProceed {
-    if (_pickupOnly) {
-      return context.read<CartProvider>().itemsByUnit.keys.every(
-        context.read<CartProvider>().isUnitOpen,
-      );
-    }
-    if (_selectedAddressId == null) return false;
+    if (!_pickupOnly && _selectedAddressId == null) return false;
     if (_tabController.index == 0) {
       final cart = context.read<CartProvider>();
       return cart.itemsByUnit.keys.every(cart.isUnitOpen);
@@ -246,7 +242,7 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
             for (final id in context.read<CartProvider>().itemsByUnit.keys)
               id: _deliveryTypes[id] ?? 'DELIVERY',
           },
-          isScheduled: !_pickupOnly && _tabController.index == 1,
+          isScheduled: _tabController.index == 1,
           scheduledDate: _selectedDate,
           scheduledTime: _selectedTime,
         ),
@@ -326,21 +322,27 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
                   _pageTitle(),
                   const SizedBox(height: 20),
                   _fulfilmentChoices(),
-                  if (!_pickupOnly) _buildTabs(),
+                  _buildTabs(),
                   Expanded(
-                    child: _pickupOnly
-                        ? const Center(
-                            child: Text(
-                              'Retire na unidade e apresente o codigo do pedido.',
-                              style: TextStyle(color: Colors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        : TabBarView(
-                            controller: _tabController,
-                            physics: const NeverScrollableScrollPhysics(),
-                            children: [_buildNowTab(), _buildScheduleTab()],
-                          ),
+                    child: TabBarView(
+                      controller: _tabController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _pickupOnly
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(24),
+                                  child: Text(
+                                    'Retire na unidade quando o pedido estiver pronto. Se preferir, escolha uma data na aba Agendar.',
+                                    style: TextStyle(color: Colors.white),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              )
+                            : _buildNowTab(),
+                        _buildScheduleTab(),
+                      ],
+                    ),
                   ),
                   _buildBottomBar(),
                   const SizedBox(height: 28),
@@ -353,20 +355,10 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
     );
   }
 
-  Widget _pageTitle() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        'ENTREGA',
-        style: TextStyle(
-          color: _white,
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
+  Widget _pageTitle() => const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16),
+    child: CheckoutStepHeader(title: 'ENTREGA'),
+  );
 
   Widget _buildTabs() {
     return Padding(
@@ -678,21 +670,23 @@ class _AddressScheduleScreenState extends State<AddressScheduleScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('Selecione o endereço de entrega'),
-          const SizedBox(height: 14),
-          if (provider.loading)
-            const Center(child: CircularProgressIndicator(color: _red))
-          else if (provider.error != null)
-            Text(
-              provider.error!,
-              style: const TextStyle(color: Colors.redAccent),
-            )
-          else if (provider.addresses.isEmpty)
-            _buildEmptyAddresses()
-          else
-            ...provider.addresses.map((a) => _buildAddressCard(a)),
-          _buildAddNewAddress(),
-          const SizedBox(height: 24),
+          if (!_pickupOnly) ...[
+            _sectionLabel('Selecione o endereço de entrega'),
+            const SizedBox(height: 14),
+            if (provider.loading)
+              const Center(child: CircularProgressIndicator(color: _red))
+            else if (provider.error != null)
+              Text(
+                provider.error!,
+                style: const TextStyle(color: Colors.redAccent),
+              )
+            else if (provider.addresses.isEmpty)
+              _buildEmptyAddresses()
+            else
+              ...provider.addresses.map((a) => _buildAddressCard(a)),
+            _buildAddNewAddress(),
+            const SizedBox(height: 24),
+          ],
           _sectionLabel('Escolha a data'),
           const SizedBox(height: 14),
           _buildDatePickerButton(),

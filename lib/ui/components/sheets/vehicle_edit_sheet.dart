@@ -311,104 +311,85 @@ class _VehicleEditModalState extends State<VehicleEditModal> {
                   ),
                   const SizedBox(height: 10),
 
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 2.8,
-                    children: _vehicleTypes.map((option) {
-                      final isSelected =
-                          _selectedVehicleType?.label == option.label;
-                      return GestureDetector(
-                        onTap: () =>
-                            setState(() => _selectedVehicleType = option),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          decoration: BoxDecoration(
-                            color: isSelected ? _red : _surface,
-
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isSelected
-                                  ? _red
-                                  : const Color(0xFFCCCCCC),
-
-                              width: 1.5,
+                  ..._vehicleTypes.map((option) {
+                    final selected =
+                        _selectedVehicleType?.label == option.label;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Semantics(
+                        selected: selected,
+                        button: true,
+                        child: Material(
+                          color: selected
+                              ? _red.withValues(alpha: .07)
+                              : _white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            side: BorderSide(
+                              color: selected ? _red : const Color(0xFFDDDDDD),
                             ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                option.icon,
-                                size: 16,
-                                color: isSelected
-                                    ? _white
-                                    : const Color(0xFFAAAAAA),
-                              ),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                child: Text(
-                                  option.label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? _white
-                                        : const Color(0xFF555555),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () =>
+                                setState(() => _selectedVehicleType = option),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    option.icon,
+                                    color: selected
+                                        ? _red
+                                        : const Color(0xFF666666),
+                                    size: 26,
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 20),
-                  const Divider(height: 1, color: Color(0xFFCCCCCC)),
-                  const SizedBox(height: 20),
-
-                  if (_selectedVehicleType != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFC0392B).withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: const Color(
-                            0xFFC0392B,
-                          ).withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _selectedVehicleType!.icon,
-                            color: _red,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _selectedVehicleType!.description,
-                              style: const TextStyle(
-                                color: Color(0xFF666666),
-
-                                fontSize: 12,
-                                height: 1.4,
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          option.label,
+                                          style: TextStyle(
+                                            color: selected
+                                                ? _red
+                                                : const Color(0xFF222222),
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          option.description,
+                                          style: const TextStyle(
+                                            color: Color(0xFF666666),
+                                            fontSize: 12,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Icon(
+                                    selected
+                                        ? Icons.radio_button_checked
+                                        : Icons.radio_button_off,
+                                    color: selected
+                                        ? _red
+                                        : const Color(0xFF999999),
+                                    size: 22,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-
+                    );
+                  }),
+                  if (_selectedVehicleType != null) ...[
                     if (_selectedVehicleType!.fields.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Text(

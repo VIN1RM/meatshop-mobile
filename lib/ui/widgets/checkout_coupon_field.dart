@@ -70,7 +70,7 @@ class _CheckoutCouponFieldState extends State<CheckoutCouponField> {
                   icon: const Icon(Icons.close_rounded, size: 18),
                 )
               : null,
-          helperText: 'O desconto será confirmado antes de finalizar.',
+          helperText: 'Digite o código e toque em Aplicar cupom.',
           helperMaxLines: 2,
         ),
       ),

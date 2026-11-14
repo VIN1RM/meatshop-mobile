@@ -17,15 +17,17 @@ class DeliveryExportButton extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) => OutlinedButton.icon(
-    style: OutlinedButton.styleFrom(
-      foregroundColor: AppColors.redPrimary,
-      side: const BorderSide(color: AppColors.redPrimary),
+  Widget build(BuildContext context) => FilledButton.icon(
+    style: FilledButton.styleFrom(
+      backgroundColor: AppColors.redPrimary,
+      foregroundColor: Colors.white,
+      minimumSize: const Size(0, 48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
     onPressed: () =>
         DeliveryExportDialog.show(context, report: report, from: from, to: to),
     icon: const Icon(Icons.download_outlined),
-    label: Text(label),
+    label: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
   );
 }

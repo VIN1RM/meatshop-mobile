@@ -19,20 +19,26 @@ class DeliveryEarningModel {
     this.paidAt,
   });
 
-  factory DeliveryEarningModel.fromApi(
-    Map<String, Object?> data,
-  ) => DeliveryEarningModel(
-    id: '${data['id'] ?? ''}',
-    paidAt: DateTime.tryParse('${data['paid_at'] ?? ''}'),
-    deliveryPersonId: '${data['delivery_person_id'] ?? ''}',
-    orderId: '${data['order_id'] ?? ''}',
-    label:
-        '${data['label'] ?? 'Entrega'} · ${data['paid_at'] == null ? 'A receber' : 'Recebido'}',
-    amount: (data['amount'] as num?)?.toDouble() ?? 0,
-    createdAt:
-        DateTime.tryParse('${data['created_at'] ?? ''}')?.toLocal() ??
-        DateTime.now(),
-  );
+  factory DeliveryEarningModel.fromApi(Map<String, Object?> data) {
+    final orderId = (data['order_id'] ?? '').toString().trim();
+    final title = orderId.isNotEmpty
+        ? 'Pedido #$orderId'
+        : (data['label'] ?? 'Entrega').toString().replaceFirst(
+            RegExp(r'^Order\b', caseSensitive: false),
+            'Pedido',
+          );
+    return DeliveryEarningModel(
+      id: (data['id'] ?? '').toString(),
+      paidAt: DateTime.tryParse((data['paid_at'] ?? '').toString()),
+      deliveryPersonId: (data['delivery_person_id'] ?? '').toString(),
+      orderId: orderId,
+      label: '$title · ${data['paid_at'] == null ? 'A receber' : 'Recebido'}',
+      amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      createdAt:
+          DateTime.tryParse((data['created_at'] ?? '').toString())?.toLocal() ??
+          DateTime.now(),
+    );
+  }
 
   Map<String, dynamic> toMap() => {
     'delivery_person_id': deliveryPersonId,

@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/core/network/api_failure.dart';
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/app_profile.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
@@ -25,6 +27,9 @@ class DeliveryShell extends StatefulWidget {
 
 class _DeliveryShellState extends State<DeliveryShell> {
   int _currentIndex = 0;
+  bool _ready = false;
+  bool _loading = true;
+  bool _missingRegistration = false;
   late final DeliveryProvider _deliveryProvider;
   late final DeliveryEarningsProvider _earnings;
 
@@ -40,11 +45,41 @@ class _DeliveryShellState extends State<DeliveryShell> {
     _deliveryProvider = context.read<DeliveryProvider>();
     _earnings = context.read<DeliveryEarningsProvider>();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initialize();
+    });
+  }
+
+  Future<void> _initialize() async {
+    setState(() => _loading = true);
+    final repository = context.read<VehicleProvider>().repository;
+    try {
+      _missingRegistration = false;
+      try {
+        await repository.profile();
+        _missingRegistration = (await repository.vehicles()).isEmpty;
+      } on ApiFailure catch (failure) {
+        if (failure.kind != ApiFailureKind.notFound) rethrow;
+        _missingRegistration = true;
+      }
+      if (!mounted) return;
+      if (_missingRegistration) {
+        await _checkPendingProfile();
+        if (!mounted) return;
+        await repository.profile();
+        if ((await repository.vehicles()).isEmpty) return;
+      }
+      if (!mounted) return;
       final uid = context.read<AuthProvider>().currentUser?.uid ?? '';
+      await context.read<VehicleProvider>().loadVehicle(uid);
+      if (!mounted) return;
       _deliveryProvider.startListeningOrders(uid);
       _earnings.startUpdates();
-      _checkPendingProfile();
-    });
+      setState(() => _ready = true);
+    } catch (_) {
+      // Keep the recovery action available; never mount delivery tabs early.
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   bool _checkedPending = false;
@@ -60,7 +95,7 @@ class _DeliveryShellState extends State<DeliveryShell> {
     final vehicleProvider = context.read<VehicleProvider>();
     if (vehicleProvider.vehicles.isEmpty) {
       await vehicleProvider.loadVehicle(uid);
-      if (vehicleProvider.error != null) return;
+      if (vehicleProvider.error != null && !_missingRegistration) return;
     }
     if (!mounted) return;
 
@@ -121,6 +156,33 @@ class _DeliveryShellState extends State<DeliveryShell> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_ready) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF2E2E2E),
+        body: SafeArea(
+          child: Center(
+            child: _loading
+                ? const CircularProgressIndicator(color: Color(0xFFC0392B))
+                : AppEmptyState(
+                    icon: Icons.delivery_dining_outlined,
+                    title: _missingRegistration
+                        ? 'Conclua seu cadastro de entregador'
+                        : 'Não foi possível verificar seu cadastro',
+                    description: _missingRegistration
+                        ? 'Cadastre seu veículo para acessar suas entregas e ficar online.'
+                        : 'Confira sua conexão e tente novamente.',
+                    actionLabel: _missingRegistration
+                        ? 'Concluir cadastro'
+                        : 'Tentar novamente',
+                    onAction: () {
+                      _checkedPending = false;
+                      _initialize();
+                    },
+                  ),
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: const Color(0xFF2E2E2E),
       body: IndexedStack(index: _currentIndex, children: _screens),

@@ -1,5 +1,15 @@
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
+    'UNIT_LOCATION_CONFIRMATION_REQUIRED':
+        'A unidade precisa confirmar sua localização no mapa para oferecer entrega. Entre em contato com o açougue ou escolha retirada no balcão.',
+    'INVALID_DELIVERY_CODE':
+        'Código incorreto. Confira os seis dígitos e tente novamente.',
+    'DELIVERY_CODE_EXPIRED': 'O código expirou. Gere um novo código no pedido.',
+    'DELIVERY_CODE_LOCKED': 'Muitas tentativas incorretas. Aguarde 15 minutos.',
+    'PICKUP_PAYMENT_REQUIRED':
+        'O açougue precisa confirmar o pagamento antes de liberar a retirada.',
+    'PICKUP_CODE_REQUIRED':
+        'Apresente seu código de retirada à equipe do açougue.',
     'EXPORT_TOO_LARGE':
         'Este relatório tem muitos registros. Reduza o período e tente novamente.',
     'EXPORT_INVALID_PERIOD':
@@ -14,7 +24,7 @@ abstract final class ApiErrorLocalizer {
     'DELIVERY_LOCATION_REQUIRED':
         'Confirme o ponto do endereço e da unidade no mapa para solicitar entrega.',
     'DELIVERY_LOCATION_CONFIRMATION_REQUIRED':
-        'O ponto de entrega ainda não foi confirmado. Revise seu endereço no mapa; se ele já estiver confirmado, a unidade precisa confirmar o próprio ponto.',
+        'Confirme a entrada do seu endereço no mapa para calcular a entrega.',
     'OUTSIDE_DELIVERY_AREA':
         'Este endereço está fora da área de entrega da unidade.',
     'PIN_TOO_FAR':
@@ -68,10 +78,6 @@ abstract final class ApiErrorLocalizer {
     'INSUFFICIENT_STOCK': 'Não há estoque suficiente para este produto.',
     'INVALID_IDEMPOTENCY_KEY':
         'Não foi possível confirmar a operação. Tente novamente.',
-    'DELIVERY_CODE_LOCKED':
-        'O código de entrega foi bloqueado temporariamente.',
-    'DELIVERY_CODE_EXPIRED': 'O código de entrega expirou.',
-    'INVALID_DELIVERY_CODE': 'O código de entrega é inválido.',
     'COUPON_INACTIVE':
         'Este cupom está inativo. Use outro código ou remova o cupom.',
     'COUPON_NOT_STARTED': 'Este cupom ainda não está no período de validade.',

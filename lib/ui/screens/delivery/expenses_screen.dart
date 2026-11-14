@@ -103,6 +103,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
   @override
   Widget build(BuildContext context) => AccountPage(
+    dark: true,
+    surfaceColor: const Color(0xFF2E2E2E),
     title: 'Minhas despesas',
     description: 'Organize seus gastos e acompanhe o total de cada mês.',
     action: Tooltip(
@@ -146,12 +148,17 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     onRefresh: _load,
     child: ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
         ..._overview(),
         const Text(
           'Lançamentos',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            letterSpacing: .2,
+          ),
         ),
         const SizedBox(height: 12),
         if (_result?.items.isEmpty ?? true) const ExpenseEmptyState(),

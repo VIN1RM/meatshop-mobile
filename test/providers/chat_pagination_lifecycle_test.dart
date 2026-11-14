@@ -29,6 +29,21 @@ class Repository extends Fake implements ChatRepository {
   Completer<int>? pendingUnread;
   bool fail = false;
   int reads = 0;
+  bool photoFails = false;
+  Completer<ChatParticipant>? pendingParticipant;
+  @override
+  Future<ChatParticipant> participant(int orderId, ChatChannel channel) async {
+    if (fail || photoFails) throw StateError('Offline');
+    return pendingParticipant == null
+        ? const ChatParticipant(
+            userId: '2',
+            name: 'Açougue atualizado',
+            photoUrl: 'https://example.com/unit.png',
+            type: ChatParticipantType.unit,
+          )
+        : pendingParticipant!.future;
+  }
+
   @override
   Future<List<ChatMessage>> history(
     int orderId,
@@ -78,6 +93,8 @@ class Realtime extends Fake implements RealtimeRepository {
   final events = StreamController<Map<String, Object?>>.broadcast();
   final states = StreamController<RealtimeConnectionState>.broadcast();
   @override
+  Stream<Map<String, Object?>> get chatInboxUpdates => const Stream.empty();
+  @override
   Stream<Map<String, Object?>> get chatMessages => events.stream;
   @override
   Stream<Map<String, Object?>> get chatReads => const Stream.empty();
@@ -93,7 +110,12 @@ class Realtime extends Fake implements RealtimeRepository {
   void leaveChat(int orderId, ChatChannel channel) {}
 }
 
-ChatProvider room(Repository repository, Realtime realtime) => ChatProvider(
+ChatProvider room(
+  Repository repository,
+  Realtime realtime, {
+  bool closed = false,
+}) => ChatProvider(
+  closed: closed,
   repository: repository,
   realtime: realtime,
   currentUserId: '1',
@@ -109,6 +131,64 @@ ChatProvider room(Repository repository, Realtime realtime) => ChatProvider(
 );
 
 void main() {
+  testWidgets('a profile image failure does not block the message history', (
+    tester,
+  ) async {
+    final repository = Repository()..photoFails = true;
+    final provider = room(repository, Realtime());
+    await tester.pump();
+    expect(provider.participant, isNull);
+    expect(provider.messages, isNotEmpty);
+    expect(provider.error, isNull);
+    provider.dispose();
+  });
+
+  testWidgets(
+    'loads the current participant photo even when navigation passed none',
+    (tester) async {
+      final repository = Repository();
+      final provider = room(repository, Realtime());
+      await tester.pump();
+      expect(provider.participant?.photoUrl, 'https://example.com/unit.png');
+      expect(provider.participant?.name, 'Açougue atualizado');
+      expect(provider.messages, isNotEmpty);
+      provider.dispose();
+    },
+  );
+  testWidgets(
+    'does not publish a profile response after leaving the conversation',
+    (tester) async {
+      final repository = Repository()..pendingParticipant = Completer();
+      final provider = room(repository, Realtime());
+      await tester.pump();
+      provider.dispose();
+      repository.pendingParticipant!.complete(
+        const ChatParticipant(
+          userId: '2',
+          name: 'Contato',
+          type: ChatParticipantType.unit,
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'background chats remain unread and closed history is read after returning',
+    (tester) async {
+      final repository = Repository();
+      final provider = room(repository, Realtime(), closed: true);
+      provider.setVisible(false);
+      await tester.pump();
+      expect(repository.reads, 0);
+      provider.setVisible(true);
+      await tester.pump();
+      expect(repository.reads, 1);
+      provider.dispose();
+    },
+  );
+
   testWidgets(
     'loads older history once, deduplicates and keeps chronological order',
     (tester) async {
@@ -261,12 +341,13 @@ void main() {
       realtime: realtime,
       currentUserId: '1',
     );
-    addTearDown(provider.dispose);
+
     await tester.pump();
     expect(tester.takeException(), isNull);
     repository.fail = false;
     realtime.events.add({});
     await tester.pump();
     expect(provider.total, 3);
+    provider.dispose();
   });
 }
