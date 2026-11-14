@@ -1,3 +1,4 @@
+import '../../widgets/order_contact_actions.dart';
 import 'package:flutter/material.dart';
 import '../../../models/order_model.dart';
 import '../../../models/unit_model.dart';
@@ -342,6 +343,8 @@ class PickupOrderPage extends StatelessWidget {
                             ),
                           ),
                         ],
+                        const SizedBox(height: 16),
+                        OrderContactActions(order: order),
                         const SizedBox(height: 24),
                         PrimaryButton(
                           label: 'Atualizar pedido',

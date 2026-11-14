@@ -1,3 +1,4 @@
+import '../../widgets/order_contact_actions.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/providers/cart_provider.dart';
@@ -414,6 +415,8 @@ class _ActiveOrderCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
+            OrderContactActions(order: order, dark: false, compact: true),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               height: 40,
@@ -685,6 +688,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
                 icon: const Icon(Icons.payments_outlined),
                 label: Text(order.canPay ? 'Pagar pedido' : 'Ver pagamento'),
               ),
+              OrderContactActions(order: order, dark: false, compact: true),
               const SizedBox(height: 10),
               ...order.items
                   .take(_expanded ? 999 : 2)

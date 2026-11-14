@@ -1,3 +1,4 @@
+import '../../widgets/order_contact_actions.dart';
 import 'pickup_order_page.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -603,6 +604,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                             ),
                     ),
                   ),
+                  if (_order != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: OrderContactActions(order: _order!, compact: true),
+                    ),
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: PrimaryButton(

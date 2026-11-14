@@ -152,7 +152,7 @@ class ChatListScreen extends StatelessWidget {
       title: 'Nenhuma conversa ainda',
       icon: Icons.chat_bubble_outline,
       description:
-          'Abra uma conversa pelo pedido ou pelo açougue para falar com a equipe.',
+          'Em Meus pedidos, toque em Falar com açougue ou Falar com entregador para iniciar uma conversa sobre sua compra.',
     );
   }
 }
