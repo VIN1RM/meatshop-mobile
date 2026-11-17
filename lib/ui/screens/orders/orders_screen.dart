@@ -416,7 +416,131 @@ class _ActiveOrderCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            if (order.canShowCustomerCode) ...[
+            if (!order.isOfflinePayment) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: order.canPay
+                      ? const Color(0xFFFFF5E8)
+                      : const Color(0xFFEEEEEE),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: order.canPay
+                        ? const Color(0xFFF0C78B)
+                        : const Color(0xFFE0E0E0),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          order.canPay
+                              ? Icons.payment_rounded
+                              : Icons.receipt_long_outlined,
+                          color: order.canPay
+                              ? const Color(0xFF975500)
+                              : const Color(0xFF555555),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                order.canPay
+                                    ? 'Falta concluir o pagamento'
+                                    : order.paymentStatusLabel,
+                                style: const TextStyle(
+                                  color: Color(0xFF292929),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                order.canPay
+                                    ? '${order.paymentMethodLabel} · ${order.formattedTotal}'
+                                    : order.paymentMethodLabel,
+                                style: const TextStyle(
+                                  color: Color(0xFF666666),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (order.canPay && order.paymentDueAt != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        'Pague até ${DateFormat('dd/MM · HH:mm').format(order.paymentDueAt!.toLocal())} para continuar com o pedido.',
+                        style: const TextStyle(
+                          color: Color(0xFF79501D),
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                OrderProcessingScreen(orderIds: [order.id]),
+                          ),
+                        ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: order.canPay
+                              ? red
+                              : const Color(0xFFE0E0E0),
+                          foregroundColor: order.canPay
+                              ? Colors.white
+                              : const Color(0xFF333333),
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        icon: Icon(
+                          order.canPay
+                              ? Icons.lock_outline_rounded
+                              : Icons.receipt_long_outlined,
+                          size: 18,
+                        ),
+                        label: Text(
+                          order.canPay ? 'Pagar pedido agora' : 'Ver pagamento',
+                        ),
+                      ),
+                    ),
+                    if (order.canPay) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Você será direcionado ao Mercado Pago.',
+                        style: TextStyle(
+                          color: Color(0xFF666666),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (order.canShowCustomerCode && !order.canPay) ...[
               CustomerOrderCodeCard(
                 order: order,
                 onOpen: () => Navigator.of(context).push(
