@@ -166,6 +166,10 @@ void main() {
       final semantics = tester.ensureSemantics();
       await tester.pumpWidget(app(reducedMotion: true));
       expect(find.bySemanticsLabel('Etapa 1 de 4'), findsOneWidget);
+      expect(
+        tester.widget<IconButton>(find.byType(IconButton)).color,
+        Colors.white,
+      );
       await tester.tap(find.text('PRÓXIMO'));
       await tester.pump();
       expect(find.bySemanticsLabel('Etapa 2 de 4'), findsOneWidget);

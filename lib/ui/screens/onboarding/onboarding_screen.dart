@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
 import 'package:meatshop_mobile/services/onboarding_service.dart';
 import 'package:meatshop_mobile/ui/widgets/app_surface.dart';
@@ -122,206 +123,214 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final last = _page == _slides.length - 1;
     final reducedMotion = MediaQuery.disableAnimationsOf(context);
-    return PopScope(
-      canPop: _completed,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _back();
-      },
-      child: Theme(
-        data: appDarkSurfaceTheme(context),
-        child: Scaffold(
-          backgroundColor: AppColors.darkSurface,
-          body: SafeArea(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 560),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            tooltip: widget.review
-                                ? 'Fechar apresentação'
-                                : 'Voltar',
-                            onPressed: _saving ? null : _back,
-                            icon: Icon(
-                              widget.review ? Icons.close : Icons.arrow_back,
-                            ),
-                          ),
-                          const Expanded(
-                            child: Text(
-                              'MEATSHOP',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _saving ? null : () => _finish(),
-                            child: Text(
-                              widget.review ? 'Fechar' : 'Pular',
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: PageView.builder(
-                        controller: _controller,
-                        itemCount: _slides.length,
-                        onPageChanged: (page) => setState(() => _page = page),
-                        itemBuilder: (context, index) {
-                          final slide = _slides[index];
-                          return LayoutBuilder(
-                            builder: (context, constraints) =>
-                                SingleChildScrollView(
-                                  padding: const EdgeInsets.all(24),
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      minHeight: (constraints.maxHeight - 48)
-                                          .clamp(0, double.infinity),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        ExcludeSemantics(
-                                          child: Container(
-                                            padding: const EdgeInsets.all(28),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.redPrimary
-                                                  .withValues(alpha: 0.18),
-                                              borderRadius:
-                                                  BorderRadius.circular(32),
-                                              border: Border.all(
-                                                color: AppColors.redPrimary
-                                                    .withValues(alpha: 0.5),
-                                              ),
-                                            ),
-                                            child: Icon(
-                                              slide.icon,
-                                              size: 72,
-                                              color: const Color(0xFFFFB4AA),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        Text(
-                                          slide.detail,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            color: Color(0xFFFFB4AA),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Semantics(
-                                          header: true,
-                                          child: Text(
-                                            slide.title,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.w800,
-                                              height: 1.2,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          slide.description,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 16,
-                                            height: 1.5,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                          );
-                        },
-                      ),
-                    ),
-                    Semantics(
-                      liveRegion: true,
-                      label: 'Etapa ${_page + 1} de ${_slides.length}',
-                      child: ExcludeSemantics(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: PopScope(
+        canPop: _completed,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _back();
+        },
+        child: Theme(
+          data: appDarkSurfaceTheme(context),
+          child: Scaffold(
+            backgroundColor: AppColors.darkSurface,
+            body: SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            _slides.length,
-                            (index) => AnimatedContainer(
-                              duration: reducedMotion
-                                  ? Duration.zero
-                                  : const Duration(milliseconds: 200),
-                              width: index == _page ? 24 : 8,
-                              height: 8,
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                color: index == _page
-                                    ? const Color(0xFFFFB4AA)
-                                    : Colors.white30,
-                                borderRadius: BorderRadius.circular(4),
+                          children: [
+                            IconButton(
+                              color: Colors.white,
+                              tooltip: widget.review
+                                  ? 'Fechar apresentação'
+                                  : 'Voltar',
+                              onPressed: _saving ? null : _back,
+                              icon: Icon(
+                                widget.review ? Icons.close : Icons.arrow_back,
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.sizeOf(context).height * 0.42,
-                      ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            PrimaryButton(
-                              label: last
-                                  ? (widget.review ? 'CONCLUIR' : 'CRIAR CONTA')
-                                  : 'PRÓXIMO',
-                              isLoading: _saving,
-                              onPressed: _saving
-                                  ? null
-                                  : () {
-                                      if (last) {
-                                        _finish(
-                                          widget.review
-                                              ? null
-                                              : AppRoutes.selectRegister,
-                                        );
-                                      } else {
-                                        _goTo(_page + 1);
-                                      }
-                                    },
-                            ),
-                            if (last && !widget.review) ...[
-                              const SizedBox(height: 8),
-                              TextButton(
-                                onPressed: _saving
-                                    ? null
-                                    : () => _finish(AppRoutes.login),
-                                child: const Text(
-                                  'Já tenho conta',
-                                  style: TextStyle(color: Colors.white),
+                            const Expanded(
+                              child: Text(
+                                'MEATSHOP',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 2,
                                 ),
                               ),
-                            ],
+                            ),
+                            TextButton(
+                              onPressed: _saving ? null : () => _finish(),
+                              child: Text(
+                                widget.review ? 'Fechar' : 'Pular',
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                      Expanded(
+                        child: PageView.builder(
+                          controller: _controller,
+                          itemCount: _slides.length,
+                          onPageChanged: (page) => setState(() => _page = page),
+                          itemBuilder: (context, index) {
+                            final slide = _slides[index];
+                            return LayoutBuilder(
+                              builder: (context, constraints) =>
+                                  SingleChildScrollView(
+                                    padding: const EdgeInsets.all(24),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minHeight: (constraints.maxHeight - 48)
+                                            .clamp(0, double.infinity),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          ExcludeSemantics(
+                                            child: Container(
+                                              padding: const EdgeInsets.all(28),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.redPrimary
+                                                    .withValues(alpha: 0.18),
+                                                borderRadius:
+                                                    BorderRadius.circular(32),
+                                                border: Border.all(
+                                                  color: AppColors.redPrimary
+                                                      .withValues(alpha: 0.5),
+                                                ),
+                                              ),
+                                              child: Icon(
+                                                slide.icon,
+                                                size: 72,
+                                                color: const Color(0xFFFFB4AA),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          Text(
+                                            slide.detail,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: Color(0xFFFFB4AA),
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Semantics(
+                                            header: true,
+                                            child: Text(
+                                              slide.title,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontSize: 28,
+                                                fontWeight: FontWeight.w800,
+                                                height: 1.2,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            slide.description,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 16,
+                                              height: 1.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                            );
+                          },
+                        ),
+                      ),
+                      Semantics(
+                        liveRegion: true,
+                        label: 'Etapa ${_page + 1} de ${_slides.length}',
+                        child: ExcludeSemantics(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              _slides.length,
+                              (index) => AnimatedContainer(
+                                duration: reducedMotion
+                                    ? Duration.zero
+                                    : const Duration(milliseconds: 200),
+                                width: index == _page ? 24 : 8,
+                                height: 8,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: index == _page
+                                      ? const Color(0xFFFFB4AA)
+                                      : Colors.white30,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.sizeOf(context).height * 0.42,
+                        ),
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PrimaryButton(
+                                label: last
+                                    ? (widget.review
+                                          ? 'CONCLUIR'
+                                          : 'CRIAR CONTA')
+                                    : 'PRÓXIMO',
+                                isLoading: _saving,
+                                onPressed: _saving
+                                    ? null
+                                    : () {
+                                        if (last) {
+                                          _finish(
+                                            widget.review
+                                                ? null
+                                                : AppRoutes.selectRegister,
+                                          );
+                                        } else {
+                                          _goTo(_page + 1);
+                                        }
+                                      },
+                              ),
+                              if (last && !widget.review) ...[
+                                const SizedBox(height: 8),
+                                TextButton(
+                                  onPressed: _saving
+                                      ? null
+                                      : () => _finish(AppRoutes.login),
+                                  child: const Text(
+                                    'Já tenho conta',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
