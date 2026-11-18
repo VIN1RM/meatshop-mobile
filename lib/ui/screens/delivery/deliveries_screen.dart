@@ -1,4 +1,3 @@
-import 'package:meatshop_mobile/ui/widgets/profile_quick_guide.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'delivery_availability_control.dart';
 import 'location_sharing_consent.dart';
@@ -62,26 +61,23 @@ class DeliveriesTab extends StatelessWidget {
   }
 
   Widget _buildEmpty(DeliveryProvider provider) {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const ProfileQuickGuide(profile: IntroductionProfile.delivery),
-          AppEmptyState(
-            title:
-                provider.lastError ??
-                (provider.isAvailable
-                    ? 'Nenhuma oferta disponível'
-                    : 'Você está offline'),
-            icon: Icons.delivery_dining,
-            description: provider.isAvailable
-                ? 'As ofertas aparecem quando o açougue marca o pedido como pronto.'
-                : 'Ative sua disponibilidade para receber ofertas de entrega.',
-          ),
-          const SizedBox(height: 16),
-          ReloadButton(provider: provider),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AppEmptyState(
+          title:
+              provider.lastError ??
+              (provider.isAvailable
+                  ? 'Nenhuma oferta disponível'
+                  : 'Você está offline'),
+          icon: Icons.delivery_dining,
+          description: provider.isAvailable
+              ? 'As ofertas aparecem quando o açougue marca o pedido como pronto.'
+              : 'Ative sua disponibilidade para receber ofertas de entrega.',
+        ),
+        const SizedBox(height: 16),
+        ReloadButton(provider: provider),
+      ],
     );
   }
 
@@ -110,15 +106,10 @@ class DeliveriesTab extends StatelessWidget {
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             physics: const BouncingScrollPhysics(),
-            itemCount: provider.pendingOrders.length + 1,
+            itemCount: provider.pendingOrders.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (_, i) {
-              if (i == 0) {
-                return const ProfileQuickGuide(
-                  profile: IntroductionProfile.delivery,
-                );
-              }
-              final order = provider.pendingOrders[i - 1];
+              final order = provider.pendingOrders[i];
               return OrderCardWidget(
                 order: order,
                 isLoading: provider.isLoading,

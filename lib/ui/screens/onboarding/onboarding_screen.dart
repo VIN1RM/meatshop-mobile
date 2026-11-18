@@ -1,340 +1,177 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/onboarding_service.dart';
-import 'package:meatshop_mobile/ui/widgets/app_surface.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
 
-class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({
-    super.key,
-    this.review = false,
-    this.service = const OnboardingService(),
+class OnboardingSlide {
+  final String title;
+  final String description;
+  final IconData icon;
+  const OnboardingSlide({
+    required this.title,
+    required this.description,
+    required this.icon,
   });
+}
 
-  final OnboardingService service;
-
-  /// Review never changes the authenticated navigation stack.
-  final bool review;
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _controller = PageController();
-  int _page = 0;
-  bool _saving = false;
-  bool _moving = false;
-  bool _completed = false;
+  static const String prefsKey = 'hasSeenOnboarding';
 
-  static const _slides = [
-    (
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<OnboardingSlide> _slides = const [
+    OnboardingSlide(
       title: 'Bem-vindo ao MeatShop',
       description:
-          'Uma plataforma para pedir nos açougues da sua região e realizar entregas. Conheça as possibilidades e escolha como participar.',
+          'Conectamos clientes, açougues e entregadores. Peça seus produtos ou realize entregas pela plataforma.',
       icon: Icons.storefront_outlined,
-      detail: 'Para clientes e entregadores',
     ),
-    (
-      title: 'Seu pedido, do seu jeito',
+    OnboardingSlide(
+      title: 'Para quem quer pedir',
       description:
-          'Explore produtos, promoções e avaliações. Monte seu carrinho e escolha entrega ou retirada no açougue, conforme as opções e os horários disponíveis.',
-      icon: Icons.shopping_bag_outlined,
-      detail: 'Entrega ou retirada',
+          'Escolha um açougue, monte seu pedido e consulte as opções de entrega ou retirada.',
+      icon: Icons.shopping_cart_outlined,
     ),
-    (
-      title: 'Também é para quem entrega',
+    OnboardingSlide(
+      title: 'Para quem quer entregar',
       description:
-          'Complete seu cadastro e os dados do veículo. Controle sua disponibilidade, acompanhe entregas e organize seus ganhos e despesas.',
+          'Complete seu cadastro, fique disponível para receber ofertas e acompanhe suas entregas e ganhos.',
+      icon: Icons.calendar_month_outlined,
+    ),
+    OnboardingSlide(
+      title: 'Acompanhe cada etapa',
+      description:
+          'Clientes acompanham seus pedidos. Entregadores consultam as etapas e as informações de cada entrega.',
       icon: Icons.delivery_dining_outlined,
-      detail: 'Cliente, entregador ou ambos',
-    ),
-    (
-      title: 'Vamos começar?',
-      description:
-          'Acompanhe as etapas do pedido e, quando disponível, a localização do entregador. Crie sua conta ou entre para continuar.',
-      icon: Icons.task_alt_outlined,
-      detail: 'Você controla suas permissões',
     ),
   ];
 
-  Future<void> _finish([String? destination]) async {
-    if (_saving) return;
-    setState(() => _saving = true);
-    try {
-      if (!widget.review) await widget.service.completeIntroduction();
-      if (!mounted) return;
-      setState(() => _completed = true);
-      final navigator = Navigator.of(context);
-      if (widget.review && navigator.canPop()) {
-        navigator.pop();
-        return;
-      }
-      navigator.pushNamedAndRemoveUntil(AppRoutes.welcome, (_) => false);
-      if (!widget.review && destination != null) {
-        navigator.pushNamed(destination);
-      }
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Não foi possível salvar. Tente novamente.'),
-        ),
-      );
-    }
+  Future<void> _finish() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(prefsKey, true);
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
 
-  Future<void> _goTo(int page) async {
-    if (_saving || _moving) return;
-    if (MediaQuery.disableAnimationsOf(context)) {
-      _controller.jumpToPage(page);
+  void _nextPage() {
+    if (_currentPage == _slides.length - 1) {
+      _finish();
       return;
     }
-    _moving = true;
-    try {
-      await _controller.animateToPage(
-        page,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    } finally {
-      _moving = false;
-    }
-  }
-
-  void _back() {
-    if (_saving) return;
-    if (widget.review || _page == 0) {
-      _finish();
-    } else {
-      _goTo(_page - 1);
-    }
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final last = _page == _slides.length - 1;
-    final reducedMotion = MediaQuery.disableAnimationsOf(context);
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: PopScope(
-        canPop: _completed,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _back();
-        },
-        child: Theme(
-          data: appDarkSurfaceTheme(context),
-          child: Scaffold(
-            backgroundColor: AppColors.darkSurface,
-            body: SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              color: Colors.white,
-                              tooltip: widget.review
-                                  ? 'Fechar apresentação'
-                                  : 'Voltar',
-                              onPressed: _saving ? null : _back,
-                              icon: Icon(
-                                widget.review ? Icons.close : Icons.arrow_back,
-                              ),
-                            ),
-                            const Expanded(
-                              child: Text(
-                                'MEATSHOP',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 2,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: _saving ? null : () => _finish(),
-                              child: Text(
-                                widget.review ? 'Fechar' : 'Pular',
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: PageView.builder(
-                          controller: _controller,
-                          itemCount: _slides.length,
-                          onPageChanged: (page) => setState(() => _page = page),
-                          itemBuilder: (context, index) {
-                            final slide = _slides[index];
-                            return LayoutBuilder(
-                              builder: (context, constraints) =>
-                                  SingleChildScrollView(
-                                    padding: const EdgeInsets.all(24),
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minHeight: (constraints.maxHeight - 48)
-                                            .clamp(0, double.infinity),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          ExcludeSemantics(
-                                            child: Container(
-                                              padding: const EdgeInsets.all(28),
-                                              decoration: BoxDecoration(
-                                                color: AppColors.redPrimary
-                                                    .withValues(alpha: 0.18),
-                                                borderRadius:
-                                                    BorderRadius.circular(32),
-                                                border: Border.all(
-                                                  color: AppColors.redPrimary
-                                                      .withValues(alpha: 0.5),
-                                                ),
-                                              ),
-                                              child: Icon(
-                                                slide.icon,
-                                                size: 72,
-                                                color: const Color(0xFFFFB4AA),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 24),
-                                          Text(
-                                            slide.detail,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              color: Color(0xFFFFB4AA),
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12),
-                                          Semantics(
-                                            header: true,
-                                            child: Text(
-                                              slide.title,
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                fontSize: 28,
-                                                fontWeight: FontWeight.w800,
-                                                height: 1.2,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            slide.description,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 16,
-                                              height: 1.5,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                            );
-                          },
-                        ),
-                      ),
-                      Semantics(
-                        liveRegion: true,
-                        label: 'Etapa ${_page + 1} de ${_slides.length}',
-                        child: ExcludeSemantics(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              _slides.length,
-                              (index) => AnimatedContainer(
-                                duration: reducedMotion
-                                    ? Duration.zero
-                                    : const Duration(milliseconds: 200),
-                                width: index == _page ? 24 : 8,
-                                height: 8,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: index == _page
-                                      ? const Color(0xFFFFB4AA)
-                                      : Colors.white30,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.sizeOf(context).height * 0.42,
-                        ),
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              PrimaryButton(
-                                label: last
-                                    ? (widget.review
-                                          ? 'CONCLUIR'
-                                          : 'CRIAR CONTA')
-                                    : 'PRÓXIMO',
-                                isLoading: _saving,
-                                onPressed: _saving
-                                    ? null
-                                    : () {
-                                        if (last) {
-                                          _finish(
-                                            widget.review
-                                                ? null
-                                                : AppRoutes.selectRegister,
-                                          );
-                                        } else {
-                                          _goTo(_page + 1);
-                                        }
-                                      },
-                              ),
-                              if (last && !widget.review) ...[
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: _saving
-                                      ? null
-                                      : () => _finish(AppRoutes.login),
-                                  child: const Text(
-                                    'Já tenho conta',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+    final size = MediaQuery.of(context).size;
+    final isLastPage = _currentPage == _slides.length - 1;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF424242),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextButton(
+                  onPressed: _finish,
+                  child: const Text(
+                    'Pular',
+                    style: TextStyle(color: Colors.white70),
                   ),
                 ),
               ),
             ),
-          ),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _slides.length,
+                onPageChanged: (index) => setState(() => _currentPage = index),
+                itemBuilder: (_, index) {
+                  final slide = _slides[index];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: size.width * 0.08,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(slide.icon, size: 96, color: Colors.white),
+                        const SizedBox(height: 32),
+                        Text(
+                          slide.title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          slide.description,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 15,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _slides.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == index ? 20 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentPage == index
+                        ? Colors.white
+                        : Colors.white30,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                size.width * 0.08,
+                24,
+                size.width * 0.08,
+                24,
+              ),
+              child: PrimaryButton(
+                label: isLastPage ? 'COMECAR' : 'PROXIMO',
+                onPressed: _nextPage,
+              ),
+            ),
+          ],
         ),
       ),
     );

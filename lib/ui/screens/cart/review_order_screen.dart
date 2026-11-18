@@ -67,9 +67,7 @@ class _ReviewOrderScreenState extends State<ReviewOrderScreen> {
     if (value == null ||
         !value.isFinite ||
         value <= 0 ||
-        !RegExp(
-          r'^\d+([,.]\d{1,2})?$',
-        ).hasMatch(_changeController.text.trim())) {
+        !RegExp(r'^\d+([,.]\d{1,2})?$').hasMatch(_changeController.text.trim())) {
       return 'Informe um valor válido com até duas casas decimais.';
     }
     if (_quote != null && value < _quote!.totalAmount) {

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:meatshop_mobile/routes/app_routes.dart';
-import 'package:meatshop_mobile/services/onboarding_service.dart';
+import 'package:meatshop_mobile/ui/screens/auth/login_screen.dart';
 import 'package:meatshop_mobile/ui/screens/onboarding/onboarding_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/buttons_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _CarouselItem {
   final String path;
@@ -69,7 +69,7 @@ class _WelcomePageState extends State<WelcomePage> {
   static const int _multiplier = 1000;
   late final PageController _pageController;
   Timer? _carouselTimer;
-  late final Future<bool> _introduction;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -77,32 +77,24 @@ class _WelcomePageState extends State<WelcomePage> {
     final int initialPage = _images.length * (_multiplier ~/ 2);
     _pageController = PageController(initialPage: initialPage);
 
-    _introduction = OnboardingService().shouldShowIntroduction();
+    _carouselTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 700),
+        curve: Curves.easeInOut,
+      );
+    });
+
+    _checkFirstAccess();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _carouselTimer?.cancel();
-    if (MediaQuery.disableAnimationsOf(context)) return;
-    _carouselTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (!mounted ||
-          !_pageController.hasClients ||
-          ModalRoute.of(context)?.isCurrent != true ||
-          WidgetsBinding.instance.lifecycleState == AppLifecycleState.paused) {
-        return;
-      }
-      final next = (_pageController.page?.round() ?? 0) + 1;
-      if (next >= _images.length * _multiplier) {
-        _pageController.jumpToPage(_images.length * (_multiplier ~/ 2));
-      } else {
-        _pageController.animateToPage(
-          next,
-          duration: const Duration(milliseconds: 700),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
+  Future<void> _checkFirstAccess() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+    debugPrint('hasSeenOnboarding = $hasSeenOnboarding');
+    if (!hasSeenOnboarding && mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _goToOnboarding());
+    }
   }
 
   @override
@@ -110,6 +102,22 @@ class _WelcomePageState extends State<WelcomePage> {
     _carouselTimer?.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _goToLogin() async {
+    setState(() => _isLoading = true);
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
+  void _goToOnboarding() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const OnboardingScreen()));
   }
 
   Widget _carouselImage(_CarouselItem item) {
@@ -122,40 +130,7 @@ class _WelcomePageState extends State<WelcomePage> {
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<bool>(
-    future: _introduction,
-    builder: (context, snapshot) {
-      if (snapshot.connectionState != ConnectionState.done) {
-        return const Scaffold(
-          backgroundColor: AppColors.darkSurface,
-          body: Center(child: CircularProgressIndicator(color: Colors.white)),
-        );
-      }
-      if (snapshot.hasError) {
-        return Scaffold(
-          backgroundColor: AppColors.darkSurface,
-          body: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: PrimaryButton(
-                  label: 'TENTAR NOVAMENTE',
-                  onPressed: () => Navigator.pushReplacementNamed(
-                    context,
-                    AppRoutes.welcome,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-      if (snapshot.data == true) return const OnboardingScreen();
-      return _buildWelcome(context);
-    },
-  );
-
-  Widget _buildWelcome(BuildContext context) {
+  Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final sw = size.width;
     final sh = size.height;
@@ -170,128 +145,99 @@ class _WelcomePageState extends State<WelcomePage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF424242),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                SizedBox(
-                  height: sh * carouselRatio,
-                  width: sw,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _images.length * _multiplier,
-                    itemBuilder: (_, index) {
-                      return _carouselImage(_images[index % _images.length]);
-                    },
-                  ),
-                ),
-
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: sh * 0.14,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Color(0xFF424242)],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  sw * 0.07,
-                  sh * 0.02,
-                  sw * 0.07,
-                  sh * 0.05,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: sh * 0.03),
-
-                    Text(
-                      'Bem-vindo ao MeatShop!',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26 * fontScale,
-                        fontWeight: FontWeight.bold,
-                        height: 1.25,
-                      ),
-                    ),
-
-                    SizedBox(height: sh * 0.018),
-
-                    Text(
-                      'O MeatShop conecta clientes, açougues e entregadores em uma plataforma prática e segura.',
-                      textAlign: TextAlign.justify,
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 15 * fontScale,
-                        height: 1.6,
-                      ),
-                    ),
-
-                    SizedBox(height: sh * 0.018),
-
-                    Text(
-                      'Crie sua conta para pedir ou entregar. Já tem cadastro? Entre para continuar.',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13 * fontScale,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-
-                    SizedBox(height: sh * 0.035),
-
-                    PrimaryButton(
-                      label: 'CRIAR CONTA',
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.selectRegister,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Center(
-                      child: TextButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, AppRoutes.login),
-                        child: const Text(
-                          'Já tenho conta',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: TextButton(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const OnboardingScreen(review: true),
-                          ),
-                        ),
-                        child: const Text(
-                          'Conhecer o MeatShop',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ),
-                    ),
-                  ],
+      body: Column(
+        children: [
+          Stack(
+            children: [
+              SizedBox(
+                height: sh * carouselRatio,
+                width: sw,
+                child: PageView.builder(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _images.length * _multiplier,
+                  itemBuilder: (_, index) {
+                    return _carouselImage(_images[index % _images.length]);
+                  },
                 ),
               ),
+
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: sh * 0.14,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Color(0xFF424242)],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                sw * 0.07,
+                sh * 0.02,
+                sw * 0.07,
+                sh * 0.05,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: sh * 0.03),
+
+                  Text(
+                    'Bem Vindo ao Meatshop!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26 * fontScale,
+                      fontWeight: FontWeight.bold,
+                      height: 1.25,
+                    ),
+                  ),
+
+                  SizedBox(height: sh * 0.018),
+
+                  Text(
+                    'O MeatShop conecta clientes, açougues e entregadores em uma plataforma prática e segura.',
+                    textAlign: TextAlign.justify,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15 * fontScale,
+                      height: 1.6,
+                    ),
+                  ),
+
+                  SizedBox(height: sh * 0.018),
+
+                  Text(
+                    'Escolha seu perfil e comece agora.',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13 * fontScale,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+
+                  SizedBox(height: sh * 0.035),
+
+                  PrimaryButton(
+                    label: 'IR PARA O LOGIN',
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _goToLogin,
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

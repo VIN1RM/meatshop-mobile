@@ -6,13 +6,6 @@ import 'package:meatshop_mobile/data/repositories/order_repository.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
-import 'package:meatshop_mobile/ui/widgets/order_contact_actions.dart';
-
-// A unit name appears in both the heading and contact action. Count orders by
-// identity so this test still detects duplicate cards.
-Finder orderCard(int id) => find.byWidgetPredicate(
-  (widget) => widget is OrderContactActions && widget.order.id == '$id',
-);
 
 void main() {
   testWidgets(
@@ -34,8 +27,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('Hist\u00f3rico completo'), findsOneWidget);
-      expect(find.text('Old order 1'), findsWidgets);
-      expect(orderCard(1), findsOneWidget);
+      expect(find.text('Old order 1'), findsOneWidget);
       await tester.ensureVisible(find.text('Carregar mais pedidos'));
       await tester.tap(find.text('Carregar mais pedidos'));
       await tester.pumpAndSettle();
@@ -45,13 +37,10 @@ void main() {
       await tester.tap(find.text('Tentar novamente'));
       await tester.pumpAndSettle();
       expect(orders.requested, [0, 1, 1]);
-      expect(find.text('Old order 1'), findsWidgets);
-      expect(orderCard(1), findsOneWidget);
+      expect(find.text('Old order 1'), findsOneWidget);
       expect(find.text('Old order 2'), findsNothing);
-      expect(find.text('Updated order 2'), findsWidgets);
-      expect(orderCard(2), findsOneWidget);
-      expect(find.text('Old order 3'), findsWidgets);
-      expect(orderCard(3), findsOneWidget);
+      expect(find.text('Updated order 2'), findsOneWidget);
+      expect(find.text('Old order 3'), findsOneWidget);
       expect(find.text('Carregar mais pedidos'), findsNothing);
       expect(tester.takeException(), isNull);
     },
