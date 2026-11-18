@@ -1,4 +1,5 @@
 import 'support_screen.dart';
+import '../onboarding/onboarding_screen.dart';
 import '../../dialogs/personal_data_export_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/services/firebase_identity_service.dart';
@@ -194,6 +195,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 10),
                         _buildCard(
                           children: [
+                            _buildNavItem(
+                              icon: Icons.explore_outlined,
+                              label: 'Rever apresentação',
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const OnboardingScreen(review: true),
+                                ),
+                              ),
+                            ),
+                            _divider(),
                             _buildNavItem(
                               icon: Icons.description_outlined,
                               label: 'Termos e privacidade',

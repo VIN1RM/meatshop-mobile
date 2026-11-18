@@ -7,6 +7,13 @@ e este projeto segue o [Versionamento Semântico](https://semver.org/lang/pt-BR/
 
 ---
 
+## Em desenvolvimento
+
+- Apresentação inicial revisada para clientes e entregadores, incluindo entrega, retirada e condições do acompanhamento.
+- Acesso direto ao cadastro e login, revisão da apresentação nas configurações e orientações contextuais por perfil.
+- Preferências locais versionadas com compatibilidade para instalações existentes, navegação protegida contra toques repetidos e tratamento de falhas.
+- Layout adaptável, progresso acessível e respeito à preferência de redução de movimento.
+
 ## [3.5.0] - 2026-11-01 - Exportações pessoais do entregador
 
 - Nomes de arquivos exportados em português brasileiro.

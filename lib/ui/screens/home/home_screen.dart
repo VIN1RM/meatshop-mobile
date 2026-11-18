@@ -1,4 +1,5 @@
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
+import 'package:meatshop_mobile/ui/widgets/profile_quick_guide.dart';
 import 'package:flutter/material.dart';
 import '../../components/maps/unit_location_selector.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
@@ -145,6 +146,9 @@ class _HomeBodyState extends State<HomeBody> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const ProfileQuickGuide(
+                            profile: IntroductionProfile.client,
+                          ),
                           const SizedBox(height: 20),
                           _sectionTitle('CORTES'),
                           const SizedBox(height: 12),
