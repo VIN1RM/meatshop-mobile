@@ -1,5 +1,3 @@
-import '../../widgets/customer_order_code_card.dart';
-import '../../widgets/order_contact_actions.dart';
 import 'pickup_order_page.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -14,12 +12,16 @@ import '../../../models/order_model.dart';
 import '../../../models/unit_model.dart';
 import '../../../data/repositories/marketplace_context.dart';
 import '../../../core/network/api_failure.dart';
-import '../../widgets/app_header.dart';
 import '../../widgets/buttons_widget.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
-  const OrderTrackingScreen({super.key, required this.orderId});
+  const OrderTrackingScreen({
+    super.key,
+    required this.orderId,
+    this.tileProvider,
+  });
   final int orderId;
+  final TileProvider? tileProvider;
   @override
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
 }
@@ -63,6 +65,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   }
 
   bool _follow = true;
+  bool _mapReady = false;
   bool _started = false;
   bool get _ended =>
       _order != null &&
@@ -119,19 +122,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   void _accept(DeliveryTrackingPoint point) {
     if (!mounted ||
         _ended ||
+        point.orderId != widget.orderId ||
+        !_validCoordinates(point.latitude, point.longitude) ||
         (_point != null && !point.recordedAt.isAfter(_point!.recordedAt))) {
       return;
     }
+    final firstFix = _point == null;
     setState(() {
       _point = point;
       _pointReceivedAt = DateTime.now();
       _error = null;
     });
-    if (_follow) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _map.move(LatLng(point.latitude, point.longitude), 16);
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _centerOnCourier(resetZoom: firstFix),
+    );
   }
 
   Future<void> _refresh() async {
@@ -151,18 +155,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         if (courierChanged) _point = null;
         _error = null;
       });
-      if (firstLoad &&
-          !_pickup &&
-          order.destination?.lat != null &&
-          order.destination?.lng != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _point == null) {
-            _map.move(
-              LatLng(order.destination!.lat!, order.destination!.lng!),
-              16,
-            );
-          }
-        });
+      if (firstLoad || courierChanged) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _frameLocations());
       }
       if (_unit?.id != order.unitId && !_loadingUnit) {
         unawaited(_loadUnit(order.unitId));
@@ -226,23 +220,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             : 'Localização da unidade indisponível.';
       });
       if (valid && _follow && !_pickup) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || !_follow) return;
-          final destination = _order?.destination;
-          final points = <LatLng>[
-            LatLng(lat, lng),
-            if (destination?.lat != null && destination?.lng != null)
-              LatLng(destination!.lat!, destination.lng!),
-            if (_point != null) LatLng(_point!.latitude, _point!.longitude),
-          ];
-          _map.fitCamera(
-            CameraFit.bounds(
-              bounds: LatLngBounds.fromPoints(points),
-              padding: const EdgeInsets.all(48),
-              maxZoom: 16,
-            ),
-          );
-        });
+        WidgetsBinding.instance.addPostFrameCallback((_) => _frameLocations());
       }
     } catch (_) {
       if (mounted) {
@@ -278,327 +256,322 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         onRefresh: _refresh,
       );
     }
-    final destination = _order?.destination;
-    final dest = destination?.lat != null && destination?.lng != null
-        ? LatLng(destination!.lat!, destination.lng!)
-        : null;
+    final dest = _destinationPoint;
     final point = _point == null
         ? null
         : LatLng(_point!.latitude, _point!.longitude);
     final age = _point == null
         ? null
-        : DateTime.now().difference(_point!.recordedAt).inSeconds;
-    final signal = _pickup
-        ? (_ended
-              ? 'Pedido encerrado'
-              : 'Retire na unidade quando o pedido estiver pronto.')
-        : _ended
+        : DateTime.now()
+              .difference(_point!.recordedAt)
+              .inSeconds
+              .clamp(0, 999999);
+    final fresh = !_ended && age != null && age <= 30;
+    final signal = _ended
         ? 'Entrega encerrada'
+        : _order == null
+        ? 'Carregando entrega…'
         : age == null
-        ? 'Aguardando compartilhamento do entregador'
-        : age <= 30
-        ? 'Posição atualizada'
-        : 'Última posição há $age segundos';
+        ? 'Aguardando localização do entregador'
+        : fresh
+        ? 'Localização atualizada'
+        : 'Última posição há ${age < 60 ? '$age s' : '${age ~/ 60} min'}';
+    final canFollow = point != null && !_ended;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: const Color(0xFF2E2E2E),
+        backgroundColor: const Color(0xFFF2F2F2),
         body: Stack(
+          fit: StackFit.expand,
           children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Image.asset(
-                'assets/images/background.png',
-                height: 130,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const SizedBox(height: 130),
-              ),
-            ),
-            SafeArea(
-              child: Column(
+            if (_order == null)
+              Center(
+                child: _error == null
+                    ? const CircularProgressIndicator(
+                        color: AppColors.redPrimary,
+                      )
+                    : const Icon(
+                        Icons.wifi_off_rounded,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+              )
+            else
+              FlutterMap(
+                mapController: _map,
+                options: MapOptions(
+                  initialCenter:
+                      point ?? dest ?? _unitPoint ?? const LatLng(-14.2, -51.9),
+                  initialZoom:
+                      point == null && dest == null && _unitPoint == null
+                      ? 4
+                      : 16,
+                  onMapReady: () {
+                    _mapReady = true;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_point != null) {
+                        _centerOnCourier();
+                      } else {
+                        _frameLocations();
+                      }
+                    });
+                  },
+                  onPositionChanged: (_, gesture) {
+                    if (gesture && _follow) setState(() => _follow = false);
+                  },
+                ),
                 children: [
-                  const AppHeader(showBack: true),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 12, 8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${_pickup ? 'RETIRADA' : 'ENTREGA'} #${widget.orderId}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: _refresh,
-                          icon: const Icon(Icons.refresh_rounded),
-                          color: Colors.white,
-                          tooltip: _pickup
-                              ? 'Atualizar retirada'
-                              : 'Atualizar entrega',
+                  TileLayer(
+                    tileProvider: widget.tileProvider,
+                    urlTemplate: const String.fromEnvironment(
+                      'MAP_TILE_URL',
+                      defaultValue:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    ),
+                    userAgentPackageName: 'com.meatshop.mobile',
+                  ),
+                  if (point != null &&
+                      _point?.accuracy != null &&
+                      _point!.accuracy!.isFinite &&
+                      _point!.accuracy! >= 0)
+                    CircleLayer(
+                      circles: [
+                        CircleMarker(
+                          point: point,
+                          radius: _point!.accuracy!,
+                          useRadiusInMeter: true,
+                          color: Colors.blue.withValues(alpha: .12),
                         ),
                       ],
                     ),
+                  MarkerLayer(
+                    markers: [
+                      if (_unitPoint != null)
+                        _marker(
+                          _unitPoint!,
+                          Icons.storefront_rounded,
+                          AppColors.dark,
+                          _unit!.name,
+                        ),
+                      if (dest != null)
+                        _marker(
+                          dest,
+                          Icons.home_rounded,
+                          AppColors.redPrimary,
+                          'Destino',
+                        ),
+                      if (point != null)
+                        _marker(
+                          point,
+                          Icons.delivery_dining_rounded,
+                          const Color(0xFF2563EB),
+                          'Entregador',
+                        ),
+                    ],
                   ),
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(14),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 12,
+                      bottom:
+                          MediaQuery.paddingOf(context).bottom +
+                          MediaQuery.textScalerOf(
+                            context,
+                          ).scale(100).clamp(100.0, 200.0).toDouble() +
+                          64 +
+                          (_error != null || _unitError != null ? 72 : 0),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              _ended
-                                  ? Icons.check_circle_outline
-                                  : _pickup
-                                  ? Icons.storefront_outlined
-                                  : Icons.delivery_dining,
-                              color: AppColors.redPrimary,
-                              size: 22,
+                    child: const Align(
+                      alignment: Alignment.bottomLeft,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(color: Colors.white70),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 3,
+                          ),
+                          child: Text(
+                            '© OpenStreetMap contributors',
+                            maxLines: 2,
+                            textScaler: TextScaler.noScaling,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.black87,
                             ),
-                            const SizedBox(width: 10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    Material(
+                      color: Colors.white,
+                      elevation: 3,
+                      shadowColor: Colors.black26,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(4, 8, 14, 8),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              tooltip: 'Voltar aos pedidos',
+                              onPressed: () => Navigator.maybePop(context),
+                              icon: const Icon(Icons.arrow_back_rounded),
+                              color: AppColors.dark,
+                            ),
+                            const SizedBox(width: 4),
                             Expanded(
-                              child: Text(
-                                signal,
-                                style: const TextStyle(
-                                  color: AppColors.dark,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.35,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Entrega #${widget.orderId}',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.dark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 5),
+                                        child: Icon(
+                                          Icons.circle,
+                                          size: 7,
+                                          color: fresh
+                                              ? const Color(0xFF237A45)
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          signal,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            height: 1.35,
+                                            color: Color(0xFF666666),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Material(
+                      color: Colors.white,
+                      elevation: 4,
+                      shadowColor: Colors.black26,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_error != null || _unitError != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Text(
+                                  _error ?? _unitError!,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    height: 1.35,
+                                    color: AppColors.redPrimary,
+                                  ),
+                                ),
+                              ),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 16,
+                              runSpacing: 6,
+                              children: [
+                                _legend(
+                                  Icons.storefront_rounded,
+                                  AppColors.dark,
+                                  'Açougue',
+                                ),
+                                _legend(
+                                  Icons.home_rounded,
+                                  AppColors.redPrimary,
+                                  'Destino',
+                                ),
+                                _legend(
+                                  Icons.delivery_dining_rounded,
+                                  const Color(0xFF2563EB),
+                                  'Entregador',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: Semantics(
+                                toggled: _follow && canFollow,
+                                child: FilledButton.icon(
+                                  onPressed: !canFollow
+                                      ? null
+                                      : () {
+                                          setState(() => _follow = true);
+                                          _centerOnCourier(resetZoom: true);
+                                        },
+                                  icon: Icon(
+                                    _follow && canFollow
+                                        ? Icons.gps_fixed_rounded
+                                        : Icons.my_location_rounded,
+                                    size: 20,
+                                  ),
+                                  label: Text(
+                                    _follow && canFollow
+                                        ? 'Seguindo entregador'
+                                        : 'Seguir entregador',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: AppColors.redPrimary,
+                                    foregroundColor: Colors.white,
+                                    disabledBackgroundColor: const Color(
+                                      0xFFF0F0F0,
+                                    ),
+                                    disabledForegroundColor: const Color(
+                                      0xFF777777,
+                                    ),
+                                    minimumSize: const Size(0, 48),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          _pickup
-                              ? (_unit?.formattedAddress ??
-                                    'Carregando endereço da unidade…')
-                              : destination?.fullAddress ??
-                                    'Carregando destino…',
-                          style: const TextStyle(
-                            color: Color(0xFF555555),
-                            fontSize: 12,
-                            height: 1.4,
-                          ),
-                        ),
-                        if (!_ended && _order != null) ...[
-                          const SizedBox(height: 10),
-                          CustomerOrderCodeCard(order: _order!),
-                          TextButton(
-                            onPressed: _generatingCode ? null : _regenerateCode,
-                            child: Text(
-                              _generatingCode
-                                  ? 'Gerando…'
-                                  : _pickup && _order?.deliveryCode == null
-                                  ? 'Gerar código de retirada'
-                                  : 'Gerar novo código',
-                            ),
-                          ),
-                        ],
-                        if (_point?.accuracy != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            'Precisão estimada: ${_point!.accuracy!.round()} m',
-                            style: const TextStyle(
-                              color: Color(0xFF777777),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                        if (_unitError != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            _unitError!,
-                            style: const TextStyle(
-                              color: AppColors.redPrimary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                        if (_error != null) ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            _error!,
-                            style: const TextStyle(
-                              color: AppColors.redPrimary,
-                              fontSize: 12,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: _order == null
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.redPrimary,
-                              ),
-                            )
-                          : FlutterMap(
-                              mapController: _map,
-                              options: MapOptions(
-                                initialCenter:
-                                    point ?? dest ?? const LatLng(-14.2, -51.9),
-                                initialZoom: point == null && dest == null
-                                    ? 4
-                                    : 16,
-                                onPositionChanged: (_, gesture) {
-                                  if (gesture && _follow) {
-                                    setState(() => _follow = false);
-                                  }
-                                },
-                              ),
-                              children: [
-                                TileLayer(
-                                  urlTemplate: const String.fromEnvironment(
-                                    'MAP_TILE_URL',
-                                    defaultValue:
-                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                  ),
-                                  userAgentPackageName: 'com.meatshop.mobile',
-                                ),
-                                if (point != null && _point?.accuracy != null)
-                                  CircleLayer(
-                                    circles: [
-                                      CircleMarker(
-                                        point: point,
-                                        radius: _point!.accuracy!,
-                                        useRadiusInMeter: true,
-                                        color: Colors.blue.withValues(
-                                          alpha: 0.12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                MarkerLayer(
-                                  markers: [
-                                    if (_unit != null &&
-                                        _unitError == null &&
-                                        _unit!.latitude != null &&
-                                        _unit!.longitude != null)
-                                      Marker(
-                                        point: LatLng(
-                                          _unit!.latitude!,
-                                          _unit!.longitude!,
-                                        ),
-                                        width: 44,
-                                        height: 44,
-                                        child: Tooltip(
-                                          message: _unit!.name,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: AppColors.redPrimary,
-                                                width: 2,
-                                              ),
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                  color: Colors.black26,
-                                                  blurRadius: 4,
-                                                ),
-                                              ],
-                                            ),
-                                            child: const Icon(
-                                              Icons.storefront_rounded,
-                                              color: AppColors.redPrimary,
-                                              size: 28,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    if (dest != null)
-                                      Marker(
-                                        point: dest,
-                                        width: 44,
-                                        height: 44,
-                                        child: const Tooltip(
-                                          message: 'Destino',
-                                          child: Icon(
-                                            Icons.home,
-                                            color: AppColors.redPrimary,
-                                            size: 36,
-                                          ),
-                                        ),
-                                      ),
-                                    if (point != null)
-                                      Marker(
-                                        point: point,
-                                        width: 44,
-                                        height: 44,
-                                        child: const Tooltip(
-                                          message: 'Entregador',
-                                          child: Icon(
-                                            Icons.delivery_dining,
-                                            color: Colors.blue,
-                                            size: 36,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SimpleAttributionWidget(
-                                  source: Text('© OpenStreetMap contributors'),
-                                ),
-                              ],
-                            ),
                     ),
-                  ),
-                  if (_order != null)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      child: OrderContactActions(order: _order!, compact: true),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: PrimaryButton(
-                      label: _pickup ? 'Atualizar pedido' : 'Seguir entregador',
-                      icon: _pickup
-                          ? Icons.refresh_rounded
-                          : Icons.my_location_rounded,
-                      onPressed: _pickup
-                          ? _refresh
-                          : point == null
-                          ? null
-                          : () {
-                              setState(() => _follow = true);
-                              _map.move(point, 16);
-                            },
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -606,4 +579,94 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       ),
     );
   }
+
+  static bool _validCoordinates(num? latitude, num? longitude) =>
+      latitude != null &&
+      longitude != null &&
+      latitude.isFinite &&
+      longitude.isFinite &&
+      latitude.abs() <= 90 &&
+      longitude.abs() <= 180;
+
+  LatLng? get _destinationPoint {
+    final destination = _order?.destination;
+    return _validCoordinates(destination?.lat, destination?.lng)
+        ? LatLng(destination!.lat!, destination.lng!)
+        : null;
+  }
+
+  LatLng? get _unitPoint =>
+      _unitError == null && _validCoordinates(_unit?.latitude, _unit?.longitude)
+      ? LatLng(_unit!.latitude!, _unit!.longitude!)
+      : null;
+
+  void _centerOnCourier({bool resetZoom = false}) {
+    if (!mounted ||
+        !_mapReady ||
+        !_follow ||
+        _pickup ||
+        _point == null ||
+        _ended) {
+      return;
+    }
+    _map.move(
+      LatLng(_point!.latitude, _point!.longitude),
+      resetZoom ? 16 : _map.camera.zoom,
+    );
+  }
+
+  void _frameLocations() {
+    if (!mounted || !_mapReady || !_follow || _pickup || _point != null) return;
+    final points = <LatLng>[?_unitPoint, ?_destinationPoint];
+    if (points.isEmpty) return;
+    _map.fitCamera(
+      CameraFit.bounds(
+        bounds: LatLngBounds.fromPoints(points),
+        padding: EdgeInsets.fromLTRB(
+          32,
+          MediaQuery.sizeOf(context).height * .18,
+          32,
+          MediaQuery.sizeOf(context).height * .24,
+        ),
+        maxZoom: 16,
+      ),
+    );
+  }
+
+  Marker _marker(LatLng point, IconData icon, Color color, String label) =>
+      Marker(
+        point: point,
+        width: 46,
+        height: 46,
+        child: Tooltip(
+          message: label,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: color, size: 27),
+          ),
+        ),
+      );
+
+  Widget _legend(IconData icon, Color color, String label) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, color: color, size: 16),
+      const SizedBox(width: 5),
+      Text(
+        label,
+        style: const TextStyle(fontSize: 11, color: Color(0xFF555555)),
+      ),
+    ],
+  );
 }

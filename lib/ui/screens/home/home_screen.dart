@@ -1,3 +1,4 @@
+import '../../components/categories/home_categories.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
@@ -32,13 +33,6 @@ class _HomeBodyState extends State<HomeBody> {
   static const Color _surface = Color.fromARGB(255, 58, 58, 58);
   static const Color _red = Color(0xFFC0392B);
   static const Color _white = Colors.white;
-
-  final List<Map<String, dynamic>> _cuts = const [
-    {'label': 'Bovino', 'icon': Icons.looks_one},
-    {'label': 'Suíno', 'icon': Icons.looks_two},
-    {'label': 'Frango', 'icon': Icons.looks_3},
-    {'label': 'Peixe', 'icon': Icons.set_meal},
-  ];
 
   final TextEditingController _searchController = TextEditingController();
 
@@ -147,26 +141,7 @@ class _HomeBodyState extends State<HomeBody> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 20),
-                          _sectionTitle('CORTES'),
-                          const SizedBox(height: 12),
-                          _buildCuts(),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: TextButton.icon(
-                              onPressed: () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.otherCuts,
-                              ),
-                              icon: const Icon(
-                                Icons.category_outlined,
-                                size: 18,
-                              ),
-                              label: const Text('Outras categorias'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: _white,
-                              ),
-                            ),
-                          ),
+                          const HomeCategories(),
                           const SizedBox(height: 24),
                           _sectionTitle('PROMOÇÕES'),
                           const SizedBox(height: 12),
@@ -225,59 +200,6 @@ class _HomeBodyState extends State<HomeBody> {
           fontWeight: FontWeight.w900,
           letterSpacing: 1.2,
         ),
-      ),
-    );
-  }
-
-  Widget _buildCuts() {
-    final imagens = [
-      'assets/images/vaca.png',
-      'assets/images/porco.png',
-      'assets/images/frango.png',
-      'assets/images/peixe.png',
-    ];
-
-    final rotas = [
-      AppRoutes.beefCuts,
-      AppRoutes.porkCuts,
-      AppRoutes.poultryCuts,
-      AppRoutes.fishCuts,
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(_cuts.length, (i) {
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: GestureDetector(
-                onTap: () => Navigator.pushNamed(context, rotas[i]),
-                child: Container(
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0E0E0),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: Image.asset(
-                      imagens[i],
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, _, _) => const Icon(
-                        Icons.image_not_supported_outlined,
-                        color: Color(0xFF3A3A3A),
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
       ),
     );
   }

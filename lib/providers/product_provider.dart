@@ -15,11 +15,13 @@ class ProductsProvider extends ChangeNotifier {
 
   final String categoryName;
   final String? categoryId;
+  final List<String>? categoryIds;
   final String? categoryGroup;
 
   ProductsProvider({
     required this.categoryName,
     this.categoryId,
+    this.categoryIds,
     this.categoryGroup,
     required ProductService service,
     required CategoryService categoryService,
@@ -102,7 +104,9 @@ class ProductsProvider extends ChangeNotifier {
     _safeNotify();
 
     try {
-      final ids = categoryId != null
+      final ids = categoryIds != null
+          ? categoryIds!.toSet().toList()
+          : categoryId != null
           ? [categoryId!]
           : categoryGroup != null
           ? await _categoryService.fetchCategoryIdsByGroup(categoryGroup!)

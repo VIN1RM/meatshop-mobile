@@ -16,6 +16,7 @@ class CutsScreen extends StatelessWidget {
   final String title;
   final String categoryName;
   final String? categoryId;
+  final List<String>? categoryIds;
   final String? categoryGroup;
 
   const CutsScreen({
@@ -23,6 +24,7 @@ class CutsScreen extends StatelessWidget {
     required this.title,
     required this.categoryName,
     this.categoryId,
+    this.categoryIds,
     this.categoryGroup,
   });
 
@@ -33,6 +35,7 @@ class CutsScreen extends StatelessWidget {
       create: (_) => ProductsProvider(
         categoryName: categoryName,
         categoryId: categoryId,
+        categoryIds: categoryIds,
         categoryGroup: categoryGroup,
         service: ProductService(marketplace: marketplace),
         categoryService: CategoryService(marketplace: marketplace),
