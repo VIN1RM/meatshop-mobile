@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import '../../components/maps/unit_location_selector.dart';
@@ -149,6 +150,23 @@ class _HomeBodyState extends State<HomeBody> {
                           _sectionTitle('CORTES'),
                           const SizedBox(height: 12),
                           _buildCuts(),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: TextButton.icon(
+                              onPressed: () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.otherCuts,
+                              ),
+                              icon: const Icon(
+                                Icons.category_outlined,
+                                size: 18,
+                              ),
+                              label: const Text('Outras categorias'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: _white,
+                              ),
+                            ),
+                          ),
                           const SizedBox(height: 24),
                           _sectionTitle('PROMOÇÕES'),
                           const SizedBox(height: 12),
@@ -658,7 +676,7 @@ class _HomeBodyState extends State<HomeBody> {
 }
 
 String _greeting() {
-  final hour = DateTime.now().hour;
+  final hour = BusinessClock.now().hour;
   if (hour < 12) return 'Bom dia';
   if (hour < 18) return 'Boa tarde';
   return 'Boa noite';

@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
 
@@ -10,23 +11,21 @@ class EarningRow extends StatelessWidget {
   static const Color _red = Color(0xFFC0392B);
 
   String get _timeLabel {
-    final now = DateTime.now();
+    final now = BusinessClock.now();
+    final createdAt = BusinessClock.local(entry.createdAt);
     final diff = now.difference(entry.createdAt);
 
     if (diff.inMinutes < 1) return 'Agora';
     if (diff.inHours < 1) return '${diff.inMinutes} min atrás';
     if (entry.isToday) {
-      final h = entry.createdAt.hour.toString().padLeft(2, '0');
-      final m = entry.createdAt.minute.toString().padLeft(2, '0');
+      final h = createdAt.hour.toString().padLeft(2, '0');
+      final m = createdAt.minute.toString().padLeft(2, '0');
       return '$h:$m';
     }
-    if (DateUtils.dateOnly(
-          now,
-        ).difference(DateUtils.dateOnly(entry.createdAt)).inDays ==
-        1) {
+    if (BusinessClock.daysBetween(createdAt, now) == 1) {
       return 'Ontem';
     }
-    return DateFormat('dd/MM/yyyy').format(entry.createdAt);
+    return BusinessClock.format(createdAt, 'dd/MM/yyyy');
   }
 
   @override

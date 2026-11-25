@@ -50,14 +50,31 @@ Map<String, WidgetBuilder> buildRoutes() {
     AppRoutes.productReviews: (_) => const ProductReviewsScreen(),
     AppRoutes.reviewOrder: (_) => const CartScreen(),
     AppRoutes.butchers: (_) => const ButcherListScreen(),
-    AppRoutes.beefCuts: (_) =>
-        const CutsScreen(title: 'CORTES BOVINOS', categoryName: 'Bovinos'),
-    AppRoutes.porkCuts: (_) =>
-        const CutsScreen(title: 'CORTES SUÍNOS', categoryName: 'Suínos'),
-    AppRoutes.poultryCuts: (_) =>
-        const CutsScreen(title: 'CORTES DE AVES', categoryName: 'Aves'),
-    AppRoutes.fishCuts: (_) =>
-        const CutsScreen(title: 'CORTES DE PEIXE', categoryName: 'Peixes'),
+    AppRoutes.beefCuts: (_) => const CutsScreen(
+      title: 'CORTES BOVINOS',
+      categoryName: 'Bovinos',
+      categoryGroup: 'BEEF',
+    ),
+    AppRoutes.porkCuts: (_) => const CutsScreen(
+      title: 'CORTES SUÍNOS',
+      categoryName: 'Suínos',
+      categoryGroup: 'PORK',
+    ),
+    AppRoutes.poultryCuts: (_) => const CutsScreen(
+      title: 'CORTES DE AVES',
+      categoryName: 'Aves',
+      categoryGroup: 'POULTRY',
+    ),
+    AppRoutes.fishCuts: (_) => const CutsScreen(
+      title: 'CORTES DE PEIXE',
+      categoryName: 'Peixes',
+      categoryGroup: 'FISH',
+    ),
+    AppRoutes.otherCuts: (_) => const CutsScreen(
+      title: 'OUTRAS CATEGORIAS',
+      categoryName: 'Outros',
+      categoryGroup: 'OTHER',
+    ),
     AppRoutes.deliveries: (_) => const DeliveriesScreen(),
     AppRoutes.chat: (_) => const ChatScreen(),
     AppRoutes.chatList: (_) => const ChatListScreen(),

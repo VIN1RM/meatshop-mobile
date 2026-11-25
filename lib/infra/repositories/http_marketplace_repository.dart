@@ -217,6 +217,7 @@ final class HttpMarketplaceRepository
     distanceKm: double.tryParse('${json['distance_km']}'),
   );
   static CategoryModel _category(Map<String, Object?> json) => CategoryModel(
+    group: json['group'] as String?,
     id: '${json['id']}',
     name: _string(json, 'name'),
     description: _nullableString(json['description']),

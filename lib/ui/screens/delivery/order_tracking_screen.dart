@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/enums/chat_enums.dart';
@@ -761,7 +762,7 @@ class _StatusData {
 }
 
 String _formatDate(DateTime date) {
-  final d = date.toLocal();
+  final d = BusinessClock.local(date);
   final day = d.day.toString().padLeft(2, '0');
   final month = d.month.toString().padLeft(2, '0');
   final hour = d.hour.toString().padLeft(2, '0');

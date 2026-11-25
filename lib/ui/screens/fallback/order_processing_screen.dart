@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import '../../../routes/app_routes.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -348,7 +349,7 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
   }
 
   String _deadline(DateTime date) {
-    final local = date.toLocal();
+    final local = BusinessClock.local(date);
     String pad(int value) => value.toString().padLeft(2, '0');
     return '${pad(local.day)}/${pad(local.month)} às ${pad(local.hour)}:${pad(local.minute)}';
   }

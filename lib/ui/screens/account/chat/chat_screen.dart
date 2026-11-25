@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import '../../../widgets/chat_participant_avatar.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../widgets/chat_load_error.dart';
@@ -336,8 +337,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     });
   }
 
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
+  bool _isSameDay(DateTime a, DateTime b) => BusinessClock.sameDay(a, b);
 
   Widget _buildEmptyState() {
     return const AppEmptyState(
@@ -505,8 +505,7 @@ class _MessageBubble extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime dt) =>
-      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  String _formatTime(DateTime dt) => BusinessClock.format(dt, 'HH:mm');
 }
 
 class _DateDivider extends StatelessWidget {
@@ -515,17 +514,15 @@ class _DateDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = BusinessClock.now();
+    final localDate = BusinessClock.local(date);
     String label;
-    if (now.day == date.day &&
-        now.month == date.month &&
-        now.year == date.year) {
+    if (BusinessClock.sameDay(now, date)) {
       label = 'Hoje';
-    } else if (now.subtract(const Duration(days: 1)).day == date.day) {
+    } else if (BusinessClock.daysBetween(date, now) == 1) {
       label = 'Ontem';
     } else {
-      label =
-          '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+      label = BusinessClock.format(localDate, 'dd/MM/yyyy');
     }
 
     return Padding(

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:flutter/material.dart';
 import '../../../models/support_ticket_model.dart';
 import '../../widgets/buttons_widget.dart';
@@ -130,7 +131,7 @@ class TicketMessageBubble extends StatelessWidget {
   final bool mine;
   @override
   Widget build(BuildContext context) {
-    final local = message.createdAt.toLocal();
+    final local = BusinessClock.local(message.createdAt);
     final material = MaterialLocalizations.of(context);
     final timestamp =
         '${material.formatCompactDate(local)} • ${material.formatTimeOfDay(TimeOfDay.fromDateTime(local), alwaysUse24HourFormat: true)}';

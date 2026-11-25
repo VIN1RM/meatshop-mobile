@@ -14,9 +14,13 @@ class ProductsProvider extends ChangeNotifier {
   final UnitService _unitService;
 
   final String categoryName;
+  final String? categoryId;
+  final String? categoryGroup;
 
   ProductsProvider({
     required this.categoryName,
+    this.categoryId,
+    this.categoryGroup,
     required ProductService service,
     required CategoryService categoryService,
     required UnitService unitService,
@@ -88,6 +92,8 @@ class ProductsProvider extends ChangeNotifier {
   }
 
   Future<void> loadFirstPage() async {
+    final generation = ++_generation;
+    _isLoadingMore = false;
     _items.clear();
     _lastDoc = null;
     _hasMore = true;
@@ -96,10 +102,15 @@ class ProductsProvider extends ChangeNotifier {
     _safeNotify();
 
     try {
-      _categoryIds = await _categoryService.fetchCategoryIdsByName(
-        categoryName,
-      );
+      final ids = categoryId != null
+          ? [categoryId!]
+          : categoryGroup != null
+          ? await _categoryService.fetchCategoryIdsByGroup(categoryGroup!)
+          : await _categoryService.fetchCategoryIdsByName(categoryName);
+      if (_disposed || generation != _generation) return;
+      _categoryIds = ids;
     } catch (e) {
+      if (_disposed || generation != _generation) return;
       _error = 'Não foi possível carregar as categorias. Tente novamente.';
       debugPrint('[ProductsProvider] category load error: $e');
       _isLoading = false;
@@ -107,12 +118,15 @@ class ProductsProvider extends ChangeNotifier {
       return;
     }
 
+    if (_disposed || generation != _generation) return;
     await _fetchNextPage();
 
+    if (_disposed || generation != _generation) return;
     _isLoading = false;
     _safeNotify();
   }
 
+  int _generation = 0;
   bool _disposed = false;
 
   @override
@@ -126,15 +140,19 @@ class ProductsProvider extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasMore) return;
+    if (_disposed || _isLoading || _isLoadingMore || !_hasMore) return;
+    final generation = _generation;
     _isLoadingMore = true;
     _safeNotify();
     await _fetchNextPage();
+    if (_disposed || generation != _generation) return;
     _isLoadingMore = false;
     _safeNotify();
   }
 
   Future<void> _fetchNextPage() async {
+    final generation = _generation;
+    final categoryIds = List<String>.of(_categoryIds);
     try {
       final filtered =
           _searchQuery.trim().isNotEmpty ||
@@ -151,8 +169,8 @@ class ProductsProvider extends ChangeNotifier {
         _ => null,
       };
       final page = filtered
-          ? await _service.filtered(
-              category: categoryName,
+          ? await _service.filteredByCategoryIds(
+              categoryIds: categoryIds,
               name: _searchQuery,
               brand: _brand,
               minPrice: minPrice,
@@ -160,16 +178,19 @@ class ProductsProvider extends ChangeNotifier {
               page: _lastDoc is int ? _lastDoc as int : 1,
             )
           : await _service.fetchByCategoryIds(
-              categoryIds: _categoryIds,
+              categoryIds: categoryIds,
               startAfter: _lastDoc,
               searchQuery: _searchQuery,
             );
       final resolved = await _resolveUnitNames(page.items);
-      _items.addAll(resolved);
+      if (_disposed || generation != _generation) return;
+      final existing = _items.map((item) => item.id).toSet();
+      _items.addAll(resolved.where((item) => existing.add(item.id)));
       _lastDoc = page.lastDoc;
       _hasMore = page.hasMore;
       _error = null;
     } catch (e) {
+      if (_disposed || generation != _generation) return;
       _error = 'Não foi possível carregar os produtos. Tente novamente.';
       debugPrint('[ProductsProvider] load error: $e');
     }

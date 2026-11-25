@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
+
 enum NotificationType { order, delivery, promotion, system }
 
 class NotificationModel {
@@ -31,8 +33,10 @@ class NotificationModel {
       type: _parseType(data['type'] as String? ?? 'SYSTEM'),
       read: data['read'] == true,
       createdAt: rawDate is String
-          ? DateTime.tryParse(rawDate)?.toLocal() ?? DateTime.now()
-          : DateTime.now(),
+          ? BusinessClock.local(
+              DateTime.tryParse(rawDate) ?? BusinessClock.now(),
+            )
+          : BusinessClock.now(),
       payload: {
         if (data['action_url'] != null) 'action_url': data['action_url'],
         if (data['unit_id'] != null) 'unit_id': data['unit_id'],

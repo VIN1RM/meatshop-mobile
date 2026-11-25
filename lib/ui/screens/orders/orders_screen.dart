@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import '../../widgets/customer_order_code_card.dart';
 import '../../widgets/order_contact_actions.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
@@ -8,7 +9,6 @@ import 'package:meatshop_mobile/providers/review_provider.dart';
 import 'package:meatshop_mobile/providers/product_review_provider.dart';
 import 'package:flutter/material.dart';
 import 'order_tracking_screen.dart';
-import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/core/enums/order_status_enum.dart';
 import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -331,7 +331,7 @@ class _ActiveOrderCard extends StatelessWidget {
                     ),
                     if (order.orderDate != null)
                       Text(
-                        DateFormat('HH:mm').format(order.orderDate!),
+                        BusinessClock.format(order.orderDate!, 'HH:mm'),
                         style: const TextStyle(
                           color: Color(0xFF888888),
                           fontSize: 11,
@@ -479,7 +479,7 @@ class _ActiveOrderCard extends StatelessWidget {
                     if (order.canPay && order.paymentDueAt != null) ...[
                       const SizedBox(height: 10),
                       Text(
-                        'Pague até ${DateFormat('dd/MM · HH:mm').format(order.paymentDueAt!.toLocal())} para continuar com o pedido.',
+                        'Pague até ${BusinessClock.format(order.paymentDueAt!, 'dd/MM · HH:mm')} para continuar com o pedido.',
                         style: const TextStyle(
                           color: Color(0xFF79501D),
                           fontSize: 12,
@@ -723,7 +723,7 @@ class _FinishedOrderCardState extends State<_FinishedOrderCard>
     final isCancelled = order.isCancelled;
     final statusColor = isCancelled ? red : const Color(0xFF27AE60);
     final formattedDate = order.orderDate != null
-        ? DateFormat("d 'de' MMM 'de' yyyy", 'pt_BR').format(order.orderDate!)
+        ? BusinessClock.format(order.orderDate!, "d 'de' MMM 'de' yyyy")
         : null;
 
     return GestureDetector(

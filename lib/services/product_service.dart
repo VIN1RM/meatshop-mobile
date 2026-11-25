@@ -52,6 +52,43 @@ class ProductService {
     );
   }
 
+  Future<ProductPage> filteredByCategoryIds({
+    required List<String> categoryIds,
+    String name = '',
+    String brand = '',
+    double minPrice = 0,
+    double? maxPrice,
+    int page = 1,
+  }) async {
+    if (categoryIds.isEmpty) {
+      return const ProductPage(items: [], lastDoc: null, hasMore: false);
+    }
+    final pages = await Future.wait(
+      categoryIds.toSet().map(
+        (id) => filtered(
+          categoryId: id,
+          name: name,
+          brand: brand,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          page: page,
+        ),
+      ),
+    );
+    final items = <String, ProductModel>{};
+    for (final result in pages) {
+      for (final product in result.items) {
+        items[product.id] = product;
+      }
+    }
+    final hasMore = pages.any((result) => result.hasMore);
+    return ProductPage(
+      items: items.values.toList(),
+      lastDoc: hasMore ? page + 1 : null,
+      hasMore: hasMore,
+    );
+  }
+
   Future<ProductPage> fetchByCategory({
     required String categoryId,
     Object? startAfter,

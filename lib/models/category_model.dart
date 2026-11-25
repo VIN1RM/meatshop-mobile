@@ -1,6 +1,7 @@
 class CategoryModel {
   final String id;
   final String name;
+  final String? group;
   final String description;
   final bool active;
   final String unitId;
@@ -13,5 +14,6 @@ class CategoryModel {
     required this.active,
     required this.unitId,
     this.createdAt,
+    this.group,
   });
 }

@@ -35,7 +35,7 @@ class DeliveryEarningModel {
       label: '$title · ${data['paid_at'] == null ? 'A receber' : 'Recebido'}',
       amount: (data['amount'] as num?)?.toDouble() ?? 0,
       createdAt:
-          DateTime.tryParse((data['created_at'] ?? '').toString())?.toLocal() ??
+          DateTime.tryParse((data['created_at'] ?? '').toString()) ??
           DateTime.now(),
     );
   }

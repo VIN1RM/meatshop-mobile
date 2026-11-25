@@ -1,5 +1,5 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
-import 'package:intl/intl.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/buttons_widget.dart';
 import '../../widgets/legal_section.dart';
@@ -260,7 +260,7 @@ class _LegalScreenState extends State<LegalScreen> {
       ),
     ),
     subtitle: Text(
-      'Versão ${record.version}\n${DateFormat('dd/MM/yyyy · HH:mm').format(record.acceptedAt.toLocal())}',
+      'Versão ${record.version}\n${BusinessClock.format(record.acceptedAt, 'dd/MM/yyyy · HH:mm')}',
       style: const TextStyle(color: Colors.black54, fontSize: 12, height: 1.5),
     ),
     trailing: const Icon(Icons.chevron_right, color: AppColors.redPrimary),

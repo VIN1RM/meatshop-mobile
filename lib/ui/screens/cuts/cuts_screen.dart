@@ -15,11 +15,15 @@ import '../../../services/unit_service.dart';
 class CutsScreen extends StatelessWidget {
   final String title;
   final String categoryName;
+  final String? categoryId;
+  final String? categoryGroup;
 
   const CutsScreen({
     super.key,
     required this.title,
     required this.categoryName,
+    this.categoryId,
+    this.categoryGroup,
   });
 
   @override
@@ -28,6 +32,8 @@ class CutsScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => ProductsProvider(
         categoryName: categoryName,
+        categoryId: categoryId,
+        categoryGroup: categoryGroup,
         service: ProductService(marketplace: marketplace),
         categoryService: CategoryService(marketplace: marketplace),
         unitService: UnitService(marketplace: marketplace),

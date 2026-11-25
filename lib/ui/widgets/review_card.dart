@@ -1,5 +1,5 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/models/review_model.dart';
 
 class ReviewCard extends StatelessWidget {
@@ -15,7 +15,6 @@ class ReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = review.clientName.trim().split(RegExp(r'\s+')).first;
     final displayName = name.isEmpty ? 'Cliente' : name;
-    final dateFormat = DateFormat('dd/MM/yyyy', 'pt_BR');
     final bg = darkMode ? const Color(0xFF2A2A2A) : Colors.white;
     final textPrimary = darkMode ? Colors.white : const Color(0xFF1A1A1A);
     final textSecondary = darkMode ? Colors.white70 : const Color(0xFF555555);
@@ -63,7 +62,7 @@ class ReviewCard extends StatelessWidget {
                 ),
               ),
               Text(
-                dateFormat.format(review.createdAt),
+                BusinessClock.format(review.createdAt, 'dd/MM/yyyy'),
                 style: TextStyle(fontSize: 11, color: textMuted),
               ),
             ],

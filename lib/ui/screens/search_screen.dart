@@ -82,22 +82,13 @@ class _SearchScreenState extends State<SearchScreen> {
           arguments: result.payload as UnitModel,
         );
       case SearchResultType.category:
-        final normalized = result.title.toLowerCase();
-        final categoryName = normalized.contains('bovin')
-            ? 'Bovinos'
-            : normalized.contains('suí') || normalized.contains('sui')
-            ? 'Suínos'
-            : normalized.contains('ave') || normalized.contains('frango')
-            ? 'Aves'
-            : normalized.contains('peixe')
-            ? 'Peixes'
-            : result.title;
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => CutsScreen(
-              title: categoryName.toUpperCase(),
-              categoryName: categoryName,
+              title: result.title.toUpperCase(),
+              categoryName: result.title,
+              categoryId: result.payload as String,
             ),
           ),
         );

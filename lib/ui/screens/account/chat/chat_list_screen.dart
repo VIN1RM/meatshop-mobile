@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import '../../../widgets/chat_participant_avatar.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../widgets/chat_load_error.dart';
@@ -290,16 +291,16 @@ class _ConversationTile extends StatelessWidget {
   }
 
   String _formatTime(DateTime dt) {
-    final now = DateTime.now();
+    final now = BusinessClock.now();
     final diff = now.difference(dt);
 
     if (diff.inMinutes < 1) return 'Agora';
     if (diff.inMinutes < 60) return '${diff.inMinutes}min';
-    if (diff.inHours < 24 && now.day == dt.day) {
-      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    if (BusinessClock.sameDay(now, dt)) {
+      return BusinessClock.format(dt, 'HH:mm');
     }
-    if (diff.inDays == 1) return 'Ontem';
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    if (BusinessClock.daysBetween(dt, now) == 1) return 'Ontem';
+    return BusinessClock.format(dt, 'dd/MM/yyyy');
   }
 }
 

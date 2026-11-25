@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/data/repositories/delivery_repository.dart';
 import 'package:meatshop_mobile/models/address_model.dart';
@@ -45,6 +45,7 @@ const address = AddressModel(
 );
 
 void main() {
+  setUpAll(() => initializeDateFormatting('pt_BR'));
   test(
     'localizes current and legacy earning labels without changing the delivery amount',
     () {
@@ -114,7 +115,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final date = DateTime.now().subtract(const Duration(days: 4));
+      final date = DateTime.parse('2020-01-02T01:30:00Z');
       final entry = DeliveryEarningModel.fromApi({
         'order_id': 97,
         'label': 'Order #97',
@@ -133,7 +134,7 @@ void main() {
       );
       expect(find.text('Pedido #97 · A receber'), findsOneWidget);
       expect(find.textContaining('8,50'), findsOneWidget);
-      expect(find.text(DateFormat('dd/MM/yyyy').format(date)), findsOneWidget);
+      expect(find.text('01/01/2020'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

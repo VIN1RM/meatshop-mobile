@@ -26,6 +26,7 @@ class AppRoutes {
   static const String porkCuts = '/cortes/suinos';
   static const String poultryCuts = '/cortes/aves';
   static const String fishCuts = '/cortes/peixes';
+  static const String otherCuts = '/cortes/outros';
   static const String deliveries = '/deliveries';
   static const String chat = '/chat';
   static const String chatList = '/chat/list';
