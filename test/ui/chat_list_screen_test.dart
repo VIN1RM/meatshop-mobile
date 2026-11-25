@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -123,6 +124,17 @@ void main() {
     await tester.tap(find.text('Tentar novamente'));
     await tester.pumpAndSettle();
     expect(find.text('Nenhuma conversa ainda'), findsOneWidget);
+    final empty = find.byType(AppEmptyState);
+    expect(
+      tester.widget<AppEmptyState>(empty).surfaceColor,
+      Colors.transparent,
+    );
+    expect(
+      tester.getCenter(empty).dy,
+      greaterThan(
+        (tester.view.physicalSize.height / tester.view.devicePixelRatio) * .4,
+      ),
+    );
     expect(find.text('Não foi possível carregar as conversas.'), findsNothing);
     await tester.pumpWidget(const SizedBox());
     auth.dispose();

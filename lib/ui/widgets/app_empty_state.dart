@@ -11,6 +11,7 @@ class AppEmptyState extends StatelessWidget {
     this.actionLabel,
     this.onAction,
     this.brightness = Brightness.dark,
+    this.surfaceColor,
   });
   final String title;
   final String? description;
@@ -18,6 +19,7 @@ class AppEmptyState extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onAction;
   final Brightness brightness;
+  final Color? surfaceColor;
   bool get _light => brightness == Brightness.light;
 
   @override
@@ -25,7 +27,9 @@ class AppEmptyState extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
       decoration: BoxDecoration(
-        color: _light ? const Color(0xFFEFEFEF) : const Color(0xFF2E2E2E),
+        color:
+            surfaceColor ??
+            (_light ? const Color(0xFFEFEFEF) : const Color(0xFF2E2E2E)),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

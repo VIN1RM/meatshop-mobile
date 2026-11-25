@@ -148,6 +148,7 @@ void main() {
         find.byType(TextField),
         'Olá, preciso de ajuda com meu pedido',
       );
+      await tester.pump();
       await tester.tap(find.byIcon(Icons.send_rounded));
       await tester.pumpAndSettle();
       expect(chat.sent.single.orderId, 42);

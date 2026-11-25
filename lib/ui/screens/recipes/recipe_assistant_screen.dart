@@ -1,3 +1,4 @@
+import '../../widgets/message_composer.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/network/api_failure.dart';
 import 'package:meatshop_mobile/core/network/cancellation_token.dart';
@@ -210,11 +211,14 @@ class _RecipeScreenState extends State<RecipeScreen> {
             ),
           ),
           SafeArea(
+            bottom: false,
             child: Column(
               children: [
-                const AppHeader(),
+                if (MediaQuery.viewInsetsOf(context).bottom == 0)
+                  const AppHeader(),
                 _buildSubtitle(),
-                _buildAiNotice(),
+                if (MediaQuery.viewInsetsOf(context).bottom == 0)
+                  _buildAiNotice(),
                 Expanded(child: _buildMessageList()),
                 _buildInputBar(),
               ],
@@ -309,71 +313,23 @@ class _RecipeScreenState extends State<RecipeScreen> {
     );
   }
 
-  Widget _buildInputBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-      color: _surface,
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              style: const TextStyle(color: _white),
-              onSubmitted: (_) => _send(),
-              maxLines: null,
-              maxLength: 1000,
-              decoration: InputDecoration(
-                hintText: 'Pergunte sobre carnes e receitas...',
-                hintStyle: const TextStyle(color: Colors.white38),
-                filled: true,
-                fillColor: const Color(0xFF2A2A2A),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                counterText: '',
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: _isRestoring ? null : (_isLoading ? _cancel : _send),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: _isLoading || _isRestoring ? Colors.grey : _red,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                _isLoading
-                    ? Icons.stop_rounded
-                    : _isRestoring
-                    ? Icons.hourglass_top_rounded
-                    : Icons.send_rounded,
-                color: _white,
-                size: 20,
-              ),
-            ),
-          ),
-          if (!_isLoading &&
-              _messages.lastOrNull?.isError == true &&
-              _lastQuestion != null) ...[
-            const SizedBox(width: 6),
-            IconButton(
-              tooltip: 'Tentar novamente',
-              onPressed: () => _send(_lastQuestion),
-              icon: const Icon(Icons.refresh, color: _white),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+  Widget _buildInputBar() => MessageComposer(
+    controller: _controller,
+    onSend: _send,
+    enabled: !_isRestoring,
+    busy: _isLoading,
+    onStop: _cancel,
+    maxLength: 1000,
+    hint: _isRestoring
+        ? 'Carregando conversa...'
+        : 'Pergunte sobre carnes e receitas...',
+    onRetry:
+        !_isLoading &&
+            _messages.lastOrNull?.isError == true &&
+            _lastQuestion != null
+        ? () => _send(_lastQuestion)
+        : null,
+  );
 }
 
 class _RecipeMsg {

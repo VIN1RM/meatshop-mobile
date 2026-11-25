@@ -183,7 +183,7 @@ class _CutsViewState extends State<_CutsView> {
                                 Text(
                                   widget.title,
                                   style: const TextStyle(
-                                    color: _red,
+                                    color: Colors.white,
                                     fontSize: 22,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.2,

@@ -354,6 +354,12 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
     return '${pad(local.day)}/${pad(local.month)} às ${pad(local.hour)}:${pad(local.minute)}';
   }
 
+  Widget _unitPhotoFallback() => Container(
+    color: _red.withValues(alpha: .08),
+    alignment: Alignment.center,
+    child: const Icon(Icons.storefront_outlined, color: _red, size: 22),
+  );
+
   Widget _orderCard(OrderModel order) {
     final color = _statusColor(order);
     return Container(
@@ -370,16 +376,22 @@ class _OrderProcessingScreenState extends State<OrderProcessingScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  color: _red.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.storefront_outlined,
-                  color: _red,
-                  size: 22,
+              Semantics(
+                label: 'Foto do açougue',
+                image: true,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: order.unitLogoUrl.isEmpty
+                        ? _unitPhotoFallback()
+                        : Image.network(
+                            order.unitLogoUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _unitPhotoFallback(),
+                          ),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),

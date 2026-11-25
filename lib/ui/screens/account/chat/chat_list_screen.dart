@@ -157,11 +157,14 @@ class ChatListScreen extends StatelessWidget {
   }
 
   Widget _buildEmpty() {
-    return const AppEmptyState(
-      title: 'Nenhuma conversa ainda',
-      icon: Icons.chat_bubble_outline,
-      description:
-          'Em Meus pedidos, toque em Falar com açougue ou Falar com entregador para iniciar uma conversa sobre sua compra.',
+    return const Center(
+      child: AppEmptyState(
+        surfaceColor: Colors.transparent,
+        title: 'Nenhuma conversa ainda',
+        icon: Icons.chat_bubble_outline,
+        description:
+            'Em Meus pedidos, toque em Falar com açougue ou Falar com entregador para iniciar uma conversa sobre sua compra.',
+      ),
     );
   }
 }

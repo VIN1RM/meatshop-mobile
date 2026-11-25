@@ -73,12 +73,12 @@ class UnitLocationSelector extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFC0392B).withValues(alpha: .18),
+                        color: Colors.white.withValues(alpha: .08),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.place_outlined,
-                        color: Color(0xFFFFA99F),
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(width: 12),

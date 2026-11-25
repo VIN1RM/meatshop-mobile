@@ -1,3 +1,4 @@
+import '../../../widgets/message_composer.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import '../../../widgets/chat_participant_avatar.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
@@ -125,7 +126,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       value: _chatProvider!,
       child: Scaffold(
         backgroundColor: _pageBg,
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
             Positioned(
@@ -146,8 +147,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               bottom: false,
               child: Column(
                 children: [
-                  const AppHeader(showBack: true),
-                  _buildParticipantHeader(),
+                  if (MediaQuery.viewInsetsOf(context).bottom == 0) ...[
+                    const AppHeader(showBack: true),
+                    _buildParticipantHeader(),
+                  ] else
+                    _buildCompactHeader(),
                   Expanded(child: _buildMessageList()),
                   _buildInputBar(),
                 ],
@@ -158,6 +162,30 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       ),
     );
   }
+
+  Widget _buildCompactHeader() => Consumer<ChatProvider>(
+    builder: (context, provider, _) => Row(
+      children: [
+        IconButton(
+          tooltip: 'Voltar',
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+        ),
+        Expanded(
+          child: Text(
+            provider.participant?.name ?? _args!.otherUserName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+      ],
+    ),
+  );
 
   Widget _buildParticipantHeader() => Consumer<ChatProvider>(
     builder: (context, provider, _) {
@@ -347,90 +375,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildInputBar() {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-
-    return Consumer<ChatProvider>(
-      builder: (context, provider, _) => AnimatedPadding(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        padding: EdgeInsets.only(bottom: bottomInset),
-        child: Container(
-          color: const Color(0xFFF5F5F5),
-          padding: EdgeInsets.only(
-            left: 12,
-            right: 12,
-            top: 10,
-            bottom: 10 + bottomPadding,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: const Color(0xFFDDDDDD)),
-                  ),
-                  child: TextField(
-                    controller: _messageController,
-                    style: const TextStyle(fontSize: 14, color: Colors.black87),
-                    decoration: InputDecoration(
-                      hintText: provider.closed
-                          ? 'Conversa encerrada'
-                          : 'Mensagem...',
-                      hintStyle: const TextStyle(
-                        color: Color(0xFFAAAAAA),
-                        fontSize: 14,
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    onChanged: (value) =>
-                        provider.setTyping(value.trim().isNotEmpty),
-                    onSubmitted: (_) => _send(),
-                    enabled: !provider.closed,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: provider.sending || provider.closed ? null : _send,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: provider.sending || provider.closed
-                        ? const Color(0xFFAAAAAA)
-                        : _red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: provider.sending
-                      ? const Padding(
-                          padding: EdgeInsets.all(10),
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(
-                          Icons.send_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildInputBar() => Consumer<ChatProvider>(
+    builder: (context, provider, _) => MessageComposer(
+      controller: _messageController,
+      onSend: _send,
+      enabled: !provider.closed,
+      busy: provider.sending,
+      hint: provider.closed ? 'Conversa encerrada' : 'Escreva uma mensagem...',
+      onChanged: (value) => provider.setTyping(value.trim().isNotEmpty),
+    ),
+  );
 }
 
 class _MessageBubble extends StatelessWidget {

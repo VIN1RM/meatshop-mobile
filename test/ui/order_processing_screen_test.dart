@@ -102,9 +102,37 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'uses the unit photo in payment cards and retains a fallback on image failure',
+    (tester) async {
+      await render(tester, _Orders()..logo = 'https://example.com/unit.jpg');
+      final images = tester.widgetList<Image>(find.byType(Image));
+      expect(
+        images.any(
+          (image) =>
+              image.image is NetworkImage &&
+              (image.image as NetworkImage).url ==
+                  'https://example.com/unit.jpg',
+        ),
+        isTrue,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.label == 'Foto do açougue',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.storefront_outlined), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 class _Orders implements OrderRepository {
+  String logo = '';
   String type = 'DELIVERY';
   String method = 'Cash';
   String paymentStatus = 'PENDING';
@@ -113,6 +141,7 @@ class _Orders implements OrderRepository {
   Future<OrderModel> get(String id) async => OrderModel.fromApi({
     'id': int.parse(id),
     'unit_id': 1,
+    'unit_logo_url': logo,
     'unit_name': 'Açougue do Daniel com nome completo da unidade Centro',
     'status': 'PENDING',
     'delivery_type': type,
