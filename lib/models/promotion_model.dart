@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class PromotionModel {
   final String id;
   final String unitId;
@@ -33,10 +35,13 @@ class PromotionModel {
     this.unitName = '',
   });
 
-  String get formattedPrice =>
-      'R\$${promotionalPrice.toStringAsFixed(2).replaceAll('.', ',')}';
+  String get formattedPrice => NumberFormat.currency(
+    locale: 'pt_BR',
+    symbol: r'R$',
+  ).format(promotionalPrice);
 
-  String get descontoLabel => '${discountPercentage.toStringAsFixed(0)}% OFF';
+  String get descontoLabel =>
+      "${NumberFormat('0.##', 'pt_BR').format(discountPercentage)}% OFF";
 
   PromotionModel copyWith({
     String? productName,

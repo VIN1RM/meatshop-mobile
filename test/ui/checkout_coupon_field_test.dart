@@ -4,6 +4,35 @@ import 'package:meatshop_mobile/ui/widgets/checkout_coupon_field.dart';
 
 void main() {
   testWidgets(
+    'normalizes valid codes and rejects invalid characters before applying',
+    (tester) async {
+      String? submitted;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CheckoutCouponField(
+              code: null,
+              busy: false,
+              discount: 0,
+              onApply: (value) => submitted = value,
+              onDraftChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.enterText(find.byType(TextField), ' carne12 ');
+      await tester.tap(find.text('Aplicar cupom'));
+      expect(submitted, 'CARNE12');
+      submitted = null;
+      await tester.enterText(find.byType(TextField), 'CARNE%');
+      await tester.tap(find.text('Aplicar cupom'));
+      await tester.pump();
+      expect(submitted, isNull);
+      expect(find.textContaining('Use até 50'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'editing an applied coupon hides stale success and requires explicit application',
     (tester) async {
       String? submitted;

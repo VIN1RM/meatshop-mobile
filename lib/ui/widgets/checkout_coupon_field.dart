@@ -31,9 +31,24 @@ class _CheckoutCouponFieldState extends State<CheckoutCouponField> {
     super.dispose();
   }
 
+  String? _validationError;
   void _apply() {
+    if (widget.busy) return;
+    final code = _controller.text.trim().toUpperCase();
+    if (code.isNotEmpty &&
+        (code.length > 50 || !RegExp(r'^[A-Z0-9_-]+$').hasMatch(code))) {
+      setState(
+        () => _validationError =
+            'Use até 50 letras, números, hífen ou sublinhado.',
+      );
+      return;
+    }
+    setState(() {
+      _validationError = null;
+      _controller.text = code;
+    });
     widget.onDraftChanged(false);
-    widget.onApply(_controller.text.trim());
+    widget.onApply(code);
   }
 
   @override
@@ -44,18 +59,20 @@ class _CheckoutCouponFieldState extends State<CheckoutCouponField> {
       TextField(
         controller: _controller,
         enabled: !widget.busy,
+        maxLength: 50,
         textCapitalization: TextCapitalization.characters,
         textInputAction: TextInputAction.done,
         onSubmitted: (_) => _apply(),
         onChanged: (value) {
           widget.onDraftChanged(value.trim() != (widget.code ?? ''));
-          setState(() {});
+          setState(() => _validationError = null);
         },
         decoration: InputDecoration(
           labelText: 'Cupom de desconto',
           hintText: 'Ex.: BEMVINDO10',
           prefixIcon: const Icon(Icons.local_offer_outlined),
-          errorText: widget.error,
+          errorText: _validationError ?? widget.error,
+          counterText: '',
           errorMaxLines: 3,
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(

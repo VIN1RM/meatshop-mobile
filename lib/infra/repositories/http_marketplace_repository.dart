@@ -1,5 +1,6 @@
 import '../../data/repositories/product_images_repository.dart';
 import '../../core/utils/image_urls.dart';
+import '../../core/utils/promotion_pricing.dart';
 import '../../core/config/api_config.dart';
 import '../../core/enums/search_type_enum.dart';
 import '../../core/network/api_failure.dart';
@@ -258,9 +259,11 @@ final class HttpMarketplaceRepository
       title: _string(json, 'title'),
       description: _nullableString(json['description']),
       discountPercentage: discount,
-      promotionalPrice: explicitPrice > 0
-          ? explicitPrice
-          : basePrice * (1 - discount / 100),
+      promotionalPrice: PromotionPricing.price(
+        basePrice,
+        discount,
+        json['promotional_price'] == null ? null : explicitPrice,
+      ),
       startsAt: DateTime.parse(_string(json, 'starts_at')),
       endsAt: DateTime.parse(_string(json, 'ends_at')),
       active: json['active'] == true,

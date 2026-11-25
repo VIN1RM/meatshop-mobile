@@ -1,5 +1,9 @@
 abstract final class ApiErrorLocalizer {
   static const Map<String, String> _messages = {
+    'COUPON_INVALID_VALUE':
+        'Os valores do cupom são inválidos. Confira o pedido e tente novamente.',
+    'COUPON_INVALID_PERCENTAGE': 'O percentual deste cupom é inválido.',
+    'COUPON_INVALID_LIMIT': 'O limite de uso deste cupom é inválido.',
     'UNIT_LOCATION_CONFIRMATION_REQUIRED':
         'A unidade precisa confirmar sua localização no mapa para oferecer entrega. Entre em contato com o açougue ou escolha retirada no balcão.',
     'INVALID_DELIVERY_CODE':
