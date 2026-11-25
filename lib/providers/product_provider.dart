@@ -93,10 +93,13 @@ class ProductsProvider extends ChangeNotifier {
     return list;
   }
 
-  Future<void> loadFirstPage() async {
+  Future<void> loadFirstPage({bool preserveItems = false}) async {
+    final previousItems = List<ProductModel>.of(_items);
+    final previousCursor = _lastDoc;
+    final previousHasMore = _hasMore;
     final generation = ++_generation;
     _isLoadingMore = false;
-    _items.clear();
+    if (!preserveItems) _items.clear();
     _lastDoc = null;
     _hasMore = true;
     _error = null;
@@ -117,13 +120,24 @@ class ProductsProvider extends ChangeNotifier {
       if (_disposed || generation != _generation) return;
       _error = 'Não foi possível carregar as categorias. Tente novamente.';
       debugPrint('[ProductsProvider] category load error: $e');
+      if (preserveItems) {
+        _lastDoc = previousCursor;
+        _hasMore = previousHasMore;
+      }
       _isLoading = false;
       _safeNotify();
       return;
     }
 
     if (_disposed || generation != _generation) return;
-    await _fetchNextPage();
+    await _fetchNextPage(replace: true);
+    if (preserveItems && _error != null && generation == _generation) {
+      _items
+        ..clear()
+        ..addAll(previousItems);
+      _lastDoc = previousCursor;
+      _hasMore = previousHasMore;
+    }
 
     if (_disposed || generation != _generation) return;
     _isLoading = false;
@@ -154,7 +168,7 @@ class ProductsProvider extends ChangeNotifier {
     _safeNotify();
   }
 
-  Future<void> _fetchNextPage() async {
+  Future<void> _fetchNextPage({bool replace = false}) async {
     final generation = _generation;
     final categoryIds = List<String>.of(_categoryIds);
     try {
@@ -188,6 +202,7 @@ class ProductsProvider extends ChangeNotifier {
             );
       final resolved = await _resolveUnitNames(page.items);
       if (_disposed || generation != _generation) return;
+      if (replace) _items.clear();
       final existing = _items.map((item) => item.id).toSet();
       _items.addAll(resolved.where((item) => existing.add(item.id)));
       _lastDoc = page.lastDoc;

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/delivery_earnings_model.dart';
@@ -30,63 +31,69 @@ class EarningsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          _sectionTitle('GANHOS DAS ENTREGAS'),
-          const Text(
-            'Os totais incluem valores a receber. Consulte em cada entrega se o açougue já registrou o pagamento.',
-            style: TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 12),
-          _TodayCard(total: todayTotal, deliveries: todayDeliveries),
-          const SizedBox(height: 20),
-          _sectionTitle('ÚLTIMOS 7 DIAS'),
-          const SizedBox(height: 12),
-          MiniBarChart(
-            bars: List.generate(
-              weekBarValues.length,
-              (i) => BarData(
-                day: DeliveryEarningsProvider.weekDayLabels[i],
-                value: weekBarValues[i],
-              ),
+    return AppRefresh(
+      onRefresh: earningsProvider.load,
+      error: () => earningsProvider.error,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            _sectionTitle('GANHOS DAS ENTREGAS'),
+            const Text(
+              'Os totais incluem valores a receber. Consulte em cada entrega se o açougue já registrou o pagamento.',
+              style: TextStyle(color: Colors.white70),
             ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [_sectionTitle('MINHAS METAS')],
-          ),
-          const SizedBox(height: 12),
-          if (goals.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: AppEmptyState(
-                title: 'Nenhuma meta cadastrada.',
-                icon: Icons.inbox_outlined,
-              ),
-            )
-          else
-            ...goals.map(
-              (g) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: GoalCard(
-                  goal: g,
-                  current: earningsProvider.goalCurrent(g),
-                  onEdit: () => onEditGoal(g),
+            const SizedBox(height: 12),
+            _TodayCard(total: todayTotal, deliveries: todayDeliveries),
+            const SizedBox(height: 20),
+            _sectionTitle('ÚLTIMOS 7 DIAS'),
+            const SizedBox(height: 12),
+            MiniBarChart(
+              bars: List.generate(
+                weekBarValues.length,
+                (i) => BarData(
+                  day: DeliveryEarningsProvider.weekDayLabels[i],
+                  value: weekBarValues[i],
                 ),
               ),
             ),
-          const SizedBox(height: 24),
-          _sectionTitle('GANHOS RECENTES'),
-          const SizedBox(height: 12),
-          _EarningsList(earnings: earnings),
-          const SizedBox(height: 24),
-        ],
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [_sectionTitle('MINHAS METAS')],
+            ),
+            const SizedBox(height: 12),
+            if (goals.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: AppEmptyState(
+                  title: 'Nenhuma meta cadastrada.',
+                  icon: Icons.inbox_outlined,
+                ),
+              )
+            else
+              ...goals.map(
+                (g) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: GoalCard(
+                    goal: g,
+                    current: earningsProvider.goalCurrent(g),
+                    onEdit: () => onEditGoal(g),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+            _sectionTitle('GANHOS RECENTES'),
+            const SizedBox(height: 12),
+            _EarningsList(earnings: earnings),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/core/utils/custom_snackbar.dart';
@@ -108,59 +109,68 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
               children: [
                 const AppHeader(showBack: true),
                 Expanded(
-                  child: provider.loading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFFC0392B),
-                          ),
-                        )
-                      : SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 20),
-                              const _SectionTitle('ENDEREÇOS SALVOS'),
-                              const SizedBox(height: 6),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  'Gerencie os seus endereços de entrega.',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              if (provider.error != null)
-                                Padding(
-                                  padding: const EdgeInsets.all(16),
+                  child: AppRefresh(
+                    onRefresh: () async {
+                      if (_uid != null) await provider.load(_uid!);
+                    },
+                    error: () => provider.error,
+                    child: provider.loading && provider.addresses.isEmpty
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFC0392B),
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 20),
+                                const _SectionTitle('ENDEREÇOS SALVOS'),
+                                const SizedBox(height: 6),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
                                   child: Text(
-                                    provider.error!,
-                                    style: const TextStyle(
-                                      color: Colors.redAccent,
+                                    'Gerencie os seus endereços de entrega.',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
                                     ),
                                   ),
                                 ),
-                              const SizedBox(height: 20),
-                              if (provider.addresses.isEmpty &&
-                                  !provider.loading)
-                                const _EmptyState()
-                              else
-                                ...provider.addresses.map(
-                                  (a) => _AddressCard(
-                                    address: a,
-                                    onSetDefault: () => _setDefault(a),
-                                    onEdit: () => _openAddressSheet(address: a),
-                                    onDelete: () => _confirmDelete(a),
+                                if (provider.error != null)
+                                  Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text(
+                                      provider.error!,
+                                      style: const TextStyle(
+                                        color: Colors.redAccent,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              const SizedBox(height: 24),
-                              _AddNewButton(onTap: () => _openAddressSheet()),
-                              const SizedBox(height: 32),
-                            ],
+                                const SizedBox(height: 20),
+                                if (provider.addresses.isEmpty &&
+                                    !provider.loading)
+                                  const _EmptyState()
+                                else
+                                  ...provider.addresses.map(
+                                    (a) => _AddressCard(
+                                      address: a,
+                                      onSetDefault: () => _setDefault(a),
+                                      onEdit: () =>
+                                          _openAddressSheet(address: a),
+                                      onDelete: () => _confirmDelete(a),
+                                    ),
+                                  ),
+                                const SizedBox(height: 24),
+                                _AddNewButton(onTap: () => _openAddressSheet()),
+                                const SizedBox(height: 32),
+                              ],
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ],
             ),

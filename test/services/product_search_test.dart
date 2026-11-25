@@ -81,6 +81,34 @@ void main() {
       provider.dispose();
     },
   );
+
+  test(
+    'refresh replaces existing product IDs and keeps filters and failed pagination',
+    () async {
+      final service = _Products();
+      final provider = ProductsProvider(
+        categoryName: 'Bovinos',
+        service: service,
+        categoryService: _Categories(),
+        unitService: UnitService(marketplace: _Marketplace()),
+      );
+      await provider.updateSearch('Picanha');
+      await provider.loadMore();
+      expect(provider.items, hasLength(2));
+      await provider.loadFirstPage(preserveItems: true);
+      expect(provider.items, hasLength(1));
+      expect(provider.items.single.id, '1:1');
+      expect(provider.hasMore, isTrue);
+      await provider.loadMore();
+      service.fail = true;
+      await provider.loadFirstPage(preserveItems: true);
+      expect(provider.items, hasLength(2));
+      expect(provider.hasMore, isFalse);
+      expect(provider.error, isNotNull);
+      expect(service.names.every((name) => name == 'Picanha'), isTrue);
+      provider.dispose();
+    },
+  );
 }
 
 class _Marketplace implements MarketplaceRepository {
@@ -101,6 +129,7 @@ class _Categories extends CategoryService {
 
 class _Products extends ProductService {
   _Products() : super(marketplace: _Marketplace());
+  bool fail = false;
   final brands = <String>[];
   final minPrices = <double>[];
   final maxPrices = <double?>[];
@@ -124,6 +153,7 @@ class _Products extends ProductService {
     double? maxPrice,
     int page = 1,
   }) async {
+    if (fail) throw StateError('offline');
     names.add(name);
     brands.add(brand);
     minPrices.add(minPrice);

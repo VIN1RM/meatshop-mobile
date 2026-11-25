@@ -44,6 +44,26 @@ ProductModel product(
 );
 
 class CatalogFixture extends Fake implements MarketplaceRepository {
+  int unitCalls = 0;
+  @override
+  Future<UnitModel> getUnit(String id) async {
+    unitCalls++;
+    return UnitModel(
+      id: id,
+      name: 'Updated butcher',
+      cnpj: '',
+      street: '',
+      number: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      adminId: '1',
+      imageUrl: '',
+      createdAt: DateTime(2026),
+    );
+  }
+
   final calls = <int>[];
   bool failProducts = false;
   bool failCategories = false;
@@ -369,6 +389,31 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets(
+    'refresh updates unit metadata and catalog while retaining search',
+    (tester) async {
+      final fixture = CatalogFixture();
+      await tester.pumpWidget(catalogApp(fixture));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'Alcatra');
+      await tester.pumpAndSettle();
+      final indicator = tester.widget<RefreshIndicator>(
+        find.byType(RefreshIndicator).first,
+      );
+      await indicator.onRefresh();
+      await tester.pumpAndSettle();
+      expect(fixture.unitCalls, 1);
+      expect(find.text('Updated butcher'), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+        'Alcatra',
+      );
+      expect(fixture.calls, [1, 2, 1, 2]);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     },

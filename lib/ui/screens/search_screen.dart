@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -158,7 +159,14 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ),
             ),
-            Expanded(child: _buildBody()),
+            Expanded(
+              child: AppRefresh(
+                onRefresh: context.read<SearchProvider>().refresh,
+                error: () => context.read<SearchProvider>().error,
+                scrollable: context.watch<SearchProvider>().results.isNotEmpty,
+                child: _buildBody(),
+              ),
+            ),
           ],
         ),
       ),
@@ -174,7 +182,7 @@ class _SearchScreenState extends State<SearchScreen> {
             child: CircularProgressIndicator(color: Color(0xFFC0392B)),
           );
         }
-        if (provider.error != null) {
+        if (provider.error != null && provider.isEmpty) {
           return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -196,6 +204,7 @@ class _SearchScreenState extends State<SearchScreen> {
         }
 
         return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 24),
           children: [
             if (provider.categories.isNotEmpty) ...[

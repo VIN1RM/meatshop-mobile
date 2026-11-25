@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:meatshop_mobile/core/utils/product_quantity.dart';
 import 'package:flutter/material.dart';
@@ -64,70 +65,77 @@ class _CartScreenState extends State<CartScreen> {
               children: [
                 const AppHeader(),
                 Expanded(
-                  child: Consumer<CartProvider>(
-                    builder: (_, provider, _) {
-                      if (provider.isLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFFC0392B),
-                          ),
-                        );
-                      }
+                  child: AppRefresh(
+                    onRefresh: context.read<CartProvider>().loadCart,
+                    error: () => context.read<CartProvider>().error,
+                    scrollable: context.watch<CartProvider>().items.isNotEmpty,
+                    child: Consumer<CartProvider>(
+                      builder: (_, provider, _) {
+                        if (provider.isLoading && provider.items.isEmpty) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFC0392B),
+                            ),
+                          );
+                        }
 
-                      if (provider.error != null) {
-                        return Center(
+                        if (provider.error != null && provider.items.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  provider.error!,
+                                  style: const TextStyle(color: Colors.white54),
+                                ),
+                                TextButton(
+                                  onPressed: provider.loadCart,
+                                  child: const Text('Tentar novamente'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        if (provider.items.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: AppEmptyState(
+                              title: 'Seu carrinho está vazio',
+                              icon: Icons.shopping_bag_outlined,
+                              description:
+                                  'Escolha seus cortes favoritos e reúna tudo por aqui.',
+                              actionLabel: 'Explorar açougues',
+                              onAction: () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.butchers,
+                              ),
+                            ),
+                          );
+                        }
+
+                        return SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                provider.error!,
-                                style: const TextStyle(color: Colors.white54),
+                              const SizedBox(height: 20),
+                              _sectionTitle('CARRINHO'),
+                              const SizedBox(height: 16),
+                              ...provider.itemsByUnit.entries.map(
+                                (e) =>
+                                    _buildUnitSection(provider, e.key, e.value),
                               ),
-                              TextButton(
-                                onPressed: provider.loadCart,
-                                child: const Text('Tentar novamente'),
-                              ),
+                              const SizedBox(height: 24),
+                              _buildCheckoutButton(provider),
+                              const SizedBox(height: 24),
                             ],
                           ),
                         );
-                      }
-
-                      if (provider.items.isEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: AppEmptyState(
-                            title: 'Seu carrinho está vazio',
-                            icon: Icons.shopping_bag_outlined,
-                            description:
-                                'Escolha seus cortes favoritos e reúna tudo por aqui.',
-                            actionLabel: 'Explorar açougues',
-                            onAction: () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.butchers,
-                            ),
-                          ),
-                        );
-                      }
-
-                      return SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-                            _sectionTitle('CARRINHO'),
-                            const SizedBox(height: 16),
-                            ...provider.itemsByUnit.entries.map(
-                              (e) =>
-                                  _buildUnitSection(provider, e.key, e.value),
-                            ),
-                            const SizedBox(height: 24),
-                            _buildCheckoutButton(provider),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      );
-                    },
+                      },
+                    ),
                   ),
                 ),
               ],

@@ -17,6 +17,14 @@ class OrderProvider extends ChangeNotifier {
   }) : _repository = repository,
        _realtime = realtime;
 
+  final Set<Future<void> Function()> _orderRefreshers = {};
+  Object? _refreshFailure;
+  Future<void> refreshOrders() async {
+    _refreshFailure = null;
+    await Future.wait(_orderRefreshers.toList().map((refresh) => refresh()));
+    if (_refreshFailure != null) throw _refreshFailure!;
+  }
+
   final OrderRepository _repository;
   final RealtimeRepository? _realtime;
 
@@ -170,11 +178,38 @@ class OrderProvider extends ChangeNotifier {
     return _repository.repeat(orderId);
   }
 
-  Stream<List<OrderModel>> _poll(OrderRepository repository) async* {
-    yield await repository.list();
-    await for (final _ in Stream<void>.periodic(const Duration(seconds: 10))) {
-      yield await repository.list();
+  Stream<List<OrderModel>> _poll(OrderRepository repository) {
+    late StreamController<List<OrderModel>> controller;
+    Timer? timer;
+    Future<void>? pending;
+    bool hasData = false;
+    Future<void> fetch() async {
+      try {
+        final orders = await repository.list();
+        if (!controller.isClosed) {
+          hasData = true;
+          controller.add(orders);
+        }
+      } catch (error, stack) {
+        _refreshFailure = error;
+        if (!controller.isClosed && !hasData) controller.addError(error, stack);
+      }
     }
+
+    Future<void> refresh() =>
+        pending ??= fetch().whenComplete(() => pending = null);
+    controller = StreamController<List<OrderModel>>(
+      onListen: () {
+        _orderRefreshers.add(refresh);
+        refresh();
+        timer = Timer.periodic(const Duration(seconds: 10), (_) => refresh());
+      },
+      onCancel: () {
+        _orderRefreshers.remove(refresh);
+        timer?.cancel();
+      },
+    );
+    return controller.stream;
   }
 
   Stream<List<OrderModel>> _realtimeOrders(
@@ -186,12 +221,12 @@ class OrderProvider extends ChangeNotifier {
     StreamSubscription<RealtimeConnectionState>? connectionSubscription;
     final subscribedOrderIds = <int>{};
     Timer? fallback;
-    bool refreshing = false;
+    Future<void>? pending;
     bool closed = false;
 
-    Future<void> refresh() async {
-      if (refreshing || closed) return;
-      refreshing = true;
+    bool hasData = false;
+    Future<void> fetch() async {
+      if (closed) return;
       try {
         final orders = await repository.list();
         final activeOrders = orders
@@ -216,6 +251,7 @@ class OrderProvider extends ChangeNotifier {
           }
         }
         if (closed || controller.isClosed) return;
+        hasData = true;
         if (active) {
           controller.add(activeOrders);
         } else {
@@ -229,14 +265,16 @@ class OrderProvider extends ChangeNotifier {
           );
         }
       } catch (error, stackTrace) {
-        if (!closed) controller.addError(error, stackTrace);
-      } finally {
-        refreshing = false;
+        _refreshFailure = error;
+        if (!closed && !hasData) controller.addError(error, stackTrace);
       }
     }
 
+    Future<void> refresh() =>
+        pending ??= fetch().whenComplete(() => pending = null);
     controller = StreamController<List<OrderModel>>(
       onListen: () {
+        _orderRefreshers.add(refresh);
         refresh();
         _realtime!.connect();
         fallback = Timer.periodic(
@@ -249,6 +287,7 @@ class OrderProvider extends ChangeNotifier {
         });
       },
       onCancel: () async {
+        _orderRefreshers.remove(refresh);
         closed = true;
         fallback?.cancel();
         await statusSubscription?.cancel();

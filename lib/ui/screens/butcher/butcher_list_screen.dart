@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../core/utils/unit_price_order.dart';
 import 'package:flutter/material.dart';
@@ -244,68 +245,92 @@ class _ButcherListScreenState extends State<ButcherListScreen> {
                       ),
                       Expanded(
                         child: Consumer<UnitProvider>(
-                          builder: (context, provider, _) {
-                            if (provider.loading) {
-                              return const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 16),
-                                child: Center(child: MeatShopLoader()),
-                              );
-                            }
-                            if (provider.error != null) {
-                              return Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text(
-                                      'Não foi possível carregar os açougues.',
-                                      style: TextStyle(color: Colors.white70),
-                                    ),
-                                    TextButton(
-                                      onPressed: provider.loadUnits,
-                                      child: const Text('Tentar novamente'),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-                            if (provider.units.isEmpty) {
-                              return const Center(
-                                child: AppEmptyState(
-                                  title: 'Nenhum açougue disponível.',
-                                  icon: Icons.storefront_outlined,
-                                ),
-                              );
-                            }
-                            final filteredUnits = _applyFilter(
+                          builder: (context, provider, _) => AppRefresh(
+                            onRefresh: provider.loadUnits,
+                            error: () => provider.error,
+                            scrollable: _applyFilter(
                               provider.units,
                               provider,
-                            );
-                            if (filteredUnits.isEmpty) {
-                              return AppEmptyState(
-                                title: _filter.openNowOnly
-                                    ? 'Nenhum açougue aberto agora'
-                                    : 'Nenhum resultado encontrado',
-                                description:
-                                    'Altere os filtros ou a região de busca para encontrar outras unidades.',
-                                icon: Icons.storefront_outlined,
-                                actionLabel: _filterActive
-                                    ? 'Limpar filtros'
-                                    : null,
-                                onAction: _filterActive
-                                    ? () => setState(
-                                        () => _filter = const ButcherFilter(),
-                                      )
-                                    : null,
-                              );
-                            }
-                            return ListView.builder(
-                              physics: const BouncingScrollPhysics(),
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                              itemCount: filteredUnits.length,
-                              itemBuilder: (_, i) =>
-                                  _buildButcherItem(filteredUnits[i], provider),
-                            );
-                          },
+                            ).isNotEmpty,
+                            child: Builder(
+                              builder: (context) {
+                                if (provider.loading &&
+                                    provider.units.isEmpty) {
+                                  return const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: Center(child: MeatShopLoader()),
+                                  );
+                                }
+                                if (provider.error != null &&
+                                    provider.units.isEmpty) {
+                                  return Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'Não foi possível carregar os açougues.',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: provider.loadUnits,
+                                          child: const Text('Tentar novamente'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                                if (provider.units.isEmpty) {
+                                  return const Center(
+                                    child: AppEmptyState(
+                                      title: 'Nenhum açougue disponível.',
+                                      icon: Icons.storefront_outlined,
+                                    ),
+                                  );
+                                }
+                                final filteredUnits = _applyFilter(
+                                  provider.units,
+                                  provider,
+                                );
+                                if (filteredUnits.isEmpty) {
+                                  return AppEmptyState(
+                                    title: _filter.openNowOnly
+                                        ? 'Nenhum açougue aberto agora'
+                                        : 'Nenhum resultado encontrado',
+                                    description:
+                                        'Altere os filtros ou a região de busca para encontrar outras unidades.',
+                                    icon: Icons.storefront_outlined,
+                                    actionLabel: _filterActive
+                                        ? 'Limpar filtros'
+                                        : null,
+                                    onAction: _filterActive
+                                        ? () => setState(
+                                            () =>
+                                                _filter = const ButcherFilter(),
+                                          )
+                                        : null,
+                                  );
+                                }
+                                return ListView.builder(
+                                  physics: const BouncingScrollPhysics(
+                                    parent: AlwaysScrollableScrollPhysics(),
+                                  ),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    8,
+                                    16,
+                                    24,
+                                  ),
+                                  itemCount: filteredUnits.length,
+                                  itemBuilder: (_, i) => _buildButcherItem(
+                                    filteredUnits[i],
+                                    provider,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
                       ),
                     ],

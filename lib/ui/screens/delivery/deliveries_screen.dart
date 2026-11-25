@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'delivery_availability_control.dart';
 import 'location_sharing_consent.dart';
@@ -46,9 +47,17 @@ class DeliveriesTab extends StatelessWidget {
                     const AppHeader(),
                     const DeliveryAvailabilityControl(),
                     Expanded(
-                      child: provider.pendingOrders.isEmpty
-                          ? _buildEmpty(provider)
-                          : _buildOrderList(context, provider),
+                      child: AppRefresh(
+                        onRefresh: () async {
+                          if (!await provider.reloadOrders()) {
+                            throw StateError("Delivery refresh failed");
+                          }
+                        },
+                        scrollable: provider.pendingOrders.isNotEmpty,
+                        child: provider.pendingOrders.isEmpty
+                            ? _buildEmpty(provider)
+                            : _buildOrderList(context, provider),
+                      ),
                     ),
                   ],
                 ),
@@ -105,7 +114,9 @@ class DeliveriesTab extends StatelessWidget {
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            physics: const BouncingScrollPhysics(),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             itemCount: provider.pendingOrders.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (_, i) {

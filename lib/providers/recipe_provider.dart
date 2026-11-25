@@ -19,7 +19,12 @@ class RecipeProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  Future<void> loadAllRecipes() async {
+  Future<RecipeModel> getById(String id) => _repository.getById(id);
+
+  Future<void>? _loadAllRecipesFuture;
+  Future<void> loadAllRecipes() => _loadAllRecipesFuture ??= _loadAllRecipes()
+      .whenComplete(() => _loadAllRecipesFuture = null);
+  Future<void> _loadAllRecipes() async {
     if (_state == RecipeLoadState.loading) return;
     _state = RecipeLoadState.loading;
     _errorMessage = null;

@@ -1,3 +1,4 @@
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:meatshop_mobile/ui/screens/account/chat/chat_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter/material.dart';
@@ -131,6 +132,7 @@ Future<void> _render(
 }
 
 void main() {
+  setUpAll(() => initializeDateFormatting('pt_BR'));
   for (final courier in [false, true]) {
     testWidgets('customer sends first message (courier: $courier)', (
       tester,

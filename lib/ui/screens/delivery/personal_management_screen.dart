@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/core/utils/field_validations.dart';
 import 'expenses_screen.dart';
 import 'package:flutter/material.dart';
@@ -224,25 +225,35 @@ class _PersonalManagementScreenState extends State<PersonalManagementScreen>
                 Expanded(
                   child: Consumer<DeliveryEarningsProvider>(
                     builder: (context, ep, _) {
-                      if (ep.loading) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: _red),
+                      if (ep.loading && !ep.hasLoaded) {
+                        return AppRefresh(
+                          onRefresh: ep.load,
+                          scrollable: false,
+                          error: () => ep.error,
+                          child: const Center(
+                            child: CircularProgressIndicator(color: _red),
+                          ),
                         );
                       }
-                      if (ep.error != null) {
-                        return Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                ep.error!,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              TextButton(
-                                onPressed: ep.load,
-                                child: const Text('Tentar novamente'),
-                              ),
-                            ],
+                      if (ep.error != null && !ep.hasLoaded) {
+                        return AppRefresh(
+                          onRefresh: ep.load,
+                          scrollable: false,
+                          error: () => ep.error,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  ep.error!,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                TextButton(
+                                  onPressed: ep.load,
+                                  child: const Text('Tentar novamente'),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }

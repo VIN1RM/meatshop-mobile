@@ -1,3 +1,4 @@
+import '../../data/repositories/product_details_repository.dart';
 import '../../data/repositories/product_images_repository.dart';
 import '../../core/utils/image_urls.dart';
 import '../../core/utils/promotion_pricing.dart';
@@ -16,7 +17,10 @@ import '../../models/unit_model.dart';
 import '../http/api_client.dart';
 
 final class HttpMarketplaceRepository
-    implements MarketplaceRepository, ProductImagesRepository {
+    implements
+        MarketplaceRepository,
+        ProductImagesRepository,
+        ProductDetailsRepository {
   HttpMarketplaceRepository(this._client, this._config);
   final ApiConfig _config;
   final ApiClient _client;
@@ -43,6 +47,26 @@ final class HttpMarketplaceRepository
       'region': ?region,
     },
     decode: (json) => Page.fromJson(json, _unit),
+  );
+
+  @override
+  Future<ProductModel> getProduct(String id) => _client.get(
+    '/products/$id',
+    authenticated: false,
+    decode: (json) {
+      final data = _map(json);
+      final product = _map(data['product']);
+      return _product({
+        ...product,
+        'images': data['images'] ?? product['images'],
+        'stock_quantity':
+            (data['stock'] is Map ? _map(data['stock'])['quantity'] : null) ??
+            product['stock_quantity'],
+        'unit_name':
+            (product['unit'] is Map ? _map(product['unit'])['name'] : null) ??
+            product['unit_name'],
+      });
+    },
   );
 
   @override

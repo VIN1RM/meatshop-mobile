@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
@@ -55,7 +56,14 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
               children: [
                 const AppHeader(),
                 _buildSubtitle(),
-                Expanded(child: _buildBody(context, provider)),
+                Expanded(
+                  child: AppRefresh(
+                    onRefresh: provider.loadAllRecipes,
+                    error: () => provider.errorMessage,
+                    scrollable: provider.recipes.isNotEmpty,
+                    child: _buildBody(context, provider),
+                  ),
+                ),
               ],
             ),
           ),
@@ -92,6 +100,9 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
   }
 
   Widget _buildBody(BuildContext context, RecipeProvider provider) {
+    if (provider.recipes.isNotEmpty) {
+      return _buildList(context, provider.recipes);
+    }
     switch (provider.state) {
       case RecipeLoadState.loading:
       case RecipeLoadState.idle:
@@ -152,6 +163,7 @@ class _RecipeTipsScreenState extends State<RecipeTipsScreen> {
 
   Widget _buildList(BuildContext context, List<RecipeModel> recipes) {
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
       itemCount: recipes.length,
       itemBuilder: (_, i) => _buildCard(context, recipes[i]),

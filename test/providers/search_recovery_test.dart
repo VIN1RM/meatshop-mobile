@@ -127,4 +127,34 @@ void main() {
     expect(provider.brands, ['Friboi']);
     provider.dispose();
   });
+
+  test(
+    'manual refresh awaits a new search with the selected filters',
+    () async {
+      final repository = SearchRepository()..fail = false;
+      final provider = SearchProvider(
+        service: SearchService(marketplace: repository),
+      );
+      provider.onQueryChanged('Picanha');
+      provider.applyFilters(
+        category: 'Bovinos',
+        brand: 'Friboi',
+        minPrice: 10,
+        maxPrice: 90,
+      );
+      await provider.refresh();
+      expect(provider.query, 'Picanha');
+      expect(repository.searchedCategory, 'Bovinos');
+      expect(repository.searchedBrand, 'Friboi');
+      expect(repository.searchedMinPrice, 10);
+      expect(repository.searchedMaxPrice, 90);
+      expect(provider.isLoading, isFalse);
+      expect(provider.error, isNull);
+      repository.fail = true;
+      await provider.refresh();
+      expect(provider.error, isNotNull);
+      expect(provider.selectedCategory, 'Bovinos');
+      provider.dispose();
+    },
+  );
 }

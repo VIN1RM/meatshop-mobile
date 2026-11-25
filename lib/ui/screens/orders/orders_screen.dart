@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import '../../widgets/customer_order_code_card.dart';
 import '../../widgets/order_contact_actions.dart';
@@ -29,6 +30,21 @@ class OrdersScreen extends StatefulWidget {
 
 class _OrdersScreenState extends State<OrdersScreen> {
   static const Color _red = Color(0xFFC0392B);
+  late final Stream<List<OrderModel>> _activeOrders;
+  final _historyKey = GlobalKey<_FinishedOrdersSectionState>();
+  @override
+  void initState() {
+    super.initState();
+    _activeOrders = context.read<OrderProvider>().activeOrdersStream();
+  }
+
+  Future<void> _refresh() async {
+    await Future.wait([
+      context.read<OrderProvider>().refreshOrders(),
+      if (_historyKey.currentState != null) _historyKey.currentState!.refresh(),
+    ]);
+  }
+
   Future<void> _onReorder(BuildContext context, OrderModel order) async {
     final confirmed = await ReorderConfirmDialog.show(
       context,
@@ -66,7 +82,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orders = context.read<OrderProvider>();
     return Stack(
       children: [
         Positioned(
@@ -88,31 +103,40 @@ class _OrdersScreenState extends State<OrdersScreen> {
             children: [
               const AppHeader(),
               Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      _pageTitle(),
-                      const SizedBox(height: 20),
-                      _groupTitle('Em andamento'),
-                      const SizedBox(height: 10),
-                      _ActiveOrdersSection(
-                        stream: orders.activeOrdersStream(),
-                        onReorder: _onReorder,
-                        red: _red,
-                      ),
-                      const SizedBox(height: 28),
-                      _groupTitle('Finalizados'),
-                      const SizedBox(height: 4),
-                      _groupSubtitle(
-                        'Histórico completo · Concluídos e Cancelados',
-                      ),
-                      const SizedBox(height: 10),
-                      _FinishedOrdersSection(onReorder: _onReorder, red: _red),
-                      const SizedBox(height: 32),
-                    ],
+                child: AppRefresh(
+                  onRefresh: _refresh,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        _pageTitle(),
+                        const SizedBox(height: 20),
+                        _groupTitle('Em andamento'),
+                        const SizedBox(height: 10),
+                        _ActiveOrdersSection(
+                          stream: _activeOrders,
+                          onReorder: _onReorder,
+                          red: _red,
+                        ),
+                        const SizedBox(height: 28),
+                        _groupTitle('Finalizados'),
+                        const SizedBox(height: 4),
+                        _groupSubtitle(
+                          'Histórico completo · Concluídos e Cancelados',
+                        ),
+                        const SizedBox(height: 10),
+                        _FinishedOrdersSection(
+                          key: _historyKey,
+                          onReorder: _onReorder,
+                          red: _red,
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -180,7 +204,7 @@ class _ActiveOrdersSection extends StatelessWidget {
         if (snap.connectionState == ConnectionState.waiting) {
           return const _Loading();
         }
-        if (snap.hasError) return const _ErrorTile();
+        if (snap.hasError && !snap.hasData) return const _ErrorTile();
         final orders = snap.data ?? [];
         if (orders.isEmpty) {
           return const _EmptyTile(message: 'Nenhum pedido em andamento.');
@@ -199,7 +223,11 @@ class _ActiveOrdersSection extends StatelessWidget {
 }
 
 class _FinishedOrdersSection extends StatefulWidget {
-  const _FinishedOrdersSection({required this.onReorder, required this.red});
+  const _FinishedOrdersSection({
+    super.key,
+    required this.onReorder,
+    required this.red,
+  });
   final Future<void> Function(BuildContext, OrderModel) onReorder;
   final Color red;
   @override
@@ -218,16 +246,31 @@ class _FinishedOrdersSectionState extends State<_FinishedOrdersSection> {
     _load();
   }
 
-  Future<void> _load() async {
-    if (_loading || !_hasMore) return;
+  Future<void>? _pending;
+  Future<void> refresh() async {
+    await _pending;
+    if (!mounted) return;
+    await (_pending = _fetch(reset: true));
+    if (_error != null) throw StateError(_error!);
+  }
+
+  Future<void> _load() => _pending = _fetch();
+  Future<void> _fetch({bool reset = false}) async {
+    if (_loading || (!reset && !_hasMore)) return;
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final result = await context.read<OrderProvider>().historyPage(_page);
+      final result = await context.read<OrderProvider>().historyPage(
+        reset ? 0 : _page,
+      );
       if (!mounted) return;
       setState(() {
+        if (reset) {
+          _orders.clear();
+          _page = 0;
+        }
         for (final order in result.orders) {
           _orders[order.id] = order;
         }
@@ -252,7 +295,7 @@ class _FinishedOrdersSectionState extends State<_FinishedOrdersSection> {
           red: widget.red,
           onReorder: widget.onReorder,
         ),
-      if (_loading) const _Loading(),
+      if (_loading && _orders.isEmpty) const _Loading(),
       if (_error != null)
         Text(_error!, style: const TextStyle(color: Colors.white)),
       if (!_loading && _orders.isEmpty && _error == null)

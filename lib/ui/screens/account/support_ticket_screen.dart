@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -90,7 +91,10 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void>? _loadFuture;
+  Future<void> _load() =>
+      _loadFuture ??= _fetch().whenComplete(() => _loadFuture = null);
+  Future<void> _fetch() async {
     if (_refreshing) return;
     _refreshing = true;
     try {
@@ -166,26 +170,27 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
       description: 'Seu atendimento, organizado em uma conversa.',
       dark: true,
       surfaceColor: Colors.transparent,
-      body: ticket == null
-          ? _error == null
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.redPrimary,
-                    ),
-                  )
-                : AppEmptyState(
-                    title: 'Não foi possível abrir o chamado',
-                    description: _error,
-                    icon: Icons.wifi_off_outlined,
-                    actionLabel: 'Tentar novamente',
-                    onAction: _load,
-                  )
-          : RefreshIndicator(
-              color: AppColors.redPrimary,
-              onRefresh: () async {
-                if (!_busy) await _load();
-              },
-              child: ListView(
+      body: AppRefresh(
+        onRefresh: () async {
+          if (!_busy) await _load();
+        },
+        error: () => _error,
+        scrollable: ticket != null,
+        child: ticket == null
+            ? _error == null
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.redPrimary,
+                      ),
+                    )
+                  : AppEmptyState(
+                      title: 'Não foi possível abrir o chamado',
+                      description: _error,
+                      icon: Icons.wifi_off_outlined,
+                      actionLabel: 'Tentar novamente',
+                      onAction: _load,
+                    )
+            : ListView(
                 padding: const EdgeInsets.fromLTRB(0, 4, 0, 24),
                 physics: const AlwaysScrollableScrollPhysics(),
                 keyboardDismissBehavior:
@@ -353,7 +358,7 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
                   ),
                 ],
               ),
-            ),
+      ),
     );
   }
 }

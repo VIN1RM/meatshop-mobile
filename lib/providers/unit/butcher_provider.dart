@@ -157,7 +157,10 @@ class ButcherProvider extends ChangeNotifier {
     return products.values.toList();
   }
 
-  Future<void> loadProducts() async {
+  Future<void>? _loadProductsFuture;
+  Future<void> loadProducts() => _loadProductsFuture ??= _loadProducts()
+      .whenComplete(() => _loadProductsFuture = null);
+  Future<void> _loadProducts() async {
     final generation = ++_generation;
     _isLoading = true;
     _error = null;
@@ -176,15 +179,15 @@ class ButcherProvider extends ChangeNotifier {
     try {
       final values = await Future.wait<Object?>([
         _loadCatalog(),
-        optional(_productService.categoriesForUnit(unitId), <CategoryModel>[]),
+        optional(_productService.categoriesForUnit(unitId), _categories),
         optional(
           _promotionService.fetchActivePromotionsByUnit(unitId: unitId),
-          <PromotionModel>[],
+          _promotions,
         ),
-        optional(_hoursService.fetchToday(unitId), null),
+        optional(_hoursService.fetchToday(unitId), _todayHours),
         optional(
           _reviewService.watchUnitReviews(unitId, limit: 3).first,
-          <ReviewModel>[],
+          _reviews,
         ),
       ]);
       if (_disposed || generation != _generation) return;

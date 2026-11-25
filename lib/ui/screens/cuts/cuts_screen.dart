@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -253,7 +254,15 @@ class _CutsViewState extends State<_CutsView> {
                               ),
                             ),
                           ),
-                          Expanded(child: _buildBody(provider, filterActive)),
+                          Expanded(
+                            child: AppRefresh(
+                              onRefresh: () =>
+                                  provider.loadFirstPage(preserveItems: true),
+                              error: () => provider.error,
+                              scrollable: provider.items.isNotEmpty,
+                              child: _buildBody(provider, filterActive),
+                            ),
+                          ),
                         ],
                       );
                     },
@@ -268,7 +277,7 @@ class _CutsViewState extends State<_CutsView> {
   }
 
   Widget _buildBody(ProductsProvider provider, bool filterActive) {
-    if (provider.isLoading) {
+    if (provider.isLoading && provider.items.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFFC0392B)),
       );
@@ -330,36 +339,31 @@ class _CutsViewState extends State<_CutsView> {
   }
 
   Widget _buildList(ProductsProvider provider) {
-    return RefreshIndicator(
-      color: const Color(0xFFC0392B),
-      backgroundColor: const Color(0xFF3A3A3A),
-      onRefresh: provider.loadFirstPage,
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        itemCount: provider.items.length + (provider.isLoadingMore ? 1 : 0),
-        itemBuilder: (_, index) {
-          if (index == provider.items.length) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Color(0xFFC0392B),
-                  ),
+    return ListView.builder(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      itemCount: provider.items.length + (provider.isLoadingMore ? 1 : 0),
+      itemBuilder: (_, index) {
+        if (index == provider.items.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Color(0xFFC0392B),
                 ),
               ),
-            );
-          }
-          return _buildProductItem(provider.items[index]);
-        },
-      ),
+            ),
+          );
+        }
+        return _buildProductItem(provider.items[index]);
+      },
     );
   }
 

@@ -53,6 +53,29 @@ void main() {
       expect(provider.isLoading, isFalse);
     },
   );
+
+  test(
+    'cart refresh is shared and quantity changes wait for its response',
+    () async {
+      final repository = _FakeCartRepository();
+      final provider = CartProvider(uid: '1', repository: repository);
+      await provider.addItem(_item(productId: '1', unitId: '10'));
+      final pending = Completer<List<CartItemModel>>();
+      repository.pendingCart = pending;
+      final first = provider.loadCart();
+      final second = provider.loadCart();
+      final mutation = provider.updateQuantity('1', 2);
+      await Future<void>.delayed(Duration.zero);
+      expect(repository.getCalls, 1);
+      expect(repository.updateCalls, 0);
+      expect(provider.items, hasLength(2));
+      pending.complete([_item(productId: '1', unitId: '10')]);
+      await Future.wait([first, second, mutation]);
+      expect(repository.updateCalls, 1);
+      expect(provider.items.single.quantity, 2);
+      provider.dispose();
+    },
+  );
 }
 
 CartItemModel _item({required String productId, required String unitId}) =>
@@ -70,6 +93,8 @@ CartItemModel _item({required String productId, required String unitId}) =>
 
 final class _FakeCartRepository implements CartRepository {
   int clearCalls = 0;
+  int getCalls = 0;
+  int updateCalls = 0;
   Completer<List<CartItemModel>>? pendingCart;
 
   @override
@@ -88,14 +113,17 @@ final class _FakeCartRepository implements CartRepository {
   }
 
   @override
-  Future<List<CartItemModel>> getCart() async => pendingCart?.future ?? [];
+  Future<List<CartItemModel>> getCart() async {
+    getCalls++;
+    return pendingCart?.future ?? [];
+  }
 
   @override
   Future<List<CartItemModel>> removeItem(String itemId) async => [];
 
   @override
-  Future<List<CartItemModel>> updateItem(
-    String itemId,
-    double quantity,
-  ) async => [];
+  Future<List<CartItemModel>> updateItem(String itemId, double quantity) async {
+    updateCalls++;
+    return [_item(productId: '1', unitId: '10').copyWith(quantity: quantity)];
+  }
 }

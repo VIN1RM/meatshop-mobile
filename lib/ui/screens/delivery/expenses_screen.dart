@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +34,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void>? _loadFuture;
+  Future<void> _load() =>
+      _loadFuture ??= _fetch().whenComplete(() => _loadFuture = null);
+  Future<void> _fetch() async {
     setState(() {
       _loading = true;
       _error = null;
@@ -115,16 +119,21 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         onPressed: _loading ? null : () => _edit(),
       ),
     ),
-    body: _body(),
+    body: AppRefresh(
+      onRefresh: _load,
+      error: () => _error,
+      scrollable: _result != null,
+      child: _body(),
+    ),
   );
 
   Widget _body() {
-    if (_loading) {
+    if (_loading && _result == null) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.redPrimary),
       );
     }
-    if (_error != null) {
+    if (_error != null && _result == null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -144,33 +153,30 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     return _list();
   }
 
-  Widget _list() => RefreshIndicator(
-    onRefresh: _load,
-    child: ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      children: [
-        ..._overview(),
-        const Text(
-          'Lançamentos',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            letterSpacing: .2,
-          ),
+  Widget _list() => ListView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    children: [
+      ..._overview(),
+      const Text(
+        'Lançamentos',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          letterSpacing: .2,
         ),
-        const SizedBox(height: 12),
-        if (_result?.items.isEmpty ?? true) const ExpenseEmptyState(),
-        for (final expense in _result?.items ?? <DeliveryExpenseModel>[])
-          ExpenseTile(
-            expense: expense,
-            onEdit: () => _edit(expense),
-            onRemove: () => _remove(expense),
-          ),
-        if ((_result?.total ?? 0) > 30) _pagination(),
-      ],
-    ),
+      ),
+      const SizedBox(height: 12),
+      if (_result?.items.isEmpty ?? true) const ExpenseEmptyState(),
+      for (final expense in _result?.items ?? <DeliveryExpenseModel>[])
+        ExpenseTile(
+          expense: expense,
+          onEdit: () => _edit(expense),
+          onRemove: () => _remove(expense),
+        ),
+      if ((_result?.total ?? 0) > 30) _pagination(),
+    ],
   );
 
   List<Widget> _overview() => [

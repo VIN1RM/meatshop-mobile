@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/review_model.dart';
@@ -97,7 +98,14 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
                     ),
                   ),
                 ),
-                Expanded(child: _buildBody()),
+                Expanded(
+                  child: AppRefresh(
+                    onRefresh: _loadReviews,
+                    error: () => _error,
+                    scrollable: _reviews.isNotEmpty,
+                    child: _buildBody(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -107,7 +115,7 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
   }
 
   Widget _buildBody() {
-    if (_error != null) {
+    if (_error != null && _reviews.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -121,7 +129,7 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
         ),
       );
     }
-    if (_isLoading) {
+    if (_isLoading && _reviews.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: Color(0xFFBE2C1B)),
       );
@@ -138,7 +146,9 @@ class _UnitReviewsScreenState extends State<UnitReviewsScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      physics: const BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       itemCount: _reviews.length,
       itemBuilder: (_, i) => ReviewCard(review: _reviews[i], darkMode: false),
     );

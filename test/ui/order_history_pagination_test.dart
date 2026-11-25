@@ -7,6 +7,13 @@ import 'package:meatshop_mobile/models/order_model.dart';
 import 'package:meatshop_mobile/providers/order_provider.dart';
 import 'package:meatshop_mobile/ui/screens/orders/orders_screen.dart';
 
+Finder title(String text) => find.byWidgetPredicate(
+  (widget) =>
+      widget is Text &&
+      widget.data == text &&
+      widget.style?.fontWeight == FontWeight.w700,
+);
+
 void main() {
   testWidgets(
     'history retries the same page, deduplicates orders and ends pagination',
@@ -27,7 +34,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.textContaining('Hist\u00f3rico completo'), findsOneWidget);
-      expect(find.text('Old order 1'), findsOneWidget);
+      expect(title('Old order 1'), findsOneWidget);
       await tester.ensureVisible(find.text('Carregar mais pedidos'));
       await tester.tap(find.text('Carregar mais pedidos'));
       await tester.pumpAndSettle();
@@ -37,12 +44,44 @@ void main() {
       await tester.tap(find.text('Tentar novamente'));
       await tester.pumpAndSettle();
       expect(orders.requested, [0, 1, 1]);
-      expect(find.text('Old order 1'), findsOneWidget);
-      expect(find.text('Old order 2'), findsNothing);
-      expect(find.text('Updated order 2'), findsOneWidget);
-      expect(find.text('Old order 3'), findsOneWidget);
+      expect(title('Old order 1'), findsOneWidget);
+      expect(title('Old order 2'), findsNothing);
+      expect(title('Updated order 2'), findsOneWidget);
+      expect(title('Old order 3'), findsOneWidget);
       expect(find.text('Carregar mais pedidos'), findsNothing);
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'refresh restarts history at the first page and removes stale pages',
+    (tester) async {
+      await initializeDateFormatting('pt_BR');
+      tester.view.physicalSize = const Size(700, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final orders = _PagedOrders()..failed = true;
+      await tester.pumpWidget(
+        ChangeNotifierProvider<OrderProvider>.value(
+          value: orders,
+          child: const MaterialApp(home: Scaffold(body: OrdersScreen())),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Carregar mais pedidos'));
+      await tester.tap(find.text('Carregar mais pedidos'));
+      await tester.pumpAndSettle();
+      expect(title('Old order 3'), findsOneWidget);
+      await tester
+          .widget<RefreshIndicator>(find.byType(RefreshIndicator))
+          .onRefresh();
+      await tester.pumpAndSettle();
+      expect(orders.requested, [0, 1, 0]);
+      expect(title('Old order 3'), findsNothing);
+      expect(title('Old order 1'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      orders.dispose();
     },
   );
 }

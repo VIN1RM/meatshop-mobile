@@ -118,6 +118,32 @@ class SearchProvider extends ChangeNotifier {
     });
   }
 
+  Future<void> refresh() async {
+    _debounce?.cancel();
+    if (!hasCriteria) return;
+    final generation = ++_generation;
+    error = null;
+    try {
+      final results = await _service.search(
+        _query,
+        category: _selectedCategory,
+        minPrice: _minPrice,
+        maxPrice: _maxPrice,
+        brand: _selectedBrand,
+      );
+      if (!_disposed && generation == _generation) _results = results;
+    } catch (_) {
+      if (!_disposed && generation == _generation) {
+        error = 'Não foi possível atualizar a busca. Tente novamente.';
+      }
+    } finally {
+      if (!_disposed && generation == _generation) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
   void applyFilters({
     String? category,
     String? brand,

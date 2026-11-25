@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import '../../components/categories/home_categories.dart';
 import 'package:meatshop_mobile/core/utils/business_clock.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
@@ -77,6 +78,15 @@ class _HomeBodyState extends State<HomeBody> {
     });
   }
 
+  Future<void> _refresh() async {
+    final units = context.read<UnitProvider>();
+    final promotions = context.read<PromotionProvider>();
+    await Future.wait([units.loadUnits(), promotions.loadPromotions()]);
+    if (units.error != null || promotions.error != null) {
+      throw StateError('Home refresh failed');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -135,48 +145,53 @@ class _HomeBodyState extends State<HomeBody> {
                     ),
                   ),
                   Expanded(
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 20),
-                          const HomeCategories(),
-                          const SizedBox(height: 24),
-                          _sectionTitle('PROMOÇÕES'),
-                          const SizedBox(height: 12),
-                          _buildPromocoes(),
-                          const SizedBox(height: 24),
-                          _sectionTitle('AÇOUGUES'),
-                          const UnitLocationSelector(),
-                          const SizedBox(height: 12),
-                          _buildButchers(),
-                          const SizedBox(height: 16),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              right: 16,
-                              bottom: 8,
-                            ),
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: () => Navigator.pushNamed(
-                                  context,
-                                  AppRoutes.butchers,
-                                ),
-                                child: const Text(
-                                  'Ver mais...',
-                                  style: TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                    child: AppRefresh(
+                      onRefresh: _refresh,
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            const HomeCategories(),
+                            const SizedBox(height: 24),
+                            _sectionTitle('PROMOÇÕES'),
+                            const SizedBox(height: 12),
+                            _buildPromocoes(),
+                            const SizedBox(height: 24),
+                            _sectionTitle('AÇOUGUES'),
+                            const UnitLocationSelector(),
+                            const SizedBox(height: 12),
+                            _buildButchers(),
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                right: 16,
+                                bottom: 8,
+                              ),
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: GestureDetector(
+                                  onTap: () => Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.butchers,
+                                  ),
+                                  child: const Text(
+                                    'Ver mais...',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 255, 255, 255),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
+                            const SizedBox(height: 12),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -207,7 +222,7 @@ class _HomeBodyState extends State<HomeBody> {
   Widget _buildPromocoes() {
     return Consumer<PromotionProvider>(
       builder: (context, provider, _) {
-        if (provider.isLoading) {
+        if (provider.isLoading && provider.promotions.isEmpty) {
           return const SizedBox(
             height: 210,
             child: Center(
@@ -395,7 +410,7 @@ class _HomeBodyState extends State<HomeBody> {
   Widget _buildButchers() {
     return Consumer<UnitProvider>(
       builder: (context, provider, _) {
-        if (provider.loading) {
+        if (provider.loading && provider.units.isEmpty) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(child: MeatShopLoader()),

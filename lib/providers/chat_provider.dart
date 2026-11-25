@@ -81,7 +81,19 @@ class ChatListProvider extends ChangeNotifier {
   Future<void> retry() => _moreFailed ? loadMore() : refresh();
   Future<void> loadMore() => _loadBackend(more: true, silent: true);
 
-  Future<void> _loadBackend({bool silent = false, bool more = false}) async {
+  Future<void>? _inboxRequest;
+  Future<void> _loadBackend({bool silent = false, bool more = false}) {
+    if (_inboxRequest != null) {
+      if (!more) _refreshQueued = true;
+      return _inboxRequest!;
+    }
+    return _inboxRequest = _fetchBackend(silent: silent, more: more)
+        .whenComplete(() {
+          _inboxRequest = null;
+        });
+  }
+
+  Future<void> _fetchBackend({bool silent = false, bool more = false}) async {
     if (_fetching) {
       if (!more) _refreshQueued = true;
       return;
@@ -143,7 +155,12 @@ class ChatListProvider extends ChangeNotifier {
         notifyListeners();
         if (_refreshQueued) {
           _refreshQueued = false;
-          unawaited(_loadBackend(silent: true));
+          unawaited(
+            Future<void>.microtask(() async {
+              await _inboxRequest;
+              await _loadBackend(silent: true);
+            }),
+          );
         }
       }
     }

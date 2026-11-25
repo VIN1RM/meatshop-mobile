@@ -160,11 +160,13 @@ class UnitProvider extends ChangeNotifier {
         region: _region,
       );
       if (version != _loadVersion) return;
-      _units = units;
       final hours = await _hoursService.fetchAllToday(
         units.map((u) => u.id).toList(),
       );
-      if (version == _loadVersion) _hoursMap = hours;
+      if (version == _loadVersion) {
+        _units = units;
+        _hoursMap = hours;
+      }
     } catch (e) {
       if (version == _loadVersion) {
         _error = e is ApiFailure

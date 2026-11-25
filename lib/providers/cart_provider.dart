@@ -38,8 +38,22 @@ class CartProvider extends ChangeNotifier {
 
   bool isUnitOpen(String unitId) => _unitOpenStatus[unitId] ?? true;
 
-  Future<void> loadCart() async {
-    final generation = ++_generation;
+  Future<void> _operations = Future<void>.value();
+  Future<void>? _loadFuture;
+  Future<void> _enqueue(Future<void> Function() operation) {
+    final generation = _generation;
+    final next = _operations.then((_) async {
+      if (generation == _generation) await operation();
+    });
+    _operations = next.catchError((Object _) {});
+    return next;
+  }
+
+  Future<void> loadCart() => _loadFuture ??= _enqueue(
+    _loadCart,
+  ).whenComplete(() => _loadFuture = null);
+  Future<void> _loadCart() async {
+    final generation = _generation;
     _setLoading(true);
     try {
       final items = await _repository.getCart();
@@ -122,7 +136,9 @@ class CartProvider extends ChangeNotifier {
     return null;
   }
 
-  Future<void> _mutate(Future<void> Function() operation) async {
+  Future<void> _mutate(Future<void> Function() operation) =>
+      _enqueue(() => _applyMutation(operation));
+  Future<void> _applyMutation(Future<void> Function() operation) async {
     final generation = _generation;
     _error = null;
     try {

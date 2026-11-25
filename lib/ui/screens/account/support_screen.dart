@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'support_ticket_screen.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../widgets/account_page.dart';
@@ -25,7 +26,10 @@ class _SupportScreenState extends State<SupportScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void>? _loadFuture;
+  Future<void> _load() =>
+      _loadFuture ??= _fetch().whenComplete(() => _loadFuture = null);
+  Future<void> _fetch() async {
     setState(() {
       _loading = true;
       _error = null;
@@ -69,19 +73,21 @@ class _SupportScreenState extends State<SupportScreen> {
         onPressed: _create,
       ),
     ),
-    body: _loading
-        ? const Center(child: CircularProgressIndicator())
-        : _error != null
-        ? AppEmptyState(
-            title: 'Não foi possível carregar os chamados',
-            description: _error,
-            icon: Icons.wifi_off_outlined,
-            actionLabel: 'Tentar novamente',
-            onAction: _load,
-          )
-        : RefreshIndicator(
-            onRefresh: _load,
-            child: ListView(
+    body: AppRefresh(
+      onRefresh: _load,
+      error: () => _error,
+      scrollable: (!_loading && _error == null) || _tickets.isNotEmpty,
+      child: _loading && _tickets.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null && _tickets.isEmpty
+          ? AppEmptyState(
+              title: 'Não foi possível carregar os chamados',
+              description: _error,
+              icon: Icons.wifi_off_outlined,
+              actionLabel: 'Tentar novamente',
+              onAction: _load,
+            )
+          : ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
               children: [
@@ -158,7 +164,7 @@ class _SupportScreenState extends State<SupportScreen> {
                   ),
               ],
             ),
-          ),
+    ),
   );
 }
 

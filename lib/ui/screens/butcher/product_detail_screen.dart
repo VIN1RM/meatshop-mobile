@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
+import '../../../data/repositories/product_details_repository.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../../../data/repositories/product_images_repository.dart';
 import '../account/image_gallery_screen.dart';
@@ -49,6 +51,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   bool _isEditingCart = false;
   bool _loaded = false;
+  ProductModel? _currentProduct;
+  Future<void> _refreshProduct(ProductModel previous) async {
+    final repository = context.read<MarketplaceContext>().repository;
+    if (repository is! ProductDetailsRepository) {
+      throw StateError('Product details are unavailable');
+    }
+    final product = await (repository as ProductDetailsRepository).getProduct(
+      previous.id,
+    );
+    final reviews = await ReviewService(
+      marketplace: repository,
+    ).watchProductReviews(previous.id, limit: 3).first;
+    if (!mounted) return;
+    setState(() {
+      _currentProduct = product;
+      _reviews = reviews;
+    });
+  }
+
   List<ReviewModel> _reviews = [];
 
   @override
@@ -158,9 +179,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final ProductModel? product;
 
     if (args is Map<String, dynamic>) {
-      product = args['product'] as ProductModel?;
+      product = _currentProduct ?? args['product'] as ProductModel?;
     } else {
-      product = args as ProductModel?;
+      product = _currentProduct ?? args as ProductModel?;
     }
 
     if (product == null) {
@@ -184,18 +205,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Column(
             children: [
               Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeroBanner(product),
-                      _buildProductInfo(product),
-                      const SizedBox(height: 8),
-                      _buildQuantitySection(product),
-                      _buildReviewsSection(context, product),
-                      const SizedBox(height: 100),
-                    ],
+                child: AppRefresh(
+                  onRefresh: () => _refreshProduct(product!),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeroBanner(product),
+                        _buildProductInfo(product),
+                        const SizedBox(height: 8),
+                        _buildQuantitySection(product),
+                        _buildReviewsSection(context, product),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
                   ),
                 ),
               ),

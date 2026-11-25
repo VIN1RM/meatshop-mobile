@@ -13,6 +13,43 @@ import 'package:meatshop_mobile/infra/repositories/http_marketplace_repository.d
 
 void main() {
   test(
+    'refreshes the full product including separate stock, unit and gallery',
+    () async {
+      final repository = _repository(
+        MockClient((request) async {
+          expect(request.url.path, '/products/12');
+          expect(request.headers.containsKey('authorization'), isFalse);
+          return http.Response(
+            jsonEncode({
+              'product': {
+                'id': 12,
+                'name': 'Picanha',
+                'price': '65.90',
+                'unit_of_measure': 'KG',
+                'active': true,
+                'unit_id': 9,
+                'category_id': 1,
+                'unit': {'name': 'Vila Nobre'},
+              },
+              'stock': {'quantity': '7.25'},
+              'images': [
+                {'image_url': '/uploads/product.png'},
+              ],
+            }),
+            200,
+          );
+        }),
+      );
+      final product = await repository.getProduct('12');
+      expect(product.id, '12');
+      expect(product.price, 65.90);
+      expect(product.stockQuantity, 7.25);
+      expect(product.unitName, 'Vila Nobre');
+      expect(product.galleryUrls.single, endsWith('/uploads/product.png'));
+    },
+  );
+
+  test(
     'loads every product image and resolves relative URLs without duplicating the cover',
     () async {
       final repository = _repository(

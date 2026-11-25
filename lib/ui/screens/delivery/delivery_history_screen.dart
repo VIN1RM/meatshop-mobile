@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'package:intl/intl.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import 'package:flutter/material.dart';
@@ -49,8 +50,15 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                 child: Column(
                   children: [
                     const AppHeader(),
-                    _HistoryHeader(onRefresh: provider.loadHistory),
-                    Expanded(child: _HistoryBody(provider: provider)),
+                    const _HistoryHeader(),
+                    Expanded(
+                      child: AppRefresh(
+                        onRefresh: provider.loadHistory,
+                        error: () => provider.historyError,
+                        scrollable: provider.historyOrders.isNotEmpty,
+                        child: _HistoryBody(provider: provider),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -63,9 +71,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
 }
 
 class _HistoryHeader extends StatelessWidget {
-  const _HistoryHeader({required this.onRefresh});
-
-  final VoidCallback onRefresh;
+  const _HistoryHeader();
 
   @override
   Widget build(BuildContext context) {
@@ -84,11 +90,6 @@ class _HistoryHeader extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            onPressed: onRefresh,
-            icon: const Icon(Icons.refresh, color: Colors.white54, size: 20),
-            tooltip: 'Atualizar',
-          ),
         ],
       ),
     );
@@ -102,11 +103,11 @@ class _HistoryBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (provider.isLoadingHistory) {
+    if (provider.isLoadingHistory && provider.historyOrders.isEmpty) {
       return const _LoadingHistory();
     }
 
-    if (provider.historyError != null) {
+    if (provider.historyError != null && provider.historyOrders.isEmpty) {
       return _ErrorHistory(
         message: provider.historyError!,
         onRetry: provider.loadHistory,
@@ -189,6 +190,7 @@ class _HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       itemCount: orders.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),

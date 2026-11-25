@@ -284,7 +284,10 @@ class DeliveryProvider extends ChangeNotifier {
     );
   }
 
-  Future<void> loadHistory() async {
+  Future<void>? _loadHistoryFuture;
+  Future<void> loadHistory() => _loadHistoryFuture ??= _loadHistory()
+      .whenComplete(() => _loadHistoryFuture = null);
+  Future<void> _loadHistory() async {
     if (_deliveryPersonUid == null || _deliveryPersonUid!.isEmpty) return;
 
     _isLoadingHistory = true;

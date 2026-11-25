@@ -1,3 +1,4 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
 import 'butcher_catalog_controls.dart';
 import 'package:meatshop_mobile/ui/widgets/app_empty_state.dart';
 import '../account/image_gallery_screen.dart';
@@ -52,7 +53,8 @@ class ButcherDetailScreen extends StatelessWidget {
 
 class _ButcherDetailView extends StatelessWidget {
   final UnitModel unit;
-  const _ButcherDetailView({required this.unit});
+  const _ButcherDetailView({required this.unit, required this.onRefresh});
+  final Future<void> Function() onRefresh;
 
   static const Color _red = Color(0xFFBE2C1B);
   static const Color _pageBg = Color(0xFFEFEFEF);
@@ -63,12 +65,7 @@ class _ButcherDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final catalog = context.watch<ButcherProvider>();
-    if (catalog.isLoading) {
-      return Scaffold(
-        backgroundColor: _pageBg,
-        body: _ButcherDetailShimmer(hasCover: unit.coverUrl.isNotEmpty),
-      );
-    }
+
     return Scaffold(
       backgroundColor: _pageBg,
       body: Stack(
@@ -76,103 +73,108 @@ class _ButcherDetailView extends StatelessWidget {
           Column(
             children: [
               Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeroBanner(context, unit),
-                      _buildInfoCard(unit),
-                      if (unit.allImageUrls.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                          child: Center(
-                            child: FilledButton.icon(
-                              onPressed: () => ImageGalleryScreen.show(
-                                context,
-                                images: unit.allImageUrls,
-                                title: unit.name,
-                              ),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: _red,
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size(0, 48),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 14,
+                child: AppRefresh(
+                  onRefresh: onRefresh,
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeroBanner(context, unit),
+                        _buildInfoCard(unit),
+                        if (unit.allImageUrls.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                            child: Center(
+                              child: FilledButton.icon(
+                                onPressed: () => ImageGalleryScreen.show(
+                                  context,
+                                  images: unit.allImageUrls,
+                                  title: unit.name,
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: _red,
+                                  foregroundColor: Colors.white,
+                                  minimumSize: const Size(0, 48),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
                                 ),
-                              ),
-                              icon: const Icon(
-                                Icons.photo_library_outlined,
-                                size: 20,
-                              ),
-                              label: Text(
-                                'Ver fotos do açougue (${unit.allImageUrls.length})',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
+                                icon: const Icon(
+                                  Icons.photo_library_outlined,
+                                  size: 20,
+                                ),
+                                label: Text(
+                                  'Ver fotos do açougue (${unit.allImageUrls.length})',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      if (catalog.warning != null)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  catalog.warning!,
-                                  style: const TextStyle(
-                                    color: _textGray,
-                                    fontSize: 12,
+                        if (catalog.warning != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    catalog.warning!,
+                                    style: const TextStyle(
+                                      color: _textGray,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              TextButton(
-                                onPressed: catalog.loadProducts,
-                                child: const Text('Tentar novamente'),
-                              ),
-                            ],
+                                TextButton(
+                                  onPressed: catalog.loadProducts,
+                                  child: const Text('Tentar novamente'),
+                                ),
+                              ],
+                            ),
                           ),
+                        if (catalog.error != null)
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: AppEmptyState(
+                              brightness: Brightness.light,
+                              title: catalog.error!,
+                              icon: Icons.wifi_off_rounded,
+                              actionLabel: 'Tentar novamente',
+                              onAction: catalog.loadProducts,
+                            ),
+                          )
+                        else ...[
+                          if (catalog.promotions.isNotEmpty) ...[
+                            const SizedBox(height: 28),
+                            _buildPromocoesSection(context),
+                          ],
+                          if (catalog.hasCatalog) ...[
+                            const SizedBox(height: 28),
+                            _buildSectionTitle('Produtos'),
+                            const ButcherCatalogControls(),
+                            const SizedBox(height: 16),
+                            _buildProductList(context),
+                          ],
+                          if (catalog.reviews.isNotEmpty) ...[
+                            const SizedBox(height: 28),
+                            _buildReviewsSection(context),
+                          ],
+                        ],
+                        SizedBox(
+                          height: context.watch<CartProvider>().items.isEmpty
+                              ? 32
+                              : 120,
                         ),
-                      if (catalog.error != null)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: AppEmptyState(
-                            brightness: Brightness.light,
-                            title: catalog.error!,
-                            icon: Icons.wifi_off_rounded,
-                            actionLabel: 'Tentar novamente',
-                            onAction: catalog.loadProducts,
-                          ),
-                        )
-                      else ...[
-                        if (catalog.promotions.isNotEmpty) ...[
-                          const SizedBox(height: 28),
-                          _buildPromocoesSection(context),
-                        ],
-                        if (catalog.hasCatalog) ...[
-                          const SizedBox(height: 28),
-                          _buildSectionTitle('Produtos'),
-                          const ButcherCatalogControls(),
-                          const SizedBox(height: 16),
-                          _buildProductList(context),
-                        ],
-                        if (catalog.reviews.isNotEmpty) ...[
-                          const SizedBox(height: 28),
-                          _buildReviewsSection(context),
-                        ],
                       ],
-                      SizedBox(
-                        height: context.watch<CartProvider>().items.isEmpty
-                            ? 32
-                            : 120,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -823,6 +825,17 @@ class _ButcherDetailLoader extends StatefulWidget {
 
 class _ButcherDetailLoaderState extends State<_ButcherDetailLoader> {
   late Future<void> _loader;
+  UnitModel? _currentUnit;
+  Future<void> _refresh() async {
+    final repository = context.read<MarketplaceContext>().repository;
+    final provider = context.read<ButcherProvider>();
+    final unit = await repository.getUnit(widget.unit.id);
+    await provider.loadProducts();
+    if (mounted) setState(() => _currentUnit = unit);
+    if (provider.error != null || provider.warning != null) {
+      throw StateError('Unit refresh failed');
+    }
+  }
 
   @override
   void initState() {
@@ -844,7 +857,10 @@ class _ButcherDetailLoaderState extends State<_ButcherDetailLoader> {
             ),
           );
         }
-        return _ButcherDetailView(unit: widget.unit);
+        return _ButcherDetailView(
+          unit: _currentUnit ?? widget.unit,
+          onRefresh: _refresh,
+        );
       },
     );
   }

@@ -129,7 +129,12 @@ class DeliveryEarningsProvider extends ChangeNotifier
     notifyListeners();
   }
 
-  Future<void> load() async {
+  bool _hasLoaded = false;
+  bool get hasLoaded => _hasLoaded;
+  Future<void>? _loadFuture;
+  Future<void> load() =>
+      _loadFuture ??= _load().whenComplete(() => _loadFuture = null);
+  Future<void> _load() async {
     if (loading) return;
     final generation = ++_generation;
     error = null;
@@ -142,6 +147,7 @@ class DeliveryEarningsProvider extends ChangeNotifier
         repository.goals(),
       ]);
       if (generation != _generation) return;
+      _hasLoaded = true;
       _earnings = values[0] as List<DeliveryEarningModel>;
       _goals = values[1] as List<DeliveryGoalModel>;
     } catch (error) {
@@ -157,6 +163,7 @@ class DeliveryEarningsProvider extends ChangeNotifier
   }
 
   void clear() {
+    _hasLoaded = false;
     stopUpdates();
     error = null;
     ++_generation;

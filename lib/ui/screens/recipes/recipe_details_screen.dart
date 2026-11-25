@@ -1,3 +1,5 @@
+import 'package:meatshop_mobile/ui/widgets/app_refresh.dart';
+import 'package:meatshop_mobile/providers/recipe_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:meatshop_mobile/models/recipe_model.dart';
 import 'package:meatshop_mobile/routes/app_routes.dart';
@@ -6,56 +8,73 @@ import 'package:meatshop_mobile/data/repositories/marketplace_context.dart';
 import 'package:provider/provider.dart';
 import 'package:meatshop_mobile/models/product_model.dart';
 
-class RecipeDetailsScreen extends StatelessWidget {
+class RecipeDetailsScreen extends StatefulWidget {
   const RecipeDetailsScreen({super.key, required this.recipe});
 
   final RecipeModel recipe;
+  @override
+  State<RecipeDetailsScreen> createState() => _RecipeDetailsScreenState();
+}
+
+class _RecipeDetailsScreenState extends State<RecipeDetailsScreen> {
+  RecipeModel? _currentRecipe;
+  RecipeModel get recipe => _currentRecipe ?? widget.recipe;
+  Future<void> _refresh() async {
+    final updated = await context.read<RecipeProvider>().getById(recipe.id);
+    if (mounted) setState(() => _currentRecipe = updated);
+  }
+
   static const Color _bg = Color(0xFF2E2E2E);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _RecipeAppBar(recipe: recipe),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _TagAndTitle(recipe: recipe),
-                  const SizedBox(height: 12),
-                  _Description(text: recipe.description),
-                  if (recipe.videoUrl.isNotEmpty) ...[
-                    const SizedBox(height: 20),
-                    _VideoButton(url: recipe.videoUrl),
+      body: AppRefresh(
+        onRefresh: _refresh,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          slivers: [
+            _RecipeAppBar(recipe: recipe),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _TagAndTitle(recipe: recipe),
+                    const SizedBox(height: 12),
+                    _Description(text: recipe.description),
+                    if (recipe.videoUrl.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      _VideoButton(url: recipe.videoUrl),
+                    ],
+                    if (recipe.featuredProduct != null) ...[
+                      const SizedBox(height: 24),
+                      _FeaturedProductBanner(product: recipe.featuredProduct!),
+                    ],
+                    const SizedBox(height: 28),
+                    _SectionHeader(
+                      icon: Icons.shopping_basket_outlined,
+                      label: 'Ingredientes',
+                    ),
+                    const SizedBox(height: 12),
+                    _IngredientsList(ingredients: recipe.ingredients),
+                    const SizedBox(height: 28),
+                    _SectionHeader(
+                      icon: Icons.format_list_numbered_rounded,
+                      label: 'Modo de preparo',
+                    ),
+                    const SizedBox(height: 12),
+                    _StepsList(steps: recipe.steps),
                   ],
-                  if (recipe.featuredProduct != null) ...[
-                    const SizedBox(height: 24),
-                    _FeaturedProductBanner(product: recipe.featuredProduct!),
-                  ],
-                  const SizedBox(height: 28),
-                  _SectionHeader(
-                    icon: Icons.shopping_basket_outlined,
-                    label: 'Ingredientes',
-                  ),
-                  const SizedBox(height: 12),
-                  _IngredientsList(ingredients: recipe.ingredients),
-                  const SizedBox(height: 28),
-                  _SectionHeader(
-                    icon: Icons.format_list_numbered_rounded,
-                    label: 'Modo de preparo',
-                  ),
-                  const SizedBox(height: 12),
-                  _StepsList(steps: recipe.steps),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
